@@ -1,0 +1,64 @@
+{
+    "name": "open-telemetry/opentelemetry",
+    "description": "OpenTelemetry makes robust, portable telemetry a built-in feature of cloud-native software.",
+    "type": "library",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^7.3 || ^8.0",
+        "ext-json": "*",
+        "promphp/prometheus_client_php": "^2.2.1",
+        "grpc/grpc": "^1.30",
+        "google/protobuf": "^v3.3.0",
+        "psr/http-client-implementation": "^1.0",
+        "psr/http-factory-implementation": "^1.0"
+    },
+    "authors": [
+        {
+            "name": "Bob Strecansky",
+            "email": "bob.strecansky@gmail.com"
+        },
+        {
+            "name": "Dmitry Krokhin",
+            "email": "nekufa@gmail.com"
+        },
+        {
+            "name": "Levi Morrison",
+            "email": "levim@php.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Context\\": "Context",
+            "OpenTelemetry\\": "api",
+            "OpenTelemetry\\Sdk\\": "sdk",
+            "OpenTelemetry\\Contrib\\": "contrib",
+            "Opentelemetry\\Proto\\Collector\\Trace\\V1\\": "proto/Opentelemetry/Proto/Collector/Trace/V1",
+            "Opentelemetry\\Proto\\Trace\\V1\\":"proto/Opentelemetry/Proto/Trace/V1",
+            "Opentelemetry\\Proto\\Common\\V1\\":"proto/Opentelemetry/Proto/Common/V1",
+            "Opentelemetry\\Proto\\Resource\\V1\\":"proto/Opentelemetry/Proto/Resource/V1",
+            "GPBMetadata\\Opentelemetry\\Proto\\Collector\\Trace\\V1\\": "proto/GPBMetadata/Opentelemetry/Proto/Collector/Trace/V1",
+            "GPBMetadata\\Opentelemetry\\Proto\\Trace\\V1\\":"proto/GPBMetadata/Opentelemetry/Proto/Trace/V1",
+            "GPBMetadata\\Opentelemetry\\Proto\\Common\\V1\\":"proto/GPBMetadata/Opentelemetry/Proto/Common/V1",
+            "GPBMetadata\\Opentelemetry\\Proto\\Resource\\V1\\":"proto/GPBMetadata/Opentelemetry/Proto/Resource/V1"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.3",
+        "composer/xdebug-handler": "^1.3",
+        "phan/phan": "^3.0",
+        "friendsofphp/php-cs-fixer": "^2.18",
+        "vimeo/psalm": "^4.0",
+        "phpstan/phpstan": "^0.12.50",
+        "phpstan/phpstan-phpunit": "^0.12.16",
+        "psalm/plugin-phpunit": "^0.13.0",
+        "guzzlehttp/guzzle": "^7.3",
+        "guzzlehttp/psr7": "^2.0@RC",
+        "symfony/http-client": "^5.2",
+        "nyholm/psr7": "^1.4"
+    }
+}

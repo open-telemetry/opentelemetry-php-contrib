@@ -1,0 +1,13 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+    tmpDir: var/cache/phpstan
+    level: 5
+    paths:
+        - .
+    excludes_analyse:
+        - var
+        - vendor
+        - proto
+        - tests/TraceContext/W3CTestService

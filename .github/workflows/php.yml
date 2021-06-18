@@ -1,0 +1,64 @@
+
+name: PHP Composer
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+        php-versions: ['7.3', '7.4', '8.0']
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        coverage: xdebug
+        tools: php-cs-fixer
+        extensions: ast, grpc
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v2
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.json') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Check Style
+      run: vendor/bin/php-cs-fixer fix --config=.php_cs -v --dry-run --stop-on-violation --using-cache=no
+
+    - name: Run Phan
+      env:
+        PHAN_DISABLE_XDEBUG_WARN: 1
+      run: vendor/bin/phan
+
+    - name: Run Psalm
+      run: vendor/bin/psalm --output-format=github
+
+    - name: Run Phpstan
+      run: vendor/bin/phpstan analyse --error-format=github
+
+    - name: Run PHPUnit
+      run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
+
+    - name: Code Coverage
+      run: bash <(curl -s https://codecov.io/bash)
