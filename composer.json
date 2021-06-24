@@ -15,12 +15,18 @@
     ],
     "autoload": {
         "classmap": [
-            "src/"
+            "detectors/",
+            "exporters/",
+            "instrumentation/",
+            "propagators/"
         ] 
     },
     "autoload-dev": {
         "classmap": [
-            "src/"
+            "detectors/",
+            "exporters/",
+            "instrumentation/",
+            "propagators/"
         ] 
     },
     "require-dev": {
