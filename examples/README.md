@@ -1,1 +1,1 @@
-Readme for detectors (temporary file)
+Readme for examples (temporary file)
