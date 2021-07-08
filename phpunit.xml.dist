@@ -25,7 +25,10 @@
 
     <coverage processUncoveredFiles="true">
         <include>
-            <directory>src</directory>
+            <directory>detectors</directory>
+            <directory>exporters</directory>
+            <directory>instrumentation</directory>
+            <directory>propagators</directory>
         </include>
     </coverage>
 
