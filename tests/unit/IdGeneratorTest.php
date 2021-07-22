@@ -16,7 +16,7 @@ class AwsXrayIdGeneratorTest extends TestCase
         $idGenerator = new AwsXrayIdGenerator();
         $traceId = $idGenerator->generateTraceId();
 
-        $this->assertEquals(1, preg_match(SpanContext::VALID_TRACE, $traceId));
+        $this->assertEquals(1, SpanContext::isValidTraceId($traceId));
     }
     
     /**
@@ -29,17 +29,6 @@ class AwsXrayIdGeneratorTest extends TestCase
         $traceId2 = $idGenerator->generateTraceId();
 
         $this->assertFalse($traceId2 === $traceId1);
-    }
-
-    /**
-     * @test
-     */
-    public function GeneratedTraceIdIsNotNull()
-    {
-        $idGenerator = new AwsXrayIdGenerator();
-        $traceId = $idGenerator->generateTraceId();
-
-        $this->assertNotNull($traceId);
     }
 
     /**
@@ -65,6 +54,6 @@ class AwsXrayIdGeneratorTest extends TestCase
         $idGenerator = new AwsXrayIdGenerator();
         $spanId = $idGenerator->generateSpanId();
 
-        $this->assertEquals(1, preg_match(SpanContext::VALID_SPAN, $spanId));
+        $this->assertEquals(1, SpanContext::isValidSpanId($spanId));
     }
 }

@@ -31,6 +31,8 @@ class AwsXrayIdGenerator implements IdGenerator
 {
     private const TRACE_ID_RANDOM_HEX_LENGTH = 24;
 
+    private RandomIdGenerator $randomIdGenerator;
+
     /**
      * Constructor creates randomIdGenerator instance
      */
