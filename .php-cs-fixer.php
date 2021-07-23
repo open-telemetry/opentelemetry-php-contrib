@@ -5,8 +5,8 @@ $finder = PhpCsFixer\Finder::create()
     ->exclude('proto')
     ->in(__DIR__);
 
-return PhpCsFixer\Config::create()
-    ->setRules([
+$config = new PhpCsFixer\Config();
+return $config->setRules([
 	'concat_space' => ['spacing' => 'one'],
 	'declare_equal_normalize' => ['space' => 'none'],
 	'is_null' => true,
@@ -18,7 +18,6 @@ return PhpCsFixer\Config::create()
         '@PSR2' => true,
         'array_syntax' => ['syntax' => 'short'],
         'blank_line_after_opening_tag' => true,
-        'blank_line_before_return' => true,
         'blank_line_before_statement' => true,
         'cast_spaces' => true,
         'declare_strict_types' => true,
@@ -26,9 +25,9 @@ return PhpCsFixer\Config::create()
         'include' => true,
         'lowercase_cast' => true,
         'new_with_braces' => true,
-        'no_extra_consecutive_blank_lines' => true,
+        'no_extra_blank_lines' => true,
         'no_leading_import_slash' => true,
-        'no_short_echo_tag' => true,
+        'echo_tag_syntax' => true,
         'no_unused_imports' => true,
         'no_useless_else' => true,
         'no_useless_return' => true,
@@ -39,7 +38,8 @@ return PhpCsFixer\Config::create()
         'short_scalar_cast' => true,
         'single_blank_line_before_namespace' => true,
         'single_quote' => true,
-        'trailing_comma_in_multiline_array' => true,
+        'trailing_comma_in_multiline' => true,
     ])
     ->setRiskyAllowed(true)
     ->setFinder($finder);
+
