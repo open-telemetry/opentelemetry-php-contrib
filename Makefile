@@ -17,5 +17,5 @@ phpstan:
 bash:
 	$(DC_RUN_PHP) bash
 style:
-	$(DC_RUN_PHP) php ./vendor/bin/php-cs-fixer fix
+	$(DC_RUN_PHP) php ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --stop-on-violation --using-cache=no -vvv
 FORCE:
