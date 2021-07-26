@@ -27,6 +27,11 @@ use OpenTelemetry\Sdk\Resource\ResourceConstants;
 use OpenTelemetry\Sdk\Resource\ResourceInfo;
 use OpenTelemetry\Sdk\Trace\Attributes;
 
+/**
+ * The AwsEc2Detector can be used to detect if a process is running in AWS EC2
+ * and return a {@link Resource} populated with metadata about the EC2
+ * instance. Returns an empty Resource if detection fails.
+ */
 class Ec2Detector
 {
     private const SCHEME = 'http://';
@@ -134,7 +139,7 @@ class Ec2Detector
     }
 
     /**
-     * Helper function to create a request for any of the given 
+     * Function to create a request for any of the given 
      * fetch functions.
      */
     private function request($method, $path, $header)
