@@ -29,7 +29,7 @@ use OpenTelemetry\Sdk\Trace\Attributes;
 
 /**
  * The AwsEc2Detector can be used to detect if a process is running in AWS EC2
- * and return a {@link Resource} populated with metadata about the EC2
+ * and return a Resource populated with metadata about the EC2
  * instance. Returns an empty Resource if detection fails.
  */
 class Ec2Detector
@@ -53,8 +53,8 @@ class Ec2Detector
 
     /**
      * Attempts to connect and obtain an AWS instance Identity document. If the
-     * connection is succesful it returns a {@link Resource}
-     * populated with instance metadata. Returns an empty {@link Resource}
+     * connection is succesful it returns a Resource
+     * populated with instance metadata. Returns an empty Resource
      * if the connection or parsing of the identity document fails.
      *
      * @param config (unused) The resource detection config
