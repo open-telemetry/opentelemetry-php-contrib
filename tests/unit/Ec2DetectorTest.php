@@ -51,7 +51,7 @@ class Ec2DetectorTest extends TestCase
             // Fetch hostName response
             new Response(200, ['Foo' => 'Bar'], self::MOCK_HOSTNAME),
             // Fetch identities reponse
-            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY),
+            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY)
         ]);
 
         $handlerStack = HandlerStack::create($mockGuzzle);
@@ -69,7 +69,7 @@ class Ec2DetectorTest extends TestCase
                     ResourceConstants::CLOUD_ACCOUNT_ID => self::CLOUD_ACCOUNT_ID,
                     ResourceConstants::CLOUD_REGION => self::CLOUD_REGION,
                     ResourceConstants::HOST_HOSTNAME => self::MOCK_HOSTNAME,
-                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER
                 ]
             )
         ), $detector->detect());
@@ -86,7 +86,7 @@ class Ec2DetectorTest extends TestCase
             // Fetch hostName response
             new Response(200, ['Foo' => 'Bar'], self::MOCK_HOSTNAME),
             // Fetch identities reponse
-            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY),
+            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY)
         ]);
 
         $handlerStack = HandlerStack::create($mockGuzzle);
@@ -108,7 +108,7 @@ class Ec2DetectorTest extends TestCase
             // Fetch hostName response
             new Response(200, ['Foo' => 'Bar'], self::MOCK_HOSTNAME),
             // Fetch identities reponse
-            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY),
+            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY)
         ]);
 
         $handlerStack = HandlerStack::create($mockGuzzle);
@@ -130,7 +130,7 @@ class Ec2DetectorTest extends TestCase
             // Fetch hostName response
             new Response(200, ['Foo' => 'Bar']),
             // Fetch identities reponse
-            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY),
+            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY)
         ]);
 
         $handlerStack = HandlerStack::create($mockGuzzle);
@@ -164,7 +164,7 @@ class Ec2DetectorTest extends TestCase
             // Fetch hostName response
             new Response(200, ['Foo' => 'Bar'], self::MOCK_HOSTNAME),
             // Fetch identities reponse
-            new Response(200, ['Foo' => 'Bar']),
+            new Response(200, ['Foo' => 'Bar'])
         ]);
 
         $handlerStack = HandlerStack::create($mockGuzzle);
@@ -186,7 +186,7 @@ class Ec2DetectorTest extends TestCase
             // Fetch hostName response
             new Response(200, ['Foo' => 'Bar'], self::MOCK_HOSTNAME),
             // Fetch identities reponse
-            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY_INCOMPLETE),
+            new Response(200, ['Foo' => 'Bar'], self::MOCK_IDENTITY_INCOMPLETE)
         ]);
 
         $handlerStack = HandlerStack::create($mockGuzzle);
