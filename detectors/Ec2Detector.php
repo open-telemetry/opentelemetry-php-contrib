@@ -57,7 +57,6 @@ class Ec2Detector
      * populated with instance metadata. Returns an empty Resource
      * if the connection or parsing of the identity document fails.
      *
-     * @param config (unused) The resource detection config
      */
     public function detect()
     {
