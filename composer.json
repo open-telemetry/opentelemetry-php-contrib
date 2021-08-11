@@ -25,7 +25,8 @@
             "detectors/",
             "exporters/",
             "instrumentation/",
-            "propagators/"
+            "propagators/",
+            "examples/"
         ] 
     },
     "autoload-dev": {
@@ -33,7 +34,8 @@
             "detectors/",
             "exporters/",
             "instrumentation/",
-            "propagators/"
+            "propagators/",
+            "examples/"
         ] 
     },
     "require-dev": {
