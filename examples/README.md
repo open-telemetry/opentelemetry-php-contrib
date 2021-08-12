@@ -4,7 +4,7 @@
 ## Overview
 ![Current Version](https://img.shields.io/github/v/tag/open-telemetry/opentelemetry-php)
 
-This is a getting started guide for the example applications found in the AWS contrib folder. This walkthrough covers prerequite, installations, how to run the applications, and viewing the traces on X-Ray. Before reading this guide, you should familiarize with distributed tracing and the basics of OpenTelemetry. To learn more about getting started with OpenTelemetry Go, see the OpenTelemetry developer documentation.
+This is a getting started guide for the example applications found in the AWS contrib folder. This walkthrough covers prerequite, installations, how to run the applications, and viewing the traces on X-Ray. Before reading this guide, you should familiarize with distributed tracing and the basics of OpenTelemetry. To learn more about getting started with OpenTelemetry PHP, see the OpenTelemetry developer documentation.
 
 ## About the Sample Apps
 
@@ -34,11 +34,15 @@ Clone locally the aws-otel-collector here: https://github.com/aws-observability/
 Make sure Docker Desktop is running.
 
 ### AWS Access Keys
-First make sure that your AWS access keys are configured in your root directory. If they are not configured, please visit [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for instructions on how to set them up.
+First make sure that your AWS access keys are configured in your root directory. To see if your credentials are setup run the following command:
+
+`cat .aws/credentials`
+
+If they are not configured, please visit [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for instructions on how to set them up.
 
 ### Grpc Installation
 
-In your root directory, run the following commands:
+In your root directory, run the following commands. These commands will take a while to install all the necessary components.
 
 `brew install PHP`
 
@@ -50,6 +54,16 @@ If you are having issues please visit one of these resources:
 - https://grpc.io/docs/languages/php/quickstart/
 - https://cjyabraham.github.io/docs/quickstart/php/
 
+### Composer
+
+To check if you have composer installed, run the following command in your root directory:
+
+`composer -V`
+
+If the above does not work, please visit [here](https://getcomposer.org/download/) to install Composer. There are two methods, programmatically or manual file download. Please choose whichever way you prefer and then move the composer.phar file to your `$PATH` with the following command:
+
+`mv composer.phar /usr/local/bin/composer`
+
 ### Update Repository Packages and Dependencies
 
 In the php contrib repository, run the following:
@@ -60,6 +74,10 @@ Then run to make sure all dependencies and packages are up to date:
 
 `make update`
 
+Then run the following command to make sure the local composer is updated:
+
+`composer update`
+
 To make sure everything is working properly, run the following command to run all tests:
 
 `make install && make update && make style && make test && make phan && make psalm && make phpstan`
@@ -69,8 +87,6 @@ At this point all necessary items have been installed in your system and you are
 ## Running the Applications
 
 ### Run Collector
-
-First start the up the collector.
 
 Open a new terminal window and navigate into the aws-otel-collector folder. 
 
@@ -88,27 +104,43 @@ In another terminal window, navigate to the opentelemetry-php-contrib folder.
 
 Run the following command for Sample App 1:
 
-`php examples/SampleApp1/SampleApp1.php`
+`php examples/aws/SampleApp1/SampleApp1.php`
+
+The output for this app should look similar to the following:
+```
+Starting Sample App
+Which call would you like to make? 
+Type outgoing-http-call or aws-sdk-call
+outgoing-http-call
+Final trace ID: {"traceId":"1-6115648a-d40b50a270b3c1249bcf60c2"}
+Sample App complete!
+```
 
 Run the following command for Sample App 2:
 
-`php examples/SampleApp2/SampleApp2.php`
+`php examples/aws/SampleApp2/SampleApp2.php`
 
-You should see the trace Id in the terminal similar to the following:
+The output for this app should look similar to the following:
 ```
-Final trace ID: {"traceId":"1-61141835-46b87ba81fad02d169814785"}
+Starting Sample App
+Child span trace ID after service 2: {"traceId":"1-6115649a-230ef2ffe1d289a056b8d0ea"}
 Sample App complete!
 ```
+
+The trace IDs in any sample app will be completely unique. The first number is the version, the second section is the timestamp, and the last section is a randomized hexadecimal string. 
+
 ## Viewing Traces on AWS X-Ray
 
 Navigate to AWS X-Ray on your internet browser. 
 
 Click on the traces tab on the left hand side, like the image below:
 
-TODO: Add image here
+<img width="1755" alt="Screen Shot 2021-08-12 at 11 22 23 AM" src="https://user-images.githubusercontent.com/46689344/129248717-a9fd9137-0ed5-4498-9cfb-8e3ba1a57fbe.png">
 
 Make sure your region is set to us-west-2:
 
-TODO: Add image here
+<img width="291" alt="Screen Shot 2021-08-12 at 11 21 59 AM" src="https://user-images.githubusercontent.com/46689344/129248725-d3f7a655-fe3b-47d4-a229-583365e16a54.png">
 
 After running the sample app, there should be traces under the traces tab with all relevant information. 
+
+<img width="1398" alt="Screen Shot 2021-08-09 at 11 42 50 PM" src="https://user-images.githubusercontent.com/46689344/129248704-0888b387-2fa8-4753-824e-d99e0c9a67b6.png">
