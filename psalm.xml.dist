@@ -10,6 +10,7 @@
         <ignoreFiles>
             <directory name="var"/>
             <directory name="vendor"/>
+            <directory name="examples"/> <!-- TODO: Remove this once examples are updated -->
         </ignoreFiles>
     </projectFiles>
     <plugins>

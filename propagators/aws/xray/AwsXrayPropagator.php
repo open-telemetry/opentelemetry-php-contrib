@@ -19,8 +19,14 @@ declare(strict_types=1);
 
 namespace Propagators\Aws\Xray;
 
-use OpenTelemetry\Sdk\Trace\SpanContext;
-use OpenTelemetry\Trace as API;
+use OpenTelemetry\API\Trace as API;
+use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
+use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
+use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
+use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
+use OpenTelemetry\SDK\Trace\Span;
+use OpenTelemetry\SDK\Trace\SpanContext;
 
 /**
  * Implementation of AWS Trace Header Protocol
@@ -33,9 +39,9 @@ use OpenTelemetry\Trace as API;
  * X-Amzn-Trace-Id: Root={traceId};Parent={parentId};Sampled={samplingFlag}
  * X-Amzn-Trace-Id: Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1
  */
-class AwsXrayPropagator implements API\TextMapFormatPropagator
+class AwsXrayPropagator implements TextMapPropagatorInterface
 {
-    public const AWSXRAY_TRACE_ID_HEADER = 'X-Amzn-Trace-Id';
+    public const AWSXRAY_TRACE_ID_HEADER = 'x-amzn-trace-id';
     private const HEADER_TYPE = 'string';
     private const VERSION_NUMBER = '1';
     private const TRACE_HEADER_DELIMITER = ';';
@@ -60,7 +66,7 @@ class AwsXrayPropagator implements API\TextMapFormatPropagator
     /**
      * Returns list of fields used by HTTPTextFormat
      */
-    public static function fields(): array
+    public function fields(): array
     {
         return [self::AWSXRAY_TRACE_ID_HEADER];
     }
@@ -70,18 +76,22 @@ class AwsXrayPropagator implements API\TextMapFormatPropagator
      * X-Amzn-Trace-Id: Root={traceId};Parent={parentId};Sampled={samplingFlag}
      * X-Amzn-Trace-Id: Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1
      */
-    public static function inject(API\SpanContext $context, &$carrier, API\PropagationSetter $setter): void
+    public function inject(&$carrier, PropagationSetterInterface $setter = null, Context $context = null): void
     {
-        $traceId = $context->getTraceId();
-        $spanId = $context->getSpanId();
+        $setter = $setter ?? ArrayAccessGetterSetter::getInstance();
+        $context = $context ?? Context::getCurrent();
+        $spanContext = Span::fromContext($context)->getContext();
 
-        if (!SpanContext::isValidSpanId($spanId) || !SpanContext::isValidTraceId($traceId)) {
+        if (!$spanContext->isValid()) {
             return;
         }
 
+        $traceId = $spanContext->getTraceId();
+        $spanId = $spanContext->getSpanId();
+
         $timestamp = substr($traceId, 0, self::TRACE_ID_TIMESTAMP_LENGTH);
         $randomHex = substr($traceId, self::TRACE_ID_TIMESTAMP_LENGTH);
-        $samplingFlag = $context->isSampled() ? self::IS_SAMPLED : self::NOT_SAMPLED;
+        $samplingFlag = $spanContext->isSampled() ? self::IS_SAMPLED : self::NOT_SAMPLED;
 
         $traceHeader = self::TRACE_ID_KEY . self::KV_DELIMITER . self::VERSION_NUMBER .
             self::TRACE_ID_DELIMITER . $timestamp . self::TRACE_ID_DELIMITER . $randomHex .
@@ -95,16 +105,16 @@ class AwsXrayPropagator implements API\TextMapFormatPropagator
      * This function will parse all parts of the header and validate that it is
      * formatted properly to AWS X-ray standards
      */
-    public static function extract($carrier, API\PropagationGetter $getter): API\SpanContext
+    public function extract($carrier, PropagationGetterInterface $getter = null, Context $context = null): Context
     {
+        $getter = $getter ?? ArrayAccessGetterSetter::getInstance();
+        $context = $context ?? Context::getCurrent();
+
         // Extract the traceHeader using the getter from the carrier
         $traceHeader = $getter->get($carrier, self::AWSXRAY_TRACE_ID_HEADER);
-        
-        // If it is null it creates a dummy header with INVALID_TRACE and INVALID_SPAN
-        // Function: restore(string $traceId, string $spanId, bool $sampled = false,
-        // bool $isRemote = false, ?API\TraceState $traceState = null): SpanContext
-        if ($traceHeader == null || gettype($traceHeader) !== self::HEADER_TYPE) {
-            return SpanContext::getInvalid();
+
+        if (!$traceHeader) {
+            return $context;
         }
 
         $headerComponents = explode(self::TRACE_HEADER_DELIMITER, $traceHeader);
@@ -126,18 +136,30 @@ class AwsXrayPropagator implements API\TextMapFormatPropagator
             }
         }
 
-        if (SpanContext::isValidSpanId($parsedSpanId) && SpanContext::isValidTraceId($parsedTraceId) && self::isValidSampled($sampledFlag)) {
-            return SpanContext::restore($parsedTraceId, $parsedSpanId, $sampledFlag === self::IS_SAMPLED, true);
+        if (!self::isValidSampled($sampledFlag)) {
+            return $context;
         }
 
-        return SpanContext::getInvalid();
+        $spanContext = SpanContext::createFromRemoteParent(
+            $parsedTraceId,
+            $parsedSpanId,
+            self::IS_SAMPLED === $sampledFlag ? API\SpanContextInterface::TRACE_FLAG_SAMPLED : API\SpanContextInterface::TRACE_FLAG_DEFAULT
+        );
+
+        if ($spanContext->isValid()) {
+            $context = $context->withContextValue(Span::wrap($spanContext));
+        }
+
+        // TODO: Apply parsed baggage.
+
+        return $context;
     }
 
     /**
      * Parse Xray format trace Id
      * Returns parsedId if successful, else returns invalid trace Id
      */
-    private static function parseTraceId($traceId): string
+    private function parseTraceId($traceId): string
     {
         $parsedTraceId = SpanContext::INVALID_TRACE;
         $traceIdParts = explode(self::TRACE_ID_DELIMITER, $traceId);
@@ -155,7 +177,7 @@ class AwsXrayPropagator implements API\TextMapFormatPropagator
      * This is AWS specific since it separates the sampled flag from  other trace flags
      * This can be moved to SpanContext file at a later date if desired by other propagators
      */
-    private static function isValidSampled($samplingFlag): bool
+    private function isValidSampled($samplingFlag): bool
     {
         return $samplingFlag === self::IS_SAMPLED || $samplingFlag === self::NOT_SAMPLED;
     }
