@@ -42,14 +42,11 @@ use OpenTelemetry\SDK\Trace\SpanContext;
 class AwsXrayPropagator implements TextMapPropagatorInterface
 {
     public const AWSXRAY_TRACE_ID_HEADER = 'x-amzn-trace-id';
-    private const HEADER_TYPE = 'string';
     private const VERSION_NUMBER = '1';
     private const TRACE_HEADER_DELIMITER = ';';
     private const KV_DELIMITER = '=';
 
     private const TRACE_ID_KEY = 'Root';
-    private const TRACE_ID_LENGTH = 32;
-    private const TRACE_ID_VERSION = '1';
     private const TRACE_ID_DELIMITER = '-';
     private const TRACE_ID_TIMESTAMP_LENGTH = 8;
     private const VERSION_NUMBER_INDEX = 0;
@@ -57,8 +54,7 @@ class AwsXrayPropagator implements TextMapPropagatorInterface
     private const RANDOM_HEX_INDEX = 2;
 
     private const PARENT_ID_KEY = 'Parent';
-    private const SPAN_ID_LENGTH = 16;
-    
+
     private const SAMPLED_FLAG_KEY = 'Sampled';
     private const IS_SAMPLED = '1';
     private const NOT_SAMPLED = '0';
@@ -130,13 +126,13 @@ class AwsXrayPropagator implements TextMapPropagatorInterface
             if ($componentPair[0] === self::PARENT_ID_KEY) {
                 $parsedSpanId = $componentPair[1];
             } elseif ($componentPair[0] === self::TRACE_ID_KEY) {
-                $parsedTraceId = self::parseTraceId($componentPair[1]);
+                $parsedTraceId = $this->parseTraceId($componentPair[1]);
             } elseif ($componentPair[0] === self::SAMPLED_FLAG_KEY) {
                 $sampledFlag = $componentPair[1];
             }
         }
 
-        if (!self::isValidSampled($sampledFlag)) {
+        if (!$this->isValidSampled($sampledFlag)) {
             return $context;
         }
 
