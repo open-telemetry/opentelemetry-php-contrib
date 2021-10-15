@@ -26,8 +26,7 @@ class ExporterDsn
         array $options = [],
         ?string $user = null,
         ?string $password = null
-    )
-    {
+    ) {
         $this->type = $type;
         $this->scheme = $scheme;
         $this->host = $host;
@@ -41,9 +40,9 @@ class ExporterDsn
     public static function fromArray(array $dsn): self
     {
         foreach (['type', 'scheme', 'host'] as $key) {
-            if(!isset($dsn[$key])) {
+            if (!isset($dsn[$key])) {
                 throw new InvalidArgumentException(
-                    'Exporter DSN array must have entry: '.$key
+                    'Exporter DSN array must have entry: ' . $key
                 );
             }
         }
@@ -67,7 +66,7 @@ class ExporterDsn
             $this->getType(),
             $this->getEndpoint()
         );
-        $dsn .= !empty($this->getOptions()) ? '?'.http_build_query($this->getOptions()) : '';
+        $dsn .= !empty($this->getOptions()) ? '?' . http_build_query($this->getOptions()) : '';
 
         return $dsn;
     }
@@ -103,10 +102,9 @@ class ExporterDsn
         return [
             'type' => $this->getType(),
             'url' => $this->getEndpoint(),
-            'options' => $this->getOptions()
+            'options' => $this->getOptions(),
         ];
     }
-
 
     /**
      * @return string
@@ -171,5 +169,4 @@ class ExporterDsn
     {
         return $this->password;
     }
-
 }
