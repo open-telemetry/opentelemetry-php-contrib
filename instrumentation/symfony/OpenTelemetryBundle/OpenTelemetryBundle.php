@@ -11,6 +11,5 @@ class OpenTelemetryBundle extends Bundle
 {
     public function build(ContainerBuilder $container): void
     {
-
     }
 }
