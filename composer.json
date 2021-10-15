@@ -22,7 +22,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "OpenTelemetry\\Instrumentation\\Symfony\\OpenTelemetryBundle\\": "instrumentation/symfony"
+            "OpenTelemetry\\Instrumentation\\Symfony\\": "instrumentation/symfony"
         },
         "classmap": [
             "detectors/",
