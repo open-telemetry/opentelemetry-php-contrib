@@ -64,6 +64,7 @@
         "symfony/polyfill-php80": "^1.16",
         "symfony/yaml": "^5.3",
         "symfony/proxy-manager-bridge": "^5.3",
-        "symfony/options-resolver": "^5.3"
+        "symfony/options-resolver": "^5.3",
+        "dg/bypass-finals": "^1.3"
     }
 }
