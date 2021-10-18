@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace instrumentation\symfony\Util;
+namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
-use OpenTelemetry\Instrumentation\Symfony\OpenTelemetryBundle\Util\ExporterDsnParser;
-use OpenTelemetry\Instrumentation\Symfony\OpenTelemetryBundle\Util\ExporterDsn;
-use PHPUnit\Framework\TestCase;
 use InvalidArgumentException;
+use OpenTelemetry\Instrumentation\Symfony\OpenTelemetryBundle\Util\ExporterDsn;
+use OpenTelemetry\Instrumentation\Symfony\OpenTelemetryBundle\Util\ExporterDsnParser;
+use PHPUnit\Framework\TestCase;
 
 class ExporterDsnParserTest extends TestCase
 {
@@ -19,7 +19,7 @@ class ExporterDsnParserTest extends TestCase
         'port' => 1234,
         'options' => ['key'=>'value'],
         'user' => 'root',
-        'password' => 'secret'
+        'password' => 'secret',
     ];
 
     public function testParseFullDsn()
@@ -46,8 +46,8 @@ class ExporterDsnParserTest extends TestCase
     {
         $dsn = 'foo+bar://baz:1234/path?key=value';
         $parts = self::PARTS_ARRAY;
-        unset($parts['user'] );
-        unset($parts['password'] );
+        unset($parts['user']);
+        unset($parts['password']);
 
         $this->assertEquals(
             $parts,
@@ -59,7 +59,7 @@ class ExporterDsnParserTest extends TestCase
     {
         $dsn = 'foo+bar://root:secret@baz/path?key=value';
         $parts = self::PARTS_ARRAY;
-        unset($parts['port'] );
+        unset($parts['port']);
 
         $this->assertEquals(
             $parts,
@@ -71,7 +71,7 @@ class ExporterDsnParserTest extends TestCase
     {
         $dsn = 'foo+bar://root:secret@baz:1234?key=value';
         $parts = self::PARTS_ARRAY;
-        unset($parts['path'] );
+        unset($parts['path']);
 
         $this->assertEquals(
             $parts,

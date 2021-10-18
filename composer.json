@@ -34,6 +34,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "OpenTelemetry\\Test\\Unit\\Symfony\\": "tests/unit/instrumentation/Symfony",
             "OpenTelemetry\\Test\\Integration\\Symfony\\": "tests/integration/instrumentation/Symfony"
         },
         "classmap": [

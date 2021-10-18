@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace instrumentation\symfony\Util;
+namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
+use InvalidArgumentException;
 use OpenTelemetry\Instrumentation\Symfony\OpenTelemetryBundle\Util\ExporterDsn;
 use PHPUnit\Framework\TestCase;
-use InvalidArgumentException;
 
 class ExporterDsnTest extends TestCase
 {
@@ -18,7 +18,7 @@ class ExporterDsnTest extends TestCase
         'port' => 1234,
         'options' => ['key'=>'value'],
         'user' => 'root',
-        'password' => 'secret'
+        'password' => 'secret',
     ];
 
     public function testInstantiationWithRequiredArguments()
@@ -134,7 +134,7 @@ class ExporterDsnTest extends TestCase
     {
         $this->assertSame(
             'foo+bar://root:secret@baz:1234/path?key=value',
-            (string)ExporterDsn::fromArray(self::ARG_ARRAY)
+            (string) ExporterDsn::fromArray(self::ARG_ARRAY)
         );
     }
 
@@ -144,7 +144,7 @@ class ExporterDsnTest extends TestCase
         unset($args['options']);
         $this->assertSame(
             'foo+bar://root:secret@baz:1234/path',
-            (string)ExporterDsn::fromArray($args)
+            (string) ExporterDsn::fromArray($args)
         );
     }
 
@@ -203,10 +203,9 @@ class ExporterDsnTest extends TestCase
             [
                 'type' => 'foo',
                 'url' => 'bar://root:secret@baz:1234/path',
-                'options' => ['key'=>'value']
+                'options' => ['key'=>'value'],
             ],
             ExporterDsn::fromArray(self::ARG_ARRAY)->asConfigArray()
         );
     }
-
 }
