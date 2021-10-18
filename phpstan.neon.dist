@@ -11,3 +11,4 @@ parameters:
         - vendor
         - proto
         - tests/TraceContext/W3CTestService
+        - examples  # TODO: Remove this once examples are updated

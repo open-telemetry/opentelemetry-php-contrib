@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Detectors\Aws\LambdaDetector;
-use OpenTelemetry\Sdk\Resource\ResourceConstants;
-use OpenTelemetry\Sdk\Resource\ResourceInfo;
-use OpenTelemetry\Sdk\Trace\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceConstants;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\Attributes;
 use PHPUnit\Framework\TestCase;
 
 class LambdaDetectorTest extends TestCase

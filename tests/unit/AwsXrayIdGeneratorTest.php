@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Instrumentation\Aws\Xray\AwsXrayIdGenerator;
-use OpenTelemetry\Sdk\Trace\SpanContext;
+use OpenTelemetry\SDK\Trace\SpanContext;
 use PHPUnit\Framework\TestCase;
 
 class AwsXrayIdGeneratorTest extends TestCase
