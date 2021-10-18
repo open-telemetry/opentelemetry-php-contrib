@@ -61,6 +61,7 @@
         "symfony/framework-bundle": "^4.4|^5.3|^6.0",
         "symfony/http-kernel": "^4.4|^5.3|^6.0",
         "symfony/polyfill-php80": "^1.16",
-        "symfony/yaml": "^5.3"
+        "symfony/yaml": "^5.3",
+        "symfony/proxy-manager-bridge": "^5.3"
     }
 }
