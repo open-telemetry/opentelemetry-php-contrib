@@ -33,6 +33,9 @@
         ] 
     },
     "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Test\\Integration\\Symfony\\": "tests/integration/instrumentation/Symfony"
+        },
         "classmap": [
             "detectors/",
             "exporters/",
