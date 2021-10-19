@@ -85,6 +85,20 @@ class Configuration implements ConfigurationInterface
     public const OPTIONS_NODE = 'options';
     public const NAME_KEY = 'name';
     public const ENV_TYPE = 'env';
+    public const JAEGER_EXPORTER = 'jaeger';
+    public const ZIPKIN_EXPORTER = 'zipkin';
+    public const NEWRELIC_EXPORTER = 'jaeger';
+    public const OTLP_HTTP_EXPORTER = 'otlphttp';
+    public const OTLP_GRPC_EXPORTER = 'otlpgrpc';
+    public const ZIPKIN_TO_NEWRELIC_EXPORTER = 'zipkintonewrelic';
+    public const EXPORTERS_NODE_VALUES = [
+        self::JAEGER_EXPORTER,
+        self::ZIPKIN_EXPORTER,
+        self::NEWRELIC_EXPORTER,
+        self::OTLP_HTTP_EXPORTER,
+        self::OTLP_GRPC_EXPORTER,
+        self::ZIPKIN_TO_NEWRELIC_EXPORTER,
+    ];
 
     // PRIVATE CONSTANTS
     private const ARRAY_NODE_TYPE = 'array';
