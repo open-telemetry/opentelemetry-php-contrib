@@ -8,7 +8,6 @@ class ServiceHelper
 {
     /**
      * @param string $class
-     * @psalm-param class-string $class
      * @return string
      */
     public static function classToId(string $class): string
