@@ -263,7 +263,6 @@ class Configuration implements ConfigurationInterface
                 })
                 ->then(static function ($v) {
                     self::validateCustomService($v);
-                    self::validateCustomClass($v[self::CLASS_NODE]);
 
                     return $v;
                 })
@@ -292,8 +291,8 @@ class Configuration implements ConfigurationInterface
                     ->isRequired()
                     ->defaultValue($default)
                 ->end()
-                ->scalarNode(self::CLASS_NODE)
-                ->end()
+                ->scalarNode(self::CLASS_NODE)->end()
+                ->scalarNode(self::ID_NODE)->end()
                 ->arrayNode(self::OPTIONS_NODE)
                     ->fixXmlConfig(self::OPTIONS_XML)
                     ->useAttributeAsKey(self::NAME_KEY)
@@ -548,6 +547,9 @@ class Configuration implements ConfigurationInterface
                     $type
                 )
             );
+        }
+        if(isset($config[self::CLASS_NODE])){
+            self::validateCustomClass($config[self::CLASS_NODE]);
         }
     }
 
