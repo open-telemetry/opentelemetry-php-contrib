@@ -9,6 +9,7 @@ use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -142,9 +143,12 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    private static function createTreeBuilder(string $name, string $type = self::ARRAY_NODE_TYPE): TreeBuilder
-    {
-        return new TreeBuilder($name, $type);
+    private static function createTreeBuilder(
+        string $name,
+        string $type = self::ARRAY_NODE_TYPE,
+        NodeBuilder $builder = null
+    ): TreeBuilder {
+        return new TreeBuilder($name, $type, $builder);
     }
 
     private static function addResourceSection(ArrayNodeDefinition $node): void
@@ -287,17 +291,10 @@ class Configuration implements ConfigurationInterface
             ->end()
             /** @psalm-suppress PossiblyUndefinedMethod **/
             ->children()
-                ->scalarNode(self::TYPE_NODE)
-                    ->isRequired()
-                    ->defaultValue($default)
-                ->end()
-                ->scalarNode(self::CLASS_NODE)->end()
-                ->scalarNode(self::ID_NODE)->end()
-                ->arrayNode(self::OPTIONS_NODE)
-                    ->fixXmlConfig(self::OPTIONS_XML)
-                    ->useAttributeAsKey(self::NAME_KEY)
-                    ->prototype(self::SCALAR_NODE_TYPE)->end()
-                ->end()
+                ->append(self::createTypeNode($default))
+                ->append(self::createClassNode())
+                ->append(self::createIdNode())
+                ->append(self::createOptionsNodes())
             ->end()
             ;
     }
@@ -356,7 +353,6 @@ class Configuration implements ConfigurationInterface
                     })
                     ->then(static function ($v) {
                         self::validateCustomService($v, self::PROCESSOR_HR);
-                        self::validateCustomClass($v[self::CLASS_NODE], self::PROCESSOR_HR);
 
                         return $v;
                     })
@@ -380,17 +376,10 @@ class Configuration implements ConfigurationInterface
                     })
                     ->end()
                     ->children()
-                    ->scalarNode(self::TYPE_NODE)
-                        ->isRequired()
-                        ->defaultValue(self::PROCESSOR_DEFAULT)
-                    ->end()
-                    ->scalarNode(self::CLASS_NODE)
-                    ->end()
-                    ->arrayNode(self::OPTIONS_NODE)
-                    ->fixXmlConfig(self::OPTIONS_XML)
-                    ->useAttributeAsKey(self::NAME_KEY)
-                    ->prototype(self::SCALAR_NODE_TYPE)->end()
-                    ->end()
+                    ->append(self::createTypeNode(self::PROCESSOR_DEFAULT))
+                    ->append(self::createClassNode())
+                    ->append(self::createIdNode())
+                    ->append(self::createOptionsNodes())
                 ->end()
             ->end()
             ;
@@ -416,24 +405,53 @@ class Configuration implements ConfigurationInterface
                 })
             ->end()
             ->children()
-                ->scalarNode(self::TYPE_NODE)
-                    ->isRequired()
-                ->end()
+                ->append(self::createTypeNode())
                 ->scalarNode(self::PROCESSOR_NODE)
                     ->defaultValue(self::DEFAULT_TYPE)
                 ->end()
                 ->scalarNode(self::URL_NODE)->end()
-                ->scalarNode(self::CLASS_NODE)->end()
-                ->scalarNode(self::ID_NODE)->end()
-                ->arrayNode(self::OPTIONS_NODE)
-                    ->fixXmlConfig(self::OPTIONS_XML)
-                    ->useAttributeAsKey(self::NAME_KEY)
-                    ->prototype(self::SCALAR_NODE_TYPE)
-                ->end()
-                ->end()
+
+                ->append(self::createClassNode())
+                ->append(self::createIdNode())
+                ->append(self::createOptionsNodes())
+
             ->end()
             ->end()
             ;
+    }
+
+    private static function createClassNode(): NodeDefinition
+    {
+        return self::createTreeBuilder(self::CLASS_NODE, self::SCALAR_NODE_TYPE)
+            ->getRootNode();
+    }
+
+    private static function createIdNode(): NodeDefinition
+    {
+        return self::createTreeBuilder(self::ID_NODE, self::SCALAR_NODE_TYPE)
+            ->getRootNode();
+    }
+
+    private static function createOptionsNodes(): NodeDefinition
+    {
+        return self::createTreeBuilder(self::OPTIONS_NODE, self::ARRAY_NODE_TYPE)
+            ->getRootNode()
+            ->fixXmlConfig(self::OPTIONS_XML)
+            ->useAttributeAsKey(self::NAME_KEY)
+            ->prototype(self::SCALAR_NODE_TYPE)->end();
+    }
+
+    private static function createTypeNode(?string $default = null): NodeDefinition
+    {
+        $node =  self::createTreeBuilder(self::TYPE_NODE, self::SCALAR_NODE_TYPE)
+            ->getRootNode()
+            ->isRequired();
+
+        if($default !== null) {
+            $node->defaultValue($default);
+        }
+
+        return $node;
     }
 
     /**
@@ -548,7 +566,7 @@ class Configuration implements ConfigurationInterface
                 )
             );
         }
-        if(isset($config[self::CLASS_NODE])){
+        if (isset($config[self::CLASS_NODE])) {
             self::validateCustomClass($config[self::CLASS_NODE]);
         }
     }
