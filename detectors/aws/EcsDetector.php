@@ -19,9 +19,9 @@ declare(strict_types=1);
 
 namespace Detectors\Aws;
 
-use OpenTelemetry\Sdk\Resource\ResourceConstants;
-use OpenTelemetry\Sdk\Resource\ResourceInfo;
-use OpenTelemetry\Sdk\Trace\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceConstants;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\Attributes;
 
 /**
  * The AwsEcsDetector can be used to detect if a process is running in AWS

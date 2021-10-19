@@ -22,9 +22,9 @@ namespace Detectors\Aws;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
-use OpenTelemetry\Sdk\Resource\ResourceConstants;
-use OpenTelemetry\Sdk\Resource\ResourceInfo;
-use OpenTelemetry\Sdk\Trace\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceConstants;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\Attributes;
 
 /**
  * The AwsEksDetector can be used to detect if a process is running in AWS

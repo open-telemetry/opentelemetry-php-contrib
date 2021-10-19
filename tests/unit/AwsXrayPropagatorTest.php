@@ -2,18 +2,17 @@
 
 declare(strict_types=1);
 
-use OpenTelemetry\Sdk\Trace\PropagationMap;
-use OpenTelemetry\Sdk\Trace\SpanContext;
-use OpenTelemetry\Sdk\Trace\TraceState;
+use OpenTelemetry\API\Trace\SpanContextInterface;
+use OpenTelemetry\Context\Context;
+use OpenTelemetry\SDK\Trace\Span;
+use OpenTelemetry\SDK\Trace\SpanContext;
+use OpenTelemetry\SDK\Trace\TraceState;
 use PHPUnit\Framework\TestCase;
 use Propagators\Aws\Xray\AwsXrayPropagator;
 
 class AwsXrayPropagatorTest extends TestCase
 {
-    private const VERSION_NUMBER = '1';
     private const TRACE_ID = '5759e988bd862e3fe1be46a994272793';
-    private const TRACE_ID_TIMESTAMP = '5759e988';
-    private const TRACE_ID_RANDOMHEX = 'bd862e3fe1be46a994272793';
     private const SPAN_ID = '53995c3f42cd8ad8';
     private const IS_SAMPLED = '1';
     private const NOT_SAMPLED = '0';
@@ -27,7 +26,7 @@ class AwsXrayPropagatorTest extends TestCase
     public function TestFields()
     {
         $propagator = new AwsXrayPropagator();
-        $this->assertSame(AwsXrayPropagator::fields(), [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER]);
+        $this->assertSame($propagator->fields(), [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER]);
     }
 
     /**
@@ -38,11 +37,19 @@ class AwsXrayPropagatorTest extends TestCase
     public function InjectValidSampledTraceId()
     {
         $carrier = [];
-        $map = new PropagationMap();
-        $context = SpanContext::restore(self::TRACE_ID, self::SPAN_ID, true, false);
-        AwsXrayPropagator::inject($context, $carrier, $map);
+        (new AwsXrayPropagator())->inject(
+            $carrier,
+            null,
+            $this->withSpanContext(
+                SpanContext::create(self::TRACE_ID, self::SPAN_ID, SpanContextInterface::TRACE_FLAG_SAMPLED),
+                Context::getCurrent()
+            )
+        );
 
-        $this->assertSame(self::TRACE_ID_HEADER_SAMPLED, $map->get($carrier, AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER));
+        $this->assertSame(
+            [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => self::TRACE_ID_HEADER_SAMPLED],
+            $carrier
+        );
     }
 
     /**
@@ -52,11 +59,19 @@ class AwsXrayPropagatorTest extends TestCase
     public function InjectValidNotSampledTraceId()
     {
         $carrier = [];
-        $map = new PropagationMap();
-        $context = SpanContext::restore(self::TRACE_ID, self::SPAN_ID, false, false);
-        AwsXrayPropagator::inject($context, $carrier, $map);
+        (new AwsXrayPropagator())->inject(
+            $carrier,
+            null,
+            $this->withSpanContext(
+                SpanContext::create(self::TRACE_ID, self::SPAN_ID, SpanContextInterface::TRACE_FLAG_DEFAULT),
+                Context::getCurrent()
+            )
+        );
 
-        $this->assertSame(self::TRACE_ID_HEADER_NOT_SAMPLED, $map->get($carrier, AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER));
+        $this->assertSame(
+            [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => self::TRACE_ID_HEADER_NOT_SAMPLED],
+            $carrier
+        );
     }
 
     /**
@@ -66,12 +81,19 @@ class AwsXrayPropagatorTest extends TestCase
     public function InjectTraceIdWithTraceState()
     {
         $carrier = [];
-        $map = new PropagationMap();
-        $tracestate = new TraceState('vendor1=opaqueValue1');
-        $context = SpanContext::restore(self::TRACE_ID, self::SPAN_ID, true, false, $tracestate);
-        AwsXrayPropagator::inject($context, $carrier, $map);
+        (new AwsXrayPropagator())->inject(
+            $carrier,
+            null,
+            $this->withSpanContext(
+                SpanContext::create(self::TRACE_ID, self::SPAN_ID, SpanContextInterface::TRACE_FLAG_SAMPLED, new TraceState('vendor1=opaqueValue1')),
+                Context::getCurrent()
+            )
+        );
 
-        $this->assertSame(self::TRACE_ID_HEADER_SAMPLED, $map->get($carrier, AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER));
+        $this->assertSame(
+            [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => self::TRACE_ID_HEADER_SAMPLED],
+            $carrier
+        );
     }
 
     /**
@@ -81,11 +103,16 @@ class AwsXrayPropagatorTest extends TestCase
     public function InjectTraceIdWithInvalidSpanContext()
     {
         $carrier = [];
-        $map = new PropagationMap();
-        $context = SpanContext::restore(SpanContext::INVALID_TRACE, SpanContext::INVALID_SPAN, true, false);
-        AwsXrayPropagator::inject($context, $carrier, $map);
+        (new AwsXrayPropagator())->inject(
+            $carrier,
+            null,
+            $this->withSpanContext(
+                SpanContext::create(SpanContext::INVALID_TRACE, SpanContext::INVALID_SPAN, SpanContextInterface::TRACE_FLAG_SAMPLED, new TraceState('vendor1=opaqueValue1')),
+                Context::getCurrent()
+            )
+        );
 
-        $this->assertNull($map->get($carrier, AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER));
+        $this->assertEmpty($carrier);
     }
 
     /**
@@ -100,8 +127,7 @@ class AwsXrayPropagatorTest extends TestCase
 
         foreach ($traceHeaders as $traceHeader) {
             $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-            $map = new PropagationMap();
-            $context = AwsXrayPropagator::extract($carrier, $map);
+            $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
             $this->assertSame(self::TRACE_ID, $context->getTraceId());
             $this->assertSame(self::SPAN_ID, $context->getSpanId());
@@ -119,8 +145,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Parent=53995c3f42cd8ad8;Sampled=1;Root=1-5759e988-bd862e3fe1be46a994272793';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(self::TRACE_ID, $context->getTraceId());
         $this->assertSame(self::SPAN_ID, $context->getSpanId());
@@ -137,8 +162,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=1*5759e988*bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -155,8 +179,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = '';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -174,8 +197,7 @@ class AwsXrayPropagatorTest extends TestCase
 
         foreach ($traceHeaders as $traceHeader) {
             $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-            $map = new PropagationMap();
-            $context = AwsXrayPropagator::extract($carrier, $map);
+            $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
             $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
             $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -193,8 +215,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=1-00000000-000000000000000000000000;Parent=53995c3f42cd8ad8;Sampled=1';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -211,8 +232,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=1-5759e98s46v8-bd862e3fe1frbe46a994272793;Parent=53995c3f42cd8ad8;Sampled=1';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -229,8 +249,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=1-5759e988-bd862e3fe1be46a994272793;Parent=0000000000000000;Sampled=1';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -247,8 +266,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad85dg;Sampled=1';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -265,8 +283,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -283,8 +300,7 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=12345';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
@@ -301,12 +317,16 @@ class AwsXrayPropagatorTest extends TestCase
         $traceHeader = 'Root=2-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=12345';
 
         $carrier = [AwsXrayPropagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
-        $map = new PropagationMap();
-        $context = AwsXrayPropagator::extract($carrier, $map);
+        $context = Span::fromContext((new AwsXrayPropagator())->extract($carrier))->getContext();
 
         $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
         $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
+    }
+
+    private function withSpanContext(SpanContextInterface $spanContext, Context $context): Context
+    {
+        return $context->withContextValue(Span::wrap($spanContext));
     }
 }
