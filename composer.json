@@ -12,7 +12,9 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "open-telemetry/opentelemetry": "dev-main"
+        "open-telemetry/opentelemetry": "dev-main",
+        "php-http/message": "^1.12",
+        "php-http/discovery": "^1.14"
     },
     "authors": [
         {
