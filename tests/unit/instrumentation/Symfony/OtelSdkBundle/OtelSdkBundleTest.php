@@ -9,7 +9,7 @@ use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\OtelSdkBundle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class OpenTelemetryBundleTest extends TestCase
+class OtelSdkBundleTest extends TestCase
 {
     public function testBuild()
     {
