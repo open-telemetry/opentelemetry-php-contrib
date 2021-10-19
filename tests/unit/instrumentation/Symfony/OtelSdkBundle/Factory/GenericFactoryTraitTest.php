@@ -272,6 +272,21 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
+    public function testBuildClassWithoutConstructor()
+    {
+        $this->initResolver();
+
+        $factory = new GenericFactoryImplementation(
+            stdClass::class,
+            $this->resolver
+        );
+
+        $this->assertInstanceOf(
+            stdClass::class,
+            $factory->build()
+        );
+    }
+
     // UTIL
 
     // /** @psalm-suppress PossiblyUndefinedMethod **/

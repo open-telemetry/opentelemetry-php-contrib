@@ -165,7 +165,11 @@ trait GenericFactoryTrait
 
     private function inspectExporter()
     {
-        $parameters = $this->getReflectionClass()->getConstructor()->getParameters();
+        if (!$constructor = $this->getReflectionClass()->getConstructor()) {
+            return;
+        }
+
+        $parameters = $constructor->getParameters();
 
         foreach ($parameters as $parameter) {
             $option = self::camelToSnakeCase($parameter->getName());
