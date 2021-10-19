@@ -6,6 +6,7 @@ namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Factory;
 
 use InvalidArgumentException;
 use ReflectionClass;
+use ReflectionParameter;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Throwable;
 
@@ -181,10 +182,19 @@ trait GenericFactoryTrait
             if ($parameter->isDefaultValueAvailable()) {
                 $this->setDefault($option, $parameter->getDefaultValue());
             }
+            $this->parameterCallback($parameter, $option);
         }
         $this->getOptionsResolver()->setRequired(
             $this->getRequiredOptions()
         );
+    }
+
+    /**
+     * To be overwritten by implementing classes
+     * @param ReflectionParameter $parameter
+     */
+    private function parameterCallback(ReflectionParameter $parameter, string $option)
+    {
     }
 
     private static function camelToSnakeCase(string $value): string
