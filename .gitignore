@@ -7,6 +7,8 @@ coverage.clover
 tests/coverage
 .php_cs.cache
 phpunit.xml
+psalm.xml
+phpstan.neon
 
 # W3C Test Service build artifacts
 tests/TraceContext/W3CTestService/test_app
