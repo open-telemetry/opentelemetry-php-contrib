@@ -30,6 +30,7 @@ class Configuration implements ConfigurationInterface
     public const LIMITS_COUNT_DEFAULT = 128;
     public const ATTRIBUTES_NODE = 'attributes';
     public const SERVICE_NAME_ATTR = 'service.name';
+    public const SERVICE_NAME_NODE = 'service_name';
     public const REQUIRED_SOURCE_ATTRS = [
         self::SERVICE_NAME_ATTR,
     ];
