@@ -63,6 +63,21 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
+    public function testOptionMapping()
+    {
+        $factory = new ExporterFactory(TestExporter::class);
+
+        $exporter = $factory([
+            'service_name' => 'foo',
+            'url' => 'http://localhost:1234/path',
+        ]);
+
+        $this->assertInstanceOf(
+            TestExporter::class,
+            $exporter
+        );
+    }
+
     public function testBuildNonExporterException()
     {
         $this->expectException(

@@ -18,6 +18,13 @@ use Throwable;
 
 class ExporterFactory implements Factory\GenericFactoryInterface
 {
+    private const ENDPOINT_URL_PARAM = 'endpoint_url';
+    private const NAME_PARAM = 'name';
+    private const OPTIONS_MAPPING = [
+        self::ENDPOINT_URL_PARAM => 'url',
+        self::NAME_PARAM => 'service_name',
+    ];
+
     use Factory\GenericFactoryTrait;
 
     public function build(array $options = []): SpanExporterInterface
@@ -47,8 +54,18 @@ class ExporterFactory implements Factory\GenericFactoryInterface
 
     private function parameterCallback(ReflectionParameter $parameter, string $option)
     {
-        if (!$type = $parameter->getType()) {
-            return;
+        $name = self::camelToSnakeCase($parameter->getName());
+        $type = $parameter->getType();
+
+        if (array_key_exists($name, self::OPTIONS_MAPPING)) {
+            $this->getOptionsResolver()->define(self::OPTIONS_MAPPING[$name]);
+            $this->setDefault($name, function (Options $options) use ($name) {
+                if (isset($options[self::OPTIONS_MAPPING[$name]])) {
+                    return $options[self::OPTIONS_MAPPING[$name]];
+                }
+
+                return null;
+            });
         }
 
         switch ($type) {
