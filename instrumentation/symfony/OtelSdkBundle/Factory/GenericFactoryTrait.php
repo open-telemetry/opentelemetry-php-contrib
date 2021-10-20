@@ -173,11 +173,9 @@ trait GenericFactoryTrait
 
         foreach ($parameters as $parameter) {
             $option = self::camelToSnakeCase($parameter->getName());
-            $this->options[$parameter->getPosition()] = $option;
-            $this->getOptionsResolver()->define($option);
+            $this->addOption($parameter->getPosition(), $option);
             if (!$parameter->isOptional()) {
-                $this->requiredOptions[] = $option;
-                $this->getOptionsResolver()->setRequired($option);
+                $this->addRequiredOption($option);
             }
             if ($type = $parameter->getType()) {
                 $this->getOptionsResolver()
@@ -191,6 +189,18 @@ trait GenericFactoryTrait
         $this->getOptionsResolver()->setRequired(
             $this->getRequiredOptions()
         );
+    }
+
+    private function addOption(int $position, string $option)
+    {
+        $this->options[$position] = $option;
+        $this->getOptionsResolver()->define($option);
+    }
+
+    private function addRequiredOption(string $option)
+    {
+        $this->requiredOptions[] = $option;
+        $this->getOptionsResolver()->setRequired($option);
     }
 
     /**
