@@ -40,6 +40,11 @@ class ExporterFactory implements Factory\GenericFactoryInterface
         }
     }
 
+    public function __invoke(array $options = []): SpanExporterInterface
+    {
+        return $this->build($options);
+    }
+
     private function parameterCallback(ReflectionParameter $parameter, string $option)
     {
         if (!$type = $parameter->getType()) {

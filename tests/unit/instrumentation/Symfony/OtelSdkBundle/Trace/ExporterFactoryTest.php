@@ -48,6 +48,21 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
+    public function testInvoke()
+    {
+        $factory = new ExporterFactory(TestExporter::class);
+
+        $exporter = $factory([
+            'name' => 'foo',
+            'endpoint_url' => 'http://localhost:1234/path',
+        ]);
+
+        $this->assertInstanceOf(
+            TestExporter::class,
+            $exporter
+        );
+    }
+
     public function testBuildNonExporterException()
     {
         $this->expectException(
