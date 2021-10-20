@@ -447,7 +447,7 @@ class Configuration implements ConfigurationInterface
             ->getRootNode()
             ->isRequired();
 
-        if($default !== null) {
+        if ($default !== null) {
             $node->defaultValue($default);
         }
 
