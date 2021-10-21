@@ -435,6 +435,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createOptionsNodes(): NodeDefinition
     {
+        /** @phpstan-ignore-next-line */
         return self::createTreeBuilder(self::OPTIONS_NODE, self::ARRAY_NODE_TYPE)
             ->getRootNode()
             ->fixXmlConfig(self::OPTIONS_XML)
