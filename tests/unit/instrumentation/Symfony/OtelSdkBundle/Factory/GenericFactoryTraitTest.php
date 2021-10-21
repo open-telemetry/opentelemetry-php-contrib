@@ -57,10 +57,10 @@ class GenericFactoryTraitTest extends TestCase
         $this->resolver = $this->createOptionsResolverMock();
     }
 
-    private function initFactory()
+    private function initFactory(string $class = TestedClass::class)
     {
         $this->factory = GenericFactoryImplementation::create(
-            TestedClass::class,
+            $class,
             $this->resolver
         );
     }
@@ -287,6 +287,29 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
+    public function testBuildWithDefaultNull()
+    {
+        $options = ['foo_bar' => 'baz'];
+
+        $this->initResolver();
+        /** @psalm-suppress PossiblyUndefinedMethod **/
+        $this->resolver->expects($this->once())
+            ->method('resolve')
+            ->willReturn($options);
+
+        $this->initFactory(TestedDefaultNullClass::class);
+
+        $this->assertEquals(
+            ['foo_baz' => null],
+            $this->factory->getDefaults()
+        );
+
+        $this->assertInstanceOf(
+            TestedDefaultNullClass::class,
+            $obj = $this->factory->build($options)
+        );
+    }
+
     // UTIL
 
     // /** @psalm-suppress PossiblyUndefinedMethod **/
@@ -350,6 +373,35 @@ class TestedClass
     public function getBazBar(): array
     {
         return $this->bazBar;
+    }
+
+    /**
+     * @return stdClass|null
+     */
+    public function getFooBaz(): ?stdClass
+    {
+        return $this->fooBaz;
+    }
+}
+
+class TestedDefaultNullClass
+{
+    // untyped properties
+    private $fooBar;
+    private $fooBaz;
+
+    public function __construct(string $fooBar, stdClass $fooBaz = null)
+    {
+        $this->fooBar = $fooBar;
+        $this->fooBaz = $fooBaz;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFooBar(): string
+    {
+        return $this->fooBar;
     }
 
     /**

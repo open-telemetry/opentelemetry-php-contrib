@@ -186,8 +186,12 @@ trait GenericFactoryTrait
                 $this->addRequiredOption($option);
             }
             if ($type = $parameter->getType()) {
+                $types = [(string) $type];
+                if ($parameter->allowsNull()) {
+                    $types[] = 'null';
+                }
                 $this->getOptionsResolver()
-                    ->setAllowedTypes($option, (string) $type);
+                    ->setAllowedTypes($option, $types);
             }
             if ($parameter->isDefaultValueAvailable()) {
                 $this->setDefault($option, $parameter->getDefaultValue());

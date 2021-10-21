@@ -41,7 +41,7 @@ class ExporterFactory implements Factory\GenericFactoryInterface
         } catch (Throwable $e) {
             throw new RuntimeException(
                 'Could not build SpanExporter',
-                (int)$e->getCode(),
+                (int) $e->getCode(),
                 $e
             );
         }
