@@ -36,10 +36,9 @@ class ServiceHelper
      */
     public static function floatToString(float $value): string
     {
-        $precision = (int) strpos(strrev((string) $value), '.');
         return number_format(
             $value,
-            (int) strpos(
+            (int)strpos(
                 strrev((string) $value),
                 '.'
             ),

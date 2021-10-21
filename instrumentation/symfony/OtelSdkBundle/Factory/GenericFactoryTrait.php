@@ -9,6 +9,7 @@ use ReflectionClass;
 use ReflectionParameter;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Throwable;
+use ReflectionException;
 
 trait GenericFactoryTrait
 {
@@ -132,7 +133,6 @@ trait GenericFactoryTrait
     private function init(string $buildClass, OptionsResolver $resolver)
     {
         try {
-            $this->validateExporterClass($buildClass);
             $this->setupReflectionClass($buildClass);
         } catch (Throwable $t) {
             throw new InvalidArgumentException(
@@ -154,8 +154,15 @@ trait GenericFactoryTrait
         }
     }
 
+    /**
+     * @param string $buildClass
+     * @throws ReflectionException
+     */
     private function setupReflectionClass(string $buildClass)
     {
+        $this->validateExporterClass($buildClass);
+
+        /** @psalm-suppress ArgumentTypeCoercion */
         $this->reflectionClass = new ReflectionClass($buildClass);
     }
 
