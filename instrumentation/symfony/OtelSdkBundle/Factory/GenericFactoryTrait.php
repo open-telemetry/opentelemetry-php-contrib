@@ -34,6 +34,7 @@ trait GenericFactoryTrait
      */
     public static function create(string $buildClass, ?OptionsResolver $resolver = null): self
     {
+        /** @phan-suppress-next-line PhanTypeInstantiateTraitStaticOrSelf */
         return new self($buildClass, $resolver);
     }
 
