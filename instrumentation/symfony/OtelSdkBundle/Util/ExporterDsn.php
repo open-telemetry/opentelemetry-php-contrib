@@ -82,13 +82,13 @@ class ExporterDsn
             '%s://',
             $this->getScheme()
         );
-        $dsn .= $this->user && $this->password ? sprintf(
+        $dsn .= $this->getUser() !== null && $this->getPassword() !== null ? sprintf(
             '%s:%s@',
             $this->getUser(),
             $this->getPassword()
         ) : '';
         $dsn .= $this->getHost();
-        $dsn .= $this->port ? sprintf(
+        $dsn .= $this->getPort() !== null ? sprintf(
             ':%s',
             $this->getPort(),
         ) : '';
