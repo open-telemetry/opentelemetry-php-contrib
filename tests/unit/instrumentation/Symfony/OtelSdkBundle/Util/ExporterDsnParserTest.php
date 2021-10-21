@@ -91,6 +91,18 @@ class ExporterDsnParserTest extends TestCase
         );
     }
 
+    public function testParseToArrayNoSchemeThrowsException()
+    {
+        $dsn = 'root:secret@baz:1234/path';
+        $parts = self::PARTS_ARRAY;
+        $parts['options'] = [];
+
+        $this->assertEquals(
+            $parts,
+            ExporterDsnParser::parseToArray($dsn)
+        );
+    }
+
     public function testParseInvalidDsnThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);

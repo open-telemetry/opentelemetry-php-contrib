@@ -22,10 +22,11 @@ class ExporterDsnParser
         }
 
         try {
+            /** @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset */
             list($components['type'], $components['scheme']) = explode('+', $components['scheme']);
         } catch (Throwable $t) {
             throw new InvalidArgumentException(
-                'An exporter DSN must have a collector type and a scheme: type+scheme://host:port'
+                'An exporter DSN must have a exporter type and a scheme: type+scheme://host:port'
             );
         }
         $components['options'] = [];
