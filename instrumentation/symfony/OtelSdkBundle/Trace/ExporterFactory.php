@@ -60,11 +60,7 @@ class ExporterFactory implements Factory\GenericFactoryInterface
         if (array_key_exists($name, self::OPTIONS_MAPPING)) {
             $this->getOptionsResolver()->define(self::OPTIONS_MAPPING[$name]);
             $this->setDefault($name, function (Options $options) use ($name) {
-                if (isset($options[self::OPTIONS_MAPPING[$name]])) {
-                    return $options[self::OPTIONS_MAPPING[$name]];
-                }
-
-                return null;
+                return $options[self::OPTIONS_MAPPING[$name]];
             });
         }
 
