@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class OtelSdkBundle extends Bundle
