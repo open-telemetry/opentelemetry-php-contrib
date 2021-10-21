@@ -6,6 +6,7 @@ namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Trace;
 
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
+use OpenTelemetry\Contrib;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -86,6 +87,94 @@ class ExporterFactoryTest extends TestCase
 
         (new ExporterFactory(stdClass::class))
             ->build();
+    }
+
+    public function testBuildZipkin()
+    {
+        $factory = new ExporterFactory(Contrib\Zipkin\Exporter::class);
+
+        $exporter = $factory->build([
+            'name' => 'foo',
+            'endpoint_url' => 'http://localhost:1234/path',
+        ]);
+
+        $this->assertInstanceOf(
+            Contrib\Zipkin\Exporter::class,
+            $exporter
+        );
+    }
+
+    public function testBuildJaeger()
+    {
+        $factory = new ExporterFactory(Contrib\Jaeger\Exporter::class);
+
+        $exporter = $factory->build([
+            'name' => 'foo',
+            'endpoint_url' => 'http://localhost:1234/path',
+        ]);
+
+        $this->assertInstanceOf(
+            Contrib\Jaeger\Exporter::class,
+            $exporter
+        );
+    }
+
+    public function testBuildNewrelic()
+    {
+        $factory = new ExporterFactory(Contrib\Newrelic\Exporter::class);
+
+        $exporter = $factory->build([
+            'name' => 'foo',
+            'endpoint_url' => 'http://localhost:1234/path',
+            'license_key' => 'gadouzdSD',
+        ]);
+
+        $this->assertInstanceOf(
+            Contrib\Newrelic\Exporter::class,
+            $exporter
+        );
+    }
+
+    public function testBuildOtlpGrpc()
+    {
+        $factory = new ExporterFactory(Contrib\OtlpGrpc\Exporter::class);
+
+        $exporter = $factory->build([
+            'endpoint_url' => 'http://localhost:1234/path',
+        ]);
+
+        $this->assertInstanceOf(
+            Contrib\OtlpGrpc\Exporter::class,
+            $exporter
+        );
+    }
+
+    public function testBuildOtlpHttp()
+    {
+        $factory = new ExporterFactory(Contrib\OtlpHttp\Exporter::class);
+
+        $exporter = $factory->build([ ]);
+
+        $this->assertInstanceOf(
+            Contrib\OtlpHttp\Exporter::class,
+            $exporter
+        );
+    }
+
+    public function testBuildZipkinToNewrelic()
+    {
+        $factory = new ExporterFactory(Contrib\ZipkinToNewrelic\Exporter::class);
+
+        $exporter = $factory->build([
+            'name' => 'foo',
+            'endpoint_url' => 'http://localhost:1234/path',
+            'license_key' => 'gadouzdSD',
+        ]);
+
+        $this->assertInstanceOf(
+            Contrib\ZipkinToNewrelic\Exporter::class,
+            $exporter
+        );
     }
 
     private function createClientInterfaceMock(): ClientInterface
