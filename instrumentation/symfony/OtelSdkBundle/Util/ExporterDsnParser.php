@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util;
 
 use InvalidArgumentException;
-use Throwable;
 
 class ExporterDsnParser
 {
@@ -21,14 +20,13 @@ class ExporterDsnParser
             throw new InvalidArgumentException('Could not parse DSN');
         }
 
-        try {
-            /** @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset */
-            list($components['type'], $components['scheme']) = explode('+', $components['scheme']);
-        } catch (Throwable $t) {
+        if (!isset($components['scheme']) || (int) strpos($components['scheme'], '+') === 0) {
             throw new InvalidArgumentException(
                 'An exporter DSN must have a exporter type and a scheme: type+scheme://host:port'
             );
         }
+        list($components['type'], $components['scheme']) = explode('+', $components['scheme']);
+
         $components['options'] = [];
         if (isset($components['query'])) {
             foreach (explode('&', $components['query']) as $part) {
