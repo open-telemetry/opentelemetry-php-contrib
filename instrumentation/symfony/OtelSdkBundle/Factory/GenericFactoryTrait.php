@@ -7,6 +7,7 @@ namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Factory;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionParameter;
+use ReflectionNamedType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Throwable;
 use ReflectionException;
@@ -185,8 +186,9 @@ trait GenericFactoryTrait
             if (!$parameter->isOptional()) {
                 $this->addRequiredOption($option);
             }
-            if ($type = $parameter->getType()) {
-                $types = [(string) $type];
+            $type = $parameter->getType();
+            if ($type instanceof ReflectionNamedType) {
+                $types = [$type->getName()];
                 if ($parameter->allowsNull()) {
                     $types[] = 'null';
                 }
@@ -206,7 +208,7 @@ trait GenericFactoryTrait
     private function addOption(int $position, string $option)
     {
         $this->options[$position] = $option;
-        $this->getOptionsResolver()->define($option);
+        $this->getOptionsResolver()->setDefined($option);
     }
 
     private function addRequiredOption(string $option)

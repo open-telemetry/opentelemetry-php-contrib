@@ -12,6 +12,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use ReflectionParameter;
+use ReflectionNamedType;
 use RuntimeException;
 use Symfony\Component\OptionsResolver\Options;
 use Throwable;
@@ -58,25 +59,27 @@ class ExporterFactory implements Factory\GenericFactoryInterface
         $type = $parameter->getType();
 
         if (array_key_exists($name, self::OPTIONS_MAPPING)) {
-            $this->getOptionsResolver()->define(self::OPTIONS_MAPPING[$name]);
+            $this->getOptionsResolver()->setDefined(self::OPTIONS_MAPPING[$name]);
             $this->setDefault($name, function (Options $options) use ($name) {
                 return $options[self::OPTIONS_MAPPING[$name]];
             });
         }
 
-        switch ($type) {
-            case ClientInterface::class:
-                $this->setDefault($option, fn (Options $options) => HttpClientDiscovery::find());
+        if ($type instanceof ReflectionNamedType) {
+            switch ($type->getName()) {
+                case ClientInterface::class:
+                    $this->setDefault($option, fn (Options $options) => HttpClientDiscovery::find());
 
-                return;
-            case RequestFactoryInterface::class:
-                $this->setDefault($option, fn (Options $options) => Psr17FactoryDiscovery::findRequestFactory());
+                    return;
+                case RequestFactoryInterface::class:
+                    $this->setDefault($option, fn (Options $options) => Psr17FactoryDiscovery::findRequestFactory());
 
-                return;
-            case StreamFactoryInterface::class:
-                $this->setDefault($option, fn (Options $options) => Psr17FactoryDiscovery::findStreamFactory());
+                    return;
+                case StreamFactoryInterface::class:
+                    $this->setDefault($option, fn (Options $options) => Psr17FactoryDiscovery::findStreamFactory());
 
-                return;
+                    return;
+            }
         }
     }
 }
