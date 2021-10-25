@@ -99,6 +99,23 @@ class OtelSdkBundleTest extends TestCase
      * @depends testTracerProviderWithSimpleConfig
      * @throws Exception
      */
+    public function testTracerWithSimpleConfig()
+    {
+        $this->loadTestData('simple');
+
+        $this->assertInstanceOf(
+            SDK\Trace\Tracer::class,
+            $this->get(
+                ServiceHelper::classToId(SDK\Trace\Tracer::class)
+            )
+        );
+    }
+
+    /**
+     * @test
+     * @depends testTracerProviderWithSimpleConfig
+     * @throws Exception
+     */
     public function testSamplerWithSimpleConfig()
     {
         $this->loadTestData('simple');
