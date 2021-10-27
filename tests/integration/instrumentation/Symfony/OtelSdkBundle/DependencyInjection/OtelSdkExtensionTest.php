@@ -102,6 +102,14 @@ class OtelSdkExtensionTest extends TestCase
     {
         $this->loadTestData('sampler');
 
+        $sampler = $this->getDefinitionByClass(SDK\Trace\TracerProvider::class)
+            ->getArgument(1);
+
+        $this->assertReference(
+            SDK\Trace\Sampler\ParentBased::class,
+            $sampler
+        );
+
         $parent = $this->getDefinitionByClass(SDK\Trace\Sampler\ParentBased::class);
         $arguments = $parent->getArguments();
 
@@ -129,6 +137,34 @@ class OtelSdkExtensionTest extends TestCase
         $this->assertReference(
             SDK\Trace\Sampler\AlwaysOffSampler::class,
             $arguments[4]
+        );
+    }
+
+    public function testAlwaysOffRootSamplerRegression(): void
+    {
+        $data = $this->retrieveTestData('simple');
+        $data['trace']['sampler'] = 'always_off';
+
+        $this->load(
+            self::wrapConfig(
+                $data
+            )
+        );
+
+        $sampler = $this->getDefinitionByClass(SDK\Trace\TracerProvider::class)
+            ->getArgument(1);
+
+        $this->assertReference(
+            SDK\Trace\Sampler\ParentBased::class,
+            $sampler
+        );
+
+        $parent = $this->getDefinitionByClass(SDK\Trace\Sampler\ParentBased::class);
+        $arguments = $parent->getArguments();
+
+        $this->assertReference(
+            SDK\Trace\Sampler\AlwaysOffSampler::class,
+            $arguments[0]
         );
     }
 
