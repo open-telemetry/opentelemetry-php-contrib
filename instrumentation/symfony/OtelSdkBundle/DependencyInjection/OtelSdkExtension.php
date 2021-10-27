@@ -54,7 +54,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      * @param array $configs
      * @param ContainerBuilder $container
      */
-    final public function load(array $configs, ContainerBuilder $container)
+    final public function load(array $configs, ContainerBuilder $container): void
     {
         $this->loadInternal(
             $this->processConfiguration(
@@ -72,7 +72,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      * @param array $mergedConfig
      * @param ContainerBuilder $container
      */
-    protected function loadInternal(array $mergedConfig, ContainerBuilder $container)
+    protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
         if ($mergedConfig['enabled'] === false) {
             return;
@@ -89,7 +89,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         $this->configureSpanExporters();
     }
 
-    private function configureResourceInfo()
+    private function configureResourceInfo(): void
     {
         $config = $this->config[Conf::RESOURCE_NODE] ?? [];
         if (empty($config)) {
@@ -117,12 +117,12 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         ]);
 
         // reference service name for later use
-        if (isset($config[Conf::ATTRIBUTES_NODE]) && isset($config[Conf::ATTRIBUTES_NODE][Conf::SERVICE_NAME_ATTR])) {
+        if (isset($config[Conf::ATTRIBUTES_NODE], $config[Conf::ATTRIBUTES_NODE][Conf::SERVICE_NAME_ATTR])) {
             $this->serviceName = $config[Conf::ATTRIBUTES_NODE][Conf::SERVICE_NAME_ATTR];
         }
     }
 
-    private function configureTraceSamplers()
+    private function configureTraceSamplers(): void
     {
         $config = $this->config[Conf::TRACE_NODE][Conf::SAMPLER_NODE] ?? [];
         if (empty($config)) {
@@ -147,7 +147,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
             ->setArguments($arguments);
     }
 
-    private function configureSpanLimits()
+    private function configureSpanLimits(): void
     {
         $config = $this->config[Conf::TRACE_NODE][Conf::SPAN_NODE][Conf::LIMITS_NODE] ?? [];
         if (empty($config)) {
@@ -171,7 +171,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         }
     }
 
-    private function configureSpanProcessors()
+    private function configureSpanProcessors(): void
     {
         $this->setStandardSpanProcessors();
 
@@ -210,7 +210,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         }
     }
 
-    private function configureSpanExporters()
+    private function configureSpanExporters(): void
     {
         $config = $this->config[Conf::TRACE_NODE][Conf::EXPORTERS_NODE]
             ?? [];
@@ -300,7 +300,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
 
         $options = [];
         foreach ($config[Conf::OPTIONS_NODE] as $key => $value) {
-            if (!in_array($key, $definedOptions)) {
+            if (!in_array($key, $definedOptions, true)) {
                 throw new RuntimeException(
                     sprintf(
                         'Option "%s" is not allowed for span exporter of type %s"',
@@ -337,7 +337,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      */
     private function isExporterClassConfiguration($config): bool
     {
-        if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTERS_NODE_VALUES)) {
+        if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTERS_NODE_VALUES, true)) {
             return true;
         }
         if ($config[Conf::TYPE_NODE] === Conf::CUSTOM_TYPE && isset($config[Conf::CLASS_NODE])) {
@@ -353,11 +353,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      */
     private function isExporterReferenceConfiguration($config): bool
     {
-        if ($config[Conf::TYPE_NODE] === Conf::CUSTOM_TYPE && isset($config[Conf::ID_NODE])) {
-            return true;
-        }
-
-        return false;
+        return $config[Conf::TYPE_NODE] === Conf::CUSTOM_TYPE && isset($config[Conf::ID_NODE]);
     }
 
     /**
@@ -401,7 +397,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      */
     private function resolveExporterClass(array $config): string
     {
-        if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTERS_NODE_VALUES)) {
+        if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTERS_NODE_VALUES, true)) {
             return ConfigMappings::SPAN_EXPORTERS[
                 $config[Conf::TYPE_NODE]
             ];
@@ -442,7 +438,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         return $id;
     }
 
-    private function setStandardSpanProcessors()
+    private function setStandardSpanProcessors(): void
     {
         $this->setSpanProcessorByClass(Conf::DEFAULT_TYPE, SpanProcessors::DEFAULT);
         foreach (Conf::PROCESSOR_NODE_VALUES as $type) {
@@ -455,23 +451,23 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      * @param string $class
      * @param array $args
      */
-    private function setSpanProcessorByClass(string $processorType, string $class, array $args = [])
+    private function setSpanProcessorByClass(string $processorType, string $class, array $args = []): void
     {
         $id = ServiceHelper::classToId($class);
         if ($this->getContainer()->hasDefinition($id)) {
-            self::setSpanProcessor($processorType, clone $this->getContainer()->getDefinition($id));
+            $this->setSpanProcessor($processorType, clone $this->getContainer()->getDefinition($id));
 
             return;
         }
 
-        self::setSpanProcessor($processorType, self::createDefinition($class, $args));
+        $this->setSpanProcessor($processorType, self::createDefinition($class, $args));
     }
 
     /**
      * @param string $processorType
      * @param Definition $definition
      */
-    private function setSpanProcessor(string $processorType, Definition $definition)
+    private function setSpanProcessor(string $processorType, Definition $definition): void
     {
         $this->processors[$processorType] = $definition;
     }
@@ -542,7 +538,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     /**
      * @param array $config
      */
-    private function setConfig(array $config)
+    private function setConfig(array $config): void
     {
         $this->config = $config;
     }
@@ -550,7 +546,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     /**
      * @param ContainerBuilder $container
      */
-    private function setContainer(ContainerBuilder $container)
+    private function setContainer(ContainerBuilder $container): void
     {
         $this->container = $container;
     }
@@ -615,7 +611,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      * @param Definition $definition
      * @param bool $classAlias
      */
-    private function registerService(string $id, Definition $definition, bool $classAlias = true)
+    private function registerService(string $id, Definition $definition, bool $classAlias = true): void
     {
         $this->getContainer()->setDefinition($id, $definition);
         if ($classAlias === true) {
@@ -660,7 +656,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     /**
      * @param string $id
      */
-    private function validateId(string $id)
+    private function validateId(string $id): void
     {
         if (!$this->getContainer()->has($id)) {
             throw new RuntimeException(
@@ -766,7 +762,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     /**
      * @param LoggerInterface $logger
      */
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
@@ -775,9 +771,9 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      * @param string $message
      * @param array $context
      */
-    private function debug(string $message, array $context = [])
+    private function debug(string $message, array $context = []): void
     {
-        if (!$this->isDebug() || !$this->logger instanceof LoggerInterface) {
+        if (!$this->logger instanceof LoggerInterface || !$this->isDebug()) {
             return;
         }
 
