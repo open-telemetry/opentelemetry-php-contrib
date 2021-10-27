@@ -53,7 +53,7 @@ class OtelSdkExtensionTest extends TestCase
         );
     }
 
-    public function testResourceLimits()
+    public function testResourceLimits(): void
     {
         $data = $this->loadTestData('resource');
 
@@ -65,7 +65,7 @@ class OtelSdkExtensionTest extends TestCase
         );
     }
 
-    public function testResourceAttributes()
+    public function testResourceAttributes(): void
     {
         $data = $this->loadTestData('resource');
         $params = $this->getContainer()
@@ -87,22 +87,22 @@ class OtelSdkExtensionTest extends TestCase
         $this->assertReference(SDK\Trace\AttributeLimits::class, $arguments[1]);
     }
 
-    public function testDefaultSampler()
+    public function testDefaultSampler(): void
     {
         $this->loadTestData('minimal');
 
         $this->assertReference(
             Samplers::DEFAULT_SAMPLER,
-            $this->getDefinitionByClass(Sdk\Trace\Sampler\ParentBased::class)
+            $this->getDefinitionByClass(SDK\Trace\Sampler\ParentBased::class)
                 ->getArguments()[0]
         );
     }
 
-    public function testSamplers()
+    public function testSamplers(): void
     {
         $this->loadTestData('sampler');
 
-        $parent = $this->getDefinitionByClass(Sdk\Trace\Sampler\ParentBased::class);
+        $parent = $this->getDefinitionByClass(SDK\Trace\Sampler\ParentBased::class);
         $arguments = $parent->getArguments();
 
         $this->assertReference(
@@ -111,13 +111,13 @@ class OtelSdkExtensionTest extends TestCase
         );
 
         $this->assertReference(
-            Sdk\Trace\Sampler\TraceIdRatioBasedSampler::class,
+            SDK\Trace\Sampler\TraceIdRatioBasedSampler::class,
             $arguments[1],
             '.0.5'
         );
 
         $this->assertReference(
-            Sdk\Trace\Sampler\AlwaysOffSampler::class,
+            SDK\Trace\Sampler\AlwaysOffSampler::class,
             $arguments[2]
         );
 
@@ -127,19 +127,22 @@ class OtelSdkExtensionTest extends TestCase
         );
 
         $this->assertReference(
-            Sdk\Trace\Sampler\AlwaysOffSampler::class,
+            SDK\Trace\Sampler\AlwaysOffSampler::class,
             $arguments[4]
         );
     }
 
-    public function testSpanLimits()
+    /**
+     * @throws Exception
+     */
+    public function testSpanLimits(): void
     {
         $data = $this->loadTestData('span')['trace']['span']['limits'];
-        $limits = $this->getDefinitionByClass(Sdk\Trace\SpanLimits::class);
-        $builder = $this->getDefinitionByClass(Sdk\Trace\SpanLimitsBuilder::class);
+        $limits = $this->getDefinitionByClass(SDK\Trace\SpanLimits::class);
+        $builder = $this->getDefinitionByClass(SDK\Trace\SpanLimitsBuilder::class);
 
         $this->assertReference(
-            Sdk\Trace\SpanLimitsBuilder::class,
+            SDK\Trace\SpanLimitsBuilder::class,
             $limits->getFactory()[0]
         );
         $this->assertSame(
@@ -162,22 +165,25 @@ class OtelSdkExtensionTest extends TestCase
         }
     }
 
-    public function testEmptySpanProcessor()
+    public function testEmptySpanProcessor(): void
     {
         $this->loadTestData('minimal');
 
         $this->assertReference(
             SpanProcessors::NOOP,
-            $this->getDefinitionByClass(Sdk\Trace\TracerProvider::class)
+            $this->getDefinitionByClass(SDK\Trace\TracerProvider::class)
                 ->getArgument(0)
         );
     }
 
-    public function testSpanProcessors()
+    /**
+     * @throws Exception
+     */
+    public function testSpanProcessors(): void
     {
         $this->loadTestData('full');
 
-        $processors = $this->getDefinitionByClass(Sdk\Trace\TracerProvider::class)
+        $processors = $this->getDefinitionByClass(SDK\Trace\TracerProvider::class)
             ->getArgument(0);
 
         $this->assertIsReferenceForClass(
@@ -218,7 +224,7 @@ class OtelSdkExtensionTest extends TestCase
         }
     }
 
-    public function testSpanExporters()
+    public function testSpanExporters(): void
     {
         $data = $this->loadTestData('exporters')['trace']['exporters'];
         $exporterIds = [];
@@ -229,7 +235,7 @@ class OtelSdkExtensionTest extends TestCase
         }
 
         $exporters = [];
-        $processorReferences = $this->getDefinitionByClass(Sdk\Trace\TracerProvider::class)
+        $processorReferences = $this->getDefinitionByClass(SDK\Trace\TracerProvider::class)
             ->getArgument(0);
         foreach ($processorReferences as $reference) {
             $processor = $this->container->getDefinition((string) $reference);
@@ -294,7 +300,7 @@ class OtelSdkExtensionTest extends TestCase
 
     // HELPER METHODS
 
-    private function assertReference(string $class, ?object $reference, ?string $idSuffix = null)
+    private function assertReference(string $class, ?object $reference, ?string $idSuffix = null): void
     {
         $this->assertIsReference(
             $reference
@@ -314,7 +320,7 @@ class OtelSdkExtensionTest extends TestCase
         );
     }
 
-    private function assertIsReferenceForClass(string $class, Reference $reference)
+    private function assertIsReferenceForClass(string $class, Reference $reference): void
     {
         $this->assertSame(
             $class,
@@ -322,7 +328,7 @@ class OtelSdkExtensionTest extends TestCase
         );
     }
 
-    private function assertIsReference(?object $reference)
+    private function assertIsReference(?object $reference): void
     {
         $this->assertInstanceOf(
             Reference::class,
@@ -385,17 +391,6 @@ class OtelSdkExtensionTest extends TestCase
     private static function createContainer(): ContainerBuilder
     {
         return new ContainerBuilder();
-    }
-
-    /**
-     * @param string $class
-     * @psalm-param class-string $class
-     * @throws Exception
-     * @return object|null
-     */
-    private function getByClass(string $class): ?object
-    {
-        return $this->getContainer()->get(ServiceHelper::classToId($class));
     }
 
     /**

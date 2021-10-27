@@ -57,7 +57,7 @@ class OtelSdkBundleTest extends TestCase
      * @test
      * @throws Exception
      */
-    public function testWithMinimalConfig()
+    public function testWithMinimalConfig(): void
     {
         $this->loadTestData('minimal');
 
@@ -84,7 +84,7 @@ class OtelSdkBundleTest extends TestCase
      * @test
      * @throws Exception
      */
-    public function testTracerProviderWithSimpleConfig()
+    public function testTracerProviderWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
         
@@ -99,7 +99,7 @@ class OtelSdkBundleTest extends TestCase
      * @depends testTracerProviderWithSimpleConfig
      * @throws Exception
      */
-    public function testTracerWithSimpleConfig()
+    public function testTracerWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
 
@@ -116,7 +116,7 @@ class OtelSdkBundleTest extends TestCase
      * @depends testTracerProviderWithSimpleConfig
      * @throws Exception
      */
-    public function testSamplerWithSimpleConfig()
+    public function testSamplerWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
 
@@ -132,7 +132,7 @@ class OtelSdkBundleTest extends TestCase
      * @depends testTracerProviderWithSimpleConfig
      * @throws Exception
      */
-    public function testProcessorWithSimpleConfig()
+    public function testProcessorWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
 
@@ -156,7 +156,7 @@ class OtelSdkBundleTest extends TestCase
      * @depends testProcessorWithSimpleConfig
      * @throws Exception
      */
-    public function testExporterWithSimpleConfig()
+    public function testExporterWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
 
@@ -183,11 +183,48 @@ class OtelSdkBundleTest extends TestCase
      * @depends testExporterWithSimpleConfig
      * @throws Exception
      */
-    public function testTracingWithSimpleConfig()
+    public function testTracingWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
 
         $this->registerHttpClientMock()->expects($this->once())
+            ->method('sendRequest');
+
+        $exporter = $this->container->getDefinition(self::DEFAULT_SPAN_EXPORTER_ID);
+        $options = $exporter->getArgument(0);
+        $options['client'] = $this->createReference(self::HTTP_CLIENT_MOCK_ID);
+        $exporter->setArgument(0, $options);
+
+        $this->getTracerProvider()
+            ->getTracer('foo')
+            ->spanBuilder('bar')
+            ->startSpan()
+            ->end();
+
+        $this->getTracerProvider()->forceFlush();
+    }
+
+    /**
+     * @depends testExporterWithSimpleConfig
+     * @throws Exception
+     */
+    public function testTracingWithAlwaysOffSampler(): void
+    {
+        $this->load(
+            self::wrapConfig([
+                'resource' => [
+                    'attributes' => [
+                        'service.name' => 'foo',
+                    ],
+                ],
+                'trace' => [
+                    'sampler' => 'always_off',
+                    'exporters' => ['zipkin+http://zipkinhost:1234/path'],
+                ],
+            ])
+        );
+
+        $this->registerHttpClientMock()->expects($this->never())
             ->method('sendRequest');
 
         $exporter = $this->container->getDefinition(self::DEFAULT_SPAN_EXPORTER_ID);
@@ -301,7 +338,7 @@ class OtelSdkBundleTest extends TestCase
     }
 
     /**
-     * @param string $class
+     * @param string $id
      * @throws Exception
      * @return object|null
      */
@@ -339,9 +376,5 @@ class OtelSdkBundleTest extends TestCase
     private static function getParser(): Parser
     {
         return self::$parser ?? self::$parser = new Parser();
-    }
-
-    private function createStreamWrapper()
-    {
     }
 }
