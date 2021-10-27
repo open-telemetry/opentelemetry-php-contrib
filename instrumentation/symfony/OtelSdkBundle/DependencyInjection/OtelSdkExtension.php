@@ -145,6 +145,9 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
 
         $this->getDefinitionByClass(Samplers::PARENT_BASED)
             ->setArguments($arguments);
+
+        $this->getDefinitionByClass(Trace\TracerProvider::class)
+            ->setArgument(1, self::createReferenceFromClass(Samplers::PARENT_BASED));
     }
 
     private function configureSpanLimits(): void
