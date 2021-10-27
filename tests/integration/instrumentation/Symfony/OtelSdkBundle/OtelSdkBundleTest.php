@@ -121,7 +121,7 @@ class OtelSdkBundleTest extends TestCase
         $this->loadTestData('simple');
 
         $this->assertInstanceOf(
-            SDK\Trace\Sampler\AlwaysOnSampler::class,
+            SDK\Trace\Sampler\ParentBased::class,
             $this->getTracerProvider()
                 ->getSampler()
         );
