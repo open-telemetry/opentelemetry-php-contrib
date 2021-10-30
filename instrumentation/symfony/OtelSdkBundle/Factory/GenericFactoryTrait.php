@@ -6,11 +6,11 @@ namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Factory;
 
 use InvalidArgumentException;
 use ReflectionClass;
-use ReflectionParameter;
+use ReflectionException;
 use ReflectionNamedType;
+use ReflectionParameter;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Throwable;
-use ReflectionException;
 
 trait GenericFactoryTrait
 {
@@ -42,7 +42,7 @@ trait GenericFactoryTrait
 
     /**
      * @param array $options
-     * @throws \ReflectionException
+     * @throws ReflectionException
      * @return object
      */
     private function doBuild(array $options = []): object
@@ -131,7 +131,7 @@ trait GenericFactoryTrait
         return $this->resolver;
     }
 
-    private function init(string $buildClass, OptionsResolver $resolver)
+    private function init(string $buildClass, OptionsResolver $resolver): void
     {
         try {
             $this->setupReflectionClass($buildClass);
@@ -146,7 +146,7 @@ trait GenericFactoryTrait
         $this->inspectExporter();
     }
 
-    private function validateExporterClass(string $buildClass)
+    private function validateExporterClass(string $buildClass): void
     {
         if (!class_exists($buildClass)) {
             throw new InvalidArgumentException(
@@ -159,7 +159,7 @@ trait GenericFactoryTrait
      * @param string $buildClass
      * @throws ReflectionException
      */
-    private function setupReflectionClass(string $buildClass)
+    private function setupReflectionClass(string $buildClass): void
     {
         $this->validateExporterClass($buildClass);
 
@@ -167,12 +167,12 @@ trait GenericFactoryTrait
         $this->reflectionClass = new ReflectionClass($buildClass);
     }
 
-    private function setOptionsResolver(OptionsResolver $resolver)
+    private function setOptionsResolver(OptionsResolver $resolver): void
     {
         $this->resolver = $resolver;
     }
 
-    private function inspectExporter()
+    private function inspectExporter(): void
     {
         if (!$constructor = $this->getReflectionClass()->getConstructor()) {
             return;
@@ -205,13 +205,13 @@ trait GenericFactoryTrait
         );
     }
 
-    private function addOption(int $position, string $option)
+    private function addOption(int $position, string $option): void
     {
         $this->options[$position] = $option;
         $this->getOptionsResolver()->setDefined($option);
     }
 
-    private function addRequiredOption(string $option)
+    private function addRequiredOption(string $option): void
     {
         $this->requiredOptions[] = $option;
         $this->getOptionsResolver()->setRequired($option);
@@ -220,22 +220,23 @@ trait GenericFactoryTrait
     /**
      * To be overwritten by implementing classes
      * @param ReflectionParameter $parameter
+     * @param string $option
      */
-    private function parameterCallback(ReflectionParameter $parameter, string $option)
+    private function parameterCallback(ReflectionParameter $parameter, string $option): void
     {
     }
 
     private static function camelToSnakeCase(string $value): string
     {
-        return ltrim(
-            strtolower(
+        return strtolower(
+            ltrim(
                 preg_replace(
                     '/[A-Z]([A-Z](?![a-z]))*/',
                     '_$0',
                     $value
-                )
-            ),
-            '_'
+                ),
+                '_'
+            )
         );
     }
 }

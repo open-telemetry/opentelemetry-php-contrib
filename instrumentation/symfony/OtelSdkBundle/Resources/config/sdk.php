@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Resources;
 
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Ids;
+use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Tracer;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ServiceHelper;
@@ -124,4 +124,3 @@ return static function (ContainerConfigurator $containerConfigurator): void {
      * @codeCoverageIgnoreEnd
      */
 };
-

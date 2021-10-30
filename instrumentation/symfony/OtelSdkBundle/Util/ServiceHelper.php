@@ -15,15 +15,15 @@ class ServiceHelper
         return str_replace(
             '\_',
             '.',
-            ltrim(
-                strtolower(
+            strtolower(
+                ltrim(
                     preg_replace(
                         '/[A-Z]([A-Z](?![a-z]))*/',
                         '_$0',
                         $class
-                    )
-                ),
-                '_'
+                    ),
+                    '_'
+                )
             )
         );
     }
@@ -38,7 +38,7 @@ class ServiceHelper
     {
         return number_format(
             $value,
-            (int)strpos(
+            (int) strpos(
                 strrev((string) $value),
                 '.'
             ),

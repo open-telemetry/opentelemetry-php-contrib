@@ -292,10 +292,10 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     }
 
     /**
-     * @param $config
+     * @param array $config
      * @return array
      */
-    private function normalizeExporterOptions($config): array
+    private function normalizeExporterOptions(array $config): array
     {
         $definedOptions = (ExporterFactory::create($this->resolveExporterClass($config)))
             ->getOptionsResolver()
@@ -335,10 +335,10 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     }
 
     /**
-     * @param $config
+     * @param array $config
      * @return bool
      */
-    private function isExporterClassConfiguration($config): bool
+    private function isExporterClassConfiguration(array $config): bool
     {
         if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTERS_NODE_VALUES, true)) {
             return true;
@@ -351,10 +351,10 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     }
 
     /**
-     * @param $config
+     * @param array $config
      * @return bool
      */
-    private function isExporterReferenceConfiguration($config): bool
+    private function isExporterReferenceConfiguration(array $config): bool
     {
         return $config[Conf::TYPE_NODE] === Conf::CUSTOM_TYPE && isset($config[Conf::ID_NODE]);
     }
@@ -562,7 +562,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         return $this->container;
     }
 
-    private function loadDefaultConfig()
+    private function loadDefaultConfig(): void
     {
         try {
             self::createPhpFileLoader($this->container)

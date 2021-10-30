@@ -11,8 +11,8 @@ use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use ReflectionParameter;
 use ReflectionNamedType;
+use ReflectionParameter;
 use RuntimeException;
 use Symfony\Component\OptionsResolver\Options;
 use Throwable;
@@ -53,6 +53,9 @@ class ExporterFactory implements Factory\GenericFactoryInterface
         return $this->build($options);
     }
 
+    /**
+     * @return void
+     */
     private function parameterCallback(ReflectionParameter $parameter, string $option)
     {
         $name = self::camelToSnakeCase($parameter->getName());

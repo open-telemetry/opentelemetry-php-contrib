@@ -84,16 +84,13 @@ class ExporterDsn
         );
         $dsn .= $this->getUser() !== null && $this->getPassword() !== null ? sprintf(
             '%s:%s@',
-            /** @psalm-ignore-nullable-return */
-            $this->getUser(),
-            /** @psalm-ignore-nullable-return */
-            $this->getPassword()
+            (string)$this->getUser(),
+            (string)$this->getPassword()
         ) : '';
         $dsn .= $this->getHost();
         $dsn .= $this->getPort() !== null ? sprintf(
             ':%s',
-            /** @psalm-ignore-nullable-return */
-            $this->getPort(),
+            (string)$this->getPort(),
         ) : '';
         $dsn .= $this->getPath() ?? '';
 

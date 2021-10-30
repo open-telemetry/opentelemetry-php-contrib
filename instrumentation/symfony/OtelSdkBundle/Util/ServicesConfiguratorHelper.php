@@ -49,7 +49,7 @@ class ServicesConfiguratorHelper
      * @param string $id
      * @param string $referencedId
      */
-    public function setAlias(string $id, string $referencedId)
+    public function setAlias(string $id, string $referencedId): void
     {
         $this->getConfigurator()->alias($id, $referencedId);
     }
@@ -62,4 +62,3 @@ class ServicesConfiguratorHelper
         return $this->configurator;
     }
 }
-
