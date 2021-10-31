@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ConfigHelper;
-use Symfony\Component\DependencyInjection\Reference;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\Reference;
 
 class ConfigHelperTest extends TestCase
 {
-
     public function testCreateReference()
     {
         $this->assertInstanceOf(

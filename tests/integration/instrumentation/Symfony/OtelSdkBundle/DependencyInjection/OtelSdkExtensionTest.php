@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\DependencyInjection;
 
+use Exception;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Samplers;
@@ -20,7 +21,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Yaml\Parser;
-use Exception;
 
 class OtelSdkExtensionTest extends TestCase
 {

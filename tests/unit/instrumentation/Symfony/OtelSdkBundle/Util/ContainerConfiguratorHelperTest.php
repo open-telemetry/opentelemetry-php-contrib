@@ -76,4 +76,3 @@ class ContainerConfiguratorHelperTest extends TestCase
         return $mock;
     }
 }
-

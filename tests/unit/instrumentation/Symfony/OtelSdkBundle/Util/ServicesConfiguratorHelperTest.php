@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 
 class ServicesConfiguratorHelperTest extends TestCase
 {
@@ -21,7 +21,6 @@ class ServicesConfiguratorHelperTest extends TestCase
      * @var ServicesConfigurator|MockObject
      */
     private ServicesConfigurator $configurator;
-
 
     public function setup(): void
     {
@@ -96,7 +95,6 @@ class ServicesConfiguratorHelperTest extends TestCase
             ->with($class, $id);
 
         $this->helper->setAlias($class, $id);
-
     }
 
     private function createServicesConfiguratorMock(): ServicesConfigurator

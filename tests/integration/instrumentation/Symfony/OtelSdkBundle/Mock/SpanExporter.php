@@ -15,7 +15,6 @@ class SpanExporter implements SpanExporterInterface
         $this->logFile = $logFile;
     }
 
-
     public static function fromConnectionString(string $endpointUrl, string $name, string $args): self
     {
         return new self();

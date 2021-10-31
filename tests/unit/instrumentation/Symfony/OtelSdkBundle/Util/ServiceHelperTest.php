@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 class ServiceHelperTest extends TestCase
 {
-
     public function testClassToId()
     {
         $this->assertSame(

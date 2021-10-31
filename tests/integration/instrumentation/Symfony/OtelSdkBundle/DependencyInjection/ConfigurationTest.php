@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Configuration;
 use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\ConfigurationException;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\NodeInterface;
 use Symfony\Component\Yaml\Parser;
 
@@ -123,4 +123,3 @@ class ConfigurationTest extends TestCase
         return self::$parser ?? self::$parser = new Parser();
     }
 }
-
