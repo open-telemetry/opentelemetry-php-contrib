@@ -24,6 +24,7 @@ class ServicesConfiguratorHelperTest extends TestCase
 
     public function setup(): void
     {
+        // @phpstan-ignore-next-line
         $this->configurator = $this->createServicesConfiguratorMock();
         $this->helper = ServicesConfiguratorHelper::create(
             $this->configurator
