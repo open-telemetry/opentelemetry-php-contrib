@@ -1,0 +1,8 @@
+enabled: true
+resource:
+  attributes:
+    service.name: foo
+trace:
+  enabled: true
+  exporters: []
+

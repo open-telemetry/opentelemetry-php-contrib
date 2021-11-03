@@ -1,0 +1,9 @@
+resource:
+  attributes:
+    service.name: foo
+
+trace:
+  sampler: always_on
+  span:
+    processors: simple
+  exporters: zipkin+http://zipkinhost:1234/path

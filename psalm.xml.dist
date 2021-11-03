@@ -11,6 +11,11 @@
             <directory name="var"/>
             <directory name="vendor"/>
             <directory name="examples"/> <!-- TODO: Remove this once examples are updated -->
+            <directory name="instrumentation/symfony/OtelSdkBundle/Resources"/>
+            <directory name="tests/integration/instrumentation/Symfony/OtelSdkBundle"/>
+            <directory name="tests/unit/instrumentation/Symfony/OtelSdkBundle"/>
+            <directory name="instrumentation/symfony/OtelSdkBundle/Resources"/>
+            <file name="instrumentation/symfony/OtelSdkBundle/DependencyInjection/Configuration.php"/>
         </ignoreFiles>
     </projectFiles>
     <plugins>

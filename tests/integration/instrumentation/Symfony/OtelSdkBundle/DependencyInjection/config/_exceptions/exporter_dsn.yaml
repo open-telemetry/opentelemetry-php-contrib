@@ -1,0 +1,8 @@
+resource:
+  attributes:
+    service.name: foo
+
+
+trace:
+  # Exporter DSN must be a string
+  exporters: 1234

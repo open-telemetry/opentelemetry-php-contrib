@@ -3,6 +3,14 @@
     "description": "The contributor repo for opentelemetry-php",
     "type": "library",
     "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Bob Strecansky",
+            "email": "bob.strecansky@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "repositories": [
         {
           "type": "vcs",
@@ -12,31 +20,34 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "open-telemetry/opentelemetry": "dev-main"
+        "open-telemetry/opentelemetry": "dev-main",
+        "php-http/message": "^1.12",
+        "php-http/discovery": "^1.14"
     },
-    "authors": [
-        {
-            "name": "Bob Strecansky",
-            "email": "bob.strecansky@gmail.com"
-        }
-    ],
+    "replace": {
+        "open-telemetry/otel-sdk-bundle": "self.version"
+    },
+    "conflict": {
+        "open-telemetry/opentelemetry": "<=0.0.3"
+    },
     "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Instrumentation\\Symfony\\": "instrumentation/symfony"
+        },
         "classmap": [
             "detectors/",
             "exporters/",
             "instrumentation/",
-            "propagators/",
-            "examples/"
-        ] 
+            "propagators/"
+        ],
+        "exclude-from-classmap": ["instrumentation/symfony/OtelSdkBundle/vendor"]
     },
     "autoload-dev": {
-        "classmap": [
-            "detectors/",
-            "exporters/",
-            "instrumentation/",
-            "propagators/",
-            "examples/"
-        ] 
+        "psr-4": {
+            "OpenTelemetry\\Test\\Unit\\Symfony\\": "tests/unit/instrumentation/Symfony",
+            "OpenTelemetry\\Test\\Integration\\Symfony\\": "tests/integration/instrumentation/Symfony"
+        },
+        "classmap": ["examples/"]
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",
@@ -49,7 +60,28 @@
         "psalm/plugin-phpunit": "^0.13.0",
         "guzzlehttp/guzzle": "^7.3",
         "guzzlehttp/psr7": "^2.0@RC",
-        "symfony/http-client": "^5.2",
-        "nyholm/psr7": "^1.4"
+        "symfony/http-client": "^5.3",
+        "nyholm/psr7": "^1.4",
+        "symfony/config": "^4.4|^5.0|^6.0",
+        "symfony/http-kernel": "^4.4|^5.3|^6.0",
+        "symfony/polyfill-php80": "^1.16",
+        "symfony/yaml": "^4.4|^5.3|^6.0",
+        "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
+        "symfony/options-resolver": "^4.4|^5.3|^6.0",
+        "dg/bypass-finals": "^1.3",
+        "kriswallsmith/buzz": "^1.2"
+    },
+    "suggest": {
+        "symfony/config": "Needed to use otel-sdk-bundle",
+        "symfony/dependency-injection": "Needed to use otel-sdk-bundle",
+        "symfony/options-resolver": "Needed to use otel-sdk-bundle"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "composer dump-autoload --optimize"
+        ],
+        "post-update-cmd": [
+            "composer dump-autoload --optimize"
+        ]
     }
 }

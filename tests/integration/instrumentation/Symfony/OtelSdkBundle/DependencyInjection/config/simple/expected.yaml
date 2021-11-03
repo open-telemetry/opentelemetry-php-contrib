@@ -1,0 +1,20 @@
+enabled: true
+resource:
+  attributes:
+    service.name: foo
+trace:
+  enabled: true
+  sampler:
+    root:
+      type: always_on
+      options: []
+  span:
+    processors:
+      - type: simple
+        options: []
+  exporters:
+    - type: zipkin
+      processor: default
+      url: http://zipkinhost:1234/path
+      options: []
+
