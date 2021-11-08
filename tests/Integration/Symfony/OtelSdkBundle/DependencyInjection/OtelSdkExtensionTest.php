@@ -170,6 +170,7 @@ class OtelSdkExtensionTest extends TestCase
 
     /**
      * @throws Exception
+     * @psalm-suppress PossiblyNullArrayAccess
      */
     public function testSpanLimits(): void
     {
@@ -260,6 +261,13 @@ class OtelSdkExtensionTest extends TestCase
         }
     }
 
+    /**
+     * @psalm-suppress PossiblyInvalidCast
+     * @psalm-suppress RedundantCondition
+     * @psalm-suppress InvalidArrayOffset
+     * @psalm-suppress PossiblyNullArrayAccess
+     * @psalm-suppress PossiblyNullArgument
+     */
     public function testSpanExporters(): void
     {
         $data = $this->loadTestData('exporters')['trace']['exporters'];
@@ -336,6 +344,9 @@ class OtelSdkExtensionTest extends TestCase
 
     // HELPER METHODS
 
+    /**
+     * @psalm-suppress PossiblyInvalidCast
+     */
     private function assertReference(string $class, ?object $reference, ?string $idSuffix = null): void
     {
         $this->assertIsReference(
@@ -372,6 +383,10 @@ class OtelSdkExtensionTest extends TestCase
         );
     }
 
+    /**
+     * @psalm-suppress NullableReturnStatement
+     * @psalm-suppress InvalidNullableReturnType
+     */
     private function getClassFromReference(Reference $reference): string
     {
         return $this->getContainer()

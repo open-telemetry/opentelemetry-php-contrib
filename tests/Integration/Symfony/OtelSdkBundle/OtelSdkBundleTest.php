@@ -179,9 +179,9 @@ class OtelSdkBundleTest extends TestCase
     }
 
     /**
-     * @test
      * @depends testExporterWithSimpleConfig
      * @throws Exception
+     * @psalm-suppress PossiblyUndefinedMethod
      */
     public function testTracingWithSimpleConfig(): void
     {
@@ -207,6 +207,7 @@ class OtelSdkBundleTest extends TestCase
     /**
      * @depends testExporterWithSimpleConfig
      * @throws Exception
+     * @psalm-suppress PossiblyUndefinedMethod
      */
     public function testTracingWithAlwaysOffSampler(): void
     {
@@ -270,6 +271,7 @@ class OtelSdkBundleTest extends TestCase
 
     /**
      * @return MockObject|ClientInterface
+     * @psalm-suppress MismatchingDocblockReturnType
      */
     private function registerHttpClientMock(): ClientInterface
     {

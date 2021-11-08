@@ -46,18 +46,21 @@ class GenericFactoryTraitTest extends TestCase
         BypassFinals::enable();
     }
 
-    private function init()
+    private function init(): void
     {
         $this->initResolver();
         $this->initFactory();
     }
 
-    private function initResolver()
+    private function initResolver(): void
     {
         $this->resolver = $this->createOptionsResolverMock();
     }
 
-    private function initFactory(string $class = TestedClass::class)
+    /**
+     * @psalm-suppress PossiblyInvalidArgument
+     */
+    private function initFactory(string $class = TestedClass::class): void
     {
         $this->factory = GenericFactoryImplementation::create(
             $class,
@@ -66,7 +69,7 @@ class GenericFactoryTraitTest extends TestCase
     }
 
     // TESTS
-    public function testCreate()
+    public function testCreate(): void
     {
         $this->init();
 
@@ -76,7 +79,10 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testCreateWithNonExistingClass()
+    /**
+     * @psalm-suppress PossiblyInvalidArgument
+     */
+    public function testCreateWithNonExistingClass(): void
     {
         $this->initResolver();
         $class = 'NonExistingClass';
@@ -91,7 +97,8 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testGetOptionsResolver()
+    /** @noinspection UnnecessaryAssertionInspection */
+    public function testGetOptionsResolver(): void
     {
         $this->init();
 
@@ -101,14 +108,9 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testGetReflectionClass()
+    public function testGetReflectionClass(): void
     {
         $this->init();
-
-        $this->assertInstanceOf(
-            ReflectionClass::class,
-            $this->factory->getReflectionClass()
-        );
 
         $this->assertSame(
             TestedClass::class,
@@ -116,7 +118,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testGetClass()
+    public function testGetClass(): void
     {
         $this->init();
 
@@ -126,7 +128,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testGetOptions()
+    public function testGetOptions(): void
     {
         $this->init();
 
@@ -136,7 +138,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testGetRequiredOptions()
+    public function testGetRequiredOptions(): void
     {
         $this->init();
 
@@ -146,7 +148,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testGetDefaults()
+    public function testGetDefaults(): void
     {
         $this->init();
 
@@ -156,7 +158,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testSetDefault()
+    public function testSetDefault(): void
     {
         $this->init();
 
@@ -173,7 +175,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testSetDefaults()
+    public function testSetDefaults(): void
     {
         $this->init();
 
@@ -190,7 +192,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testBuildWithDefaults()
+    public function testBuildWithDefaults(): void
     {
         $option = 'foo_bar';
         $value = 'foo';
@@ -231,7 +233,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testBuildWithOptions()
+    public function testBuildWithOptions(): void
     {
         $options = [
             'foo_bar' => 'baz',
@@ -272,7 +274,10 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testBuildClassWithoutConstructor()
+    /**
+     * @psalm-suppress PossiblyInvalidArgument
+     */
+    public function testBuildClassWithoutConstructor(): void
     {
         $this->initResolver();
 
@@ -287,7 +292,7 @@ class GenericFactoryTraitTest extends TestCase
         );
     }
 
-    public function testBuildWithDefaultNull()
+    public function testBuildWithDefaultNull(): void
     {
         $options = ['foo_bar' => 'baz'];
 
@@ -312,9 +317,10 @@ class GenericFactoryTraitTest extends TestCase
 
     // UTIL
 
-    // /** @psalm-suppress PossiblyUndefinedMethod **/
     /**
      * @return OptionsResolver|MockObject
+     * @psalm-suppress PossiblyInvalidArgument
+     * @psalm-suppress MismatchingDocblockReturnType
      */
     private function createOptionsResolverMock(): OptionsResolver
     {
