@@ -1,1 +1,0 @@
-Readme for propagators (temporary file)
