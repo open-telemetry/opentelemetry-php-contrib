@@ -2,17 +2,19 @@
 
 declare(strict_types=1);
 
-use Detectors\Aws\Ec2Detector;
+namespace OpenTelemetry\Test\Unit\Aws\Ec2;
+
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use OpenTelemetry\Aws\Ec2\Detector;
 use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
 use PHPUnit\Framework\TestCase;
 
-class Ec2DetectorTest extends TestCase
+class DetectorTest extends TestCase
 {
     private const MOCK_TOKEN_RESPONSE = 'my-token';
     private const MOCK_HOSTNAME = 'my-hostname';
@@ -57,7 +59,7 @@ class Ec2DetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new Ec2Detector($client);
+        $detector = new Detector($client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -92,7 +94,7 @@ class Ec2DetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new Ec2Detector($client);
+        $detector = new Detector($client);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
@@ -114,7 +116,7 @@ class Ec2DetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new Ec2Detector($client);
+        $detector = new Detector($client);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
@@ -136,7 +138,7 @@ class Ec2DetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new Ec2Detector($client);
+        $detector = new Detector($client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -170,7 +172,7 @@ class Ec2DetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new Ec2Detector($client);
+        $detector = new Detector($client);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
@@ -192,7 +194,7 @@ class Ec2DetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new Ec2Detector($client);
+        $detector = new Detector($client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(

@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-use Detectors\Aws\EcsDetector;
-use Detectors\Aws\EcsProcessDataProvider;
+namespace OpenTelemetry\Test\Unit\Aws\Ecs;
+
+use OpenTelemetry\Aws\Ecs\Detector;
+use OpenTelemetry\Aws\Ecs\DataProvider;
 use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
 use PHPUnit\Framework\TestCase;
 
-class EcsDetectorTest extends TestCase
+class DetectorTest extends TestCase
 {
     private const VALID_CGROUP_DATA = ['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm', '', 'abcdefghijk'];
     private const MULTIVALID_CGROUP_DATA = ['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm',
@@ -34,12 +36,12 @@ class EcsDetectorTest extends TestCase
     {
         putenv(self::ECS_ENV_VAR_V4_KEY . '=' . self::ECS_ENV_VAR_V4_VAL);
 
-        $mockData = $this->createMock(EcsProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getHostName')->willReturn(self::HOST_NAME);
 
-        $detector = new EcsDetector($mockData);
+        $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -61,12 +63,12 @@ class EcsDetectorTest extends TestCase
     {
         putenv(self::ECS_ENV_VAR_V4_KEY . '=' . self::ECS_ENV_VAR_V4_VAL);
 
-        $mockData = $this->createMock(EcsProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::MULTIVALID_CGROUP_DATA);
         $mockData->method('getHostName')->willReturn(self::HOST_NAME);
 
-        $detector = new EcsDetector($mockData);
+        $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -86,12 +88,12 @@ class EcsDetectorTest extends TestCase
      */
     public function TestIsRunningOnEcsReturnsEmpty()
     {
-        $mockData = $this->createMock(EcsProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::MULTIVALID_CGROUP_DATA);
         $mockData->method('getHostName')->willReturn(self::HOST_NAME);
 
-        $detector = new EcsDetector($mockData);
+        $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
@@ -104,12 +106,12 @@ class EcsDetectorTest extends TestCase
         // Test other version (v3)
         putenv(self::ECS_ENV_VAR_V3_KEY . '=' . self::ECS_ENV_VAR_V3_VAL);
 
-        $mockData = $this->createMock(EcsProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(false);
         $mockData->method('getHostName')->willReturn(self::HOST_NAME);
 
-        $detector = new EcsDetector($mockData);
+        $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -131,10 +133,10 @@ class EcsDetectorTest extends TestCase
         // Test other version (v3)
         putenv(self::ECS_ENV_VAR_V4_KEY . '=' . self::ECS_ENV_VAR_V4_VAL);
 
-        $mockData = $this->createMock(EcsProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
         $mockData->method('getHostName')->willReturn(self::HOST_NAME);
 
-        $detector = new EcsDetector($mockData);
+        $detector = new Detector($mockData);
       
         $invalidCgroups = [self::INVALID_CGROUP_LENGTH, self::INVALID_CGROUP_EMPTY, self::INVALID_CGROUP_VALUES];
 
@@ -161,12 +163,12 @@ class EcsDetectorTest extends TestCase
     {
         putenv(self::ECS_ENV_VAR_V4_KEY . '=' . self::ECS_ENV_VAR_V4_VAL);
 
-        $mockData = $this->createMock(EcsProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getHostName')->willReturn(null);
 
-        $detector = new EcsDetector($mockData);
+        $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -188,12 +190,12 @@ class EcsDetectorTest extends TestCase
         // Set environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY . '=' . self::ECS_ENV_VAR_V4_VAL);
 
-        $mockData = $this->createMock(EcsProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_LENGTH);
         $mockData->method('getHostName')->willReturn(null);
         
-        $detector = new EcsDetector($mockData);
+        $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
 

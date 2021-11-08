@@ -2,18 +2,20 @@
 
 declare(strict_types=1);
 
-use Detectors\Aws\EksDetector;
-use Detectors\Aws\EksProcessDataProvider;
+namespace OpenTelemetry\Test\Unit\Aws\Eks;
+
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use OpenTelemetry\Aws\Eks\DataProvider;
+use OpenTelemetry\Aws\Eks\Detector;
 use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
 use PHPUnit\Framework\TestCase;
 
-class EksDetectorTest extends TestCase
+class DetectorTest extends TestCase
 {
     private const VALID_CGROUP_DATA = ['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm', '', 'abcdefghijk'];
     private const INVALID_CGROUP_LENGTH = ['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl', 'abcdefghijk',' '];
@@ -35,7 +37,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestValidKubernetes()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -50,7 +52,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -67,7 +69,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestValidClusterNameInvalidContainerId()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_VALUES);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -82,7 +84,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -98,7 +100,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestValidClusterNameEmptyContainerId()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_EMPTY);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -113,7 +115,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -129,7 +131,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestValidClusterNameShortContainerId()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_LENGTH);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -144,7 +146,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -160,7 +162,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestValidContianerIdEmptyClusterName()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -175,7 +177,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -191,7 +193,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestValidContianerIdEmptyData()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -206,7 +208,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -222,7 +224,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestValidContianerIdEmptyBody()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -237,7 +239,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -253,7 +255,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestInvalidBodyIsEks()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -268,7 +270,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
@@ -278,7 +280,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestInvalidResponseCode()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -293,7 +295,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
@@ -303,7 +305,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestInvalidContainerIdAndClusterName()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_VALUES);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -318,7 +320,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
@@ -328,7 +330,7 @@ class EksDetectorTest extends TestCase
      */
     public function TestInvalidisKubernetesFile()
     {
-        $mockData = $this->createMock(EksProcessDataProvider::class);
+        $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_VALUES);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
@@ -341,7 +343,7 @@ class EksDetectorTest extends TestCase
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
 
-        $detector = new EksDetector($mockData, $client);
+        $detector = new Detector($mockData, $client);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }

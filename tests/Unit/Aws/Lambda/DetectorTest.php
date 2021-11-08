@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-use Detectors\Aws\LambdaDetector;
+namespace OpenTelemetry\Test\Unit\Aws\Lambda;
+
+use OpenTelemetry\Aws\Lambda\Detector;
 use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
 use PHPUnit\Framework\TestCase;
 
-class LambdaDetectorTest extends TestCase
+class DetectorTest extends TestCase
 {
     private const LAMBDA_NAME_ENV = 'AWS_LAMBDA_FUNCTION_NAME';
     private const LAMBDA_VERSION_ENV = 'AWS_LAMBDA_FUNCTION_VERSION';
@@ -28,7 +30,7 @@ class LambdaDetectorTest extends TestCase
         putenv(self::LAMBDA_VERSION_ENV . '=' . self::LAMBDA_VERSION_VAL);
         putenv(self::AWS_REGION_ENV . '=' . self::AWS_REGION_VAL);
 
-        $detector = new LambdaDetector();
+        $detector = new Detector();
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes([
@@ -50,7 +52,7 @@ class LambdaDetectorTest extends TestCase
      */
     public function TestInvalidLambda()
     {
-        $detector = new LambdaDetector();
+        $detector = new Detector();
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
 
@@ -61,7 +63,7 @@ class LambdaDetectorTest extends TestCase
     {
         putenv(self::LAMBDA_NAME_ENV . '=' . self::LAMBDA_NAME_VAL);
 
-        $detector = new LambdaDetector();
+        $detector = new Detector();
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes([
@@ -82,7 +84,7 @@ class LambdaDetectorTest extends TestCase
         putenv(self::LAMBDA_NAME_ENV . '=' . self::LAMBDA_NAME_VAL);
         putenv(self::AWS_REGION_ENV . '=' . self::AWS_REGION_VAL);
 
-        $detector = new LambdaDetector();
+        $detector = new Detector();
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes([
