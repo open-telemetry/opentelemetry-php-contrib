@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Resources;
+namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Ids;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\Tracer;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ConfigHelper;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ServiceHelper;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
+use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Ids;
+use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
+use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Tracer;
+use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
+use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
+use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
 use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;

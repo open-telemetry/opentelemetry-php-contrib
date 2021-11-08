@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Trace;
 
 use OpenTelemetry\Contrib;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Trace\ExporterFactory;
+use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;

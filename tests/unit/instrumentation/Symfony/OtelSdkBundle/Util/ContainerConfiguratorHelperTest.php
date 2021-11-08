@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
 use DG\BypassFinals;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ContainerConfiguratorHelper;
+use OpenTelemetry\Symfony\OtelSdkBundle\Util\ContainerConfiguratorHelper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;

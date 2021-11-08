@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ConfigHelper;
+use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Reference;
 

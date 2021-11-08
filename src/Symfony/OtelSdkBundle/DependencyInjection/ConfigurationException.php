@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection;
+namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
 use UnexpectedValueException;
 

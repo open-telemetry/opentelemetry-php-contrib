@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util;
+namespace OpenTelemetry\Symfony\OtelSdkBundle\Util;
 
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;

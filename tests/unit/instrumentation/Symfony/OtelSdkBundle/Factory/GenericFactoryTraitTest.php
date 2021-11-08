@@ -6,8 +6,8 @@ namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Factory;
 
 use DG\BypassFinals;
 use InvalidArgumentException;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Factory\GenericFactoryInterface;
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Factory\GenericFactoryTrait;
+use OpenTelemetry\Symfony\OtelSdkBundle\Factory\GenericFactoryInterface;
+use OpenTelemetry\Symfony\OtelSdkBundle\Factory\GenericFactoryTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;

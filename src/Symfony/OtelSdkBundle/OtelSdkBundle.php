@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle;
+namespace OpenTelemetry\Symfony\OtelSdkBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

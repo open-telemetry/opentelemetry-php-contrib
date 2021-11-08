@@ -20,7 +20,7 @@
     },
     "autoload": {
         "psr-4": {
-            "OpenTelemetry\\Instrumentation\\Symfony\\OtelSdkBundle\\": "src/"
+            "OpenTelemetry\\Symfony\\OtelSdkBundle\\": "src/"
         }
     },
     "scripts": {

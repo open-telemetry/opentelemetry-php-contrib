@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\DependencyInjection;
 
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection\ConfigurationException;
+use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\ConfigurationException;
 use PHPUnit\Framework\TestCase;
 
 class ConfigurationExceptionTest extends TestCase

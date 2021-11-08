@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\DependencyInjection;
+namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
-use OpenTelemetry\Instrumentation\Symfony\OtelSdkBundle\Util\ExporterDsnParser;
+use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsnParser;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
