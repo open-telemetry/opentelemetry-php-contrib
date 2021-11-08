@@ -17,5 +17,5 @@ phpstan:
 bash:
 	$(DC_RUN_PHP) bash
 style:
-	$(DC_RUN_PHP) php ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --stop-on-violation --using-cache=no -vvv
+	$(DC_RUN_PHP) php ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no -vvv
 FORCE:
