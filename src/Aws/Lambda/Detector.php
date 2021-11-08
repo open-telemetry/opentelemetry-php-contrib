@@ -18,7 +18,7 @@ declare(strict_types=1);
  * limitations under the License.
  */
 
-namespace Detectors\Aws;
+namespace OpenTelemetry\Aws\Lambda;
 
 use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
@@ -29,7 +29,7 @@ use OpenTelemetry\SDK\Trace\Attributes;
  * and return a {@link Resource} populated with data about the environment.
  * Returns an empty Resource if detection fails.
  */
-class LambdaDetector
+class Detector
 {
     private const LAMBDA_NAME_ENV = 'AWS_LAMBDA_FUNCTION_NAME';
     private const LAMBDA_VERSION_ENV = 'AWS_LAMBDA_FUNCTION_VERSION';

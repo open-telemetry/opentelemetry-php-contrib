@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace Instrumentation\Aws\Xray;
+namespace OpenTelemetry\Aws\Xray;
 
 use OpenTelemetry\SDK\Trace\IdGeneratorInterface;
 use OpenTelemetry\SDK\Trace\RandomIdGenerator;
@@ -27,7 +27,7 @@ use OpenTelemetry\SDK\Trace\RandomIdGenerator;
  * Refer to the AWS X-Ray documentation:
  * https://docs.aws.amazon.com/xray/latest/devguide/xray-api-sendingdata.html#xray-api-traceids
  */
-class AwsXrayIdGenerator implements IdGeneratorInterface
+class IdGenerator implements IdGeneratorInterface
 {
     private const TRACE_ID_RANDOM_HEX_LENGTH = 24;
 

@@ -21,13 +21,13 @@ namespace Examples\Aws\SampleApp2;
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
-use Instrumentation\Aws\Xray\AwsXrayIdGenerator;
+use OpenTelemetry\Aws\Xray\IdGenerator;
+use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
-use OpenTelemetry\Sdk\Trace\PropagationMap;
-use OpenTelemetry\Sdk\Trace\SpanProcessor\SimpleSpanProcessor;
-use OpenTelemetry\Sdk\Trace\TracerProvider;
+use OpenTelemetry\SDK\Trace\PropagationMap;
+use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
+use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\Trace as API;
-use Propagators\Aws\Xray\AwsXrayPropagator;
 
 class Service1
 {
@@ -48,12 +48,12 @@ class Service1
         
         // Create a tracer object that uses the AWS X-Ray ID Generator to
         // generate trace IDs in the correct format
-        $tracer = (new TracerProvider(null, null, new AwsXrayIdGenerator()))
+        $tracer = (new TracerProvider(null, null, new IdGenerator()))
             ->addSpanProcessor(new SimpleSpanProcessor($Exporter))
             ->getTracer('io.opentelemetry.contrib.php');
         
         // Extract the SpanContext from the carrier
-        $spanContext = AwsXrayPropagator::extract($this->carrier, $map);
+        $spanContext = Propagator::extract($this->carrier, $map);
 
         // Do some kind of operation
         $i = 0;

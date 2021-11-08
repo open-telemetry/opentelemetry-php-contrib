@@ -18,7 +18,7 @@ declare(strict_types=1);
  * limitations under the License.
  */
 
-namespace Detectors\Aws;
+namespace OpenTelemetry\Aws\Ec2;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -32,7 +32,7 @@ use OpenTelemetry\SDK\Trace\Attributes;
  * and return a Resource populated with metadata about the EC2
  * instance. Returns an empty Resource if detection fails.
  */
-class Ec2Detector
+class Detector
 {
     private const SCHEME = 'http://';
     private const AWS_IDMS_ENDPOINT = '169.254.169.254';

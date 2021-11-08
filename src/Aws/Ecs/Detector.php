@@ -17,7 +17,7 @@ declare(strict_types=1);
  * limitations under the License.
  */
 
-namespace Detectors\Aws;
+namespace OpenTelemetry\Aws\Ecs;
 
 use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
@@ -28,7 +28,7 @@ use OpenTelemetry\SDK\Trace\Attributes;
  * ECS and return a {@link Resource} populated with data about the ECS
  * plugins of AWS ˜X-Ray. Returns an empty Resource if detection fails.
  */
-class EcsDetector
+class Detector
 {
     private const ECS_METADATA_KEY_V4 = 'ECS_CONTAINER_METADATA_URI_V4';
     private const ECS_METADATA_KEY_V3 = 'ECS_CONTAINER_METADATA_URI';
@@ -37,7 +37,7 @@ class EcsDetector
     
     private $processData;
 
-    public function __construct(EcsProcessDataProvider $processData)
+    public function __construct(DataProvider $processData)
     {
         $this->processData = $processData;
     }
@@ -89,32 +89,5 @@ class EcsDetector
         }
 
         return null;
-    }
-}
-
-/**
- * Separated from above class to be able to test using
- * mock values through unit tests
- */
-class EcsProcessDataProvider
-{
-    private const DEFAULT_CGROUP_PATH = '/proc/self/cgroup';
-
-    /**
-     * Returns the host name of the container the process is in.
-     * This would be the os the container is running on,
-     * i.e. the platform on which it is deployed
-     */
-    public function getHostName()
-    {
-        return php_uname('n');
-    }
-    
-    /**
-     * Get data from the Cgroup file
-     */
-    public function getCgroupData()
-    {
-        return file(self::DEFAULT_CGROUP_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     }
 }

@@ -22,13 +22,13 @@ namespace Examples\Aws\SampleApp1;
 require __DIR__ . '/../../../vendor/autoload.php';
 
 use GuzzleHttp\Client;
-use Instrumentation\Aws\Xray\AwsXrayIdGenerator;
+use OpenTelemetry\Aws\Xray\IdGenerator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
-use OpenTelemetry\Sdk\Trace\PropagationMap;
-use OpenTelemetry\Sdk\Trace\SpanProcessor\SimpleSpanProcessor;
-use OpenTelemetry\Sdk\Trace\TracerProvider;
+use OpenTelemetry\SDK\Trace\PropagationMap;
+use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
+use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\Trace as API;
-use Propagators\Aws\Xray\AwsXrayPropagator;
+use OpenTelemetry\Aws\Xray\Propagator;
 
 // use Aws\S3\S3Client;
 // use Aws\Exception\AwsException;
@@ -71,7 +71,7 @@ $client = new Client();
 
 // Create a tracer object that uses the AWS X-Ray ID Generator to
 // generate trace Ids in the correct format
-$tracer = (new TracerProvider(null, null, new AwsXrayIdGenerator()))
+$tracer = (new TracerProvider(null, null, new IdGenerator()))
     ->addSpanProcessor(new SimpleSpanProcessor($Exporter))
     ->getTracer('io.opentelemetry.contrib.php');
 
@@ -92,7 +92,7 @@ if ($line === 'outgoing-http-call') {
     // Make an HTTP request to take some time up
     // Carrier is injected into the header to simulate a microservice needing the carrier
     $childSpan = $tracer->startAndActivateSpan('session.generate.http.span.' . microtime(true), API\SpanKind::KIND_CLIENT);
-    AwsXrayPropagator::inject($childSpan->getContext(), $carrier, $map);
+    Propagator::inject($childSpan->getContext(), $carrier, $map);
 
     try {
         $res = $client->request('GET', 'https://aws.amazon.com', ['headers' => $carrier, 'timeout' => 2000,]);
@@ -110,7 +110,7 @@ if ($line === 'outgoing-http-call') {
     echo 'The desired function is currently unavailable';
     // // Create a child span for sdk call
     // $childSpan = $tracer->startAndActivateSpan('session.generate.aws.sdk.span.' . microtime(true), API\SpanKind::KIND_CLIENT);
-    // AwsXrayPropagator::inject($childSpan->getContext(), $carrier, $map);
+    // Propagator::inject($childSpan->getContext(), $carrier, $map);
 
     // // Make a call to aws s3 buckets
     // $s3Client = new S3Client([

@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace Propagators\Aws\Xray;
+namespace OpenTelemetry\Aws\Xray;
 
 use OpenTelemetry\API\Trace as API;
 use OpenTelemetry\Context\Context;
@@ -39,7 +39,7 @@ use OpenTelemetry\SDK\Trace\SpanContext;
  * X-Amzn-Trace-Id: Root={traceId};Parent={parentId};Sampled={samplingFlag}
  * X-Amzn-Trace-Id: Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1
  */
-class AwsXrayPropagator implements TextMapPropagatorInterface
+class Propagator implements TextMapPropagatorInterface
 {
     public const AWSXRAY_TRACE_ID_HEADER = 'x-amzn-trace-id';
     private const VERSION_NUMBER = '1';
