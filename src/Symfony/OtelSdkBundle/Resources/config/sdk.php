@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
+use OpenTelemetry\SDK\Resource;
+use OpenTelemetry\SDK\Trace;
+use OpenTelemetry\SDK\Trace\Sampler;
+use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Ids;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Tracer;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
-use OpenTelemetry\SDK\Resource;
-use OpenTelemetry\SDK\Trace;
-use OpenTelemetry\SDK\Trace\Sampler;
-use OpenTelemetry\SDK\Trace\SpanProcessor;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {

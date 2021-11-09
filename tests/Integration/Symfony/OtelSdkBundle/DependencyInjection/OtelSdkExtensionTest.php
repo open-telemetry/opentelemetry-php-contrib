@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\DependencyInjection;
 
 use Exception;
+use OpenTelemetry\SDK;
+use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Samplers;
@@ -12,8 +14,6 @@ use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\SpanProcessors;
 use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
-use OpenTelemetry\SDK;
-use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\Mock;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;

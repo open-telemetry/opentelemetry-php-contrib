@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Aws\Ecs;
 
-use OpenTelemetry\Aws\Ecs\Detector;
 use OpenTelemetry\Aws\Ecs\DataProvider;
+use OpenTelemetry\Aws\Ecs\Detector;
 use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;

@@ -10,7 +10,6 @@ use OpenTelemetry\Symfony\OtelSdkBundle\Factory\GenericFactoryInterface;
 use OpenTelemetry\Symfony\OtelSdkBundle\Factory\GenericFactoryTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 use stdClass;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
