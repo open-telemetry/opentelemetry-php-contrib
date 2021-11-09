@@ -216,14 +216,14 @@ The bundle comes with advanced configuration for (almost) all user facing parts 
 [OpenTelemetry php SDK](https://github.com/open-telemetry/opentelemetry-php-contrib), which will be documented here, soon.
 For now, please refer to the configurations the bundle is tested against:
 
-- [minimal](/OtelSdkBundle/DependencyInjection/config/minimal/config.yaml)
-- [simple](/OtelSdkBundle/DependencyInjection/config/simple/config.yaml)
-- [resource](/OtelSdkBundle/DependencyInjection/config/resource/config.yaml)
-- [samplers](/OtelSdkBundle/DependencyInjection/config/sampler/config.yaml)
-- [span](/OtelSdkBundle/DependencyInjection/config/span/config.yaml)
-- [exporters](/OtelSdkBundle/DependencyInjection/config/exporters/config.yaml)
-- [full](/OtelSdkBundle/DependencyInjection/config/full/config.yaml)
-- [disabled](/OtelSdkBundle/DependencyInjection/config/disabled/config.yaml)
+- [minimal](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/minimal/config.yaml)
+- [simple](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/simple/config.yaml)
+- [resource](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/resource/config.yaml)
+- [samplers](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/sampler/config.yaml)
+- [span](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/span/config.yaml)
+- [exporters](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/exporters/config.yaml)
+- [full](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/full/config.yaml)
+- [disabled](/test/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/disabled/config.yaml)
 
 ## 3. Usage
 
