@@ -23,12 +23,12 @@ require __DIR__ . '/../../../vendor/autoload.php';
 
 use GuzzleHttp\Client;
 use OpenTelemetry\Aws\Xray\IdGenerator;
+use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
 use OpenTelemetry\SDK\Trace\PropagationMap;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\Trace as API;
-use OpenTelemetry\Aws\Xray\Propagator;
 
 // use Aws\S3\S3Client;
 // use Aws\Exception\AwsException;
