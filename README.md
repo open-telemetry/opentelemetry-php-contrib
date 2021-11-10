@@ -38,7 +38,7 @@ $ composer require open-telemetry/opentelemetry-php-contrib
 
 ### Symfony
 #### SdkBundle
-- The documentation for the Symfony SdkBundle can be found [here](/instrumentation/symfony/OtelSdkBundle/README.md).
+- The documentation for the Symfony SdkBundle can be found [here](/src/Symfony/OtelSdkBundle/README.md).
 - An example symfony application using the SdkBundle can be found [here](https://github.com/tidal/otel-sdk-bundle-example-sf5).
 
 

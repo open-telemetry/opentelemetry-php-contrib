@@ -25,13 +25,10 @@
 
     <coverage processUncoveredFiles="true" disableCodeCoverageIgnore="false">
         <include>
-            <directory>detectors</directory>
-            <directory>exporters</directory>
-            <directory>instrumentation</directory>
-            <directory>propagators</directory>
+            <directory>src</directory>
         </include>
         <exclude>
-            <directory suffix=".php">instrumentation/symfony/OtelSdkBundle/Resources</directory>
+            <directory suffix=".php">src/Symfony/OtelSdkBundle/Resources</directory>
         </exclude>
     </coverage>
 
@@ -44,7 +41,7 @@
 
     <testsuites>
         <testsuite name="Unit Tests">
-            <directory>tests/unit</directory>
+            <directory>tests/Unit</directory>
         </testsuite>
     </testsuites>
 

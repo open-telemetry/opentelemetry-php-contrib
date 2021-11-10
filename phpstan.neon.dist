@@ -5,10 +5,7 @@ parameters:
     tmpDir: var/cache/phpstan
     level: 5
     paths:
-        - .
-    excludes_analyse:
-        - var
-        - vendor
-        - proto
-        - tests/TraceContext/W3CTestService
-        - examples  # TODO: Remove this once examples are updated
+        - src
+        - tests
+        # - examples  # TODO: Remove this once examples are updated
+

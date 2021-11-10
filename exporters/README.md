@@ -1,1 +1,0 @@
-Readme for exporters (temporary file)

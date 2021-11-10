@@ -21,12 +21,12 @@ namespace Examples\Aws\SampleApp2;
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
-use Instrumentation\Aws\Xray\AwsXrayIdGenerator;
+use OpenTelemetry\Aws\Xray\IdGenerator;
+use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
-use OpenTelemetry\Sdk\Trace\PropagationMap;
-use OpenTelemetry\Sdk\Trace\SpanProcessor\SimpleSpanProcessor;
-use OpenTelemetry\Sdk\Trace\TracerProvider;
-use Propagators\Aws\Xray\AwsXrayPropagator;
+use OpenTelemetry\SDK\Trace\PropagationMap;
+use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
+use OpenTelemetry\SDK\Trace\TracerProvider;
 
 /**
  * This is a sample app that makes an http request to aws.amazon.com
@@ -46,7 +46,7 @@ $carrier = [];
 
 // Create a tracer object that uses the AWS X-Ray ID Generator to
 // generate trace IDs in the correct format
-$tracer = (new TracerProvider(null, null, new AwsXrayIdGenerator()))
+$tracer = (new TracerProvider(null, null, new IdGenerator()))
     ->addSpanProcessor(new SimpleSpanProcessor($Exporter))
     ->getTracer('io.opentelemetry.contrib.php');
 
@@ -64,12 +64,12 @@ $span->setAttribute('item_A', 'cars')
 
 // TODO: The next step for testing propagation would be to create two separate
 // web application, each making a request from a client front end.
-AwsXrayPropagator::inject($span->getContext(), $carrier, $map);
+Propagator::inject($span->getContext(), $carrier, $map);
 $service1 = new Service1($carrier);
 $childSpanContext = $service1->useService();
 
 // Inject the context of the child span into the carrier to pass to the first service2
-AwsXrayPropagator::inject($childSpanContext, $carrier, $map);
+Propagator::inject($childSpanContext, $carrier, $map);
 $service2 = new Service2($carrier);
 $childSpanContext2 = $service2->useService();
 

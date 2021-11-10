@@ -1,1 +1,0 @@
-Readme for detectors (temporary file)
