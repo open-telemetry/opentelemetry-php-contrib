@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Aws\Lambda;
 
 use OpenTelemetry\Aws\Lambda\Detector;
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
 class DetectorTest extends TestCase
@@ -34,11 +34,11 @@ class DetectorTest extends TestCase
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes([
-                    ResourceConstants::FAAS_NAME => self::LAMBDA_NAME_VAL,
-                    ResourceConstants::FAAS_VERSION => self::LAMBDA_VERSION_VAL,
-                    ResourceConstants::CLOUD_REGION => self::AWS_REGION_VAL,
-                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
-                ])
+                ResourceAttributes::FAAS_NAME => self::LAMBDA_NAME_VAL,
+                ResourceAttributes::FAAS_VERSION => self::LAMBDA_VERSION_VAL,
+                ResourceAttributes::CLOUD_REGION => self::AWS_REGION_VAL,
+                ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+            ])
         ), $detector->detect());
 
         //unset environment variable
@@ -67,8 +67,8 @@ class DetectorTest extends TestCase
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes([
-                    ResourceConstants::FAAS_NAME => self::LAMBDA_NAME_VAL,
-                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                ResourceAttributes::FAAS_NAME => self::LAMBDA_NAME_VAL,
+                ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ])
         ), $detector->detect());
 
@@ -88,10 +88,10 @@ class DetectorTest extends TestCase
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes([
-                    ResourceConstants::FAAS_NAME => self::LAMBDA_NAME_VAL,
-                    ResourceConstants::CLOUD_REGION => self::AWS_REGION_VAL,
-                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
-                ])
+                ResourceAttributes::FAAS_NAME => self::LAMBDA_NAME_VAL,
+                ResourceAttributes::CLOUD_REGION => self::AWS_REGION_VAL,
+                ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+            ])
         ), $detector->detect());
 
         //unset environment variable

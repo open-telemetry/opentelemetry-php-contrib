@@ -10,9 +10,9 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Eks\DataProvider;
 use OpenTelemetry\Aws\Eks\Detector;
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
 class DetectorTest extends TestCase
@@ -57,8 +57,8 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
@@ -91,7 +91,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
@@ -122,7 +122,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
@@ -153,7 +153,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
@@ -184,7 +184,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
         ), $detector->detect());
@@ -215,7 +215,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
         ), $detector->detect());
@@ -246,7 +246,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
         ), $detector->detect());
