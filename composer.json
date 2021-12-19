@@ -11,16 +11,10 @@
     ],
     "minimum-stability": "dev",
     "prefer-stable": true,
-    "repositories": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/open-telemetry/opentelemetry-php"
-        }
-      ],
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "open-telemetry/opentelemetry": "dev-main",
+        "open-telemetry/opentelemetry": "^0.0.4",
         "php-http/message": "^1.12",
         "php-http/discovery": "^1.14"
     },

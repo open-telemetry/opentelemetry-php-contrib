@@ -21,11 +21,11 @@ declare(strict_types=1);
 namespace OpenTelemetry\Aws\Ec2;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
+use Throwable;
 
 /**
  * The AwsEc2Detector can be used to detect if a process is running in AWS EC2
@@ -58,10 +58,14 @@ class Detector
      * if the connection or parsing of the identity document fails.
      *
      */
-    public function detect()
+    public function detect(): ResourceInfo
     {
         try {
             $token = $this->fetchToken();
+
+            if ($token === null) {
+                return ResourceInfo::emptyResource();
+            }
             
             $hostName = $this->fetchHostname($token);
 
@@ -76,34 +80,34 @@ class Detector
             foreach ($identitiesJson as $key => $value) {
                 switch ($key) {
                     case 'instanceId':
-                        $attributes->setAttribute(ResourceConstants::HOST_ID, $value);
+                        $attributes->setAttribute(ResourceAttributes::HOST_ID, $value);
 
                         break;
                     case 'availabilityZone':
-                        $attributes->setAttribute(ResourceConstants::CLOUD_ZONE, $value);
+                        $attributes->setAttribute(ResourceAttributes::CLOUD_AVAILABILITY_ZONE, $value);
 
                         break;
                     case 'instanceType':
-                        $attributes->setAttribute(ResourceConstants::HOST_TYPE, $value);
+                        $attributes->setAttribute(ResourceAttributes::HOST_TYPE, $value);
 
                         break;
                     case 'imageId':
-                        $attributes->setAttribute(ResourceConstants::HOST_IMAGE_ID, $value);
+                        $attributes->setAttribute(ResourceAttributes::HOST_IMAGE_ID, $value);
 
                         break;
                     case 'accountId':
-                        $attributes->setAttribute(ResourceConstants::CLOUD_ACCOUNT_ID, $value);
+                        $attributes->setAttribute(ResourceAttributes::CLOUD_ACCOUNT_ID, $value);
 
                         break;
                     case 'region':
-                        $attributes->setAttribute(ResourceConstants::CLOUD_REGION, $value);
+                        $attributes->setAttribute(ResourceAttributes::CLOUD_REGION, $value);
 
                         break;
                 }
             }
 
-            $attributes->setAttribute(ResourceConstants::HOST_HOSTNAME, $hostName);
-            $attributes->setAttribute(ResourceConstants::CLOUD_PROVIDER, self::CLOUD_PROVIDER);
+            $attributes->setAttribute(ResourceAttributes::HOST_NAME, $hostName);
+            $attributes->setAttribute(ResourceAttributes::CLOUD_PROVIDER, self::CLOUD_PROVIDER);
 
             return ResourceInfo::create($attributes);
         } catch (\Throwable $e) {
@@ -112,7 +116,7 @@ class Detector
         }
     }
 
-    private function fetchToken()
+    private function fetchToken(): ?string
     {
         return $this->request(
             'PUT',
@@ -121,7 +125,7 @@ class Detector
         );
     }
 
-    private function fetchIdentity(String $token)
+    private function fetchIdentity(String $token): ?array
     {
         $body = $this->request(
             'GET',
@@ -129,16 +133,18 @@ class Detector
             [self::AWS_METADATA_TOKEN_HEADER => $token]
         );
 
-        $json = json_decode($body, true);
-
-        if (isset($json)) {
-            return $json;
+        if (empty($body)) {
+            return null;
         }
 
-        return null;
+        try {
+            return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        } catch (Throwable $t) {
+            return null;
+        }
     }
 
-    private function fetchHostname(String $token)
+    private function fetchHostname(String $token): ?string
     {
         return $this->request(
             'GET',
@@ -151,7 +157,7 @@ class Detector
      * Function to create a request for any of the given
      * fetch functions.
      */
-    private function request($method, $path, $header)
+    private function request($method, $path, $header): ?string
     {
         $client = $this->guzzle;
 
@@ -173,7 +179,7 @@ class Detector
             }
             
             return null;
-        } catch (RequestException $e) {
+        } catch (Throwable $e) {
             // TODO: add log for exception. The code below
             // provides the exception thrown:
             // echo Psr7\Message::toString($e->getRequest());

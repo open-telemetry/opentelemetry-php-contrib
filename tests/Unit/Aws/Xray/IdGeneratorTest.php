@@ -4,39 +4,32 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Aws\Xray;
 
+use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\Aws\Xray\IdGenerator;
-use OpenTelemetry\SDK\Trace\SpanContext;
 use PHPUnit\Framework\TestCase;
 
 class IdGeneratorTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function GeneratedTraceIdIsValid()
+    public function testGeneratedTraceIdIsValid()
     {
-        $idGenerator = new IdGenerator();
-        $traceId = $idGenerator->generateTraceId();
-
-        $this->assertEquals(1, SpanContext::isValidTraceId($traceId));
-    }
-    
-    /**
-     * @test
-     */
-    public function GeneratedTraceIdIsUnique()
-    {
-        $idGenerator = new IdGenerator();
-        $traceId1 = $idGenerator->generateTraceId();
-        $traceId2 = $idGenerator->generateTraceId();
-
-        $this->assertFalse($traceId2 === $traceId1);
+        $this->assertTrue(
+            SpanContext::isValidTraceId(
+                (new IdGenerator())->generateTraceId()
+            )
+        );
     }
 
-    /**
-     * @test
-     */
-    public function GeneratedTraceIdTimeStampIsCurrent()
+    public function testGeneratedTraceIdIsUnique()
+    {
+        $idGenerator = new IdGenerator();
+
+        $this->assertNotEquals(
+            $idGenerator->generateTraceId(),
+            $idGenerator->generateTraceId()
+        );
+    }
+
+    public function testGeneratedTraceIdTimeStampIsCurrent()
     {
         $idGenerator = new IdGenerator();
         $prevTime = time();
@@ -48,14 +41,12 @@ class IdGeneratorTest extends TestCase
         $this->assertLessThanOrEqual($nextTime, $currTime);
     }
 
-    /**
-     * @test
-     */
-    public function generatedSpanIdIsValid()
+    public function testGeneratedSpanIdIsValid()
     {
-        $idGenerator = new IdGenerator();
-        $spanId = $idGenerator->generateSpanId();
-
-        $this->assertEquals(1, SpanContext::isValidSpanId($spanId));
+        $this->assertTrue(
+            SpanContext::isValidSpanId(
+                (new IdGenerator())->generateSpanId()
+            )
+        );
     }
 }

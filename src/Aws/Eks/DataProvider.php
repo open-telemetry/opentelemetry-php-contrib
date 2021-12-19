@@ -10,7 +10,7 @@ class DataProvider
     private const K8S_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token';
     private const K8S_CERT_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt';
 
-    public function getK8sHeader()
+    public function getK8sHeader(): ?string
     {
         $credHeader = file_get_contents(self::K8S_TOKEN_PATH);
 

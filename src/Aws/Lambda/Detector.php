@@ -20,9 +20,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Lambda;
 
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 
 /**
  * The AwsLambdaDetector can be used to detect if a process is running in AWS Lambda
@@ -52,10 +52,10 @@ class Detector
         return !$lambdaName && !$awsRegion && !$functionVersion
             ? ResourceInfo::emptyResource()
             : ResourceInfo::create(new Attributes([
-                ResourceConstants::FAAS_NAME => $lambdaName,
-                ResourceConstants::FAAS_VERSION => $functionVersion,
-                ResourceConstants::CLOUD_REGION => $awsRegion,
-                ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                ResourceAttributes::FAAS_NAME => $lambdaName,
+                ResourceAttributes::FAAS_VERSION => $functionVersion,
+                ResourceAttributes::CLOUD_REGION => $awsRegion,
+                ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
             ]));
     }
 }
