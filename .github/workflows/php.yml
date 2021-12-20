@@ -55,7 +55,7 @@ jobs:
       run: vendor/bin/phan
 
     - name: Run Psalm
-      run: vendor/bin/psalm --output-format=github
+      run: vendor/bin/psalm --output-format=github --php-version=${{ matrix.php-versions }}
 
     - name: Run Phpstan
       run: vendor/bin/phpstan analyse --error-format=github
