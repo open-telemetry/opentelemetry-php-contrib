@@ -6,35 +6,39 @@ namespace OpenTelemetry\Test\Unit\Aws\Eks;
 
 use OpenTelemetry\Aws\Eks\DataProvider;
 use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
 
 class DataProviderTest extends TestCase
 {
-    private const ROOT_DIR = '/';
-    private const CGROUP_PATH = '/cgroup';
-    private const TOKEN_PATH = '/token';
-    private const CERT_PATH = '/ca.crt';
+    private const ROOT_DIR = 'root';
+    private const CGROUP_PATH = self::ROOT_DIR.'/cgroup';
+    private const TOKEN_PATH = self::ROOT_DIR.'/token';
+    private const CERT_PATH = self::ROOT_DIR.'/ca.crt';
+
+    private vfsStreamDirectory $root;
 
     public function setUp(): void
     {
-        vfsStream::setup(self::ROOT_DIR);
+        $this->root = vfsStream::setup(self::ROOT_DIR);
     }
 
-    public function testGetK8sHeader()
+    public function testGetK8sHeader(): void
     {
-        $file = vfsStream::newFile(self::TOKEN_PATH);
-        file_put_contents($file->path(), 'foo');
+        $file = vfsStream::newFile(self::TOKEN_PATH)
+            ->withContent("foo")
+            ->at($this->root);
 
         $provider = new DataProvider(
             null,
-            $file->path(),
+            $file->url(),
             null
         );
 
         $this->assertIsString($provider->getK8sHeader());
     }
 
-    public function testGetK8sHeaderNoTokenFile()
+    public function testGetK8sHeaderNoTokenFile(): void
     {
         $provider = new DataProvider(
             null,
@@ -45,30 +49,42 @@ class DataProviderTest extends TestCase
         $this->assertNull($provider->getK8sHeader());
     }
 
-    public function testIsK8s()
+    public function testIsK8s(): void
     {
-        $file = vfsStream::newFile(self::CERT_PATH);
+        $file = vfsStream::newFile(self::CERT_PATH)
+            ->withContent("foo")
+            ->at($this->root);
 
         $provider = new DataProvider(
             null,
             null,
-            $file->path()
+            $file->url()
         );
-
-        $this->assertFalse($provider->isK8s());
-
-        file_put_contents($file->path(), 'foo');
 
         $this->assertTrue($provider->isK8s());
     }
 
-    public function testGetCgroupData()
+    public function testIsK8sNoCertFile(): void
     {
-        $file = vfsStream::newFile(self::CGROUP_PATH);
-        file_put_contents($file->path(), "foo\nbar");
+        $provider = new DataProvider(
+            null,
+            null,
+            vfsStream::url(self::CERT_PATH)
+        );
+
+        $this->assertFalse($provider->isK8s());
+
+    }
+
+    public function testGetCgroupData(): void
+    {
+        $file = vfsStream::newFile(self::CGROUP_PATH)
+            ->withContent("foo\nbar")
+            ->at($this->root)
+        ;
 
         $provider = new DataProvider(
-            $file->path(),
+            $file->url(),
             null,
             null
         );
@@ -76,7 +92,7 @@ class DataProviderTest extends TestCase
         $this->assertIsArray($provider->getCgroupData());
     }
 
-    public function testGetCgroupDataNoCgroupFile()
+    public function testGetCgroupDataNoCgroupFile(): void
     {
         $provider = new DataProvider(
             vfsStream::url(self::CGROUP_PATH),

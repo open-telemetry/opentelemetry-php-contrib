@@ -23,7 +23,7 @@ class DataProvider
 
     public function getK8sHeader(): ?string
     {
-        if (!file_exists($this->k8sTokenPath)) {
+        if (!file_exists($this->k8sTokenPath) || !is_readable($this->k8sTokenPath)) {
             //TODO: Add log 'Unable to load K8s client token'
             return null;
         }
@@ -39,7 +39,7 @@ class DataProvider
 
     public function getCgroupData(): ?array
     {
-        if (!file_exists($this->cGroupPath)) {
+        if (!file_exists($this->cGroupPath) || !is_readable($this->cGroupPath)) {
             return null;
         }
 
