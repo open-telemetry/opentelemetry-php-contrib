@@ -10,18 +10,11 @@ on:
 jobs:
   build:
 
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        php-version: ['7.4', '8.0']
-        os: [ubuntu-latest]
-        experimental: [false]
-        include:
-          - php-version: 8.1
-            os: ubuntu-latest
-            experimental: true
+        operating-system: [ubuntu-latest]
+        php-versions: ['7.4', '8.0', '8.1']
 
     steps:
     - uses: actions/checkout@v2
@@ -62,7 +55,7 @@ jobs:
       run: vendor/bin/phan
 
     - name: Run Psalm
-      run: vendor/bin/psalm --output-format=github --php-version=${{ matrix.php-versions }}
+      run: vendor/bin/psalm --output-format=github
 
     - name: Run Phpstan
       run: vendor/bin/phpstan analyse --error-format=github
