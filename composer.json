@@ -35,26 +35,27 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
         "composer/xdebug-handler": "^2.0",
-        "phan/phan": "^4.1",
+        "dg/bypass-finals": "^1.3",
         "friendsofphp/php-cs-fixer": "^3.0",
-        "vimeo/psalm": "^4.0",
-        "phpstan/phpstan": "^0.12.50",
-        "phpstan/phpstan-phpunit": "^0.12.16",
-        "psalm/plugin-phpunit": "^0.13.0",
         "guzzlehttp/guzzle": "^7.3",
         "guzzlehttp/psr7": "^2.0@RC",
-        "symfony/http-client": "^5.3",
+        "kriswallsmith/buzz": "^1.2",
+        "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.4",
+        "phan/phan": "^4.1",
+        "phpstan/phpstan": "^0.12.50",
+        "phpstan/phpstan-phpunit": "^0.12.16",
+        "phpunit/phpunit": "^9.5",
+        "psalm/plugin-phpunit": "^0.13.0",
         "symfony/config": "^4.4|^5.0|^6.0",
+        "symfony/http-client": "^5.3",
         "symfony/http-kernel": "^4.4|^5.3|^6.0",
-        "symfony/polyfill-php80": "^1.16",
-        "symfony/yaml": "^4.4|^5.3|^6.0",
-        "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/options-resolver": "^4.4|^5.3|^6.0",
-        "dg/bypass-finals": "^1.3",
-        "kriswallsmith/buzz": "^1.2"
+        "symfony/polyfill-php80": "^1.16",
+        "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
+        "symfony/yaml": "^4.4|^5.3|^6.0",
+        "vimeo/psalm": "^4.0"
     },
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",
@@ -68,5 +69,8 @@
         "post-update-cmd": [
             "composer dump-autoload --optimize"
         ]
+    },
+    "config": {
+        "sort-packages": true
     }
 }
