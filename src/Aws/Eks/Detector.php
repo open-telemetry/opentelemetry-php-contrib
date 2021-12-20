@@ -43,19 +43,19 @@ class Detector
 
     private const CONTAINER_ID_LENGTH = 64;
 
-    private $processData;
-    private $guzzle;
+    private DataProvider $dataProvider;
+    private Client $client;
     
-    public function __construct(DataProvider $processData, Client $guzzle)
+    public function __construct(DataProvider $dataProvider, Client $client)
     {
-        $this->processData = $processData;
-        $this->guzzle = $guzzle;
+        $this->dataProvider = $dataProvider;
+        $this->client = $client;
     }
     
     public function detect(): ResourceInfo
     {
         try {
-            if (!$this->processData->isK8s() || !$this->isEks()) {
+            if (!$this->dataProvider->isK8s() || !$this->isEks()) {
                 return ResourceInfo::emptyResource();
             }
 
@@ -77,7 +77,7 @@ class Detector
     private function getContainerId(): ?string
     {
         try {
-            $cgroupData = $this->processData->getCgroupData();
+            $cgroupData = $this->dataProvider->getCgroupData();
 
             if (!$cgroupData) {
                 return null;
@@ -100,7 +100,7 @@ class Detector
     {
         // Create a request to AWS Config map which determines
         // whether the process is running on an EKS
-        $client = $this->guzzle;
+        $client = $this->client;
 
         try {
             $response = $client->request(
@@ -108,7 +108,7 @@ class Detector
                 'https://' . self::K8S_SVC_URL . self::CW_CONFIGMAP_PATH,
                 [
                     'headers' => [
-                        'Authorization' => $this->processData->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
+                        'Authorization' => $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
                     ],
                     'timeout' => 2000,
                 ]
@@ -136,7 +136,7 @@ class Detector
     // whether the process is running on an EKS
     public function isEks(): bool
     {
-        $client = $this->guzzle;
+        $client = $this->client;
 
         try {
             $response = $client->request(
@@ -144,7 +144,7 @@ class Detector
                 'https://' . self::K8S_SVC_URL . self::AUTH_CONFIGMAP_PATH,
                 [
                     'headers' => [
-                        'Authorization' => $this->processData->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
+                        'Authorization' => $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
                     ],
                     'timeout' => 2000,
                 ]
