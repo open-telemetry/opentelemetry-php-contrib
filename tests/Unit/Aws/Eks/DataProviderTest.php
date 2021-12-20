@@ -12,9 +12,9 @@ use PHPUnit\Framework\TestCase;
 class DataProviderTest extends TestCase
 {
     private const ROOT_DIR = 'root';
-    private const CGROUP_PATH = self::ROOT_DIR.'/cgroup';
-    private const TOKEN_PATH = self::ROOT_DIR.'/token';
-    private const CERT_PATH = self::ROOT_DIR.'/ca.crt';
+    private const CGROUP_PATH = self::ROOT_DIR . '/cgroup';
+    private const TOKEN_PATH = self::ROOT_DIR . '/token';
+    private const CERT_PATH = self::ROOT_DIR . '/ca.crt';
 
     private vfsStreamDirectory $root;
 
@@ -26,7 +26,7 @@ class DataProviderTest extends TestCase
     public function testGetK8sHeader(): void
     {
         $file = vfsStream::newFile(self::TOKEN_PATH)
-            ->withContent("foo")
+            ->withContent('foo')
             ->at($this->root);
 
         $provider = new DataProvider(
@@ -52,7 +52,7 @@ class DataProviderTest extends TestCase
     public function testIsK8s(): void
     {
         $file = vfsStream::newFile(self::CERT_PATH)
-            ->withContent("foo")
+            ->withContent('foo')
             ->at($this->root);
 
         $provider = new DataProvider(
@@ -73,7 +73,6 @@ class DataProviderTest extends TestCase
         );
 
         $this->assertFalse($provider->isK8s());
-
     }
 
     public function testGetCgroupData(): void
