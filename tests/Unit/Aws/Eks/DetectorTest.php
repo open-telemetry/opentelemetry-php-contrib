@@ -295,7 +295,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
 
-    public function testInvalidisKubernetesFile()
+    public function testInvalidKubernetesFile()
     {
         $mockData = $this->createMock(DataProvider::class);
 
