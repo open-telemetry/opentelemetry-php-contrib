@@ -9,9 +9,9 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Ec2\Detector;
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
 class DetectorTest extends TestCase
@@ -64,14 +64,14 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::HOST_ID => self::HOST_ID,
-                    ResourceConstants::CLOUD_ZONE => self::CLOUD_ZONE,
-                    ResourceConstants::HOST_TYPE => self::HOST_TYPE,
-                    ResourceConstants::HOST_IMAGE_ID => self::HOST_IMAGE_ID,
-                    ResourceConstants::CLOUD_ACCOUNT_ID => self::CLOUD_ACCOUNT_ID,
-                    ResourceConstants::CLOUD_REGION => self::CLOUD_REGION,
-                    ResourceConstants::HOST_HOSTNAME => self::MOCK_HOSTNAME,
-                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::HOST_ID => self::HOST_ID,
+                    ResourceAttributes::CLOUD_AVAILABILITY_ZONE => self::CLOUD_ZONE,
+                    ResourceAttributes::HOST_TYPE => self::HOST_TYPE,
+                    ResourceAttributes::HOST_IMAGE_ID => self::HOST_IMAGE_ID,
+                    ResourceAttributes::CLOUD_ACCOUNT_ID => self::CLOUD_ACCOUNT_ID,
+                    ResourceAttributes::CLOUD_REGION => self::CLOUD_REGION,
+                    ResourceAttributes::HOST_NAME => self::MOCK_HOSTNAME,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ]
             )
         ), $detector->detect());
@@ -143,13 +143,13 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::HOST_ID => self::HOST_ID,
-                    ResourceConstants::CLOUD_ZONE => self::CLOUD_ZONE,
-                    ResourceConstants::HOST_TYPE => self::HOST_TYPE,
-                    ResourceConstants::HOST_IMAGE_ID => self::HOST_IMAGE_ID,
-                    ResourceConstants::CLOUD_ACCOUNT_ID => self::CLOUD_ACCOUNT_ID,
-                    ResourceConstants::CLOUD_REGION => self::CLOUD_REGION,
-                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::HOST_ID => self::HOST_ID,
+                    ResourceAttributes::CLOUD_AVAILABILITY_ZONE => self::CLOUD_ZONE,
+                    ResourceAttributes::HOST_TYPE => self::HOST_TYPE,
+                    ResourceAttributes::HOST_IMAGE_ID => self::HOST_IMAGE_ID,
+                    ResourceAttributes::CLOUD_ACCOUNT_ID => self::CLOUD_ACCOUNT_ID,
+                    ResourceAttributes::CLOUD_REGION => self::CLOUD_REGION,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ]
             )
         ), $detector->detect());
@@ -199,12 +199,12 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::HOST_ID => self::HOST_ID,
-                    ResourceConstants::CLOUD_ZONE => self::CLOUD_ZONE,
-                    ResourceConstants::HOST_TYPE => self::HOST_TYPE,
-                    ResourceConstants::HOST_IMAGE_ID => self::HOST_IMAGE_ID,
-                    ResourceConstants::HOST_HOSTNAME => self::MOCK_HOSTNAME,
-                    ResourceConstants::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::HOST_ID => self::HOST_ID,
+                    ResourceAttributes::CLOUD_AVAILABILITY_ZONE => self::CLOUD_ZONE,
+                    ResourceAttributes::HOST_TYPE => self::HOST_TYPE,
+                    ResourceAttributes::HOST_IMAGE_ID => self::HOST_IMAGE_ID,
+                    ResourceAttributes::HOST_NAME => self::MOCK_HOSTNAME,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ]
             )
         ), $detector->detect());

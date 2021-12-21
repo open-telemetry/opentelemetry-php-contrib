@@ -10,9 +10,9 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Eks\DataProvider;
 use OpenTelemetry\Aws\Eks\Detector;
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
 class DetectorTest extends TestCase
@@ -31,17 +31,14 @@ class DetectorTest extends TestCase
 
     private const EXTRACTED_CONTAINER_ID = 'bcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm';
     private const EXTRACTED_CLUSTER_NAME = 'my-cluster';
-
-    /**
-     * @test
-     */
-    public function TestValidKubernetes()
+    
+    public function testValidKubernetes()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -57,23 +54,20 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
     }
-    
-    /**
-     * @test
-     */
-    public function TestValidClusterNameInvalidContainerId()
+
+    public function testValidClusterNameInvalidContainerId()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_VALUES);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -89,22 +83,19 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestValidClusterNameEmptyContainerId()
+    public function testValidClusterNameEmptyContainerId()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_EMPTY);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -120,22 +111,19 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestValidClusterNameShortContainerId()
+    public function testValidClusterNameShortContainerId()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_LENGTH);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -151,22 +139,19 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
+                    ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
         ), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestValidContianerIdEmptyClusterName()
+    public function testValidContianerIdEmptyClusterName()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -182,22 +167,19 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
         ), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestValidContianerIdEmptyData()
+    public function testValidContainerIdEmptyData()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -213,22 +195,19 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
         ), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestValidContianerIdEmptyBody()
+    public function testValidContianerIdEmptyBody()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -244,22 +223,19 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
-                    ResourceConstants::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
+                    ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
         ), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestInvalidBodyIsEks()
+    public function testInvalidBodyIsEks()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(300, ['Foo' => 'Bar'], self::MOCK_EMPTY_BODY),
@@ -275,16 +251,13 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestInvalidResponseCode()
+    public function testInvalidResponseCode()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::VALID_CGROUP_DATA);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(300, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -299,17 +272,14 @@ class DetectorTest extends TestCase
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
-    
-    /**
-     * @test
-     */
-    public function TestInvalidContainerIdAndClusterName()
+
+    public function testInvalidContainerIdAndClusterName()
     {
         $mockData = $this->createMock(DataProvider::class);
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_VALUES);
         $mockData->method('getK8sHeader')->willReturn(self::MOCK_K8S_TOKEN);
-        $mockData->method('isK8s')->willReturn(self::MOCK_AWS_AUTH);
+        $mockData->method('isK8s')->willReturn(true);
 
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
@@ -325,10 +295,7 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
     }
 
-    /**
-     * @test
-     */
-    public function TestInvalidisKubernetesFile()
+    public function testInvalidKubernetesFile()
     {
         $mockData = $this->createMock(DataProvider::class);
 

@@ -19,9 +19,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Ecs;
 
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 
 /**
  * The AwsEcsDetector can be used to detect if a process is running in AWS
@@ -35,7 +35,7 @@ class Detector
 
     private const CONTAINER_ID_LENGTH = 64;
     
-    private $processData;
+    private DataProvider $processData;
 
     public function __construct(DataProvider $processData)
     {
@@ -61,8 +61,8 @@ class Detector
         return !$hostName && !$containerId
             ? ResourceInfo::emptyResource()
             : ResourceInfo::create(new Attributes([
-                ResourceConstants::CONTAINER_NAME => $hostName,
-                ResourceConstants::CONTAINER_ID => $containerId,
+                ResourceAttributes::CONTAINER_NAME => $hostName,
+                ResourceAttributes::CONTAINER_ID => $containerId,
             ]));
     }
 
@@ -70,7 +70,7 @@ class Detector
      * Returns the docker ID of the container found
      * in its CGroup file.
      */
-    private function getContainerId()
+    private function getContainerId(): ?string
     {
         try {
             $cgroupData = $this->processData->getCgroupData();

@@ -20,13 +20,13 @@ declare(strict_types=1);
 namespace OpenTelemetry\Aws\Xray;
 
 use OpenTelemetry\API\Trace as API;
+use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\SDK\Trace\Span;
-use OpenTelemetry\SDK\Trace\SpanContext;
 
 /**
  * Implementation of AWS Trace Header Protocol

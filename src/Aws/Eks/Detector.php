@@ -22,9 +22,9 @@ namespace OpenTelemetry\Aws\Eks;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
-use OpenTelemetry\SDK\Resource\ResourceConstants;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Attributes;
+use OpenTelemetry\SemConv\ResourceAttributes;
 
 /**
  * The AwsEksDetector can be used to detect if a process is running in AWS
@@ -43,19 +43,19 @@ class Detector
 
     private const CONTAINER_ID_LENGTH = 64;
 
-    private $processData;
-    private $guzzle;
+    private DataProvider $dataProvider;
+    private Client $client;
     
-    public function __construct(DataProvider $processData, Client $guzzle)
+    public function __construct(DataProvider $dataProvider, Client $client)
     {
-        $this->processData = $processData;
-        $this->guzzle = $guzzle;
+        $this->dataProvider = $dataProvider;
+        $this->client = $client;
     }
     
     public function detect(): ResourceInfo
     {
         try {
-            if (!$this->processData->isK8s() || !$this->isEks()) {
+            if (!$this->dataProvider->isK8s() || !$this->isEks()) {
                 return ResourceInfo::emptyResource();
             }
 
@@ -65,8 +65,8 @@ class Detector
             return !$clusterName && !$containerId
                 ? ResourceInfo::emptyResource()
                 : ResourceInfo::create(new Attributes([
-                    ResourceConstants::CONTAINER_ID => $containerId,
-                    ResourceConstants::K8S_CLUSTER_NAME => $clusterName,
+                    ResourceAttributes::CONTAINER_ID => $containerId,
+                    ResourceAttributes::K8S_CLUSTER_NAME => $clusterName,
                 ]));
         } catch (\Throwable $e) {
             //TODO: add 'Process is not running on K8S when logging is added
@@ -74,10 +74,10 @@ class Detector
         }
     }
 
-    private function getContainerId()
+    private function getContainerId(): ?string
     {
         try {
-            $cgroupData = $this->processData->getCgroupData();
+            $cgroupData = $this->dataProvider->getCgroupData();
 
             if (!$cgroupData) {
                 return null;
@@ -88,17 +88,19 @@ class Detector
                     return substr($str, strlen($str) - self::CONTAINER_ID_LENGTH);
                 }
             }
+
+            return null;
         } catch (\Throwable $e) {
             //TODO: add 'Failed to read container ID' when logging is added
             return null;
         }
     }
 
-    public function getClusterName()
+    public function getClusterName(): ?string
     {
         // Create a request to AWS Config map which determines
         // whether the process is running on an EKS
-        $client = $this->guzzle;
+        $client = $this->client;
 
         try {
             $response = $client->request(
@@ -106,7 +108,7 @@ class Detector
                 'https://' . self::K8S_SVC_URL . self::CW_CONFIGMAP_PATH,
                 [
                     'headers' => [
-                        'Authorization' => $this->processData->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
+                        'Authorization' => $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
                     ],
                     'timeout' => 2000,
                 ]
@@ -132,9 +134,9 @@ class Detector
 
     // Create a request to AWS Config map which determines
     // whether the process is running on an EKS
-    public function isEks()
+    public function isEks(): bool
     {
-        $client = $this->guzzle;
+        $client = $this->client;
 
         try {
             $response = $client->request(
@@ -142,7 +144,7 @@ class Detector
                 'https://' . self::K8S_SVC_URL . self::AUTH_CONFIGMAP_PATH,
                 [
                     'headers' => [
-                        'Authorization' => $this->processData->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
+                        'Authorization' => $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
                     ],
                     'timeout' => 2000,
                 ]

@@ -31,14 +31,14 @@ class IdGenerator implements IdGeneratorInterface
 {
     private const TRACE_ID_RANDOM_HEX_LENGTH = 24;
 
-    private $randomIdGenerator;
+    private RandomIdGenerator $randomIdGenerator;
 
     /**
      * Constructor creates randomIdGenerator instance
      */
-    public function __construct()
+    public function __construct(?RandomIdGenerator $randomIdGenerator = null)
     {
-        $this->randomIdGenerator = new RandomIdGenerator();
+        $this->randomIdGenerator = $randomIdGenerator ?? new RandomIdGenerator();
     }
 
     /**

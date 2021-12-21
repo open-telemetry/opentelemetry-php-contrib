@@ -13,7 +13,7 @@ class DataProvider
      * This would be the os the container is running on,
      * i.e. the platform on which it is deployed
      */
-    public function getHostName()
+    public function getHostName(): ?string
     {
         return php_uname('n');
     }

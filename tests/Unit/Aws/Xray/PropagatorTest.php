@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Aws\Xray;
 
+use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SDK\Trace\Span;
-use OpenTelemetry\SDK\Trace\SpanContext;
 use OpenTelemetry\SDK\Trace\TraceState;
 use PHPUnit\Framework\TestCase;
 

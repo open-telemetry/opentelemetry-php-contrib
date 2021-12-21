@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['7.4', '8.0']
+        php-versions: ['7.4', '8.0', '8.1']
 
     steps:
     - uses: actions/checkout@v2
@@ -55,13 +55,16 @@ jobs:
       run: vendor/bin/phan
 
     - name: Run Psalm
-      run: vendor/bin/psalm --output-format=github
+      run: vendor/bin/psalm --output-format=github --php-version=${{ matrix.php-versions }}
 
     - name: Run Phpstan
       run: vendor/bin/phpstan analyse --error-format=github
 
-    - name: Run PHPUnit
+    - name: Run Unit Tests
       run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
+
+    - name: Run Integration tests
+      run: vendor/bin/phpunit --coverage-text tests/Integration
 
     - name: Code Coverage
       run: bash <(curl -s https://codecov.io/bash)

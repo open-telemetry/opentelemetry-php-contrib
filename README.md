@@ -8,30 +8,13 @@ For more information, please, consult the documentation of the main [OpenTelemet
 ## Installation
 The recommended way to install the library is through [Composer](http://getcomposer.org):
 
-1.)  Install the composer package using [Composer's installation instructions](https://getcomposer.org/doc/00-intromd#installation-linux-unix-macos).
-
-2.)  Add
-```bash
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/open-telemetry/opentelemetry-php-contrib"
-        }
-    ],
-```
-
-To your project's `composer.json` file, as this utility has not reached a stable release status yet, 
-and is not yet registered on packagist.org
-
-3.)  Install the dependency with composer:
+Install the package:
 
 ```bash
 $ composer require open-telemetry/opentelemetry-php-contrib
 ```
 
-## Usage/Examples
+## Usage/Examples   
 
 ### AWS
 - You can find examples on how to use the ASW classes in the  [examples directory](/examples/aws/README.md).
