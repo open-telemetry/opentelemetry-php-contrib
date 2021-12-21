@@ -47,57 +47,7 @@ the host from `localhost` to `jaeger` in the configurations described below)
 
 ### 2.1. Install PHP library/SDK dependencies
 
-The [PHP library](https://github.com/open-telemetry/opentelemetry-php) requires a PHP version of ^7.4 or ^8.0.
-
-#### 2.1.1. Install PSR17/18 implementations
-
-The [PHP library](https://github.com/open-telemetry/opentelemetry-php) has a dependency on both a [PSR17](https://www.php-fig.org/psr/psr-17/)
-and a [PSR18](https://www.php-fig.org/psr/psr-18/) implementation. To be on the safe side of possible future upgrades
-of the PHP library, you should consider installing a `php-http/async-client` implementation for PSR18. This will also give you greater
-control on how to configure/extend your http client by using [HTTPLUG/PHP-HTTP](https://docs.php-http.org/en/latest/index.html).
-You can find appropriate composer packages implementing given standards on [packagist.org](https://packagist.org/).
-Follow [this link](https://packagist.org/providers/psr/http-factory-implementation) to find a `PSR17 (HTTP factories)` implementation,
-and [this link](https://packagist.org/providers/php-http/async-client-implementation) to find a `php-http/async-client` implementation.
-
-> Notice: if you already have the `symfony/http-client` package installed, you are already covered in terms of the
-> `php-http/async-client` implementation. A popular choice of a `PSR17 (HTTP factories)` implementation to use with
-> Symfony is `nyholm/psr7`, as it is both lightweight and automatically registers its factories as services in Symfony
-> (if you have `symfony/flex` installed and working, that is).
-
-#### 2.1.1. Install PHP ext-grpc
-
-The [PHP library](https://github.com/open-telemetry/opentelemetry-php) has a dependency on the PHP gRPC [extension](https://pecl.php.net/package/gRPC).
-
-There are basically three ways to install the gRPC extension which will be described below. Keep in mind, that whatever way
-to install the extension you choose, the compilation can take up to 10-15 minutes. (As an alternative you can search for
-a pre-compiled extension binary for your OS and PHP version)
-
-1. **Installation with pecl installer** (which should come with your PHP installation):
-
-```bash
-[sudo] pecl install grpc
-```
-
-2. **Installation with pickle installer** (which you can find [here](https://github.com/FriendsOfPHP/pickle)):
-
-```bash
-[sudo] pickle install grpc
-```
-
-3. **Manually compiling the extension**, which is not really complicated either, but you should know
-   what you are doing, so we won't cover it here.
-
-> Notice: The artifact of the gRPC extension can be as large as 100mb (!!!), there are 'hacks' to reduce that size,
-> which you can find [in this thread](https://github.com/grpc/grpc/issues/23626). Use at your own risk.
-
-> Notice: A lot of providers and systems (OpenShift's S2I for PHP for example), etc. still regard the grpc extension
-> as kind of 'exotic', or in other words the extension is not or cannot be installed.
-> The [OpenTelemetry PHP library](https://github.com/open-telemetry/opentelemetry-php) (as for now) only needs this
-> extension, when you want to use the `OTLP gRPC Exporter`. If you use any of the current other (HTTP based exporters),
-> eg. jaeger or zipkin, you actually don't need the PHP grpc extension to be present. A 'trick' to install this bundle
-> and the SDK without the grpc extension is to add an `--ignore-platform-reqs=ext-grpc` option to all of your composer
-> calls, eg.: `composer update --ignore-platform-reqs=ext-grpc`. Another way is to add a `plaform` entry to your 
-> composer.json file to 'pretend' the grpc extension is installed, which you can find in the [composer documentation](https://getcomposer.org/doc/06-config.md#platform).
+Take a look at the documentation of the  [PHP library](https://github.com/open-telemetry/opentelemetry-php) on how to install its dependencies.
 
 ### 2.2. Install the Bundle
 
@@ -112,18 +62,11 @@ The recommended way to install the library is through [Composer](http://getcompo
 ```bash
     "minimum-stability": "dev",
     "prefer-stable": true,
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/open-telemetry/opentelemetry-php-contrib"
-        }
-    ],
 ```
 
-To your project's `composer.json` file, as this utility has not reached a stable release status yet,
-and is not yet registered on packagist.org
+To your project's `composer.json` file, as this utility has not reached a stable release status yet.
 
-3.  Install the dependency with composer:
+3.  Install the package with composer:
 
 ```bash
 $ composer require open-telemetry/opentelemetry-php-contrib
