@@ -80,8 +80,6 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client);
 
-        echo PHP_EOL . '-------------------------';
-
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
                 [
