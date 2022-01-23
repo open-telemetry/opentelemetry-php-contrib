@@ -22,7 +22,7 @@
         "open-telemetry/otel-sdk-bundle": "self.version"
     },
     "conflict": {
-        "open-telemetry/opentelemetry": "<=0.0.3"
+        "open-telemetry/opentelemetry": "<=0.0.3|0.0.5"
     },
     "autoload": {
         "psr-4": {
