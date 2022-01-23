@@ -1,8 +1,15 @@
 {
-    "name": "open-telemetry/otel-sdk-bundle",
+    "name": "open-telemetry/contrib-sdk-bundle",
     "description": "Symfony bundle for easily integrating OpenTelemetry PHP SDk into symfony projects.",
+    "keywords": ["opentelemetry", "otel", "symfony", "bundle", "tracing", "logging", "apm", "sdk"],
     "type": "symfony-bundle",
     "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "opentelemetry-php-contrib contributors",
+            "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
