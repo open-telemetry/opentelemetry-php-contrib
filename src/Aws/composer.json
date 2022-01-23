@@ -1,0 +1,33 @@
+{
+    "name": "open-telemetry/contrib-aws",
+    "description": "The Aws package for opentelemetry-php",
+    "keywords": ["opentelemetry", "otel", "aws", "tracing", "detector", "propagator"],
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "opentelemetry-php-contrib contributors",
+            "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "open-telemetry/opentelemetry": "^0.0.4"
+    },
+    "conflict": {
+        "open-telemetry/opentelemetry": "<=0.0.3|0.0.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Aws\\": "."
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
+        }
+    }
+}
