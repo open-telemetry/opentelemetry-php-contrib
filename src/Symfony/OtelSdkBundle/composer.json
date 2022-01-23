@@ -7,7 +7,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.4 || ^8.0",
-        "open-telemetry/opentelemetry": "dev-main",
+        "open-telemetry/opentelemetry": "^0.0.5",
         "php-http/message": "^1.12",
         "php-http/discovery": "^1.14",
         "symfony/config": "^4.4|^5.3|^6.0",
