@@ -29,3 +29,6 @@ $ composer require open-telemetry/opentelemetry-php-contrib
 
 Please, consult the documentation of the main [OpenTelemetry php project](https://github.com/open-telemetry/opentelemetry-php).
 
+## Issues
+
+Issues have been disabled for this repo in order to help to not segment issues between this and the main opentelemetry-php repo.  If you have an issue you'd like to raise about this issue, please use the [OpenTelemetry PHP Issue section](https://github.com/open-telemetry/opentelemetry-php/issues/new/choose).  Please prefix the title of the issue with [opentelemetry-php-contrib].
