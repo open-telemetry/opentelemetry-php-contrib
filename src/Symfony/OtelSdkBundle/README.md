@@ -311,5 +311,5 @@ For further usage of spans (events, attributes, etc.), please consult the docume
 
 ## 4. Demo Application
 
-You can find a demo application using the SdkBundle [here](https://github.com/tidal/otel-sdk-bundle-example-sf5). The demo extends the examples given above and comes with a 
+You can find a demo application using the SdkBundle [here](https://github.com/opentelemetry-php/otel-sdk-bundle-example-sf5). The demo extends the examples given above and comes with a 
 docker-compose setup, so it is easy to try out.
