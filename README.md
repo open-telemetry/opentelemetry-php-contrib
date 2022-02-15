@@ -5,6 +5,10 @@ This project currently lives in a pre-alpha status.  Our current release is not 
 
 For more information, please, consult the documentation of the main [OpenTelemetry php project](https://github.com/open-telemetry/opentelemetry-php).
 
+## Issues
+
+Issues have been disabled for this repo in order to help main consistency between this repo and the main opentelemetry-php repo.  If you have an issue you'd like to raise about this issue, please use the [OpenTelemetry PHP Issue section](https://github.com/open-telemetry/opentelemetry-php/issues/new/choose).  Please prefix the title of the issue with [opentelemetry-php-contrib].
+
 ## Installation
 The recommended way to install the library is through [Composer](http://getcomposer.org):
 
