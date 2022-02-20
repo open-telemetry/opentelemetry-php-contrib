@@ -9,8 +9,8 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Ec2\Detector;
+use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -61,7 +61,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client);
 
-        $this->assertEquals(ResourceInfo::create(
+        $this->assertEquals(
             new Attributes(
                 [
                     ResourceAttributes::HOST_ID => self::HOST_ID,
@@ -73,8 +73,9 @@ class DetectorTest extends TestCase
                     ResourceAttributes::HOST_NAME => self::MOCK_HOSTNAME,
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ]
-            )
-        ), $detector->detect());
+            ),
+            $detector->getResource()->getAttributes()
+        );
     }
 
     /**
@@ -96,7 +97,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -118,7 +119,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -140,7 +141,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client);
 
-        $this->assertEquals(ResourceInfo::create(
+        $this->assertEquals(
             new Attributes(
                 [
                     ResourceAttributes::HOST_ID => self::HOST_ID,
@@ -151,8 +152,9 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CLOUD_REGION => self::CLOUD_REGION,
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ]
-            )
-        ), $detector->detect());
+            ),
+            $detector->getResource()->getAttributes()
+        );
     }
 
     /**
@@ -174,7 +176,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -196,7 +198,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client);
 
-        $this->assertEquals(ResourceInfo::create(
+        $this->assertEquals(
             new Attributes(
                 [
                     ResourceAttributes::HOST_ID => self::HOST_ID,
@@ -206,7 +208,8 @@ class DetectorTest extends TestCase
                     ResourceAttributes::HOST_NAME => self::MOCK_HOSTNAME,
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ]
-            )
-        ), $detector->detect());
+            ),
+            $detector->getResource()->getAttributes()
+        );
     }
 }
