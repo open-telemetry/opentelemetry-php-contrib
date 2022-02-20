@@ -53,7 +53,7 @@ class IdGenerator implements IdGeneratorInterface
      */
     public function generateTraceId(): string
     {
-        return dechex(time()) . $this->randomIdGenerator->randomHex(self::TRACE_ID_RANDOM_HEX_LENGTH);
+        return dechex(time()) . substr($this->randomIdGenerator->generateTraceId(), 0, self::TRACE_ID_RANDOM_HEX_LENGTH);
     }
 
     /**
