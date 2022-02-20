@@ -22,8 +22,9 @@ namespace OpenTelemetry\Aws\Eks;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
+use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 
 /**
@@ -31,7 +32,7 @@ use OpenTelemetry\SemConv\ResourceAttributes;
  * Elastic Kubernetes and return a {@link Resource} populated with data about the Kubernetes
  * plugins of AWS X-Ray. Returns an empty Resource if detection fails.
  */
-class Detector
+class Detector implements ResourceDetectorInterface
 {
     // Credentials and path for locating API
     private const K8S_SVC_URL = 'kubernetes.default.svc';
@@ -52,7 +53,7 @@ class Detector
         $this->client = $client;
     }
     
-    public function detect(): ResourceInfo
+    public function getResource(): ResourceInfo
     {
         try {
             if (!$this->dataProvider->isK8s() || !$this->isEks()) {
