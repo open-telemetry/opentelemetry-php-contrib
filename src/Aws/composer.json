@@ -17,7 +17,7 @@
         "open-telemetry/opentelemetry": "^0.0.4"
     },
     "conflict": {
-        "open-telemetry/opentelemetry": "<=0.0.3|0.0.5"
+        "open-telemetry/opentelemetry": "<=0.0.3"
     },
     "autoload": {
         "psr-4": {
