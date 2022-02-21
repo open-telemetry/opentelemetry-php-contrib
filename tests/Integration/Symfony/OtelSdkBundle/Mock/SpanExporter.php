@@ -9,15 +9,17 @@ use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 class SpanExporter implements SpanExporterInterface
 {
     private ?string $logFile;
+    private ?string $serviceName;
 
-    public function __construct(?string $logFile = null)
+    public function __construct(?string $serviceName = null, ?string $logFile = null)
     {
+        $this->serviceName = $serviceName;
         $this->logFile = $logFile;
     }
 
     public static function fromConnectionString(string $endpointUrl, string $name, string $args): self
     {
-        return new self();
+        return new self($name, $args);
     }
 
     public function export(iterable $spans): int
@@ -33,6 +35,11 @@ class SpanExporter implements SpanExporterInterface
     public function forceFlush(): bool
     {
         return true;
+    }
+
+    public function getServiceName(): ?string
+    {
+        return $this->serviceName;
     }
 
     public function getLogFile(): ?string
