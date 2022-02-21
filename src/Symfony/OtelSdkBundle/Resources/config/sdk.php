@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
+use OpenTelemetry\SDK\AttributeLimits;
+use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource;
+use OpenTelemetry\SDK\SystemClock;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
@@ -35,24 +38,24 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     // UTIL
 
-    $helper->setService(Trace\SystemClock::class);
+    $helper->setService(SystemClock::class);
 
     $helper->setService(Trace\RandomIdGenerator::class);
 
     // RESOURCE
 
-    $helper->setService(Trace\AttributeLimits::class);
+    $helper->setService(AttributeLimits::class);
 
-    $helper->setService(Trace\Attributes::class)
+    $helper->setService(Attributes::class)
         ->args([
             ConfigHelper::wrapParameter(Parameters::RESOURCE_ATTRIBUTES),
-            ConfigHelper::createReferenceFromClass(Trace\AttributeLimits::class),
+            ConfigHelper::createReferenceFromClass(AttributeLimits::class),
         ]);
 
     $helper->setService(Resource\ResourceInfo::class)
         ->factory([Resource\ResourceInfo::class , 'create'])
         ->args([
-            ConfigHelper::createReferenceFromClass(Trace\Attributes::class),
+            ConfigHelper::createReferenceFromClass(Attributes::class),
         ]);
 
     // SAMPLER
@@ -95,7 +98,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $helper->setService(SpanProcessor\BatchSpanProcessor::class)
         ->args([
             null,
-            ConfigHelper::createReferenceFromClass(Trace\SystemClock::class),
+            ConfigHelper::createReferenceFromClass(SystemClock::class),
         ]);
     $helper->setAlias(
         Ids::SPAN_PROCESSOR_DEFAULT,

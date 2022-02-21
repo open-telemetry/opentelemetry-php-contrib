@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\Resources;
 
 use Exception;
+use OpenTelemetry\SDK\AttributeLimits;
+use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource;
+use OpenTelemetry\SDK\SystemClock;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
@@ -50,7 +53,7 @@ class SdkConfigTest extends TestCase
      */
     public function testUtil()
     {
-        $this->assertServiceSetup(Trace\SystemClock::class);
+        $this->assertServiceSetup(SystemClock::class);
         $this->assertServiceSetup(Trace\RandomIdGenerator::class);
     }
 
@@ -60,8 +63,8 @@ class SdkConfigTest extends TestCase
      */
     public function testResource()
     {
-        $this->assertServiceSetup(Trace\AttributeLimits::class);
-        $this->assertServiceSetup(Trace\Attributes::class);
+        $this->assertServiceSetup(AttributeLimits::class);
+        $this->assertServiceSetup(Attributes::class);
         $this->assertServiceSetup(Resource\ResourceInfo::class);
     }
 

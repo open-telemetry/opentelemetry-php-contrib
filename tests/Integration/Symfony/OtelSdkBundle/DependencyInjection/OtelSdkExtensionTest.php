@@ -6,6 +6,9 @@ namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\DependencyInjecti
 
 use Exception;
 use OpenTelemetry\SDK;
+use OpenTelemetry\SDK\AttributeLimits;
+use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\SystemClock;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
@@ -57,7 +60,7 @@ class OtelSdkExtensionTest extends TestCase
     {
         $data = $this->loadTestData('resource');
 
-        $limits = $this->getDefinitionByClass(SDK\Trace\AttributeLimits::class);
+        $limits = $this->getDefinitionByClass(AttributeLimits::class);
 
         $this->assertEquals(
             array_values($data['resource']['limits']),
@@ -77,14 +80,14 @@ class OtelSdkExtensionTest extends TestCase
             $params[Parameters::RESOURCE_ATTRIBUTES]
         );
 
-        $arguments = $this->getDefinitionByClass(SDK\Trace\Attributes::class)
+        $arguments = $this->getDefinitionByClass(Attributes::class)
             ->getArguments();
 
         $this->assertSame(
             ConfigHelper::wrapParameter(Parameters::RESOURCE_ATTRIBUTES),
             $arguments[0]
         );
-        $this->assertReference(SDK\Trace\AttributeLimits::class, $arguments[1]);
+        $this->assertReference(AttributeLimits::class, $arguments[1]);
     }
 
     public function testDefaultSampler(): void
@@ -250,7 +253,7 @@ class OtelSdkExtensionTest extends TestCase
             if ($this->getClassFromReference($processorReference) === SpanProcessor\BatchSpanProcessor::class) {
                 $definition = $this->container->getDefinition((string) $processorReference);
                 $this->assertIsReferenceForClass(
-                    SDK\Trace\SystemClock::class,
+                    SystemClock::class,
                     $definition->getArgument(1)
                 );
                 $batchProcessors++;
