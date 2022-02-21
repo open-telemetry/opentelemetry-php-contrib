@@ -320,7 +320,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         if (isset($config[Conf::URL_NODE])) {
             $options[Conf::URL_NODE] = $config[Conf::URL_NODE];
         }
-        if (!isset($options[Conf::SERVICE_NAME_NODE])) {
+        if (in_array(Conf::SERVICE_NAME_NODE, $definedOptions) && !isset($options[Conf::SERVICE_NAME_NODE])) {
             $options[Conf::SERVICE_NAME_NODE] = $this->serviceName;
         }
 
