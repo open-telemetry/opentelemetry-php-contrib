@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
+use OpenTelemetry\SDK\AttributeLimits;
+use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Configuration as Conf;
 use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
@@ -96,7 +98,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
             return;
         }
         // configure resource attribute limits
-        $limits = $this->getDefinitionByClass(Trace\AttributeLimits::class);
+        $limits = $this->getDefinitionByClass(AttributeLimits::class);
         if (isset($config[Conf::LIMITS_NODE])) {
             $limits->setArguments([
                 $config[Conf::LIMITS_NODE][Conf::ATTR_COUNT_NODE],
@@ -110,10 +112,10 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         }
         $this->getContainer()->setParameter(Parameters::RESOURCE_ATTRIBUTES, $attributesParams);
 
-        $attributes = $this->getDefinitionByClass(Trace\Attributes::class);
+        $attributes = $this->getDefinitionByClass(Attributes::class);
         $attributes->setArguments([
             '%' . Parameters::RESOURCE_ATTRIBUTES . '%',
-            self::createReferenceFromClass(Trace\AttributeLimits::class),
+            self::createReferenceFromClass(AttributeLimits::class),
         ]);
 
         // reference service name for later use

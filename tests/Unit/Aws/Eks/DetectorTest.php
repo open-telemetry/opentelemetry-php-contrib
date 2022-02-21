@@ -10,8 +10,8 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Eks\DataProvider;
 use OpenTelemetry\Aws\Eks\Detector;
+use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -58,7 +58,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
     }
 
     public function testValidClusterNameInvalidContainerId()
@@ -86,7 +86,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
     }
 
     public function testValidClusterNameEmptyContainerId()
@@ -114,7 +114,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
     }
 
     public function testValidClusterNameShortContainerId()
@@ -142,7 +142,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
     }
 
     public function testValidContianerIdEmptyClusterName()
@@ -170,7 +170,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
     }
 
     public function testValidContainerIdEmptyData()
@@ -198,7 +198,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
     }
 
     public function testValidContianerIdEmptyBody()
@@ -226,7 +226,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
     }
 
     public function testInvalidBodyIsEks()
@@ -248,7 +248,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     public function testInvalidResponseCode()
@@ -270,7 +270,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     public function testInvalidContainerIdAndClusterName()
@@ -292,7 +292,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     public function testInvalidKubernetesFile()
@@ -312,6 +312,6 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 }

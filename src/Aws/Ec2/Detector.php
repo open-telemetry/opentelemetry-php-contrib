@@ -22,8 +22,9 @@ namespace OpenTelemetry\Aws\Ec2;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
+use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use Throwable;
 
@@ -32,7 +33,7 @@ use Throwable;
  * and return a Resource populated with metadata about the EC2
  * instance. Returns an empty Resource if detection fails.
  */
-class Detector
+class Detector implements ResourceDetectorInterface
 {
     private const SCHEME = 'http://';
     private const AWS_IDMS_ENDPOINT = '169.254.169.254';
@@ -44,7 +45,7 @@ class Detector
     private const MILLISECOND_TIME_OUT = 1000;
     private const CLOUD_PROVIDER = 'aws';
 
-    private $guzzle;
+    private Client $guzzle;
 
     public function __construct(Client $guzzle)
     {
@@ -53,12 +54,12 @@ class Detector
 
     /**
      * Attempts to connect and obtain an AWS instance Identity document. If the
-     * connection is succesful it returns a Resource
+     * connection is successful it returns a Resource
      * populated with instance metadata. Returns an empty Resource
      * if the connection or parsing of the identity document fails.
      *
      */
-    public function detect(): ResourceInfo
+    public function getResource(): ResourceInfo
     {
         try {
             $token = $this->fetchToken();
@@ -109,7 +110,7 @@ class Detector
             $attributes->setAttribute(ResourceAttributes::HOST_NAME, $hostName);
             $attributes->setAttribute(ResourceAttributes::CLOUD_PROVIDER, self::CLOUD_PROVIDER);
 
-            return ResourceInfo::create($attributes);
+            return ResourceInfo::create(new Attributes($attributes), ResourceAttributes::SCHEMA_URL);
         } catch (\Throwable $e) {
             //TODO: add 'Process is not running on K8S when logging is added
             return ResourceInfo::emptyResource();

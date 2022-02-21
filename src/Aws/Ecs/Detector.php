@@ -19,16 +19,18 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Ecs;
 
+use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
+use Throwable;
 
 /**
  * The AwsEcsDetector can be used to detect if a process is running in AWS
  * ECS and return a {@link Resource} populated with data about the ECS
  * plugins of AWS ˜X-Ray. Returns an empty Resource if detection fails.
  */
-class Detector
+class Detector implements ResourceDetectorInterface
 {
     private const ECS_METADATA_KEY_V4 = 'ECS_CONTAINER_METADATA_URI_V4';
     private const ECS_METADATA_KEY_V3 = 'ECS_CONTAINER_METADATA_URI';
@@ -47,7 +49,7 @@ class Detector
      * returns resource with valid extracted values
      * If not running on ECS, returns empty rsource
      */
-    public function detect(): ResourceInfo
+    public function getResource(): ResourceInfo
     {
         // Check if running on ECS by looking for below environment variables
         if (!getenv(self::ECS_METADATA_KEY_V4) && !getenv(self::ECS_METADATA_KEY_V3)) {
@@ -84,7 +86,7 @@ class Detector
                     return substr($str, strlen($str) - self::CONTAINER_ID_LENGTH);
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             //TODO: add 'Failed to read container ID' when logging is added
         }
 

@@ -6,8 +6,8 @@ namespace OpenTelemetry\Test\Unit\Aws\Ecs;
 
 use OpenTelemetry\Aws\Ecs\DataProvider;
 use OpenTelemetry\Aws\Ecs\Detector;
+use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -50,7 +50,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
 
         //unset environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY);
@@ -77,7 +77,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
 
         //unset environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY);
@@ -95,7 +95,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -119,7 +119,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
 
         //unset environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY);
@@ -149,7 +149,7 @@ class DetectorTest extends TestCase
                         ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                     ]
                 )
-            ), $detector->detect());
+            ), $detector->getResource());
         }
 
         //unset environment variable
@@ -176,7 +176,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
             )
-        ), $detector->detect());
+        ), $detector->getResource());
 
         //unset environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY);
@@ -197,7 +197,7 @@ class DetectorTest extends TestCase
         
         $detector = new Detector($mockData);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
 
         // Unset environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY);

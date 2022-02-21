@@ -20,8 +20,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Lambda;
 
+use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 
 /**
@@ -29,14 +30,14 @@ use OpenTelemetry\SemConv\ResourceAttributes;
  * and return a {@link Resource} populated with data about the environment.
  * Returns an empty Resource if detection fails.
  */
-class Detector
+class Detector implements ResourceDetectorInterface
 {
     private const LAMBDA_NAME_ENV = 'AWS_LAMBDA_FUNCTION_NAME';
     private const LAMBDA_VERSION_ENV = 'AWS_LAMBDA_FUNCTION_VERSION';
     private const AWS_REGION_ENV = 'AWS_REGION';
     private const CLOUD_PROVIDER = 'aws';
 
-    public function detect(): ResourceInfo
+    public function getResource(): ResourceInfo
     {
         $lambdaName = getenv(self::LAMBDA_NAME_ENV);
         $functionVersion = getenv(self::LAMBDA_VERSION_ENV);

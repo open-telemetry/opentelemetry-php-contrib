@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Aws\Lambda;
 
 use OpenTelemetry\Aws\Lambda\Detector;
+use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -39,7 +39,7 @@ class DetectorTest extends TestCase
                 ResourceAttributes::CLOUD_REGION => self::AWS_REGION_VAL,
                 ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
             ])
-        ), $detector->detect());
+        ), $detector->getResource());
 
         //unset environment variable
         putenv(self::LAMBDA_NAME_ENV);
@@ -53,7 +53,7 @@ class DetectorTest extends TestCase
     public function TestInvalidLambda()
     {
         $detector = new Detector();
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->detect());
+        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -70,7 +70,7 @@ class DetectorTest extends TestCase
                 ResourceAttributes::FAAS_NAME => self::LAMBDA_NAME_VAL,
                 ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ])
-        ), $detector->detect());
+        ), $detector->getResource());
 
         //unset environment variable
         putenv(self::LAMBDA_NAME_ENV);
@@ -92,7 +92,7 @@ class DetectorTest extends TestCase
                 ResourceAttributes::CLOUD_REGION => self::AWS_REGION_VAL,
                 ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
             ])
-        ), $detector->detect());
+        ), $detector->getResource());
 
         //unset environment variable
         putenv(self::LAMBDA_NAME_ENV);

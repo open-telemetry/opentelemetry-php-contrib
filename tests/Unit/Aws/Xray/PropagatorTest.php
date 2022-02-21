@@ -6,10 +6,10 @@ namespace OpenTelemetry\Test\Unit\Aws\Xray;
 
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanContextInterface;
+use OpenTelemetry\API\Trace\TraceState;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SDK\Trace\Span;
-use OpenTelemetry\SDK\Trace\TraceState;
 use PHPUnit\Framework\TestCase;
 
 class PropagatorTest extends TestCase
