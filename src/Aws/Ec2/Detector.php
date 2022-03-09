@@ -20,12 +20,13 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Ec2;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
 use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SemConv\ResourceAttributes;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
 use Throwable;
 
 /**
@@ -42,14 +43,15 @@ class Detector implements ResourceDetectorInterface
     private const AWS_INSTANCE_HOST_DOCUMENT_PATH = '/latest/meta-data/hostname';
     private const AWS_METADATA_TTL_HEADER = 'X-aws-ec2-metadata-token-ttl-seconds';
     private const AWS_METADATA_TOKEN_HEADER = 'X-aws-ec2-metadata-token';
-    private const MILLISECOND_TIME_OUT = 1000;
     private const CLOUD_PROVIDER = 'aws';
 
-    private Client $guzzle;
+    private ClientInterface $client;
+    private RequestFactoryInterface $requestFactory;
 
-    public function __construct(Client $guzzle)
+    public function __construct(ClientInterface $client, RequestFactoryInterface $requestFactory)
     {
-        $this->guzzle = $guzzle;
+        $this->client = $client;
+        $this->requestFactory = $requestFactory;
     }
 
     /**
@@ -119,20 +121,17 @@ class Detector implements ResourceDetectorInterface
 
     private function fetchToken(): ?string
     {
-        return $this->request(
-            'PUT',
-            self::AWS_INSTANCE_TOKEN_DOCUMENT_PATH,
-            [self::AWS_METADATA_TTL_HEADER => '60']
-        );
+        $request = $this->createRequest('PUT', self::AWS_INSTANCE_TOKEN_DOCUMENT_PATH)
+            ->withHeader(self::AWS_METADATA_TTL_HEADER, '60');
+
+        return $this->request($request);
     }
 
     private function fetchIdentity(String $token): ?array
     {
-        $body = $this->request(
-            'GET',
-            self::AWS_INSTANCE_IDENTITY_DOCUMENT_PATH,
-            [self::AWS_METADATA_TOKEN_HEADER => $token]
-        );
+        $request = $this->createRequest('GET', self::AWS_INSTANCE_IDENTITY_DOCUMENT_PATH)
+            ->withHeader(self::AWS_METADATA_TOKEN_HEADER, $token);
+        $body = $this->request($request);
 
         if (empty($body)) {
             return null;
@@ -147,30 +146,27 @@ class Detector implements ResourceDetectorInterface
 
     private function fetchHostname(String $token): ?string
     {
-        return $this->request(
-            'GET',
-            self::AWS_INSTANCE_HOST_DOCUMENT_PATH,
-            [self::AWS_METADATA_TOKEN_HEADER => $token]
-        );
+        $request = $this->createRequest('GET', self::AWS_INSTANCE_HOST_DOCUMENT_PATH)
+            ->withHeader(self::AWS_METADATA_TOKEN_HEADER, $token);
+
+        return $this->request($request);
+    }
+
+    private function createRequest(string $method, string $path): RequestInterface
+    {
+        return $this->requestFactory->createRequest($method, self::SCHEME . self::AWS_IDMS_ENDPOINT . $path);
     }
 
     /**
      * Function to create a request for any of the given
      * fetch functions.
      */
-    private function request($method, $path, $header): ?string
+    private function request(RequestInterface $request): ?string
     {
-        $client = $this->guzzle;
+        $client = $this->client;
 
         try {
-            $response = $client->request(
-                $method,
-                self::SCHEME . self::AWS_IDMS_ENDPOINT . $path,
-                [
-                    'headers' => $header,
-                    'timeout' => self::MILLISECOND_TIME_OUT,
-                ]
-            );
+            $response = $client->sendRequest($request);
 
             $body = $response->getBody()->getContents();
             $responseCode = $response->getStatusCode();

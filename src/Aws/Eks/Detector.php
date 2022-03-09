@@ -19,13 +19,13 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Eks;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Request;
 use OpenTelemetry\SDK\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SemConv\ResourceAttributes;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * The AwsEksDetector can be used to detect if a process is running in AWS
@@ -45,12 +45,17 @@ class Detector implements ResourceDetectorInterface
     private const CONTAINER_ID_LENGTH = 64;
 
     private DataProvider $dataProvider;
-    private Client $client;
-    
-    public function __construct(DataProvider $dataProvider, Client $client)
-    {
+    private ClientInterface $client;
+    private RequestFactoryInterface $requestFactory;
+
+    public function __construct(
+        DataProvider $dataProvider,
+        ClientInterface $client,
+        RequestFactoryInterface $requestFactory
+    ) {
         $this->dataProvider = $dataProvider;
         $this->client = $client;
+        $this->requestFactory = $requestFactory;
     }
     
     public function getResource(): ResourceInfo
@@ -104,16 +109,11 @@ class Detector implements ResourceDetectorInterface
         $client = $this->client;
 
         try {
-            $response = $client->request(
-                'GET',
-                'https://' . self::K8S_SVC_URL . self::CW_CONFIGMAP_PATH,
-                [
-                    'headers' => [
-                        'Authorization' => $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
-                    ],
-                    'timeout' => 2000,
-                ]
-            );
+            $request = $this->requestFactory
+                ->createRequest('GET', 'https://' . self::K8S_SVC_URL . self::CW_CONFIGMAP_PATH)
+                ->withHeader('Authorization', $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH);
+
+            $response = $client->sendRequest($request);
 
             $json = json_decode($response->getBody()->getContents(), true);
 
@@ -122,7 +122,7 @@ class Detector implements ResourceDetectorInterface
             }
 
             return null;
-        } catch (RequestException $e) {
+        } catch (ClientExceptionInterface $e) {
             // TODO: add log for exception. The code below
             // provides the exception thrown:
             // echo Psr7\Message::toString($e->getRequest());
@@ -140,22 +140,17 @@ class Detector implements ResourceDetectorInterface
         $client = $this->client;
 
         try {
-            $response = $client->request(
-                'GET',
-                'https://' . self::K8S_SVC_URL . self::AUTH_CONFIGMAP_PATH,
-                [
-                    'headers' => [
-                        'Authorization' => $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH,
-                    ],
-                    'timeout' => 2000,
-                ]
-            );
+            $request = $this->requestFactory
+                ->createRequest('GET', 'https://' . self::K8S_SVC_URL . self::AUTH_CONFIGMAP_PATH)
+                ->withHeader('Authorization', $this->dataProvider->getK8sHeader() . ', Bearer ' . self::K8S_CERT_PATH);
+
+            $response = $client->sendRequest($request);
 
             $body = $response->getBody()->getContents();
             $responseCode = $response->getStatusCode();
 
             return !empty($body) && $responseCode < 300 && $responseCode >= 200;
-        } catch (RequestException $e) {
+        } catch (ClientExceptionInterface $e) {
             // TODO: add log for exception. The code below
             // provides the exception thrown:
             // echo Psr7\Message::toString($e->getRequest());
