@@ -9,7 +9,6 @@ use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsnParser;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
-use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -103,14 +102,12 @@ class Configuration implements ConfigurationInterface
     ];
 
     // PRIVATE CONSTANTS
-    private const ARRAY_NODE_TYPE = 'array';
     private const SCALAR_NODE_TYPE = 'scalar';
     private const RESOURCE_XML = 'resource';
     private const PROCESSORS_XML = 'processor';
     private const EXPORTERS_XML = 'exporter';
     private const OPTIONS_XML = 'option';
     private const ENV_PREFIX = 'env_';
-    private const SERVICE_PREFIX = '@';
     private const EXPORTER_HR = 'span exporter';
     private const PROCESSOR_HR = 'span processor';
 
@@ -130,10 +127,8 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $this->debug('Start building config tree in ' . __CLASS__);
-        $treeBuilder = self::createTreeBuilder(static::ROOT_KEY);
-        /** @phpstan-ignore-next-line */
+        $treeBuilder = new TreeBuilder(self::ROOT_KEY);
         $rootNode = $treeBuilder->getRootNode()
-            /** @psalm-suppress PossiblyUndefinedMethod **/
             ->canBeDisabled()
         ;
         self::addResourceSection($rootNode);
@@ -142,14 +137,6 @@ class Configuration implements ConfigurationInterface
         $this->debug('Finished building config tree in ' . __CLASS__);
 
         return $treeBuilder;
-    }
-
-    private static function createTreeBuilder(
-        string $name,
-        string $type = self::ARRAY_NODE_TYPE,
-        NodeBuilder $builder = null
-    ): TreeBuilder {
-        return new TreeBuilder($name, $type, $builder);
     }
 
     private static function addResourceSection(ArrayNodeDefinition $node): void
@@ -178,10 +165,10 @@ class Configuration implements ConfigurationInterface
 
     private static function createResourceLimitsNode(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::LIMITS_NODE)
+        $treeBuilder = new TreeBuilder(self::LIMITS_NODE);
+
+        return $treeBuilder
             ->getRootNode()
-            /** @psalm-suppress PossiblyUndefinedMethod **/
             ->children()
                 ->integerNode(self::ATTR_COUNT_NODE)
                     ->defaultValue(self::LIMITS_COUNT_DEFAULT)
@@ -195,8 +182,9 @@ class Configuration implements ConfigurationInterface
 
     private static function createResourceAttributesNode(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::ATTRIBUTES_NODE)
+        $treeBuilder = new TreeBuilder(self::ATTRIBUTES_NODE);
+
+        return $treeBuilder
             ->getRootNode()
             ->beforeNormalization()
             ->ifTrue(static function ($v) {
@@ -217,7 +205,6 @@ class Configuration implements ConfigurationInterface
                 );
             })
             ->end()
-            /** @psalm-suppress PossiblyUndefinedMethod **/
             ->fixXmlConfig(self::RESOURCE_XML)
             ->useAttributeAsKey(self::NAME_KEY)
             ->prototype(self::SCALAR_NODE_TYPE)
@@ -227,8 +214,9 @@ class Configuration implements ConfigurationInterface
 
     private static function createSamplerSectionNode(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::SAMPLER_NODE)
+        $treeBuilder = new TreeBuilder(self::SAMPLER_NODE);
+
+        return $treeBuilder
             ->getRootNode()
             ->beforeNormalization()
             ->ifString()
@@ -236,7 +224,6 @@ class Configuration implements ConfigurationInterface
                 return [self::ROOT_NODE => $v];
             })
             ->end()
-            /** @psalm-suppress PossiblyUndefinedMethod **/
             ->append(self::createSamplerNode(self::ROOT_NODE))
             ->children()
                 ->arrayNode(self::REMOTE_NODE)
@@ -253,8 +240,9 @@ class Configuration implements ConfigurationInterface
 
     private static function createSamplerNode(string $name, string $default = self::SAMPLER_NODE_DEFAULT): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder($name)
+        $treeBuilder = new TreeBuilder($name);
+
+        return $treeBuilder
             ->getRootNode()
             ->beforeNormalization()
                 ->ifString()
@@ -290,7 +278,6 @@ class Configuration implements ConfigurationInterface
                     return $v;
                 })
             ->end()
-            /** @psalm-suppress PossiblyUndefinedMethod **/
             ->children()
                 ->append(self::createTypeNode($default))
                 ->append(self::createClassNode())
@@ -302,10 +289,10 @@ class Configuration implements ConfigurationInterface
 
     private static function createSpanSectionNode(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::SPAN_NODE)
+        $treeBuilder = new TreeBuilder(self::SPAN_NODE);
+
+        return $treeBuilder
             ->getRootNode()
-            /** @psalm-suppress PossiblyUndefinedMethod **/
             ->children()
                 ->append(self::createSpanLimitsNode())
                 ->append(self::createSpanProcessors())
@@ -315,10 +302,10 @@ class Configuration implements ConfigurationInterface
 
     private static function createSpanLimitsNode(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::LIMITS_NODE)
+        $treeBuilder = new TreeBuilder(self::LIMITS_NODE);
+
+        return $treeBuilder
             ->getRootNode()
-            /** @psalm-suppress PossiblyUndefinedMethod **/
             ->children()
                 ->integerNode(self::ATTR_COUNT_NODE)->defaultValue(self::LIMITS_COUNT_DEFAULT)->end()
                 ->integerNode(self::ATTR_VALUE_LENGTH_NODE)->defaultValue(PHP_INT_MAX)->end()
@@ -332,14 +319,14 @@ class Configuration implements ConfigurationInterface
 
     private static function createSpanProcessors(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::PROCESSORS_NODE)
+        $treeBuilder = new TreeBuilder(self::PROCESSORS_NODE);
+
+        return $treeBuilder
             ->getRootNode()
                 ->beforeNormalization()
                 ->ifString()
                 ->castToArray()
                 ->end()
-                /** @psalm-suppress PossiblyUndefinedMethod **/
                 ->fixXmlConfig(self::PROCESSORS_XML)
                 ->arrayPrototype()
                 ->beforeNormalization()
@@ -388,10 +375,10 @@ class Configuration implements ConfigurationInterface
 
     private static function createExporters(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::EXPORTERS_NODE)
+        $treeBuilder = new TreeBuilder(self::EXPORTERS_NODE);
+
+        return $treeBuilder
             ->getRootNode()
-            /** @phpstan-ignore-next-line */
             ->requiresAtLeastOneElement()
             ->beforeNormalization()
                 ->ifString()
@@ -423,20 +410,23 @@ class Configuration implements ConfigurationInterface
 
     private static function createClassNode(): NodeDefinition
     {
-        return self::createTreeBuilder(self::CLASS_NODE, self::SCALAR_NODE_TYPE)
-            ->getRootNode();
+        $treeBuilder = new TreeBuilder(self::CLASS_NODE, self::SCALAR_NODE_TYPE);
+
+        return $treeBuilder->getRootNode();
     }
 
     private static function createIdNode(): NodeDefinition
     {
-        return self::createTreeBuilder(self::ID_NODE, self::SCALAR_NODE_TYPE)
-            ->getRootNode();
+        $treeBuilder = new TreeBuilder(self::ID_NODE, self::SCALAR_NODE_TYPE);
+
+        return $treeBuilder->getRootNode();
     }
 
     private static function createOptionsNodes(): NodeDefinition
     {
-        /** @phpstan-ignore-next-line */
-        return self::createTreeBuilder(self::OPTIONS_NODE, self::ARRAY_NODE_TYPE)
+        $treeBuilder = new TreeBuilder(self::OPTIONS_NODE);
+
+        return $treeBuilder
             ->getRootNode()
             ->fixXmlConfig(self::OPTIONS_XML)
             ->useAttributeAsKey(self::NAME_KEY)
@@ -445,7 +435,9 @@ class Configuration implements ConfigurationInterface
 
     private static function createTypeNode(?string $default = null): NodeDefinition
     {
-        $node =  self::createTreeBuilder(self::TYPE_NODE, self::SCALAR_NODE_TYPE)
+        $treeBuilder = new TreeBuilder(self::TYPE_NODE, self::SCALAR_NODE_TYPE);
+
+        $node = $treeBuilder
             ->getRootNode()
             ->isRequired();
 
@@ -508,11 +500,6 @@ class Configuration implements ConfigurationInterface
     private static function isEnvVarReference(string $value): bool
     {
         return stripos($value, self::ENV_PREFIX) === 0;
-    }
-
-    private static function isServiceReference(string $value): bool
-    {
-        return stripos($value, self::SERVICE_PREFIX) === 0;
     }
 
     private static function validateTypedExporterConfig(array $config)
