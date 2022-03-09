@@ -371,7 +371,6 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         $class = $this->resolveExporterClass($config);
 
         $id = self::concatId(
-            /** @psalm-suppress ArgumentTypeCoercion */
             ServiceHelper::classToId(SpanExporters::NAMESPACE) . '.' . self::FACTORY_SUFFIX,
             $exporterKey
         );
@@ -432,7 +431,6 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     {
         $id = sprintf(
             '%s.%s.%s',
-            /** @psalm-suppress ArgumentTypeCoercion */
             ServiceHelper::classToId(SpanProcessors::NAMESPACE),
             $processorType,
             $exporterKey
@@ -620,14 +618,14 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     {
         $this->getContainer()->setDefinition($id, $definition);
         if ($classAlias === true) {
-            if ($definition->getClass() === null) {
+            $className = $definition->getClass();
+            if ($className === null) {
                 throw new RuntimeException(sprintf(
                     'Cannot set class alias for id "%s". Definition has not class',
                     $id
                 ));
             }
-            /** @psalm-suppress  PossiblyNullArgument **/
-            $this->getContainer()->setAlias($definition->getClass(), $id);
+            $this->getContainer()->setAlias($className, $id);
         }
     }
 
