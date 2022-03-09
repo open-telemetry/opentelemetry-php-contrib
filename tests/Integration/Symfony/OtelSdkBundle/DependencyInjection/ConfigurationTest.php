@@ -80,7 +80,7 @@ class ConfigurationTest extends TestCase
     {
         $data = [];
 
-        foreach (static::CONFIG_VARIANTS as $variant) {
+        foreach (self::CONFIG_VARIANTS as $variant) {
             $data[$variant] = $this->loadTestData($variant);
         }
 
@@ -91,7 +91,7 @@ class ConfigurationTest extends TestCase
     {
         $data = [];
 
-        foreach (static::EXCEPTIONS as $variant) {
+        foreach (self::EXCEPTIONS as $variant) {
             $data[$variant] = $this->loadExceptionData($variant);
         }
 
