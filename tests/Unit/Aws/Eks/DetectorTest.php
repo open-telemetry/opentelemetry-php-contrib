@@ -7,6 +7,7 @@ namespace OpenTelemetry\Test\Unit\Aws\Eks;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Eks\DataProvider;
 use OpenTelemetry\Aws\Eks\Detector;
@@ -48,8 +49,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -77,8 +79,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -105,8 +108,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -133,8 +137,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -161,8 +166,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -189,8 +195,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -217,8 +224,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
             new Attributes(
@@ -245,8 +253,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
@@ -267,8 +276,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
@@ -289,8 +299,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
@@ -309,8 +320,9 @@ class DetectorTest extends TestCase
         
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
 
-        $detector = new Detector($mockData, $client);
+        $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
     }
