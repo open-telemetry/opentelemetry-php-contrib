@@ -165,9 +165,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createResourceLimitsNode(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::LIMITS_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::LIMITS_NODE))
             ->getRootNode()
             ->children()
                 ->integerNode(self::ATTR_COUNT_NODE)
@@ -182,9 +180,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createResourceAttributesNode(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::ATTRIBUTES_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::ATTRIBUTES_NODE))
             ->getRootNode()
             ->beforeNormalization()
             ->ifTrue(static function ($v) {
@@ -214,9 +210,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createSamplerSectionNode(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::SAMPLER_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::SAMPLER_NODE))
             ->getRootNode()
             ->beforeNormalization()
             ->ifString()
@@ -240,9 +234,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createSamplerNode(string $name, string $default = self::SAMPLER_NODE_DEFAULT): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder($name);
-
-        return $treeBuilder
+        return (new TreeBuilder($name))
             ->getRootNode()
             ->beforeNormalization()
                 ->ifString()
@@ -289,9 +281,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createSpanSectionNode(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::SPAN_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::SPAN_NODE))
             ->getRootNode()
             ->children()
                 ->append(self::createSpanLimitsNode())
@@ -302,9 +292,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createSpanLimitsNode(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::LIMITS_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::LIMITS_NODE))
             ->getRootNode()
             ->children()
                 ->integerNode(self::ATTR_COUNT_NODE)->defaultValue(self::LIMITS_COUNT_DEFAULT)->end()
@@ -319,9 +307,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createSpanProcessors(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::PROCESSORS_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::PROCESSORS_NODE))
             ->getRootNode()
                 ->beforeNormalization()
                 ->ifString()
@@ -375,9 +361,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createExporters(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::EXPORTERS_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::EXPORTERS_NODE))
             ->getRootNode()
             ->requiresAtLeastOneElement()
             ->beforeNormalization()
@@ -410,23 +394,19 @@ class Configuration implements ConfigurationInterface
 
     private static function createClassNode(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::CLASS_NODE, self::SCALAR_NODE_TYPE);
-
-        return $treeBuilder->getRootNode();
+        return (new TreeBuilder(self::CLASS_NODE, self::SCALAR_NODE_TYPE))
+            ->getRootNode();
     }
 
     private static function createIdNode(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::ID_NODE, self::SCALAR_NODE_TYPE);
-
-        return $treeBuilder->getRootNode();
+        return (new TreeBuilder(self::ID_NODE, self::SCALAR_NODE_TYPE))
+            ->getRootNode();
     }
 
     private static function createOptionsNodes(): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::OPTIONS_NODE);
-
-        return $treeBuilder
+        return (new TreeBuilder(self::OPTIONS_NODE))
             ->getRootNode()
             ->fixXmlConfig(self::OPTIONS_XML)
             ->useAttributeAsKey(self::NAME_KEY)
@@ -435,9 +415,7 @@ class Configuration implements ConfigurationInterface
 
     private static function createTypeNode(?string $default = null): NodeDefinition
     {
-        $treeBuilder = new TreeBuilder(self::TYPE_NODE, self::SCALAR_NODE_TYPE);
-
-        $node = $treeBuilder
+        $node = (new TreeBuilder(self::TYPE_NODE, self::SCALAR_NODE_TYPE))
             ->getRootNode()
             ->isRequired();
 
