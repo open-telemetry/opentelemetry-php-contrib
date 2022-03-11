@@ -205,22 +205,18 @@ class TestExporter implements SpanExporterInterface
 
     private StreamFactoryInterface $streamFactory;
 
-    private $untyped;
-
     public function __construct(
         string $name,
         string $endpointUrl,
         ClientInterface $client,
         RequestFactoryInterface $requestFactory,
-        StreamFactoryInterface $streamFactory,
-        $untyped = 'untyped'
+        StreamFactoryInterface $streamFactory
     ) {
         $this->name = $name;
         $this->endpointUrl = $endpointUrl;
         $this->client = $client;
         $this->requestFactory = $requestFactory;
         $this->streamFactory = $streamFactory;
-        $this->untyped = $untyped;
     }
 
     public static function fromConnectionString(string $endpointUrl, string $name, string $args)
