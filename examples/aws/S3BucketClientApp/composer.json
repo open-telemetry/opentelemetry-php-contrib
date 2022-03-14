@@ -7,5 +7,7 @@
             "OpenTelemetry\\S3bucketClientApp\\": "src/"
         }
     },
-    "require": {}
+    "require": {
+        "aws/aws-sdk-php": "^3.213"
+    }
 }
