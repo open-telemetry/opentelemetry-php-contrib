@@ -11,7 +11,7 @@ This is a getting started guide for the example applications found in the AWS co
 
 Currently, the ability to instrument an application automatically does not exist, so manually instrumenting the apps was necessary. In both of the applications, creation of a tracer, generation of spans, propagation of contexts, and closing spans was implemented manually. Both of these applications are console applications that export trace data to the OTEL Collector which is then exported to AWS X-Ray.
 
-### Sample App 1
+### Aws Client App
 
 The first sample app in its implementation is creation of a span, then a child span, which is then populated in an HTTP header that makes a request to either aws.amazon.com (http://aws.amazon.com/) or the AWS SDK. The application will prompt you for input on which action you would like to take, and subsequently prints out the trace ID.
 
@@ -90,8 +90,6 @@ At this point all necessary items have been installed in your system and you are
 
 ### Run Collector
 
-Open a new terminal window and navigate into the aws-otel-collector folder.
-
 Run the following command. Make sure to replace `YOUR_ACCESS_KEY_HERE` and `YOUR_SECRET_ACCESS_KEY_HERE` with your own specific keys.
 
 ```console
@@ -99,29 +97,34 @@ docker run --rm -p 4317:4317 -p 55681:55681 -p 8889:8888 \
    -e AWS_REGION=us-west-2 \
    -e AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_HERE \
    -e AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY_HERE \
-   -v "${PWD}/examples/docker/config-test.yaml":/otel-local-config.yaml \
+   -v "${PWD}/examples/aws/collector/config.yaml":/otel-local-config.yaml \
    --name awscollector public.ecr.aws/aws-observability/aws-otel-collector:latest \
    --config otel-local-config.yaml
 ```
 
 In another terminal window, navigate to the opentelemetry-php-contrib folder.
 
-Run the following command for Sample App 1:
+To run `AwsClientApp`, navigate to `examples/aws/AwsClientApp`, then install required dependencies:
 
-`php examples/aws/SampleApp1/SampleApp1.php`
+```
+composer install
+```
+
+And run the following command:
+
+`php bin/app`
 
 The output for this app should look similar to the following:
 
 ```console
-Starting Sample App
-Which call would you like to make? 
+Starting Aws Client App
+
+Which call would you like to make?
 Type outgoing-http-call or aws-sdk-call
 outgoing-http-call
-Final trace ID: {"traceId":"1-6115648a-d40b50a270b3c1249bcf60c2"}
-Sample App complete!
+Final trace ID: {"traceId":"1-622fb9fb-1b2031fcde9ac72610b6a0b9"}
+Aws Client App complete!
 ```
-
-Currently the `aws-sdk-call` option is commented out. This is due to dependency conflicts between AWS and the PHP Library. If you would like to enable it, follow the instructions in the comments of the SampleApp1.php file.
 
 Run the following command for Sample App 2:
 
