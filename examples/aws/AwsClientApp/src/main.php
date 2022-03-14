@@ -123,7 +123,7 @@ if ($line === 'aws-sdk-call') {
 
 $root->end();
 
-echo 'Aws Client App complete!';
+echo "Aws Client App complete!\n";
 
 function printTraceId($span): void
 {
