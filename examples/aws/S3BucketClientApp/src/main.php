@@ -19,6 +19,11 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\S3bucketClientApp;
 
+use OpenTelemetry\Aws\Xray\IdGenerator;
+use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
+use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
+use OpenTelemetry\SDK\Trace\TracerProvider;
+
 require __DIR__ . '/../vendor/autoload.php';
 
 echo <<<EOL
@@ -39,4 +44,19 @@ if (!in_array($line, ['outgoing-http-call', 'aws-sdk-call'])) {
     exit(1);
 }
 
+// Create tracer and propagator
+$spanProcessor = new SimpleSpanProcessor(new OTLPExporter());
+$idGenerator = new IdGenerator();
+$tracerProvider =  new TracerProvider([$spanProcessor], null, null, null, $idGenerator);
 
+$tracer = $tracerProvider->getTracer();
+
+// Create root span
+$root = $tracer->spanBuilder('root')->startSpan();
+$root->activate();
+
+$root->setAttribute('item_A', 'cars')
+    ->setAttribute('item_B', 'motorcycles')
+    ->setAttribute('item_C', 'planes');
+
+$root->end();
