@@ -1,0 +1,11 @@
+{
+    "name": "open-telemetry/s3bucket-client-app",
+    "type": "application",
+    "license": "Apache-2.0",
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\S3bucketClientApp\\": "src/"
+        }
+    },
+    "require": {}
+}
