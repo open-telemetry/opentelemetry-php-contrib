@@ -85,6 +85,42 @@ if ($line === 'outgoing-http-call') {
     $span->end();
 }
 
+if ($line === 'aws-sdk-call') {
+    $span = $tracer->spanBuilder('session.generate.aws.sdk.span')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
+
+    $propagator->inject($carrier);
+
+    $s3Client = new S3Client([
+        'profile' => 'default',
+        'region' => 'us-west-2',
+        'version' => '2006-03-01',
+    ]);
+
+    try {
+        $result = $s3Client->createBucket([
+             'Bucket' => 'test-bucket-with-random-name',
+        ]);
+
+        echo <<<EOL
+            The bucket's location is: {$result['Location']}
+            The bucket's effective URI is: {$result['@metadata']['effectiveUri']}
+            
+            EOL;
+    } catch (AwsException $e) {
+        echo "Error: {$e->getAwsErrorMessage()}";
+    }
+
+    $buckets = $s3Client->listBuckets();
+
+    foreach ($buckets['Buckets'] as $bucket) {
+        echo $bucket['Name'] . PHP_EOL;
+    }
+
+    printTraceId($span);
+
+    $span->end();
+}
+
 $root->end();
 
 function printTraceId($span): void
