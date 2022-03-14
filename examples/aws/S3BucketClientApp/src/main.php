@@ -98,7 +98,7 @@ if ($line === 'aws-sdk-call') {
 
     try {
         $result = $s3Client->createBucket([
-             'Bucket' => 'test-bucket-with-random-name',
+             'Bucket' => uniqid('test-bucket-'),
         ]);
 
         echo <<<EOL
