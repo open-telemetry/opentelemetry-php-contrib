@@ -12,7 +12,8 @@
         "aws/aws-sdk-php": "^3.213",
         "php-http/guzzle7-adapter": "^1.0",
         "open-telemetry/opentelemetry-php-contrib": "dev-main",
-        "guzzlehttp/guzzle": "^7.4"
+        "guzzlehttp/guzzle": "^7.4",
+        "ext-grpc": "*"
     },
     "repositories": [
         {
