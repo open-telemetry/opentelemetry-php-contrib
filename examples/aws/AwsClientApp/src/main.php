@@ -32,7 +32,7 @@ use OpenTelemetry\SDK\Trace\TracerProvider;
 require __DIR__ . '/../vendor/autoload.php';
 
 echo <<<EOL
-    Starting S3Bucket Client App
+    Starting Aws Client App
     
     Which call would you like to make?
     Type outgoing-http-call or aws-sdk-call
@@ -122,6 +122,8 @@ if ($line === 'aws-sdk-call') {
 }
 
 $root->end();
+
+echo 'Aws Client App complete!';
 
 function printTraceId($span): void
 {
