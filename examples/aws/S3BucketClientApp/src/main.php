@@ -19,7 +19,12 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\S3bucketClientApp;
 
+use Aws\Exception\AwsException;
+use Aws\S3\S3Client;
+use GuzzleHttp\Client;
+use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Aws\Xray\IdGenerator;
+use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -50,6 +55,7 @@ $idGenerator = new IdGenerator();
 $tracerProvider =  new TracerProvider([$spanProcessor], null, null, null, $idGenerator);
 
 $tracer = $tracerProvider->getTracer();
+$propagator = new Propagator();
 
 // Create root span
 $root = $tracer->spanBuilder('root')->startSpan();
@@ -59,4 +65,33 @@ $root->setAttribute('item_A', 'cars')
     ->setAttribute('item_B', 'motorcycles')
     ->setAttribute('item_C', 'planes');
 
+$carrier = [];
+
+if ($line === 'outgoing-http-call') {
+    $span = $tracer->spanBuilder('session.generate.http.span')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
+
+    $propagator->inject($carrier);
+
+    try {
+        $client = new Client();
+        $client->request('GET', 'https://aws.amazon.com', ['headers' => $carrier, 'timeout' => 2000,]);
+    } catch (\Throwable $e) {
+        echo $e->getMessage() . PHP_EOL;
+        exit(1);
+    }
+
+    printTraceId($span);
+
+    $span->end();
+}
+
 $root->end();
+
+function printTraceId($span): void
+{
+    $traceId = $span->getContext()->getTraceId();
+    $traceIdJson = json_encode([
+        'traceId' => '1-' . substr($traceId, 0, 8) . '-' . substr($traceId, 8),
+    ]);
+    echo "Final trace ID: $traceIdJson\n";
+}
