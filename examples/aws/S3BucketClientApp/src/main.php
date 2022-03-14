@@ -16,3 +16,27 @@
  */
 
 declare(strict_types=1);
+
+namespace OpenTelemetry\S3bucketClientApp;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+echo <<<EOL
+    Starting S3Bucket Client App
+    
+    Which call would you like to make?
+    Type outgoing-http-call or aws-sdk-call
+    
+    EOL;
+
+// Get user input
+$handle = fopen('php://stdin', 'r');
+$line = trim(fgets($handle));
+fclose($handle);
+
+if (!in_array($line, ['outgoing-http-call', 'aws-sdk-call'])) {
+    echo "Abort!\n";
+    exit(1);
+}
+
+
