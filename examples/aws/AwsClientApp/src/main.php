@@ -58,12 +58,8 @@ $tracer = $tracerProvider->getTracer();
 $propagator = new Propagator();
 
 // Create root span
-$root = $tracer->spanBuilder('root')->startSpan();
+$root = $tracer->spanBuilder('AwsClientApp')->startSpan();
 $root->activate();
-
-$root->setAttribute('item_A', 'cars')
-    ->setAttribute('item_B', 'motorcycles')
-    ->setAttribute('item_C', 'planes');
 
 $carrier = [];
 
@@ -74,7 +70,13 @@ if ($line === 'outgoing-http-call') {
 
     try {
         $client = new Client();
-        $client->request('GET', 'https://aws.amazon.com', ['headers' => $carrier, 'timeout' => 2000,]);
+        $result = $client->request('GET', 'https://aws.amazon.com', ['headers' => $carrier]);
+
+        $span->setAttributes([
+            'http.method' => 'GET',
+            'http.url' => 'https://aws.amazon.com',
+            'http.status_code' => $result->getStatusCode(),
+        ]);
     } catch (\Throwable $e) {
         echo $e->getMessage() . PHP_EOL;
         exit(1);
@@ -86,9 +88,14 @@ if ($line === 'outgoing-http-call') {
 }
 
 if ($line === 'aws-sdk-call') {
-    $span = $tracer->spanBuilder('session.generate.aws.sdk.span')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
+    $span = $tracer->spanBuilder('S3.CreateBucket')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
+    $span->activate();
 
-    $propagator->inject($carrier);
+    $span->setAttributes([
+        'rpc.method' => 'CreateBucket',
+        'rpc.service' => 'S3',
+        'rpc.system' => 'aws-api',
+    ]);
 
     $s3Client = new S3Client([
         'profile' => 'default',
@@ -98,17 +105,29 @@ if ($line === 'aws-sdk-call') {
 
     try {
         $result = $s3Client->createBucket([
-             'Bucket' => uniqid('test-bucket-'),
+            'Bucket' => uniqid('test-bucket-'),
         ]);
 
         echo <<<EOL
             The bucket's location is: {$result['Location']}
             The bucket's effective URI is: {$result['@metadata']['effectiveUri']}
-            
+
             EOL;
     } catch (AwsException $e) {
         echo "Error: {$e->getAwsErrorMessage()}";
+        exit(1);
     }
+
+    $span->end();
+
+    $span = $tracer->spanBuilder('S3.ListBuckets')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
+    $span->activate();
+
+    $span->setAttributes([
+        'rpc.method' => 'ListBuckets',
+        'rpc.service' => 'S3',
+        'rpc.system' => 'aws-api',
+    ]);
 
     $buckets = $s3Client->listBuckets();
 
