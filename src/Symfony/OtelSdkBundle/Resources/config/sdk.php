@@ -6,8 +6,8 @@ namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
 use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
-use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
+use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
