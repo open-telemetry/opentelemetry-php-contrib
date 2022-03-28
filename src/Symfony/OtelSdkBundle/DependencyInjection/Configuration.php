@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
+use JsonException;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsnParser;
 use Psr\Log\LoggerInterface;
@@ -195,7 +196,7 @@ class Configuration implements ConfigurationInterface
             ->then(static function ($v) {
                 throw new ConfigurationException(
                     sprintf(
-                        'Opentelemetry configuration must provide following resource attributes:  %s ',
+                        'OpenTelemetry configuration must provide following resource attributes:  %s ',
                         implode(', ', self::REQUIRED_SOURCE_ATTRS)
                     )
                 );
@@ -257,7 +258,7 @@ class Configuration implements ConfigurationInterface
                     return $v[self::TYPE_NODE] !== self::CUSTOM_TYPE;
                 })
                 ->then(static function ($v) {
-                    if (!in_array($v[self::TYPE_NODE], self::SAMPLER_NODE_VALUES)) {
+                    if (!in_array($v[self::TYPE_NODE], self::SAMPLER_NODE_VALUES, true)) {
                         throw new ConfigurationException(
                             sprintf(
                                 'sampler type must be either "custom" or one of : %s. Given: %s',
@@ -336,7 +337,7 @@ class Configuration implements ConfigurationInterface
                         return $v[self::TYPE_NODE] !== self::CUSTOM_TYPE;
                     })
                     ->then(static function ($v) {
-                        if (!in_array($v[self::TYPE_NODE], self::PROCESSOR_NODE_VALUES)) {
+                        if (!in_array($v[self::TYPE_NODE], self::PROCESSOR_NODE_VALUES, true)) {
                             throw new ConfigurationException(
                                 sprintf(
                                     'span processor type must be either "custom" or one of : %s. Given: %s',
@@ -428,6 +429,7 @@ class Configuration implements ConfigurationInterface
 
     /**
      * @param mixed $config
+     * @throws JsonException
      * @return array|string[]
      */
     private static function normalizeExporterConfig($config): array
@@ -451,7 +453,8 @@ class Configuration implements ConfigurationInterface
             }
 
             throw new ConfigurationException(
-                'Exporter configuration must either have a key "dsn", keys "type"+"url" or type=custom and keys "class" or "id"'
+                'Exporter configuration must either have a key "dsn", keys "type"+"url" or type=custom and keys "class" or "id". given: '
+                . print_r($config, true)
             );
         }
         if (is_string($config)) {
@@ -480,7 +483,7 @@ class Configuration implements ConfigurationInterface
         return stripos($value, self::ENV_PREFIX) === 0;
     }
 
-    private static function validateTypedExporterConfig(array $config)
+    private static function validateTypedExporterConfig(array $config): void
     {
         // custom exporter
         if ($config[self::TYPE_NODE] === self::CUSTOM_TYPE) {
@@ -492,7 +495,7 @@ class Configuration implements ConfigurationInterface
         }
     }
 
-    private static function validateCustomExporterConfig(array $config)
+    private static function validateCustomExporterConfig(array $config): void
     {
         // custom exporters need class or id provided.
         self::validateCustomService(
@@ -515,7 +518,7 @@ class Configuration implements ConfigurationInterface
         }
     }
 
-    private static function validateCustomService(array $config, string $type = '')
+    private static function validateCustomService(array $config, string $type = ''): void
     {
         if (!isset($config[self::CLASS_NODE]) && !isset($config[self::ID_NODE])) {
             throw new ConfigurationException(
@@ -525,7 +528,7 @@ class Configuration implements ConfigurationInterface
                 )
             );
         }
-        if (isset($config[self::CLASS_NODE]) && isset($config[self::ID_NODE])) {
+        if (isset($config[self::CLASS_NODE], $config[self::ID_NODE])) {
             throw new ConfigurationException(
                 sprintf(
                     'Custom %s service needs either a "class" or "id" option to be configured, not both',
@@ -538,22 +541,22 @@ class Configuration implements ConfigurationInterface
         }
     }
 
-    private static function validateCustomClass(string $fqcn, string $type = '')
+    private static function validateCustomClass(string $className, string $type = ''): void
     {
-        if (!class_exists($fqcn)) {
+        if (!class_exists($className)) {
             throw new ConfigurationException(
                 sprintf(
                     'Could not find configured custom %s class. given: %s',
                     $type,
-                    $fqcn
+                    $className
                 )
             );
         }
     }
 
-    private static function validateCustomClassImplements(string $fqcn, string $interface, string $type = '')
+    private static function validateCustomClassImplements(string $className, string $interfaceName, string $type = ''): void
     {
-        if (!self::classImplemets($fqcn, $interface)) {
+        if (!self::classImplements($className, $interfaceName)) {
             throw new ConfigurationException(
                 sprintf(
                     'Custom %s class need to implement %s',
@@ -564,23 +567,23 @@ class Configuration implements ConfigurationInterface
         }
     }
 
-    private static function classImplemets(string $fqcn, string $interface): bool
+    private static function classImplements(string $className, string $interfaceName): bool
     {
         try {
-            return in_array($interface, (new ReflectionClass($fqcn))->getInterfaceNames());
+            return in_array($interfaceName, (new ReflectionClass($className))->getInterfaceNames());
         } catch (\Throwable $t) {
             return false;
         }
     }
 
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
     }
 
-    private function debug(string $message, array $context = [])
+    private function debug(string $message, array $context = []): void
     {
-        if (!$this->isDebug() || !$this->logger instanceof LoggerInterface) {
+        if (!$this->logger instanceof LoggerInterface || !$this->isDebug()) {
             return;
         }
 
