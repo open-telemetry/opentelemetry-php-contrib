@@ -6,9 +6,9 @@ namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\DependencyInjecti
 
 use Exception;
 use OpenTelemetry\SDK;
-use OpenTelemetry\SDK\AttributeLimits;
-use OpenTelemetry\SDK\Attributes;
-use OpenTelemetry\SDK\SystemClock;
+use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;

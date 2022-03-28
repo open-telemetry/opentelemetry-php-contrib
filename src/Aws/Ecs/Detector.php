@@ -19,9 +19,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Ecs;
 
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use Throwable;
 
@@ -54,14 +55,14 @@ class Detector implements ResourceDetectorInterface
         // Check if running on ECS by looking for below environment variables
         if (!getenv(self::ECS_METADATA_KEY_V4) && !getenv(self::ECS_METADATA_KEY_V3)) {
             // TODO: add 'Process is not running on ECS' when logs are added
-            return ResourceInfo::emptyResource();
+            return ResourceInfoFactory::emptyResource();
         }
 
         $hostName = $this->processData->getHostname();
         $containerId = $this->getContainerId();
 
         return !$hostName && !$containerId
-            ? ResourceInfo::emptyResource()
+            ? ResourceInfoFactory::emptyResource()
             : ResourceInfo::create(new Attributes([
                 ResourceAttributes::CONTAINER_NAME => $hostName,
                 ResourceAttributes::CONTAINER_ID => $containerId,

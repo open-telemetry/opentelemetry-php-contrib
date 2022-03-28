@@ -10,8 +10,8 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Ec2\Detector;
-use OpenTelemetry\SDK\Attributes;
-use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -100,7 +100,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client, $requestFactory);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -123,7 +123,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client, $requestFactory);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -182,7 +182,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($client, $requestFactory);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     /**

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Aws\Lambda;
 
 use OpenTelemetry\Aws\Lambda\Detector;
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -53,7 +54,7 @@ class DetectorTest extends TestCase
     public function TestInvalidLambda()
     {
         $detector = new Detector();
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     /**

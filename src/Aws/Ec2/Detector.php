@@ -20,9 +20,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Ec2;
 
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -67,7 +68,7 @@ class Detector implements ResourceDetectorInterface
             $token = $this->fetchToken();
 
             if ($token === null) {
-                return ResourceInfo::emptyResource();
+                return ResourceInfoFactory::emptyResource();
             }
             
             $hostName = $this->fetchHostname($token);
@@ -75,7 +76,7 @@ class Detector implements ResourceDetectorInterface
             $identitiesJson = $this->fetchIdentity($token);
 
             if (!$token || !$identitiesJson) {
-                return ResourceInfo::emptyResource();
+                return ResourceInfoFactory::emptyResource();
             }
             
             $attributes = new Attributes();
@@ -115,7 +116,7 @@ class Detector implements ResourceDetectorInterface
             return ResourceInfo::create(new Attributes($attributes), ResourceAttributes::SCHEMA_URL);
         } catch (\Throwable $e) {
             //TODO: add 'Process is not running on K8S when logging is added
-            return ResourceInfo::emptyResource();
+            return ResourceInfoFactory::emptyResource();
         }
     }
 
