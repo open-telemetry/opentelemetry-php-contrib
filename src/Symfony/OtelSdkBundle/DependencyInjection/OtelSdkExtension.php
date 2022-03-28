@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
-use OpenTelemetry\SDK\AttributeLimits;
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Configuration as Conf;
 use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;

@@ -19,9 +19,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Eks;
 
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
@@ -62,21 +63,21 @@ class Detector implements ResourceDetectorInterface
     {
         try {
             if (!$this->dataProvider->isK8s() || !$this->isEks()) {
-                return ResourceInfo::emptyResource();
+                return ResourceInfoFactory::emptyResource();
             }
 
             $clusterName = $this->getClusterName();
             $containerId = $this->getContainerId();
     
             return !$clusterName && !$containerId
-                ? ResourceInfo::emptyResource()
+                ? ResourceInfoFactory::emptyResource()
                 : ResourceInfo::create(new Attributes([
                     ResourceAttributes::CONTAINER_ID => $containerId,
                     ResourceAttributes::K8S_CLUSTER_NAME => $clusterName,
                 ]));
         } catch (\Throwable $e) {
             //TODO: add 'Process is not running on K8S when logging is added
-            return ResourceInfo::emptyResource();
+            return ResourceInfoFactory::emptyResource();
         }
     }
 

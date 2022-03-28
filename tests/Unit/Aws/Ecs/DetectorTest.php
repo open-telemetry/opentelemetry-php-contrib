@@ -6,8 +6,9 @@ namespace OpenTelemetry\Test\Unit\Aws\Ecs;
 
 use OpenTelemetry\Aws\Ecs\DataProvider;
 use OpenTelemetry\Aws\Ecs\Detector;
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -95,7 +96,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     /**
@@ -197,7 +198,7 @@ class DetectorTest extends TestCase
         
         $detector = new Detector($mockData);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
 
         // Unset environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY);

@@ -20,9 +20,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Lambda;
 
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 
 /**
@@ -51,7 +52,7 @@ class Detector implements ResourceDetectorInterface
         $awsRegion = $awsRegion ? $awsRegion : null;
 
         return !$lambdaName && !$awsRegion && !$functionVersion
-            ? ResourceInfo::emptyResource()
+            ? ResourceInfoFactory::emptyResource()
             : ResourceInfo::create(new Attributes([
                 ResourceAttributes::FAAS_NAME => $lambdaName,
                 ResourceAttributes::FAAS_VERSION => $functionVersion,

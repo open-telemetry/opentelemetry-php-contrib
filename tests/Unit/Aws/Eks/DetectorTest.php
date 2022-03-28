@@ -11,8 +11,9 @@ use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Aws\Eks\DataProvider;
 use OpenTelemetry\Aws\Eks\Detector;
-use OpenTelemetry\SDK\Attributes;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
 
@@ -257,7 +258,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client, $requestFactory);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     public function testInvalidResponseCode()
@@ -280,7 +281,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client, $requestFactory);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     public function testInvalidContainerIdAndClusterName()
@@ -303,7 +304,7 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client, $requestFactory);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 
     public function testInvalidKubernetesFile()
@@ -324,6 +325,6 @@ class DetectorTest extends TestCase
 
         $detector = new Detector($mockData, $client, $requestFactory);
 
-        $this->assertEquals(ResourceInfo::emptyResource(), $detector->getResource());
+        $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());
     }
 }
