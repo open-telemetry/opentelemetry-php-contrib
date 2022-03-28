@@ -6,6 +6,7 @@ namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
 use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Common\Log\LoggerHolder;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Trace;
@@ -42,6 +43,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $helper->setService(Trace\RandomIdGenerator::class);
 
+    // LOGGER
+
+    $helper->setService(LoggerHolder::class)
+        ->args([
+            ConfigHelper::createReference('logger'),
+        ]);
+
     // RESOURCE
 
     $helper->setService(AttributeLimits::class);
@@ -53,7 +61,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ]);
 
     $helper->setService(Resource\ResourceInfo::class)
-        ->factory([Resource\ResourceInfo::class , 'create'])
+        ->factory([Resource\ResourceInfoFactory::class , 'defaultResource'])
         ->args([
             ConfigHelper::createReferenceFromClass(Attributes::class),
         ]);
@@ -100,6 +108,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             null,
             ConfigHelper::createReferenceFromClass(SystemClock::class),
         ]);
+
     $helper->setAlias(
         Ids::SPAN_PROCESSOR_DEFAULT,
         ServiceHelper::classToId(SpanProcessor\BatchSpanProcessor::class)
