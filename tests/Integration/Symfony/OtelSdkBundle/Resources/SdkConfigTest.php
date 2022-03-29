@@ -18,7 +18,9 @@ use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Psr\Log\NullLogger;
 
 class SdkConfigTest extends TestCase
 {
@@ -43,6 +45,11 @@ class SdkConfigTest extends TestCase
         foreach ($this->container->getAliases() as $alias) {
             $alias->setPublic(true);
         }
+
+        $this->container->setDefinition(
+            'logger',
+            new Definition(NullLogger::class)
+        );
 
         $this->container->compile();
     }

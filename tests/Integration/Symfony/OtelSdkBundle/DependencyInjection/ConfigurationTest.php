@@ -40,7 +40,7 @@ class ConfigurationTest extends TestCase
 
     public function setUp(): void
     {
-        $this->treeNode = (new Configuration())
+        $this->treeNode = (new Configuration(false))
             ->getConfigTreeBuilder()
             ->buildTree();
     }
