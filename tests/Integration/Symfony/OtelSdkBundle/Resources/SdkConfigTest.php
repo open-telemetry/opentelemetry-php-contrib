@@ -16,11 +16,11 @@ use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Psr\Log\NullLogger;
 
 class SdkConfigTest extends TestCase
 {

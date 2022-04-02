@@ -41,9 +41,9 @@ class LogicalEndCallback
             if (!$returnType instanceof ReflectionNamedType || $returnType->getName() !== self::TYPE_BOOL) {
                 throw new InvalidArgumentException(
                     sprintf(
-                       'All provided closures must have boolean return type. Give: "%s"',
-                       $returnType instanceof ReflectionNamedType ? $returnType->getName() : self::TYPE_UNKNOWN
-                   )
+                        'All provided closures must have boolean return type. Give: "%s"',
+                        $returnType instanceof ReflectionNamedType ? $returnType->getName() : self::TYPE_UNKNOWN
+                    )
                 );
             }
         }
