@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle;
 
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle
+ */
 class OtelSdkBundleTest extends TestCase
 {
-    public function testBuild()
+    public function testBuild(): void
     {
         $bundle = new OtelSdkBundle();
 
@@ -25,10 +27,10 @@ class OtelSdkBundleTest extends TestCase
         );
     }
 
-    public function testGetContainerExtension()
+    public function testGetContainerExtension(): void
     {
-        $this->assertInstanceOf(
-            OtelSdkExtension::class,
+        $this->assertEquals(
+            (new OtelSdkBundle())->getContainerExtension(),
             (new OtelSdkBundle())->getContainerExtension()
         );
     }

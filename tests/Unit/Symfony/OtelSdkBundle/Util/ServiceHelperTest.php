@@ -7,9 +7,12 @@ namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper
+ */
 class ServiceHelperTest extends TestCase
 {
-    public function testClassToId()
+    public function testClassToId(): void
     {
         $this->assertSame(
             'open_telemetry.symfony.otel_sdk_bundle.util.service_helper',
@@ -17,7 +20,7 @@ class ServiceHelperTest extends TestCase
         );
     }
 
-    public function testFloatToString()
+    public function testFloatToString(): void
     {
         $this->assertSame(
             '1',

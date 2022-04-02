@@ -11,6 +11,9 @@ use stdClass;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper
+ */
 class ServicesConfiguratorHelperTest extends TestCase
 {
     /**
@@ -31,7 +34,7 @@ class ServicesConfiguratorHelperTest extends TestCase
         );
     }
 
-    public function testCreate()
+    public function testCreate(): void
     {
         $this->assertInstanceOf(
             ServicesConfiguratorHelper::class,
@@ -39,38 +42,37 @@ class ServicesConfiguratorHelperTest extends TestCase
         );
     }
 
-    public function testGetConfigurator()
+    public function testGetConfigurator(): void
     {
-        $this->assertInstanceOf(
-            ServicesConfigurator::class,
+        $this->assertEquals(
+            $this->helper->getConfigurator(),
             $this->helper->getConfigurator()
         );
     }
 
-    public function testSetService()
+    public function testSetService(): void
     {
         $id = 'std_class';
         $class = stdClass::class;
 
         $this->configurator
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('set')
             ->with($id, $class)
             ->willReturn($this->createServiceConfiguratorMock());
 
-        $this->assertInstanceOf(
-            ServiceConfigurator::class,
+        $this->assertSame(
+            $this->helper->setService($class, false),
             $this->helper->setService($class, false)
         );
     }
 
-    public function testSetServiceWithAlias()
+    public function testSetServiceWithAlias(): void
     {
         $id = 'std_class';
         $class = stdClass::class;
 
         $this->configurator
-            ->expects($this->once())
             ->method('set')
             ->with($id, $class)
             ->willReturn($this->createServiceConfiguratorMock());
@@ -79,13 +81,10 @@ class ServicesConfiguratorHelperTest extends TestCase
             ->method('alias')
             ->with($class, $id);
 
-        $this->assertInstanceOf(
-            ServiceConfigurator::class,
-            $this->helper->setService($class, true)
-        );
+        $this->helper->setService($class, true);
     }
 
-    public function _testSetAlias()
+    public function testSetAlias(): void
     {
         $id = 'std_class';
         $class = stdClass::class;

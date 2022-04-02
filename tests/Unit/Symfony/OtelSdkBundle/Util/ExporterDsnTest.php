@@ -8,6 +8,9 @@ use InvalidArgumentException;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsn;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsn
+ */
 class ExporterDsnTest extends TestCase
 {
     private const ARG_ARRAY = [
@@ -21,7 +24,7 @@ class ExporterDsnTest extends TestCase
         'password' => 'secret',
     ];
 
-    public function testInstantiationWithRequiredArguments()
+    public function testInstantiationWithRequiredArguments(): void
     {
         $this->assertInstanceOf(
             ExporterDsn::class,
@@ -29,7 +32,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testInstantiationWithAllArguments()
+    public function testInstantiationWithAllArguments(): void
     {
         $this->assertInstanceOf(
             ExporterDsn::class,
@@ -37,36 +40,36 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testFromArray()
+    public function testFromArray(): void
     {
-        $this->assertInstanceOf(
-            ExporterDsn::class,
+        $this->assertEquals(
+            ExporterDsn::fromArray(self::ARG_ARRAY),
             ExporterDsn::fromArray(self::ARG_ARRAY)
         );
     }
 
-    public function testFromArrayThrowsExceptionWithoutType()
+    public function testFromArrayThrowsExceptionWithoutType(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         ExporterDsn::fromArray(['scheme' => 'a','host' => 'b']);
     }
 
-    public function testFromArrayThrowsExceptionWithoutScheme()
+    public function testFromArrayThrowsExceptionWithoutScheme(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         ExporterDsn::fromArray(['type' => 'a','host' => 'b']);
     }
 
-    public function testFromArrayThrowsExceptionWithoutHost()
+    public function testFromArrayThrowsExceptionWithoutHost(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         ExporterDsn::fromArray(['type' => 'a','scheme' => 'b']);
     }
 
-    public function testGetType()
+    public function testGetType(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['type'],
@@ -74,7 +77,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetScheme()
+    public function testGetScheme(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['scheme'],
@@ -82,7 +85,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetHost()
+    public function testGetHost(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['host'],
@@ -90,7 +93,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetPath()
+    public function testGetPath(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['path'],
@@ -98,7 +101,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetPort()
+    public function testGetPort(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['port'],
@@ -106,7 +109,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetOptions()
+    public function testGetOptions(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['options'],
@@ -114,7 +117,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetUser()
+    public function testGetUser(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['user'],
@@ -122,7 +125,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetPassword()
+    public function testGetPassword(): void
     {
         $this->assertSame(
             self::ARG_ARRAY['password'],
@@ -130,7 +133,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testToString()
+    public function testToString(): void
     {
         $this->assertSame(
             'foo+bar://root:secret@baz:1234/path?key=value',
@@ -138,7 +141,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testToStringNoOptions()
+    public function testToStringNoOptions(): void
     {
         $args = self::ARG_ARRAY;
         unset($args['options']);
@@ -148,7 +151,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetEndpoint()
+    public function testGetEndpoint(): void
     {
         $this->assertSame(
             'bar://root:secret@baz:1234/path',
@@ -156,7 +159,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetEndpointNoAuth()
+    public function testGetEndpointNoAuth(): void
     {
         $expected = 'bar://baz:1234/path';
 
@@ -175,7 +178,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetEndpointNoPort()
+    public function testGetEndpointNoPort(): void
     {
         $args = self::ARG_ARRAY;
         unset($args['port']);
@@ -185,7 +188,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testGetEndpointNoPath()
+    public function testGetEndpointNoPath(): void
     {
         $args = self::ARG_ARRAY;
         unset($args['path']);
@@ -195,7 +198,7 @@ class ExporterDsnTest extends TestCase
         );
     }
 
-    public function testAsConfigArray()
+    public function testAsConfigArray(): void
     {
         $args = self::ARG_ARRAY;
         unset($args['path']);

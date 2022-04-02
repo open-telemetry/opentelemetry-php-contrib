@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
 use InvalidArgumentException;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsn;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsnParser;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsnParser
+ */
 class ExporterDsnParserTest extends TestCase
 {
     private const PARTS_ARRAY = [
@@ -22,17 +24,17 @@ class ExporterDsnParserTest extends TestCase
         'password' => 'secret',
     ];
 
-    public function testParseFullDsn()
+    public function testParseFullDsn(): void
     {
         $dsn = 'foo+bar://root:secret@baz:1234/path?key=value';
 
-        $this->assertInstanceOf(
-            ExporterDsn::class,
+        $this->assertEquals(
+            ExporterDsnParser::parse($dsn),
             ExporterDsnParser::parse($dsn)
         );
     }
 
-    public function testParseToArrayFullDsn()
+    public function testParseToArrayFullDsn(): void
     {
         $dsn = 'foo+bar://root:secret@baz:1234/path?key=value';
 
@@ -42,12 +44,11 @@ class ExporterDsnParserTest extends TestCase
         );
     }
 
-    public function testParseToArrayNoAuth()
+    public function testParseToArrayNoAuth(): void
     {
         $dsn = 'foo+bar://baz:1234/path?key=value';
         $parts = self::PARTS_ARRAY;
-        unset($parts['user']);
-        unset($parts['password']);
+        unset($parts['user'], $parts['password']);
 
         $this->assertEquals(
             $parts,
@@ -55,7 +56,7 @@ class ExporterDsnParserTest extends TestCase
         );
     }
 
-    public function testParseToArrayNoPort()
+    public function testParseToArrayNoPort(): void
     {
         $dsn = 'foo+bar://root:secret@baz/path?key=value';
         $parts = self::PARTS_ARRAY;
@@ -67,7 +68,7 @@ class ExporterDsnParserTest extends TestCase
         );
     }
 
-    public function testParseToArrayNoPath()
+    public function testParseToArrayNoPath(): void
     {
         $dsn = 'foo+bar://root:secret@baz:1234?key=value';
         $parts = self::PARTS_ARRAY;
@@ -79,7 +80,7 @@ class ExporterDsnParserTest extends TestCase
         );
     }
 
-    public function testParseToArrayNoOptions()
+    public function testParseToArrayNoOptions(): void
     {
         $dsn = 'foo+bar://root:secret@baz:1234/path';
         $parts = self::PARTS_ARRAY;
@@ -91,21 +92,21 @@ class ExporterDsnParserTest extends TestCase
         );
     }
 
-    public function testParseToArrayNoSchemeThrowsException()
+    public function testParseToArrayNoSchemeThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         ExporterDsnParser::parseToArray('root:secret@baz:1234/path');
     }
 
-    public function testParseInvalidDsnThrowsException()
+    public function testParseInvalidDsnThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         ExporterDsnParser::parse('http://user@:80"');
     }
 
-    public function testParseMissingTypeThrowsException()
+    public function testParseMissingTypeThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 

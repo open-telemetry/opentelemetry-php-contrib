@@ -7,9 +7,12 @@ namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\DependencyInjection;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\ConfigurationException;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\ConfigurationException
+ */
 class ConfigurationExceptionTest extends TestCase
 {
-    public function testException()
+    public function testException(): void
     {
         $this->expectException(
             ConfigurationException::class

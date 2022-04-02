@@ -13,6 +13,9 @@ use PHPUnit\Framework\TestCase;
 use stdClass;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Factory\GenericFactoryTrait
+ */
 class GenericFactoryTraitTest extends TestCase
 {
     private const OPTIONS = [

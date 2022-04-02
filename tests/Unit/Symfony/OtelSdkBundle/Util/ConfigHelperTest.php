@@ -6,19 +6,21 @@ namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Util;
 
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\Reference;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper
+ */
 class ConfigHelperTest extends TestCase
 {
-    public function testCreateReference()
+    public function testCreateReference(): void
     {
-        $this->assertInstanceOf(
-            Reference::class,
+        $this->assertEquals(
+            ConfigHelper::createReference('foo'),
             ConfigHelper::createReference('foo')
         );
     }
 
-    public function testWrapParameter()
+    public function testWrapParameter(): void
     {
         $this->assertSame(
             '%foo%',
@@ -26,10 +28,10 @@ class ConfigHelperTest extends TestCase
         );
     }
 
-    public function testCreateReferenceFromClass()
+    public function testCreateReferenceFromClass(): void
     {
-        $this->assertInstanceOf(
-            Reference::class,
+        $this->assertEquals(
+            ConfigHelper::createReferenceFromClass(__CLASS__),
             ConfigHelper::createReferenceFromClass(__CLASS__)
         );
     }

@@ -14,9 +14,12 @@ use Psr\Http\Message\StreamFactoryInterface;
 use RuntimeException;
 use stdClass;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory
+ */
 class ExporterFactoryTest extends TestCase
 {
-    public function testBuildAllOptions()
+    public function testBuildAllOptions(): void
     {
         $factory = new ExporterFactory(TestExporter::class);
 
@@ -34,7 +37,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildResolvedHttpFactories()
+    public function testBuildResolvedHttpFactories(): void
     {
         $factory = new ExporterFactory(TestExporter::class);
 
@@ -49,7 +52,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testInvoke()
+    public function testInvoke(): void
     {
         $factory = new ExporterFactory(TestExporter::class);
 
@@ -64,7 +67,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testOptionMapping()
+    public function testOptionMapping(): void
     {
         $factory = new ExporterFactory(TestExporter::class);
 
@@ -79,7 +82,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildNonExporterException()
+    public function testBuildNonExporterException(): void
     {
         $this->expectException(
             RuntimeException::class
@@ -89,7 +92,7 @@ class ExporterFactoryTest extends TestCase
             ->build();
     }
 
-    public function testBuildZipkin()
+    public function testBuildZipkin(): void
     {
         $factory = new ExporterFactory(Contrib\Zipkin\Exporter::class);
 
@@ -104,7 +107,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildJaeger()
+    public function testBuildJaeger(): void
     {
         $factory = new ExporterFactory(Contrib\Jaeger\Exporter::class);
 
@@ -119,7 +122,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildNewrelic()
+    public function testBuildNewrelic(): void
     {
         $factory = new ExporterFactory(Contrib\Newrelic\Exporter::class);
 
@@ -135,7 +138,10 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildOtlpGrpc()
+    /**
+     * @requires extension grpc
+     */
+    public function testBuildOtlpGrpc(): void
     {
         $factory = new ExporterFactory(Contrib\OtlpGrpc\Exporter::class);
 
@@ -149,7 +155,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildOtlpHttp()
+    public function testBuildOtlpHttp(): void
     {
         $factory = new ExporterFactory(Contrib\OtlpHttp\Exporter::class);
 
@@ -161,7 +167,7 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildZipkinToNewrelic()
+    public function testBuildZipkinToNewrelic(): void
     {
         $factory = new ExporterFactory(Contrib\ZipkinToNewrelic\Exporter::class);
 

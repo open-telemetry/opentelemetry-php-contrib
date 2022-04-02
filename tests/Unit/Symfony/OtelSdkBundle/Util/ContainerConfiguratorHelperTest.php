@@ -8,9 +8,11 @@ use DG\BypassFinals;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ContainerConfiguratorHelper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 
+/**
+ * @covers \OpenTelemetry\Symfony\OtelSdkBundle\Util\ContainerConfiguratorHelper
+ */
 class ContainerConfiguratorHelperTest extends TestCase
 {
     public function setUp(): void
@@ -18,40 +20,48 @@ class ContainerConfiguratorHelperTest extends TestCase
         BypassFinals::enable();
     }
 
-    public function testCreate()
+    public function testCreate(): void
     {
-        $this->assertInstanceOf(
-            ContainerConfiguratorHelper::class,
+        $this->assertEquals(
+            ContainerConfiguratorHelper::create(
+                $this->createContainerConfiguratorMock()
+            ),
             ContainerConfiguratorHelper::create(
                 $this->createContainerConfiguratorMock()
             )
         );
     }
 
-    public function testGetServicesConfigurator()
+    public function testGetServicesConfigurator(): void
     {
-        $this->assertInstanceOf(
-            ServicesConfigurator::class,
+        $this->assertEquals(
+            ContainerConfiguratorHelper::create(
+                $this->createContainerConfiguratorMock()
+            )->getServicesConfigurator(),
             ContainerConfiguratorHelper::create(
                 $this->createContainerConfiguratorMock()
             )->getServicesConfigurator()
         );
     }
 
-    public function testSetService()
+    public function testSetService(): void
     {
-        $this->assertInstanceOf(
-            ServiceConfigurator::class,
+        $this->assertEquals(
+            ContainerConfiguratorHelper::create(
+                $this->createContainerConfiguratorMock()
+            )->setService(__CLASS__, false),
             ContainerConfiguratorHelper::create(
                 $this->createContainerConfiguratorMock()
             )->setService(__CLASS__, false)
         );
     }
 
-    public function testSetServiceWithAlias()
+    public function testSetServiceWithAlias(): void
     {
-        $this->assertInstanceOf(
-            ServiceConfigurator::class,
+        $this->assertEquals(
+            ContainerConfiguratorHelper::create(
+                $this->createContainerConfiguratorMock()
+            )->setService(__CLASS__, true),
             ContainerConfiguratorHelper::create(
                 $this->createContainerConfiguratorMock()
             )->setService(__CLASS__, true)
@@ -67,7 +77,7 @@ class ContainerConfiguratorHelperTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $mock->expects($this->any())
+        $mock
             ->method('services')
             ->willReturnCallback(function () {
                 return $this->createMock(ServicesConfigurator::class);
