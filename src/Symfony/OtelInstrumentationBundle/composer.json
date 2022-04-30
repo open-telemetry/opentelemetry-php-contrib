@@ -1,0 +1,39 @@
+{
+    "name": "open-telemetry/contrib-instrumentation-bundle",
+    "description": "Symfony bundle for easily instrumenting Symfony apps with OpenTelemetry.",
+    "keywords": ["opentelemetry", "otel", "symfony", "bundle", "tracing", "logging", "apm", "instrumentation"],
+    "type": "symfony-bundle",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "opentelemetry-php-contrib contributors",
+            "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "open-telemetry/contrib-sdk-bundle": "^0.0.2",
+        "php-http/message": "^1.12",
+        "php-http/discovery": "^1.14",
+        "symfony/config": "^4.4|^5.3|^6.0",
+        "symfony/options-resolver": "^4.4|^5.3|^6.0",
+        "symfony/polyfill-php80": "^1.16",
+        "symfony/dependency-injection": "^4.4|^5.3|^6.0",
+        "symfony/yaml": "^4.4|^5.3|^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Symfony\\OtelInstrumentationBundle\\": "."
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "composer dump-autoload --optimize"
+        ],
+        "post-update-cmd": [
+            "composer dump-autoload --optimize"
+        ]
+    }
+}

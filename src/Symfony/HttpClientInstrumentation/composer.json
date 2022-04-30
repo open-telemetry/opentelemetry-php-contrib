@@ -1,0 +1,23 @@
+{
+    "name": "open-telemetry/contrib-instrumentation-http-client",
+    "description": "Instrument symfony/http-client with OpenTelemetry",
+    "type": "library",
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "psr/log": "^1|^2|^3",
+        "symfony/http-client-contracts": "^2.4",
+        "symfony/service-contracts": "^1.0|^2|^3"
+    },
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "opentelemetry-php-contrib contributors",
+            "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Symfony\\HttpClientInstrumentation\\": "."
+        }
+    }
+}

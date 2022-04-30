@@ -19,7 +19,8 @@
         "php-http/message": "^1.12"
     },
     "replace": {
-        "open-telemetry/otel-sdk-bundle": "self.version"
+        "open-telemetry/otel-sdk-bundle": "self.version",
+        "open-telemetry/otel-instrumentation-bundle": "self.version"
     },
     "conflict": {
         "open-telemetry/opentelemetry": "<=0.0.3"
@@ -61,7 +62,8 @@
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",
         "symfony/dependency-injection": "Needed to use otel-sdk-bundle",
-        "symfony/options-resolver": "Needed to use otel-sdk-bundle"
+        "symfony/options-resolver": "Needed to use otel-sdk-bundle",
+        "symfony/yaml": "Needed to use otel-instrumentation-bundle"
     },
     "scripts": {
         "post-install-cmd": [

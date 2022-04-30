@@ -1,0 +1,11 @@
+resource:
+  attributes:
+    service.name: foo
+
+trace:
+  sampler:
+    root:
+      type: custom
+      # There must only be a "class" OR "id" attribute
+      class: OpenTelemetry\Test\Integration\Symfony\OtelInstrumentationBundle\Mock\Mock\OtelInstrumentationBundle
+      id: "@my_sampler"

@@ -1,0 +1,6 @@
+services:
+  OpenTelemetry\Symfony\OtelInstrumentationBundle\EventSubscriber\TracingKernelSubscriber:
+    arguments:
+      - '@OpenTelemetry\SDK\Trace\Tracer'
+    tags:
+      - kernel.event_subscriber
