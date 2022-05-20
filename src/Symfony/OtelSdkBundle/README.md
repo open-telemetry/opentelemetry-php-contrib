@@ -209,6 +209,7 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\SDK\Trace\Tracer;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 class TracingKernelSubscriber implements EventSubscriberInterface
@@ -221,12 +222,15 @@ class TracingKernelSubscriber implements EventSubscriberInterface
         // store a reference to the Tracer instance in case we want to create
         // more spans on different events (not covered in this example)
         $this->tracer = $tracer;
+    }
 
+    public function onRequestEvent(RequestEvent $event)
+    {
         // Create our main span and activate it
-        $this->mainSpan = $tracer->spanBuilder('main')->startSpan();
+        $this->mainSpan = $this->tracer->spanBuilder('main')->startSpan();
         $this->mainSpan->activate();
     }
-    
+
     public function onTerminateEvent(TerminateEvent $event): void
     {
         // end our main span once the request has been processed and the kernel terminates.
@@ -236,9 +240,11 @@ class TracingKernelSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         // return the subscribed events, their methods and priorities
-        // use a very low negative integer for the priority, so the listener
-        // will be the last one to be called.
+        // use a very high integer for the Request priority and a 
+        // very low negative integer for the Terminate priority, so the listener
+        // will be the first and last one to be called respectively.
         return [
+            KernelEvents::TERMINATE => [['onRequestEvent', 10000]],
             KernelEvents::TERMINATE => [['onTerminateEvent', -10000]],
         ];
     }
