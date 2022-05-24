@@ -14,10 +14,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.4 || ^8.0",
-        "open-telemetry/opentelemetry": "^0.0.4"
-    },
-    "conflict": {
-        "open-telemetry/opentelemetry": "<=0.0.3"
+        "open-telemetry/opentelemetry": "^0.0.10"
     },
     "autoload": {
         "psr-4": {

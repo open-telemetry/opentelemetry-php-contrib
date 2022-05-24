@@ -14,17 +14,14 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.4 || ^8.0",
-        "open-telemetry/opentelemetry": "^0.0.5",
+        "open-telemetry/opentelemetry": "^0.0.10",
         "php-http/message": "^1.12",
         "php-http/discovery": "^1.14",
         "symfony/config": "^4.4|^5.3|^6.0",
         "symfony/options-resolver": "^4.4|^5.3|^6.0",
         "symfony/polyfill-php80": "^1.16",
         "symfony/dependency-injection": "^4.4|^5.3|^6.0"
-    },
-    "conflict": {
-        "open-telemetry/opentelemetry": "<=0.0.3"
-    },
+    },s
     "autoload": {
         "psr-4": {
             "OpenTelemetry\\Symfony\\OtelSdkBundle\\": "."
