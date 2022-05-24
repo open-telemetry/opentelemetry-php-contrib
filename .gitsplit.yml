@@ -2,7 +2,7 @@
 cache_url: "/cache/gitsplit"
 
 # Path to the repository to split (default = current path)
-#project_url: "https://github.com/open-telemetry/opentelemetry-php-contrib.git"
+project_url: "https://github.com/open-telemetry/opentelemetry-php-contrib.git"
 
 # List of splits.
 splits:
