@@ -1,5 +1,6 @@
 PHP_VERSION ?= 7.4
-DC_RUN_PHP = docker-compose run --rm php
+DC_RUN = docker-compose run --rm
+DC_RUN_PHP = $(DC_RUN) php
 
 all: update style phan psalm phpstan test
 install:
@@ -25,4 +26,8 @@ bash:
 	$(DC_RUN_PHP) bash
 style:
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no -vvv
+script:
+	ls $(SCRIPT_DIR)
+split:
+	docker-compose -f docker/gitsplit/docker-compose.yaml --env-file ./.env up
 FORCE:
