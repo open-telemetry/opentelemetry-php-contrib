@@ -10,9 +10,19 @@ For more information, please, consult the documentation of the main [OpenTelemet
 Issues have been disabled for this repo in order to help main consistency between this repo and the main opentelemetry-php repo.  If you have an issue you'd like to raise about this issue, please use the [OpenTelemetry PHP Issue section](https://github.com/open-telemetry/opentelemetry-php/issues/new/choose).  Please prefix the title of the issue with [opentelemetry-php-contrib].
 
 ## Installation
-The recommended way to install the library is through [Composer](http://getcomposer.org):
+### Install  individual packages:
+(This is the recommened way to install the components)
 
-Install the package:
+
+Refer to the documentation for the individual components on how to install them
+
+
+- [AWS](/src/AWS/README.md)
+- [Symfony SdkBundle](/src/Symfony/OtelSdkBundle/README.md)
+
+### Install the complete package:
+As an alternative to installing individual components you can install the whole package with all components
+
 
 ```bash
 $ composer require open-telemetry/opentelemetry-php-contrib
