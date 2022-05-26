@@ -51,14 +51,7 @@ Take a look at the documentation of the  [PHP library](https://github.com/open-t
 
 ### 2.2. Install the Bundle
 
-For now the bundle is only installable as part of the OpenTelemetry [opentelemetry-php-contrib](https://github.com/open-telemetry/opentelemetry-php-contrib)
-package.
-
-The recommended way to install the library is through [Composer](http://getcomposer.org):
-
-1.  Install the composer package using [Composer's installation instructions](https://getcomposer.org/doc/00-intromd#installation-linux-unix-macos).
-
-2.  Add
+1. Add
 ```bash
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -66,10 +59,10 @@ The recommended way to install the library is through [Composer](http://getcompo
 
 To your project's `composer.json` file, as this utility has not reached a stable release status yet.
 
-3.  Install the package with composer:
+2. Install the package with composer:
 
 ```bash
-$ composer require open-telemetry/opentelemetry-php-contrib
+$ composer require open-telemetry/contrib-sdk-bundle
 ```
 
 
