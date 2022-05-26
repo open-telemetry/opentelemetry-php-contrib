@@ -1,0 +1,10 @@
+resource:
+  limits:
+    attribute_count: 80
+    attribute_value_length: 100
+
+  attributes:
+    foo.bar: baz
+    service.name: fooService
+    service.namespace: fooSpace
+    k8s.cluster.name: production-1

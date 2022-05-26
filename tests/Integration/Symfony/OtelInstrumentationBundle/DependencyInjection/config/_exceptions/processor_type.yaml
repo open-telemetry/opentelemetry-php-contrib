@@ -1,0 +1,10 @@
+resource:
+  attributes:
+    service.name: foo
+
+
+
+trace:
+  span:
+    # Processor type must only be "simple", "batch", "noop" or "custom
+    processors: foo

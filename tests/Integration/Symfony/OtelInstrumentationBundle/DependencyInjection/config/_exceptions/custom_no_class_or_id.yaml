@@ -1,0 +1,11 @@
+resource:
+  attributes:
+    service.name: foo
+
+
+
+trace:
+  sampler:
+    root:
+      # Custom type must have a "class" or "id" attribute
+      type: custom

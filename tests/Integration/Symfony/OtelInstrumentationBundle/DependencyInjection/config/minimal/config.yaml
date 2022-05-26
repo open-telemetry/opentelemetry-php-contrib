@@ -1,0 +1,4 @@
+resource:
+  attributes:
+    service.name: foo
+

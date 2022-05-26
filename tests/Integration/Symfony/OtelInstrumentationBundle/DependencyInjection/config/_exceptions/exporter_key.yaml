@@ -1,0 +1,10 @@
+resource:
+  attributes:
+    service.name: foo
+
+
+trace:
+  exporters:
+    # Exporter config must not have custom attributes
+    - bar: baz
+      foo: fooz

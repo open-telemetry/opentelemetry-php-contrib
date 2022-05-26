@@ -1,0 +1,12 @@
+resource:
+  attributes:
+    service.name: foo
+
+
+
+trace:
+  sampler:
+    root:
+      type: custom
+      # Class does not exist
+      class: ClassDoesNotExist
