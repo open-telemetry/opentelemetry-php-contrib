@@ -43,8 +43,8 @@ jobs:
       if: steps.composer-cache.outputs.cache-hit != 'true'
       run: composer install --prefer-dist --no-progress --no-suggest
 
-    - name: Update Composer
-      run: composer update
+    - name: Validate Packages composer.json
+      run: vendor/bin/otel packages:composer:validate
 
     - name: Check Style
       run: vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv

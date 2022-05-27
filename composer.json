@@ -40,6 +40,7 @@
         "kriswallsmith/buzz": "^1.2",
         "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.4",
+        "open-telemetry/dev-tools": "dev-main",
         "phan/phan": "^4.1",
         "phpstan/phpstan": "^1.4",
         "phpstan/phpstan-phpunit": "^1.0",
@@ -71,7 +72,8 @@
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "composer/package-versions-deprecated": true
+            "composer/package-versions-deprecated": true,
+            "symfony/runtime": true
         }
     }
 }
