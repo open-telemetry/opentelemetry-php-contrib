@@ -26,8 +26,6 @@ bash:
 	$(DC_RUN_PHP) bash
 style:
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no -vvv
-script:
-	ls $(SCRIPT_DIR)
 split:
 	docker-compose -f docker/gitsplit/docker-compose.yaml --env-file ./.env up
 FORCE:
