@@ -1,7 +1,7 @@
 PHP_VERSION ?= 7.4
 DC_RUN_PHP = docker-compose run --rm php
 
-all: update style phan psalm phpstan test
+all: update style packages-composer phan psalm phpstan test
 install:
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer install
 update:
@@ -21,6 +21,8 @@ psalm-info:
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/psalm --show-info=true --threads=1
 phpstan:
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpstan analyse
+packages-composer:
+	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/otel packages:composer:validate
 bash:
 	$(DC_RUN_PHP) bash
 style:
