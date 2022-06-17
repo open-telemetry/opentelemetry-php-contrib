@@ -1,5 +1,5 @@
 
-name: PHP Composer
+name: PHP QA
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  php:
 
     runs-on: ubuntu-latest
     strategy:
@@ -68,3 +68,10 @@ jobs:
 
     - name: Code Coverage
       run: bash <(curl -s https://codecov.io/bash) -F ${{ matrix.php-version }}
+
+  packages:
+    uses: opentelemetry-php/gh-workflows/.github/workflows/validate-packages.yml@main
+    needs: php
+    with:
+      matrix_extension: '["ast, json, grpc"]'
+      install_directory: '~/.test/.packages'
