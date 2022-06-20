@@ -55,6 +55,7 @@
         "symfony/polyfill-php80": "^1.16",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
+        "qossmic/deptrac-shim": "^0.22.1",
         "vimeo/psalm": "^4.0"
     },
     "suggest": {
