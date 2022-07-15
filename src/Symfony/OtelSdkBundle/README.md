@@ -201,9 +201,9 @@ namespace App\EventSubscriber;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\SDK\Trace\Tracer;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 class TracingKernelSubscriber implements EventSubscriberInterface
 {
@@ -233,11 +233,11 @@ class TracingKernelSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         // return the subscribed events, their methods and priorities
-        // use a very high integer for the Request priority and a 
+        // use a very high integer for the Request priority and a
         // very low negative integer for the Terminate priority, so the listener
         // will be the first and last one to be called respectively.
         return [
-            KernelEvents::TERMINATE => [['onRequestEvent', 10000]],
+            KernelEvents::REQUEST => [['onRequestEvent', 10000]],
             KernelEvents::TERMINATE => [['onTerminateEvent', -10000]],
         ];
     }
