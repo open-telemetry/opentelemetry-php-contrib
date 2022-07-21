@@ -33,7 +33,7 @@ class DetectorTest extends TestCase
 
     private const EXTRACTED_CONTAINER_ID = 'bcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm';
     private const EXTRACTED_CLUSTER_NAME = 'my-cluster';
-    
+
     public function testValidKubernetes()
     {
         $mockData = $this->createMock(DataProvider::class);
@@ -47,7 +47,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_VALID_CLUSTER_RESPONSE),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -55,7 +55,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
@@ -77,7 +77,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_VALID_CLUSTER_RESPONSE),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -85,7 +85,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
@@ -106,7 +106,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_VALID_CLUSTER_RESPONSE),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -114,7 +114,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
@@ -135,7 +135,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_VALID_CLUSTER_RESPONSE),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -143,7 +143,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::K8S_CLUSTER_NAME => self::EXTRACTED_CLUSTER_NAME,
                 ]
@@ -151,7 +151,7 @@ class DetectorTest extends TestCase
         ), $detector->getResource());
     }
 
-    public function testValidContianerIdEmptyClusterName()
+    public function testValidContainerIdEmptyClusterName()
     {
         $mockData = $this->createMock(DataProvider::class);
 
@@ -164,7 +164,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_EMPTY_CLUSTER_NAME),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -172,7 +172,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
@@ -193,7 +193,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_EMPTY_CLUSTER_DATA),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -201,7 +201,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
@@ -209,7 +209,7 @@ class DetectorTest extends TestCase
         ), $detector->getResource());
     }
 
-    public function testValidContianerIdEmptyBody()
+    public function testValidContainerIdEmptyBody()
     {
         $mockData = $this->createMock(DataProvider::class);
 
@@ -222,7 +222,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_EMPTY_BODY),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -230,7 +230,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData, $client, $requestFactory);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
@@ -251,7 +251,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_VALID_CLUSTER_RESPONSE),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -274,7 +274,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_VALID_CLUSTER_RESPONSE),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -297,7 +297,7 @@ class DetectorTest extends TestCase
             new Response(200, ['Foo' => 'Bar'], self::MOCK_EMPTY_BODY),
 
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();
@@ -318,7 +318,7 @@ class DetectorTest extends TestCase
         $mockGuzzle = new MockHandler([
             new Response(200, ['Foo' => 'Bar'], self::MOCK_AWS_AUTH),
         ]);
-        
+
         $handlerStack = HandlerStack::create($mockGuzzle);
         $client = new Client(['handler' => $handlerStack]);
         $requestFactory = new HttpFactory();

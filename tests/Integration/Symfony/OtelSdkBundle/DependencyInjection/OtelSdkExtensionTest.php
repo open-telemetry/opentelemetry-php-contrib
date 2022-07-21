@@ -6,7 +6,6 @@ namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\DependencyInjecti
 
 use Exception;
 use OpenTelemetry\SDK;
-use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
@@ -60,11 +59,14 @@ class OtelSdkExtensionTest extends TestCase
     {
         $data = $this->loadTestData('resource');
 
-        $limits = $this->getDefinitionByClass(AttributeLimits::class);
+        $spanLimitsBuilder = $this->getDefinitionByClass(SDK\Trace\SpanLimitsBuilder::class);
 
         $this->assertEquals(
             array_values($data['resource']['limits']),
-            $limits->getArguments()
+            [
+                $spanLimitsBuilder->getMethodCalls()[0][1][0],
+                $spanLimitsBuilder->getMethodCalls()[1][1][0],
+            ]
         );
     }
 
@@ -87,7 +89,7 @@ class OtelSdkExtensionTest extends TestCase
             ConfigHelper::wrapParameter(Parameters::RESOURCE_ATTRIBUTES),
             $arguments[0]
         );
-        $this->assertReference(AttributeLimits::class, $arguments[1]);
+        $this->assertEquals(0, $arguments[1]);
     }
 
     public function testDefaultSampler(): void

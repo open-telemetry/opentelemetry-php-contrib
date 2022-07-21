@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Integration\Symfony\OtelSdkBundle\Resources;
 
 use Exception;
-use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
@@ -63,7 +62,6 @@ class SdkConfigTest extends TestCase
      */
     public function testResource()
     {
-        $this->assertServiceSetup(AttributeLimits::class);
         $this->assertServiceSetup(Attributes::class);
         $this->assertServiceSetup(Resource\ResourceInfo::class);
     }
