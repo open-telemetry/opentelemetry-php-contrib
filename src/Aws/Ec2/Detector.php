@@ -70,7 +70,7 @@ class Detector implements ResourceDetectorInterface
             if ($token === null) {
                 return ResourceInfoFactory::emptyResource();
             }
-            
+
             $hostName = $this->fetchHostname($token);
 
             $identitiesJson = $this->fetchIdentity($token);
@@ -78,42 +78,42 @@ class Detector implements ResourceDetectorInterface
             if (!$token || !$identitiesJson) {
                 return ResourceInfoFactory::emptyResource();
             }
-            
-            $attributes = new Attributes();
+
+            $attributes = [];
 
             foreach ($identitiesJson as $key => $value) {
                 switch ($key) {
                     case 'instanceId':
-                        $attributes->setAttribute(ResourceAttributes::HOST_ID, $value);
+                        $attributes[ResourceAttributes::HOST_ID] = $value;
 
                         break;
                     case 'availabilityZone':
-                        $attributes->setAttribute(ResourceAttributes::CLOUD_AVAILABILITY_ZONE, $value);
+                        $attributes[ResourceAttributes::CLOUD_AVAILABILITY_ZONE] = $value;
 
                         break;
                     case 'instanceType':
-                        $attributes->setAttribute(ResourceAttributes::HOST_TYPE, $value);
+                        $attributes[ResourceAttributes::HOST_TYPE] = $value;
 
                         break;
                     case 'imageId':
-                        $attributes->setAttribute(ResourceAttributes::HOST_IMAGE_ID, $value);
+                        $attributes[ResourceAttributes::HOST_IMAGE_ID] = $value;
 
                         break;
                     case 'accountId':
-                        $attributes->setAttribute(ResourceAttributes::CLOUD_ACCOUNT_ID, $value);
+                        $attributes[ResourceAttributes::CLOUD_ACCOUNT_ID] = $value;
 
                         break;
                     case 'region':
-                        $attributes->setAttribute(ResourceAttributes::CLOUD_REGION, $value);
+                        $attributes[ResourceAttributes::CLOUD_REGION] = $value;
 
                         break;
                 }
             }
 
-            $attributes->setAttribute(ResourceAttributes::HOST_NAME, $hostName);
-            $attributes->setAttribute(ResourceAttributes::CLOUD_PROVIDER, self::CLOUD_PROVIDER);
+            $attributes[ResourceAttributes::HOST_NAME] = $hostName;
+            $attributes[ResourceAttributes::CLOUD_PROVIDER] = self::CLOUD_PROVIDER;
 
-            return ResourceInfo::create(new Attributes($attributes), ResourceAttributes::SCHEMA_URL);
+            return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
         } catch (\Throwable $e) {
             //TODO: add 'Process is not running on K8S when logging is added
             return ResourceInfoFactory::emptyResource();
@@ -175,7 +175,7 @@ class Detector implements ResourceDetectorInterface
             if (!empty($body) && $responseCode < 300 && $responseCode >= 200) {
                 return $body;
             }
-            
+
             return null;
         } catch (Throwable $e) {
             // TODO: add log for exception. The code below

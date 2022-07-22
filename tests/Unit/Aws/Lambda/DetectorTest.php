@@ -34,7 +34,7 @@ class DetectorTest extends TestCase
         $detector = new Detector();
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes([
+            Attributes::create([
                 ResourceAttributes::FAAS_NAME => self::LAMBDA_NAME_VAL,
                 ResourceAttributes::FAAS_VERSION => self::LAMBDA_VERSION_VAL,
                 ResourceAttributes::CLOUD_REGION => self::AWS_REGION_VAL,
@@ -67,7 +67,7 @@ class DetectorTest extends TestCase
         $detector = new Detector();
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes([
+            Attributes::create([
                 ResourceAttributes::FAAS_NAME => self::LAMBDA_NAME_VAL,
                 ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                 ])
@@ -88,7 +88,7 @@ class DetectorTest extends TestCase
         $detector = new Detector();
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes([
+            Attributes::create([
                 ResourceAttributes::FAAS_NAME => self::LAMBDA_NAME_VAL,
                 ResourceAttributes::CLOUD_REGION => self::AWS_REGION_VAL,
                 ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,

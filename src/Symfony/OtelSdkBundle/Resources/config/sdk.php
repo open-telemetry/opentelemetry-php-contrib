@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
-use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
@@ -44,12 +43,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     // RESOURCE
 
-    $helper->setService(AttributeLimits::class);
-
     $helper->setService(Attributes::class)
         ->args([
             ConfigHelper::wrapParameter(Parameters::RESOURCE_ATTRIBUTES),
-            ConfigHelper::createReferenceFromClass(AttributeLimits::class),
+            0,
         ]);
 
     $helper->setService(Resource\ResourceInfo::class)

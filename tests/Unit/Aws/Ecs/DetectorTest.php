@@ -45,7 +45,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
@@ -56,7 +56,7 @@ class DetectorTest extends TestCase
         //unset environment variable
         putenv(self::ECS_ENV_VAR_V4_KEY);
     }
-    
+
     /**
      * @test
      */
@@ -72,7 +72,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
@@ -115,7 +115,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                 ]
@@ -138,14 +138,14 @@ class DetectorTest extends TestCase
         $mockData->method('getHostName')->willReturn(self::HOST_NAME);
 
         $detector = new Detector($mockData);
-      
+
         $invalidCgroups = [self::INVALID_CGROUP_LENGTH, self::INVALID_CGROUP_EMPTY, self::INVALID_CGROUP_VALUES];
 
         foreach ($invalidCgroups as $invalidCgroup) {
             $mockData->method('getCgroupData')->willReturn($invalidCgroup);
 
             $this->assertEquals(ResourceInfo::create(
-                new Attributes(
+                Attributes::create(
                     [
                         ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                     ]
@@ -172,7 +172,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfo::create(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
                 ]
@@ -195,7 +195,7 @@ class DetectorTest extends TestCase
 
         $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_LENGTH);
         $mockData->method('getHostName')->willReturn(null);
-        
+
         $detector = new Detector($mockData);
 
         $this->assertEquals(ResourceInfoFactory::emptyResource(), $detector->getResource());

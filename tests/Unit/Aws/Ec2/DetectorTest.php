@@ -64,7 +64,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($client, $requestFactory);
 
         $this->assertEquals(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::HOST_ID => self::HOST_ID,
                     ResourceAttributes::CLOUD_AVAILABILITY_ZONE => self::CLOUD_ZONE,
@@ -147,7 +147,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($client, $requestFactory);
 
         $this->assertEquals(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::HOST_ID => self::HOST_ID,
                     ResourceAttributes::CLOUD_AVAILABILITY_ZONE => self::CLOUD_ZONE,
@@ -206,7 +206,7 @@ class DetectorTest extends TestCase
         $detector = new Detector($client, $requestFactory);
 
         $this->assertEquals(
-            new Attributes(
+            Attributes::create(
                 [
                     ResourceAttributes::HOST_ID => self::HOST_ID,
                     ResourceAttributes::CLOUD_AVAILABILITY_ZONE => self::CLOUD_ZONE,

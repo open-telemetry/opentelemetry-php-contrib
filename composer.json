@@ -14,7 +14,7 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "open-telemetry/opentelemetry": "^0.0.12",
+        "open-telemetry/opentelemetry": "^0.0.13",
         "php-http/discovery": "^1.14",
         "php-http/message": "^1.12"
     },

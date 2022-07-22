@@ -58,7 +58,7 @@ class Detector implements ResourceDetectorInterface
         $this->client = $client;
         $this->requestFactory = $requestFactory;
     }
-    
+
     public function getResource(): ResourceInfo
     {
         try {
@@ -68,10 +68,10 @@ class Detector implements ResourceDetectorInterface
 
             $clusterName = $this->getClusterName();
             $containerId = $this->getContainerId();
-    
+
             return !$clusterName && !$containerId
                 ? ResourceInfoFactory::emptyResource()
-                : ResourceInfo::create(new Attributes([
+                : ResourceInfo::create(Attributes::create([
                     ResourceAttributes::CONTAINER_ID => $containerId,
                     ResourceAttributes::K8S_CLUSTER_NAME => $clusterName,
                 ]));
