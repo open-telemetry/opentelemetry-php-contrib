@@ -37,14 +37,14 @@ class Detector implements ResourceDetectorInterface
     private const ECS_METADATA_KEY_V3 = 'ECS_CONTAINER_METADATA_URI';
 
     private const CONTAINER_ID_LENGTH = 64;
-    
+
     private DataProvider $processData;
 
     public function __construct(DataProvider $processData)
     {
         $this->processData = $processData;
     }
-    
+
     /**
      * If running on ECS, runs getContainerId(), getClusterName(), and
      * returns resource with valid extracted values
@@ -63,7 +63,7 @@ class Detector implements ResourceDetectorInterface
 
         return !$hostName && !$containerId
             ? ResourceInfoFactory::emptyResource()
-            : ResourceInfo::create(new Attributes([
+            : ResourceInfo::create(Attributes::create([
                 ResourceAttributes::CONTAINER_NAME => $hostName,
                 ResourceAttributes::CONTAINER_ID => $containerId,
             ]));

@@ -43,7 +43,7 @@ class Detector implements ResourceDetectorInterface
         $lambdaName = getenv(self::LAMBDA_NAME_ENV);
         $functionVersion = getenv(self::LAMBDA_VERSION_ENV);
         $awsRegion = getenv(self::AWS_REGION_ENV);
-        
+
         // The following ternary operations are created because
         // the attributes class will only NOT create a variable
         // when it is set to null. getenv returns false when unsuccessful
@@ -53,7 +53,7 @@ class Detector implements ResourceDetectorInterface
 
         return !$lambdaName && !$awsRegion && !$functionVersion
             ? ResourceInfoFactory::emptyResource()
-            : ResourceInfo::create(new Attributes([
+            : ResourceInfo::create(Attributes::create([
                 ResourceAttributes::FAAS_NAME => $lambdaName,
                 ResourceAttributes::FAAS_VERSION => $functionVersion,
                 ResourceAttributes::CLOUD_REGION => $awsRegion,
