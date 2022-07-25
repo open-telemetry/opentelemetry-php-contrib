@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Instrumentation\AwsSdk;
 
-use Opentelemetry\API\Common\Instrumentation\InstrumentationInterface;
-use Opentelemetry\API\Common\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation;
 use PHPUnit\Framework\TestCase;
 
