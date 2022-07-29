@@ -11,20 +11,36 @@ class AwsSdkInstrumentationTest extends TestCase
 {
     public function testInstrumentationClassName()
     {
-        $awsSdkInstrumentation = new AwsSdkInstrumentation();
-
         $this->assertEquals(
             'AWS SDK Instrumentation',
-            $awsSdkInstrumentation->getName()
+            (new AwsSdkInstrumentation())->getName()
+        );
+    }
+
+    public function testInstrumentationVersion()
+    {
+        $this->assertEquals(
+            '0.0.1',
+            (new AwsSdkInstrumentation())->getVersion()
+        );
+    }
+
+    public function testInstrumentationSchemaUrl()
+    {
+        $this->assertNull((new AwsSdkInstrumentation())->getSchemaUrl());
+    }
+
+    public function testInstrumentationInit()
+    {
+        $this->assertTrue(
+            (new AwsSdkInstrumentation())->init()
         );
     }
 
     public function testInstrumentationActivated()
     {
-        $awsSdkInstrumentation = new AwsSdkInstrumentation();
-
         $this->assertTrue(
-            $awsSdkInstrumentation->activate()
+            (new AwsSdkInstrumentation())->activate()
         );
     }
 }

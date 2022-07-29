@@ -7,22 +7,24 @@ namespace OpenTelemetry\Instrumentation\AwsSdk;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
 
+/**
+ * @experimental
+ */
 class AwsSdkInstrumentation implements InstrumentationInterface
 {
     use InstrumentationTrait;
 
-    public function __construct()
-    {
-    }
+    public const NAME = 'AWS SDK Instrumentation';
+    public const VERSION = '0.0.1';
 
     public function getName(): string
     {
-        return 'AWS SDK Instrumentation';
+        return self::NAME;
     }
 
     public function getVersion(): ?string
     {
-        return '0.0.1';
+        return self::VERSION;
     }
 
     public function getSchemaUrl(): ?string
