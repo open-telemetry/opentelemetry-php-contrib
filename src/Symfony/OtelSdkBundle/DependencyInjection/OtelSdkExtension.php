@@ -27,10 +27,12 @@ use Throwable;
 class OtelSdkExtension extends Extension implements LoggerAwareInterface
 {
     public const SDK_CONFIG_FILE = __DIR__ . '/../Resources/config/sdk.php';
+    public const DEBUG_CONFIG_FILE = __DIR__ . '/../Resources/config/tracer_debug.php';
     private const FACTORY_SUFFIX = 'factory';
     private const PROVIDER_ARG_PROCESSOR = 0;
     private const PROCESSOR_ARG_EXPORTER = 0;
     private const DEFAULT_SERVICE_NAME = 'SymfonyApplication';
+    private const DEV_ENVIRONNEMENT = 'dev';
 
     private string $serviceName = self::DEFAULT_SERVICE_NAME;
     private ContainerBuilder $container;
@@ -87,6 +89,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         $this->configureTraceSamplers();
         $this->configureSpanLimits();
         $this->configureSpanProcessors();
+        $this->loadDebugConfig();
         $this->configureSpanExporters();
     }
 
@@ -226,7 +229,6 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
             $processor = $this->getSpanProcessorDefinition($conf[Conf::PROCESSOR_NODE]);
             $processorId = $this->registerSpanProcessor($processor, $conf[Conf::PROCESSOR_NODE], (string) $exporterKey);
             $processorRefs[] = $this->createValidatedReference($processorId);
-
             $exporterReference = $this->resolveExporterReference((string) $exporterKey, $conf);
             $processor->setArgument(self::PROCESSOR_ARG_EXPORTER, $exporterReference);
         }
@@ -432,8 +434,20 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
             $processorType,
             $exporterKey
         );
-
         $this->getContainer()->setDefinition($id, $definition);
+
+        $env  = $this->container->getParameter('kernel.environment');
+        if (self::DEV_ENVIRONNEMENT === $env) {
+            $debugId = 'debug.open_telemetry.sdk.trace.span_processor.traceable';
+            $this->getContainer()->getDefinition($debugId)
+                ->setArgument(
+                    0,
+                    $this->createValidatedReference($id)
+                )
+            ;
+
+            return $debugId;
+        }
 
         return $id;
     }
@@ -566,6 +580,21 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
                 ->load(self::SDK_CONFIG_FILE);
         } catch (Throwable $e) {
             throw new RuntimeException('Could not load config file: ' . self::SDK_CONFIG_FILE);
+        }
+    }
+
+    private function loadDebugConfig(): void
+    {
+        $env = $this->container->getParameter('kernel.environment');
+        if (self::DEV_ENVIRONNEMENT !== $env) {
+            return;
+        }
+
+        try {
+            self::createPhpFileLoader($this->container)
+                ->load(self::DEBUG_CONFIG_FILE);
+        } catch (Throwable $e) {
+            throw new RuntimeException('Could not load config file: ' . self::DEBUG_CONFIG_FILE);
         }
     }
 

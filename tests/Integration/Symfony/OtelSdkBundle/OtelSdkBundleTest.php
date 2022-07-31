@@ -39,6 +39,7 @@ class OtelSdkBundleTest extends TestCase
         $this->extension = $this->createExtension();
         $this->container = $this->createContainer();
         $this->container->setParameter('kernel.debug', false);
+        $this->container->setParameter('kernel.environment', 'prod');
         $this->container->setDefinition(
             self::CUSTOM_SAMPLER_ID,
             new Definition(Mock\Sampler::class)

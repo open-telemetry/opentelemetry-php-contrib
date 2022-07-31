@@ -1,0 +1,104 @@
+{# templates/data_collector/template.html.twig #}
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        {# this is the content displayed as a panel in the toolbar #}
+        <span class="icon">{{ include('@OtelSdk/Icon/opentelemetry-icon-white.svg') }}</span>
+        <span class="sf-toolbar-value">OTEL</span>
+    {% endset %}
+
+    {% set text %}
+        {# this is the content displayed when hovering the mouse over
+           the toolbar panel #}
+        {% if collector.data|length > 0 %}
+            <div class="sf-toolbar-info-piece">
+                <b>ID generator</b>
+                <span>{{ collector.data.id_generator.class }}</span>
+            </div>
+
+            <div class="sf-toolbar-info-piece">
+                <b>Sampler</b>
+                <span>{{ collector.data.sampler.class }}</span>
+            </div>
+
+            <div class="sf-toolbar-info-piece">
+                <b>Span Processor</b>
+                <span>{{ collector.data.span_processor.class }}</span>
+            </div>
+            {% if collector.data.exporter is defined %}
+                <div class="sf-toolbar-info-piece">
+                    <b>Exporter</b>
+                    <span>{{ collector.data.exporter.class }}</span>
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endset %}
+
+    {# the 'link' value set to 'false' means that this panel doesn't
+       show a section in the web profiler #}
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: false }) }}
+{% endblock %}
+
+{% block menu %}
+    {# This left-hand menu appears when using the full-screen profiler. #}
+    <span class="label">
+        <span class="icon">{{ include('@OtelSdk/Icon/opentelemetry-icon-white.svg') }}</span>
+        <strong>OTEL</strong>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    {# Optional, for showing the most details. #}
+    {#    <h2>Sampler</h2>#}
+    {% if collector.data|length == 0 %}
+        <div class="empty">
+            <p>Nothing was handled by Otel Tracer or TracerProvider.</p>
+        </div>
+    {% else %}
+        <div class="metrics">
+            <div class="metric">
+                <span class="value"><a href="{{ collector.data.id_generator.file|file_link(0) }}" title="{{ collector.data.id_generator.file }}">{{ collector.data.id_generator.class }}</a></span>
+                <span class="label">ID generator</span>
+            </div>
+
+            <div class="metric">
+                <span class="value"><a href="{{ collector.data.sampler.file|file_link(0) }}" title="{{ collector.data.sampler.file }}">{{ collector.data.sampler.class }}</a></span>
+                <span class="label">Sampler</span>
+            </div>
+
+            <div class="metric">
+                <span class="value"><a href="{{ collector.data.span_processor.file|file_link(0) }}" title="{{ collector.data.span_processor.file }}">{{ collector.data.span_processor.class }}</a></span>
+                <span class="label">Span processor</span>
+            </div>
+            {% if collector.data.exporter is defined %}
+                <div class="metric">
+                    <span class="value"><a href="{{ collector.data.exporter.file|file_link(0) }}" title="{{ collector.data.exporter.file }}">{{ collector.data.exporter.class }}</a></span>
+                    <span class="label">Exporter</span>
+                </div>
+            {% endif %}
+        </div>
+        <div class="sf-tabs">
+            <h2>Resource info</h2>
+            <h3>Attributes</h3>
+            <div>{{ profiler_dump(collector.data.resource_info_attributes) }}</div>
+        </div>
+
+        <div class="sf-tabs">
+            <h2>Span limits</h2>
+            <div>{{ profiler_dump(collector.data.span_limits) }}</div>
+        </div>
+
+        <div class="sf-tabs">
+            <h2>Spans (Trace #{{ collector.data.spans.root.data.traceId }})</h2>
+            {% set spanCount = (collector.data.spans.root.children|length) + 1 %}
+            {{ spanCount }} span{{ spanCount > 1 ? 's' : '' }} collected
+            <pre>
+{{ collector.data.spans.root.data.name }}
+{% for childSpan in collector.data.spans.root.children %}
+    └ {{ childSpan.name }} (# {{ childSpan.spanId }})
+{% endfor %}
+            </pre>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -41,6 +41,7 @@ class OtelSdkExtensionTest extends TestCase
         $this->extension = $this->createExtension();
         $this->container = $this->createContainer();
         $this->container->setParameter('kernel.debug', false);
+        $this->container->setParameter('kernel.environment', 'prod');
         $this->container->setDefinition(
             self::CUSTOM_SAMPLER_ID,
             new Definition(Mock\Sampler::class)
@@ -264,6 +265,36 @@ class OtelSdkExtensionTest extends TestCase
         if ($batchProcessors === 0) {
             $this->fail('One of the tested span processors must be a batch processor');
         }
+    }
+
+    public function testDebugSpanProcessors(): void
+    {
+        $this->container->setParameter('kernel.environment', 'dev');
+        $this->loadTestData('full');
+
+        $processors = $this->getDefinitionByClass(SDK\Trace\TracerProvider::class)
+            ->getArgument(0);
+
+        $this->assertIsReferenceForClass(
+            SpanProcessors::TRACEABLE,
+            $processors[0]
+        );
+        $this->assertIsReferenceForClass(
+            SpanProcessors::TRACEABLE,
+            $processors[1]
+        );
+        $this->assertIsReferenceForClass(
+            SpanProcessors::TRACEABLE,
+            $processors[2]
+        );
+        $this->assertIsReferenceForClass(
+            SpanProcessors::TRACEABLE,
+            $processors[3]
+        );
+        $this->assertIsReferenceForClass(
+            SpanProcessors::TRACEABLE,
+            $processors[4]
+        );
     }
 
     /**
