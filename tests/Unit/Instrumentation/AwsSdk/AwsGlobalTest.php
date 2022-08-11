@@ -10,11 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 class AwsGlobalTest extends TestCase
 {
-    public function testStaticAttribute()
-    {
-        $this->assertClassHasStaticAttribute('instrumentationInstance', AwsGlobal::class);
-    }
-
     public function testSetInstrumentation()
     {
         AwsGlobal::setInstrumentation(new AwsSdkInstrumentation());
