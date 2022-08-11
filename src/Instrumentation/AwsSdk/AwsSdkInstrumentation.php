@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Instrumentation\AwsSdk;
 
-require '../../../vendor/autoload.php';
-include __DIR__ . '/AwsGlobal.php';
-
-
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -73,7 +69,6 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
     public function activate(): bool
     {
-
         AwsGlobal::setInstrumentation($this);
 
         try {
@@ -86,9 +81,14 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                 '$name, $args',
                 '   
                 
-                $tracer = AwsGlobal::getInstrumentation()->getTracer();
-                $this->span = $tracer->spanBuilder($this->getApi()->getServiceName() . "." . $name)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
+                $tracer = \OpenTelemetry\Instrumentation\AwsSdk\AwsGlobal::getInstrumentation()->getTracer();
+                $carrier = [];
+                
+                $this->span = $tracer->spanBuilder($this->getApi()->getServiceName() . "." . $name)->setSpanKind(\OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation::SPAN_KIND)->startSpan();
                 $this->span->activate();
+                
+                $propagator = \OpenTelemetry\Instrumentation\AwsSdk\AwsGlobal::getInstrumentation()->getPropagator();
+                $propagator->inject($carrier);
                 
                 $this->span->setAttributes([
                     "rpc.method" => $name,
@@ -115,7 +115,6 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         } catch (\Exception $e) {
             return false;
         }
-
 
         return true;
     }
