@@ -61,7 +61,8 @@
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",
         "symfony/dependency-injection": "Needed to use otel-sdk-bundle",
-        "symfony/options-resolver": "Needed to use otel-sdk-bundle"
+        "symfony/options-resolver": "Needed to use otel-sdk-bundle",
+        "runkit7": "Needed to use AWS SDK Instrumentation"
     },
     "scripts": {
         "post-install-cmd": [
