@@ -21,6 +21,8 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     public const NAME = 'AWS SDK Instrumentation';
     public const VERSION = '0.0.1';
     public const SPAN_KIND = SpanKind::KIND_CLIENT;
+    private TextMapPropagatorInterface $propagator;
+    private TracerProviderInterface $tracerProvider;
 
     public function getName(): string
     {
