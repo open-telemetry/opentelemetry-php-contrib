@@ -6,15 +6,15 @@ namespace OpenTelemetry\Instrumentation\AwsSdk;
 
 class AwsGlobal
 {
-    private static AwsSdkInstrumentation $instrumentation_instance;
+    private static AwsSdkInstrumentation $instrumentationInstance;
 
     public static function setInstrumentation(AwsSdkInstrumentation $configuredAwsSdkInstrumentation): void
     {
-        self::$instrumentation_instance = $configuredAwsSdkInstrumentation;
+        self::$instrumentationInstance = $configuredAwsSdkInstrumentation;
     }
 
     public static function getInstrumentation(): AwsSdkInstrumentation
     {
-        return self::$instrumentation_instance;
+        return self::$instrumentationInstance;
     }
 }
