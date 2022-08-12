@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Instrumentation\AwsSdk;
 
-use GPBMetadata\Opentelemetry\Proto\Trace\V1\Trace;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Aws\Xray\IdGenerator;
-use OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation;
-use OpenTelemetry\SDK\Trace\TracerProvider;
-use PHPUnit\Framework\TestCase;
 use OpenTelemetry\Aws\Xray\Propagator;
+use OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation;
 use OpenTelemetry\SDK\Trace\SpanExporter\ConsoleSpanExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
+use OpenTelemetry\SDK\Trace\TracerProvider;
+use PHPUnit\Framework\TestCase;
 
 class AwsSdkInstrumentationTest extends TestCase
 {
