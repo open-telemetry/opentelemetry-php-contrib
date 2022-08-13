@@ -19,6 +19,7 @@
         "php-http/message": "^1.12"
     },
     "replace": {
+        "open-telemetry/contrib-symfony-instrumentation-bundle": "self.version",
         "open-telemetry/contrib-sdk-bundle": "self.version",
         "open-telemetry/contrib-aws": "self.version"
     },

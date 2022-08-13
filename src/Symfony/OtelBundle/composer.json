@@ -1,0 +1,24 @@
+{
+    "name": "open-telemetry/contrib-symfony-instrumentation-bundle",
+    "description": "Symfony instrumentation bundle",
+    "keywords": ["opentelemetry", "otel", "symfony", "bundle", "tracing"],
+    "type": "symfony-bundle",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "composer-runtime-api": "^2.0",
+        "open-telemetry/api": "^0.0.14",
+        "open-telemetry/context": "^0.0.14",
+        "open-telemetry/sem-conv": "^0.0.14",
+        "symfony/config": "^4.4 || ^5.4 || ^6.1",
+        "symfony/dependency-injection": "^4.4 || ^5.4 || ^6.1"
+    },
+    "require-dev": {
+        "symfony/http-kernel": "^4.4 || ^5.4 || ^6.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Symfony\\OtelBundle\\": ""
+        }
+    }
+}
