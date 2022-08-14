@@ -14,8 +14,8 @@ use OpenTelemetry\Symfony\OtelBundle\HttpKernel\RequestListener;
 return function (ContainerConfigurator $configurator): void {
     $configurator->services()->set(RequestListener::class)
         ->autoconfigure()
-        ->arg(0, service(TracerProviderInterface::class))
-        ->arg(1, service(TextMapPropagatorInterface::class))
+        ->arg('$tracerProvider', service(TracerProviderInterface::class))
+        ->arg('$propagator', service(TextMapPropagatorInterface::class))
     ;
 
     $configurator->services()->set(NoopTextMapPropagator::class);

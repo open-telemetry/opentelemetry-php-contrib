@@ -1,0 +1,8 @@
+otel:
+  tracing:
+    kernel:
+      requestHeaders:
+        - Content-Length
+        - date
+      responseHeaders:
+        - link
