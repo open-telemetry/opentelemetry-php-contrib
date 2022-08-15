@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelBundle\DependencyInjection;
 
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
+use OpenTelemetry\API\Metrics\Noop\NoopMeterProvider;
+use OpenTelemetry\API\Trace\NoopTracerProvider;
 use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\Symfony\OtelBundle\DependencyInjection\OtelExtension;
@@ -39,6 +41,19 @@ final class OtelExtensionTest extends AbstractExtensionTestCase
         ]);
 
         $this->assertContainerBuilderNotHasService(RequestListener::class);
+    }
+
+    public function testNoopOtelServicesAreAlwaysRegistered(): void
+    {
+        $this->load([
+            'tracing' => [
+                'kernel' => false,
+            ],
+        ]);
+
+        $this->assertContainerBuilderHasService(NoopTextMapPropagator::class);
+        $this->assertContainerBuilderHasService(NoopTracerProvider::class);
+        $this->assertContainerBuilderHasService(NoopMeterProvider::class);
     }
 
     public function testExtractRemoteContextTrueUsesDefaultTextMapPropagator(): void

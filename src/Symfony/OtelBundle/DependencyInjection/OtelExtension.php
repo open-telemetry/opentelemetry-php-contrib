@@ -20,6 +20,7 @@ final class OtelExtension extends Extension
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);
 
         $loader = new PhpFileLoader($container, new FileLocator());
+        $loader->load(__DIR__ . '/../Resources/services.php');
 
         if ($config['tracing']['kernel']['enabled'] ?? false) {
             $loader->load(__DIR__ . '/../Resources/services_kernel.php');
