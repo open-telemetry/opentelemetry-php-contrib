@@ -71,7 +71,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
     }
 
-    private function endRootSpan()
+    public function endRootSpan()
     {
         $this->root->end();
     }
