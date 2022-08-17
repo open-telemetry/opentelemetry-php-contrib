@@ -8,24 +8,17 @@ use DG\BypassFinals;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation;
-use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
 
 class AwsSdkInstrumentationTest extends TestCase
 {
-    private TracerProvider $tracerProvider;
     private AwsSdkInstrumentation $awsSdkInstrumentation;
 
     protected function setUp(): void
     {
         BypassFinals::enable();
-        $this->tracerProvider = $this->createMock(TracerProvider::class);
-        $this->provider = $this->createMock(TracerProviderInterface::class);
-        $this->tracer = $this->createMock(TracerInterface::class);
-
         $this->awsSdkInstrumentation = new AwsSdkInstrumentation();
-        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
     }
 
     public function testInstrumentationClassName()
@@ -69,17 +62,25 @@ class AwsSdkInstrumentationTest extends TestCase
 
     public function testGetTracerProvider()
     {
+        $tracerProvider = $this->createMock(TracerProviderInterface::class);
+        $this->awsSdkInstrumentation->setTracerProvider($tracerProvider);
+
         $this->assertSame(
             $this->awsSdkInstrumentation->getTracerProvider(),
-            $this->tracerProvider
+            $tracerProvider
         );
     }
 
     public function testGetTracer()
     {
-        $this->provider->method('getTracer')->willReturn($this->tracer);
-        $this->awsSdkInstrumentation->setTracerProvider($this->provider);
-        $this->assertSame($this->tracer, $this->awsSdkInstrumentation->getTracer());
+        $tracer = $this->createMock(TracerInterface::class);
+        $tracerProvider = $this->createMock(TracerProviderInterface::class);
+        $tracerProvider->expects($this->once())
+            ->method('getTracer')
+            ->willReturn($tracer);
+
+        $this->awsSdkInstrumentation->setTracerProvider($tracerProvider);
+        $this->assertSame($tracer, $this->awsSdkInstrumentation->getTracer());
     }
 
     public function testInstrumentationActivated()
