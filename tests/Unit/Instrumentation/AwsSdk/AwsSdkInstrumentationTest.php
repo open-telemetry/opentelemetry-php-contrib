@@ -8,10 +8,10 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Aws\Xray\IdGenerator;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation;
-use OpenTelemetry\SDK\Trace\SpanExporter\ConsoleSpanExporter;
-use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
+use DG\BypassFinals;
 
 class AwsSdkInstrumentationTest extends TestCase
 {
@@ -20,8 +20,10 @@ class AwsSdkInstrumentationTest extends TestCase
 
     protected function setUp(): void
     {
-        $spanProcessor = new SimpleSpanProcessor(new ConsoleSpanExporter());
-        $this->tracerProvider = new TracerProvider([$spanProcessor], null, null, null, new IdGenerator());
+        BypassFinals::enable();
+        $this->tracerProvider = $this->createMock(TracerProvider::class);
+        $this->provider = $this->createMock(TracerProviderInterface::class);
+        $this->tracer = $this->createMock(TracerInterface::class);
 
         $this->awsSdkInstrumentation = new AwsSdkInstrumentation();
         $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
@@ -55,14 +57,6 @@ class AwsSdkInstrumentationTest extends TestCase
         );
     }
 
-    public function testSetXrayPropagator()
-    {
-        $this->assertInstanceOf(
-            Propagator::class,
-            new Propagator()
-        );
-    }
-
     public function testGetXrayPropagator()
     {
         $propagator = new Propagator();
@@ -74,20 +68,8 @@ class AwsSdkInstrumentationTest extends TestCase
         );
     }
 
-    public function testSetTracerProvider()
-    {
-        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
-
-        $this->assertInstanceOf(
-            TracerProvider::class,
-            $this->tracerProvider
-        );
-    }
-
     public function testGetTracerProvider()
     {
-        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
-
         $this->assertSame(
             $this->awsSdkInstrumentation->getTracerProvider(),
             $this->tracerProvider
@@ -96,18 +78,15 @@ class AwsSdkInstrumentationTest extends TestCase
 
     public function testGetTracer()
     {
-        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
-
-        $this->assertInstanceOf(
-            TracerInterface::class,
-            $this->awsSdkInstrumentation->getTracer()
-        );
+        $this->provider->method('getTracer')->willReturn($this->tracer);
+        $this->awsSdkInstrumentation->setTracerProvider($this->provider);
+        $this->assertSame($this->tracer, $this->awsSdkInstrumentation->getTracer());
     }
 
     public function testInstrumentationActivated()
     {
         $this->assertTrue(
-            (new AwsSdkInstrumentation())->activate()
+            ($this->awsSdkInstrumentation)->activate()
         );
     }
 }

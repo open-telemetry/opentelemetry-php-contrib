@@ -71,8 +71,9 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
     }
 
-    public function endRootSpan()
+    public function endRootSpan($rootScope)
     {
+        $rootScope->detach();
         $this->root->end();
     }
 
@@ -82,9 +83,9 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
         try {
             $this->root = $this->getTracer()->spanBuilder('AwsSDKInstrumentation')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
-            $this->root->activate();
+            $rootScope = $this->root->activate();
 
-            register_shutdown_function([$this, 'endRootSpan']);
+            register_shutdown_function([$this, 'endRootSpan'], $rootScope);
 
             runkit7_method_copy('Aws\AwsClient', '__call_copy', 'Aws\AwsClient', '__call');
             runkit7_method_copy('Aws\AwsClient', 'executeAsync_copy', 'Aws\AwsClient', 'executeAsync');
@@ -99,7 +100,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                 $carrier = [];
                 
                 $this->span = $tracer->spanBuilder($this->getApi()->getServiceName() . "." . $name)->setSpanKind(\OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation::SPAN_KIND)->startSpan();
-                $this->span->activate();
+                $this->scope = $this->span->activate();
                 
                 $propagator = \OpenTelemetry\Instrumentation\AwsSdk\AwsGlobal::getInstrumentation()->getPropagator();
                 $propagator->inject($carrier);
@@ -121,8 +122,8 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                 'executeAsync',
                 '$command',
                 ' 
+                    $this->scope->detach();
                     $this->span->end();
-
                     return $this->executeAsync_copy($command);
                 ',
             );
