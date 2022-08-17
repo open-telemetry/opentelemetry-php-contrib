@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Debug;
 
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
 use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
@@ -33,17 +34,18 @@ class TraceableSpanProcessorTest extends TestCase
     public function testForwardsOnStart()
     {
         $readWriteSpan = $this->createMock(ReadWriteSpanInterface::class);
+        $context = Context::getRoot();
 
         $spanProcessor = $this->createMock(SpanProcessorInterface::class);
         $spanProcessor
             ->expects($this->once())
             ->method('onStart')
-            ->with($readWriteSpan, null)
+            ->with($readWriteSpan, $context)
         ;
 
         $dataCollector = $this->createMock(OtelDataCollector::class);
         $this->assertEquals(0, count($dataCollector->collectedSpans));
-        (new TraceableSpanProcessor($spanProcessor, $dataCollector))->onStart($readWriteSpan, null);
+        (new TraceableSpanProcessor($spanProcessor, $dataCollector))->onStart($readWriteSpan, $context);
         $this->assertEquals(1, count($dataCollector->collectedSpans));
     }
 
