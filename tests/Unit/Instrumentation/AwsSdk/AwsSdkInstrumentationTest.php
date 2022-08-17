@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Instrumentation\AwsSdk;
 
+use DG\BypassFinals;
 use OpenTelemetry\API\Trace\TracerInterface;
-use OpenTelemetry\Aws\Xray\IdGenerator;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
-use DG\BypassFinals;
 
 class AwsSdkInstrumentationTest extends TestCase
 {
