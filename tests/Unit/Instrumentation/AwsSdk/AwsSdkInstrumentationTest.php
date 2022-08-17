@@ -15,6 +15,18 @@ use PHPUnit\Framework\TestCase;
 
 class AwsSdkInstrumentationTest extends TestCase
 {
+    private TracerProvider $tracerProvider;
+    private AwsSdkInstrumentation $awsSdkInstrumentation;
+
+    protected function setUp(): void
+    {
+        $spanProcessor = new SimpleSpanProcessor(new ConsoleSpanExporter());
+        $this->tracerProvider = new TracerProvider([$spanProcessor], null, null, null, new IdGenerator());
+
+        $this->awsSdkInstrumentation = new AwsSdkInstrumentation();
+        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
+    }
+
     public function testInstrumentationClassName()
     {
         $this->assertEquals(
@@ -53,55 +65,42 @@ class AwsSdkInstrumentationTest extends TestCase
 
     public function testGetXrayPropagator()
     {
-        $awsSdkInstrumentation = new AwsSdkInstrumentation();
         $propagator = new Propagator();
-        $awsSdkInstrumentation->setPropagator($propagator);
+        $this->awsSdkInstrumentation->setPropagator($propagator);
 
         $this->assertSame(
-            $awsSdkInstrumentation->getPropagator(),
+            $this->awsSdkInstrumentation->getPropagator(),
             $propagator
         );
     }
 
     public function testSetTracerProvider()
     {
-        $spanProcessor = new SimpleSpanProcessor(new ConsoleSpanExporter());
-        $tracerProvider = new TracerProvider([$spanProcessor], null, null, null, new IdGenerator());
-
-        $awsSdkInstrumentation = new AwsSdkInstrumentation();
-        $awsSdkInstrumentation->setTracerProvider($tracerProvider);
+        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
 
         $this->assertInstanceOf(
             TracerProvider::class,
-            $tracerProvider
+            $this->tracerProvider
         );
     }
 
     public function testGetTracerProvider()
     {
-        $spanProcessor = new SimpleSpanProcessor(new ConsoleSpanExporter());
-        $tracerProvider = new TracerProvider([$spanProcessor], null, null, null, new IdGenerator());
-
-        $awsSdkInstrumentation = new AwsSdkInstrumentation();
-        $awsSdkInstrumentation->setTracerProvider($tracerProvider);
+        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
 
         $this->assertSame(
-            $awsSdkInstrumentation->getTracerProvider(),
-            $tracerProvider
+            $this->awsSdkInstrumentation->getTracerProvider(),
+            $this->tracerProvider
         );
     }
 
     public function testGetTracer()
     {
-        $spanProcessor = new SimpleSpanProcessor(new ConsoleSpanExporter());
-        $tracerProvider = new TracerProvider([$spanProcessor], null, null, null, new IdGenerator());
-
-        $awsSdkInstrumentation = new AwsSdkInstrumentation();
-        $awsSdkInstrumentation->setTracerProvider($tracerProvider);
+        $this->awsSdkInstrumentation->setTracerProvider($this->tracerProvider);
 
         $this->assertInstanceOf(
             TracerInterface::class,
-            $awsSdkInstrumentation->getTracer()
+            $this->awsSdkInstrumentation->getTracer()
         );
     }
 
