@@ -79,11 +79,12 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     public function activate(): bool
     {
         AwsGlobal::setInstrumentation($this);
-        register_shutdown_function([$this, 'endRootSpan']);
 
         try {
             $this->root = $this->getTracer()->spanBuilder('AwsSDKInstrumentation')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
             $this->root->activate();
+
+            register_shutdown_function([$this, 'endRootSpan']);
 
             runkit7_method_copy('Aws\AwsClient', '__call_copy', 'Aws\AwsClient', '__call');
             runkit7_method_copy('Aws\AwsClient', 'executeAsync_copy', 'Aws\AwsClient', 'executeAsync');
