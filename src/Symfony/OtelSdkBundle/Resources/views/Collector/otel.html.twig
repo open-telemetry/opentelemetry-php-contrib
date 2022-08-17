@@ -29,7 +29,7 @@
             {% if collector.data.exporter is defined %}
                 <div class="sf-toolbar-info-piece">
                     <b>Exporter</b>
-                    <span>{{ collector.data.exporter.class }}</span>
+                    <span>{{ collector.data.exporter is null ? 'Any exporter configured' : collector.data.exporter.class }}</span>
                 </div>
             {% endif %}
         {% endif %}
@@ -71,9 +71,14 @@
                 <span class="value"><a href="{{ collector.data.span_processor.file|file_link(0) }}" title="{{ collector.data.span_processor.file }}">{{ collector.data.span_processor.class }}</a></span>
                 <span class="label">Span processor</span>
             </div>
-            {% if collector.data.exporter is defined %}
+            {% if collector.data.exporter is defined and not collector.data.exporter is null%}
                 <div class="metric">
                     <span class="value"><a href="{{ collector.data.exporter.file|file_link(0) }}" title="{{ collector.data.exporter.file }}">{{ collector.data.exporter.class }}</a></span>
+                    <span class="label">Exporter</span>
+                </div>
+            {% elseif collector.data.exporter is null %}
+                <div class="metric">
+                    <span class="value">Any exporter configured</span>
                     <span class="label">Exporter</span>
                 </div>
             {% endif %}

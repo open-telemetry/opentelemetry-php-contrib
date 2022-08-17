@@ -80,8 +80,13 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
         $this->tracerProvider = $tracerProvider;
     }
 
-    public function setExporterData(SpanExporterInterface $exporter): void
+    public function setExporterData(?SpanExporterInterface $exporter): void
     {
+        if (null === $exporter) {
+            $this->data['exporter'] = null;
+
+            return;
+        }
         $this->data['exporter'] = $this->getClassLocation(get_class($exporter));
         //Add directory to exporter class because all exporter are named "Exporter"
         $this->data['exporter']['class'] = str_replace('.php', '', implode('/', array_slice(explode('/', $this->data['exporter']['file']), -2, 2, true)));

@@ -20,10 +20,12 @@ class TraceableSpanProcessor implements SpanProcessorInterface
         $this->spanProcessor = $spanProcessor;
         $this->dataCollector = $dataCollector;
 
-        $reflectedTracer = new \ReflectionClass($this->spanProcessor);
-        $exporter = $reflectedTracer->getProperty('exporter');
-        $exporter->setAccessible(true);
-        $this->dataCollector->setExporterData($exporter->getValue($this->spanProcessor));
+        $reflectedSpanProcessor = new \ReflectionClass($this->spanProcessor);
+        if (true === $reflectedSpanProcessor->hasProperty('exporter')) {
+            $exporter = $reflectedSpanProcessor->getProperty('exporter');
+            $exporter->setAccessible(true);
+            $this->dataCollector->setExporterData($exporter->getValue($this->spanProcessor));
+        }
     }
 
     public function onStart(ReadWriteSpanInterface $span, ?Context $parentContext = null): void

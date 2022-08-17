@@ -6,19 +6,23 @@ namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Debug;
 
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\SDK\Trace\Tracer;
 use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
 use OpenTelemetry\Symfony\OtelSdkBundle\Debug\TraceableTracer;
 use PHPUnit\Framework\TestCase;
 
 class TraceableTracerTest extends TestCase
 {
-    public function testForwardsSpanBuilder()
+    /**
+     * @dataProvider spanNameDataProvider
+     */
+    public function testForwardsSpanBuilder(string $spanName, string $expectedSpanName): void
     {
         $tracer = $this->createMock(TracerInterface::class);
         $tracer
             ->expects($this->once())
             ->method('spanBuilder')
-            ->with('spanName')
+            ->with($expectedSpanName)
             ->willReturn($this->createMock(SpanBuilderInterface::class));
 
         $dataCollector = $this->createMock(OtelDataCollector::class);
@@ -27,6 +31,16 @@ class TraceableTracerTest extends TestCase
             ->method('setTracer')
             ->with($tracer)
         ;
-        $this->assertInstanceOf(SpanBuilderInterface::class, (new TraceableTracer($tracer, $dataCollector))->spanBuilder('spanName'));
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @phpstan-ignore-next-line
+         */
+        $this->assertInstanceOf(SpanBuilderInterface::class, (new TraceableTracer($tracer, $dataCollector))->spanBuilder($spanName));
+    }
+
+    public function spanNameDataProvider(): iterable
+    {
+        yield 'whitespace span name' => [' ', Tracer::FALLBACK_SPAN_NAME];
+        yield 'non-empty span name' => ['spanName', 'spanName'];
     }
 }
