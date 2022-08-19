@@ -6,7 +6,6 @@ namespace OpenTelemetry\Instrumentation\AwsSdk;
 
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
@@ -24,7 +23,6 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     public const SPAN_KIND = SpanKind::KIND_CLIENT;
     private TextMapPropagatorInterface $propagator;
     private TracerProviderInterface $tracerProvider;
-    private SpanInterface $root;
 
     public function getName(): string
     {
@@ -71,22 +69,11 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
     }
 
-    public function endRootSpan($rootScope)
-    {
-        $rootScope->detach();
-        $this->root->end();
-    }
-
     public function activate(): bool
     {
         AwsGlobal::setInstrumentation($this);
 
         try {
-            $this->root = $this->getTracer()->spanBuilder('AwsSDKInstrumentation')->setSpanKind(SpanKind::KIND_CLIENT)->startSpan();
-            $rootScope = $this->root->activate();
-
-            register_shutdown_function([$this, 'endRootSpan'], $rootScope);
-
             runkit7_method_copy('Aws\AwsClient', '__call_copy', 'Aws\AwsClient', '__call');
             runkit7_method_copy('Aws\AwsClient', 'executeAsync_copy', 'Aws\AwsClient', 'executeAsync');
 
@@ -109,6 +96,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                     "rpc.method" => $name,
                     "rpc.service" => $this->getApi()->getServiceName(),
                     "rpc.system" => "aws-api",
+                    "aws.region" => $this->getRegion()
                 ]);
                 
                 return $this->__call_copy($name, $args);
