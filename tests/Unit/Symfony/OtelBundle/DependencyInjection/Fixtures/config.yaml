@@ -1,8 +1,9 @@
 otel:
   tracing:
-    kernel:
-      requestHeaders:
-        - Content-Length
-        - date
-      responseHeaders:
-        - link
+    http:
+      server:
+        requestHeaders:
+          - Content-Length
+          - date
+        responseHeaders:
+          - link

@@ -80,27 +80,31 @@ final class OtelExtensionTest extends AbstractExtensionTestCase
     {
         $this->load([
             'tracing' => [
-                'kernel' => [
-                    'requestHeaders' => ['a', 'b'],
+                'http' => [
+                    'server' => [
+                        'requestHeaders' => ['a', 'b'],
+                    ],
                 ],
             ],
         ]);
 
-        $this->assertContainerBuilderHasServiceDefinitionWithArgument(RequestListener::class, '$requestHeaders', ['a', 'b']);
-        $this->assertContainerBuilderHasServiceDefinitionWithArgument(RequestListener::class, '$responseHeaders', []);
+        $this->assertContainerBuilderHasParameter('otel.tracing.http.server.request_headers', ['a', 'b']);
+        $this->assertContainerBuilderHasParameter('otel.tracing.http.server.response_headers', []);
     }
 
     public function testResponseHeadersSetsHeadersToExtract(): void
     {
         $this->load([
             'tracing' => [
-                'kernel' => [
-                    'responseHeaders' => ['a', 'b'],
+                'http' => [
+                    'server' => [
+                        'responseHeaders' => ['a', 'b'],
+                    ],
                 ],
             ],
         ]);
 
-        $this->assertContainerBuilderHasServiceDefinitionWithArgument(RequestListener::class, '$requestHeaders', []);
-        $this->assertContainerBuilderHasServiceDefinitionWithArgument(RequestListener::class, '$responseHeaders', ['a', 'b']);
+        $this->assertContainerBuilderHasParameter('otel.tracing.http.server.request_headers', []);
+        $this->assertContainerBuilderHasParameter('otel.tracing.http.server.response_headers', ['a', 'b']);
     }
 }

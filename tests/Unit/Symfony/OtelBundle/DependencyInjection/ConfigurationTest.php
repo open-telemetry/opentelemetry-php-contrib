@@ -32,16 +32,20 @@ final class ConfigurationTest extends AbstractExtensionConfigurationTestCase
     {
         $expectedConfiguration = [
             'tracing' => [
+                'http' => [
+                    'server' => [
+                        'requestHeaders' => [
+                            'Content-Length',
+                            'date',
+                        ],
+                        'responseHeaders' => [
+                            'link',
+                        ],
+                    ],
+                ],
                 'kernel' => [
                     'enabled' => true,
                     'extractRemoteContext' => true,
-                    'requestHeaders' => [
-                        'Content-Length',
-                        'date',
-                    ],
-                    'responseHeaders' => [
-                        'link',
-                    ],
                 ],
             ],
         ];

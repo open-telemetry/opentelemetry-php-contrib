@@ -22,6 +22,9 @@ final class OtelExtension extends Extension
         $loader = new PhpFileLoader($container, new FileLocator());
         $loader->load(__DIR__ . '/../Resources/services.php');
 
+        $container->setParameter('otel.tracing.http.server.request_headers', $config['tracing']['http']['server']['requestHeaders']);
+        $container->setParameter('otel.tracing.http.server.response_headers', $config['tracing']['http']['server']['responseHeaders']);
+
         if ($config['tracing']['kernel']['enabled'] ?? false) {
             $loader->load(__DIR__ . '/../Resources/services_kernel.php');
             $this->loadKernelTracing($config['tracing']['kernel'], $container);
@@ -30,11 +33,6 @@ final class OtelExtension extends Extension
 
     private function loadKernelTracing(array $config, ContainerBuilder $container): void
     {
-        $container->getDefinition(RequestListener::class)
-            ->setArgument('$requestHeaders', $config['requestHeaders'])
-            ->setArgument('$responseHeaders', $config['responseHeaders'])
-        ;
-
         if (!$config['extractRemoteContext']) {
             $container->getDefinition(RequestListener::class)
                 ->setArgument('$propagator', new Reference(NoopTextMapPropagator::class))

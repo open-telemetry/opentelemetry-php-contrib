@@ -26,6 +26,8 @@ final class Configuration implements ConfigurationInterface
                 ->arrayNode('tracing')
                 ->addDefaultsIfNotSet();
 
+        $tracing->children()->append($this->httpTracingNode());
+
         if (class_exists(HttpKernel::class)) {
             $tracing->children()->append($this->kernelTracingNode());
         }
@@ -33,26 +35,45 @@ final class Configuration implements ConfigurationInterface
         return $builder;
     }
 
-    private function kernelTracingNode(): NodeDefinition
+    private function httpTracingNode(): NodeDefinition
     {
-        ($kernel = new ArrayNodeDefinition('kernel'))
+        return (new ArrayNodeDefinition('http'))
             ->addDefaultsIfNotSet()
-            ->canBeDisabled()
-            ->fixXmlConfig('requestHeader')
-            ->fixXmlConfig('responseHeader')
             ->children()
-                ->booleanNode('extractRemoteContext')->defaultTrue()->end()
-                ->arrayNode('requestHeaders')
-                    ->beforeNormalization()->castToArray()->end()
-                    ->scalarPrototype()->cannotBeEmpty()->end()
-                ->end()
-                ->arrayNode('responseHeaders')
-                    ->beforeNormalization()->castToArray()->end()
-                    ->scalarPrototype()->cannotBeEmpty()->end()
+                ->arrayNode('server')
+                    ->addDefaultsIfNotSet()
+                    ->fixXmlConfig('requestHeader')
+                    ->fixXmlConfig('responseHeader')
+                    ->children()
+                        ->arrayNode('requestHeaders')
+                            ->info('Request headers to capture as span attributes.')
+                            ->example(['Content-Type', 'X-Forwarded-For'])
+                            ->beforeNormalization()->castToArray()->end()
+                            ->scalarPrototype()->cannotBeEmpty()->end()
+                        ->end()
+                        ->arrayNode('responseHeaders')
+                            ->info('Response headers to capture as span attributes.')
+                            ->example(['Content-Type'])
+                            ->beforeNormalization()->castToArray()->end()
+                            ->scalarPrototype()->cannotBeEmpty()->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end()
         ;
+    }
 
-        return $kernel;
+    private function kernelTracingNode(): NodeDefinition
+    {
+        return (new ArrayNodeDefinition('kernel'))
+            ->addDefaultsIfNotSet()
+            ->canBeDisabled()
+            ->children()
+                ->booleanNode('extractRemoteContext')
+                    ->info('Set to `false` if the kernel runs in a runtime that extracts the remote context before passing the request to the kernel.')
+                    ->defaultTrue()
+                ->end()
+            ->end()
+        ;
     }
 }

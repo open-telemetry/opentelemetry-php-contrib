@@ -13,5 +13,7 @@ return function (ContainerConfigurator $configurator): void {
         ->autoconfigure()
         ->arg('$tracerProvider', service(TracerProviderInterface::class))
         ->arg('$propagator', service(TextMapPropagatorInterface::class))
+        ->arg('$requestHeaders', param('otel.tracing.http.server.request_headers'))
+        ->arg('$responseHeaders', param('otel.tracing.http.server.response_headers'))
     ;
 };
