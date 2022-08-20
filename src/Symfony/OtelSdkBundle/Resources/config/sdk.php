@@ -14,7 +14,6 @@ use OpenTelemetry\SDK\Trace\Sampler;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Ids;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Tracer;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
@@ -117,13 +116,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $containerConfigurator->services()->alias(API\Trace\TracerProviderInterface::class, Trace\TracerProvider::class);
     $containerConfigurator->services()->alias(SDK\Trace\TracerProviderInterface::class, Trace\TracerProvider::class);
-
-    $helper->setService(Trace\Tracer::class)
-        ->factory([
-            ConfigHelper::createReferenceFromClass(Trace\TracerProvider::class),
-            'getTracer',
-        ])
-        ->args([Tracer::DEFAULT_KEY]);
 
     /**
      * @codeCoverageIgnoreEnd
