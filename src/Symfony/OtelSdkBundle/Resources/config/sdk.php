@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
+use OpenTelemetry\API;
+use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
@@ -112,6 +114,9 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             ConfigHelper::createReferenceFromClass(Trace\SpanLimits::class),
             ConfigHelper::createReferenceFromClass(Trace\RandomIdGenerator::class),
         ]);
+
+    $containerConfigurator->services()->alias(API\Trace\TracerProviderInterface::class, Trace\TracerProvider::class);
+    $containerConfigurator->services()->alias(SDK\Trace\TracerProviderInterface::class, Trace\TracerProvider::class);
 
     $helper->setService(Trace\Tracer::class)
         ->factory([
