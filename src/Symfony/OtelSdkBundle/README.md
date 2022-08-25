@@ -199,28 +199,31 @@ So our Listener class could look like this:
 namespace App\EventSubscriber;
 
 use OpenTelemetry\API\Trace\SpanInterface;
-use OpenTelemetry\SDK\Trace\Tracer;
+use OpenTelemetry\SDK\Trace\TracerProvider;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 class TracingKernelSubscriber implements EventSubscriberInterface
 {
-    private Tracer $tracer;
+    private TracerProvider $provider;
     private ?SpanInterface $mainSpan = null;
 
-    public function __construct(Tracer $tracer)
+    public function __construct(TracerProvider $provider)
     {
-        // store a reference to the Tracer instance in case we want to create
+        // store a reference to the TracerProvider in case we want to create
         // more spans on different events (not covered in this example)
-        $this->tracer = $tracer;
+        $this->provider = $provider;
     }
 
     public function onRequestEvent(RequestEvent $event)
     {
         // Create our main span and activate it
-        $this->mainSpan = $this->tracer->spanBuilder('main')->startSpan();
+        $this->mainSpan = $this->provider
+            ->getTracer('io.opentelemetry.contrib.php')
+            ->spanBuilder('main')
+            ->startSpan();
         $this->mainSpan->activate();
     }
 
@@ -233,11 +236,11 @@ class TracingKernelSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         // return the subscribed events, their methods and priorities
-        // use a very high integer for the Request priority and a 
+        // use a very high integer for the Request priority and a
         // very low negative integer for the Terminate priority, so the listener
         // will be the first and last one to be called respectively.
         return [
-            KernelEvents::TERMINATE => [['onRequestEvent', 10000]],
+            KernelEvents::REQUEST => [['onRequestEvent', 10000]],
             KernelEvents::TERMINATE => [['onTerminateEvent', -10000]],
         ];
     }

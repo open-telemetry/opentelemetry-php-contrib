@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
-use OpenTelemetry\SDK\Common\Attribute\AttributeLimits;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Configuration as Conf;
@@ -97,13 +96,11 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         if (empty($config)) {
             return;
         }
-        // configure resource attribute limits
-        $limits = $this->getDefinitionByClass(AttributeLimits::class);
+        // configure resource attributes limits
         if (isset($config[Conf::LIMITS_NODE])) {
-            $limits->setArguments([
-                $config[Conf::LIMITS_NODE][Conf::ATTR_COUNT_NODE],
-                $config[Conf::LIMITS_NODE][Conf::ATTR_VALUE_LENGTH_NODE],
-            ]);
+            $this->getDefinitionByClass(Trace\SpanLimitsBuilder::class)
+                ->addMethodCall('setAttributeCountLimit', [$config[Conf::LIMITS_NODE][Conf::ATTR_COUNT_NODE]])
+                ->addMethodCall('setAttributeValueLengthLimit', [$config[Conf::LIMITS_NODE][Conf::ATTR_VALUE_LENGTH_NODE]]);
         }
         // configure resource attributes
         $attributesParams = (array) $this->getContainer()->getParameter(Parameters::RESOURCE_ATTRIBUTES);
@@ -115,7 +112,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         $attributes = $this->getDefinitionByClass(Attributes::class);
         $attributes->setArguments([
             '%' . Parameters::RESOURCE_ATTRIBUTES . '%',
-            self::createReferenceFromClass(AttributeLimits::class),
+            0,
         ]);
 
         // reference service name for later use
@@ -403,7 +400,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     {
         if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTERS_NODE_VALUES, true)) {
             return ConfigMappings::SPAN_EXPORTERS[
-                $config[Conf::TYPE_NODE]
+            $config[Conf::TYPE_NODE]
             ];
         }
         if ($config[Conf::TYPE_NODE] === Conf::CUSTOM_TYPE) {
