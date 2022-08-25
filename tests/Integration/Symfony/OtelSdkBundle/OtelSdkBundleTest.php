@@ -194,9 +194,6 @@ class OtelSdkBundleTest extends TestCase
      */
     public function testTracingWithAlwaysOffSampler(): void
     {
-        $this->markTestSkipped('Requires BatchSpanProcessor update to not force-flush empty batch.');
-
-        /** @phpstan-ignore-next-line */
         $this->load(
             self::wrapConfig([
                 'resource' => [
