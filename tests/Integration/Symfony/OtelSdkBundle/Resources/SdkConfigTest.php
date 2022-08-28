@@ -97,8 +97,6 @@ class SdkConfigTest extends TestCase
     {
         $this->assertServiceSetup(Trace\SpanLimitsBuilder::class);
         $this->assertServiceSetup(Trace\SpanLimits::class);
-        $this->assertServiceSetup(SpanProcessor\SimpleSpanProcessor::class);
-        $this->assertServiceSetup(SpanProcessor\BatchSpanProcessor::class);
         $this->assertServiceSetup(SpanProcessor\NoopSpanProcessor::class);
         $this->assertServiceSetup(SpanProcessor\MultiSpanProcessor::class);
     }

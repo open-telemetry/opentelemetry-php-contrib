@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
 
+use OpenTelemetry\API;
+use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
@@ -12,7 +14,6 @@ use OpenTelemetry\SDK\Trace\Sampler;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Ids;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Tracer;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
@@ -113,12 +114,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             ConfigHelper::createReferenceFromClass(Trace\RandomIdGenerator::class),
         ]);
 
-    $helper->setService(Trace\Tracer::class)
-        ->factory([
-            ConfigHelper::createReferenceFromClass(Trace\TracerProvider::class),
-            'getTracer',
-        ])
-        ->args([Tracer::DEFAULT_KEY]);
+    $containerConfigurator->services()->alias(API\Trace\TracerProviderInterface::class, Trace\TracerProvider::class);
+    $containerConfigurator->services()->alias(SDK\Trace\TracerProviderInterface::class, Trace\TracerProvider::class);
 
     /**
      * @codeCoverageIgnoreEnd

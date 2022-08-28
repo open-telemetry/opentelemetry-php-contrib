@@ -1,0 +1,13 @@
+<container xmlns="http://symfony.com/schema/dic/services" xmlns:otel="http://example.org/schema/dic/otel">
+    <otel:config>
+        <otel:tracing>
+            <otel:http>
+                <otel:server>
+                    <otel:requestHeader>Content-Length</otel:requestHeader>
+                    <otel:requestHeader>date</otel:requestHeader>
+                    <otel:responseHeader>link</otel:responseHeader>
+                </otel:server>
+            </otel:http>
+        </otel:tracing>
+    </otel:config>
+</container>

@@ -1,0 +1,9 @@
+otel:
+  tracing:
+    http:
+      server:
+        requestHeaders:
+          - Content-Length
+          - date
+        responseHeaders:
+          - link

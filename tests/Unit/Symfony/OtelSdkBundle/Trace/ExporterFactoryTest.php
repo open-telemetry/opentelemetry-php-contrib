@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Trace;
 
 use OpenTelemetry\Contrib;
+use OpenTelemetry\SDK\Common\Future\CancellationInterface;
+use OpenTelemetry\SDK\Common\Future\CompletedFuture;
+use OpenTelemetry\SDK\Common\Future\FutureInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use PHPUnit\Framework\TestCase;
@@ -223,17 +226,17 @@ class TestExporter implements SpanExporterInterface
     {
     }
 
-    public function export(iterable $spans): int
+    public function export(iterable $spans, ?CancellationInterface $cancellation = null): FutureInterface
     {
-        return 1;
+        return new CompletedFuture(1);
     }
 
-    public function shutdown(): bool
+    public function shutdown(?CancellationInterface $cancellation = null): bool
     {
         return true;
     }
 
-    public function forceFlush(): bool
+    public function forceFlush(?CancellationInterface $cancellation = null): bool
     {
         return true;
     }

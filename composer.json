@@ -14,11 +14,12 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "open-telemetry/opentelemetry": "^0.0.13",
+        "open-telemetry/opentelemetry": "^0.0.15",
         "php-http/discovery": "^1.14",
         "php-http/message": "^1.12"
     },
     "replace": {
+        "open-telemetry/contrib-symfony-instrumentation-bundle": "self.version",
         "open-telemetry/contrib-sdk-bundle": "self.version",
         "open-telemetry/contrib-aws": "self.version"
     },
@@ -39,6 +40,7 @@
         "guzzlehttp/guzzle": "^7.3",
         "guzzlehttp/psr7": "^2.0@RC",
         "kriswallsmith/buzz": "^1.2",
+        "matthiasnoback/symfony-dependency-injection-test": "^4.3",
         "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.4",
         "open-telemetry/dev-tools": "dev-main",
@@ -48,6 +50,7 @@
         "phpstan/phpstan-symfony": "^1.1",
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-phpunit": "^0.13.0",
+        "qossmic/deptrac-shim": "^0.22.1",
         "symfony/config": "^4.4|^5.0|^6.0",
         "symfony/http-client": "^5.3",
         "symfony/http-kernel": "^4.4|^5.3|^6.0",
@@ -55,7 +58,6 @@
         "symfony/polyfill-php80": "^1.16",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
-        "qossmic/deptrac-shim": "^0.22.1",
         "vimeo/psalm": "^4.0"
     },
     "suggest": {
