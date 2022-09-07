@@ -11,6 +11,8 @@ use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
+use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\Context\ScopeInterface;
 
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
@@ -28,6 +30,11 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     private TextMapPropagatorInterface $propagator;
     private TracerProviderInterface $tracerProvider;
     private $clients = [] ;
+    private String $clientName;
+    private String $region;
+    private SpanInterface $span;
+    private ScopeInterface $scope;
+
 
     public function getName(): string
     {
