@@ -8,14 +8,14 @@ use Aws\Middleware;
 use Aws\ResultInterface;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
-use OpenTelemetry\API\Trace\SpanInterface;
-use OpenTelemetry\Context\ScopeInterface;
-
 use OpenTelemetry\Context\Context;
+
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
+use OpenTelemetry\Context\ScopeInterface;
 
 /**
  * @experimental
@@ -34,7 +34,6 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     private String $region;
     private SpanInterface $span;
     private ScopeInterface $scope;
-
 
     public function getName(): string
     {
