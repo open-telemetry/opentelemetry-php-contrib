@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Instrumentation\AwsSdk;
 
+use Aws\Middleware;
+use Aws\ResultInterface;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
+
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 
 /**
@@ -23,6 +27,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     public const SPAN_KIND = SpanKind::KIND_CLIENT;
     private TextMapPropagatorInterface $propagator;
     private TracerProviderInterface $tracerProvider;
+    private $clients = [] ;
 
     public function getName(): string
     {
@@ -69,52 +74,56 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
     }
 
+    public function getContext():Context
+    {
+        return Context::getRoot();
+    }
+
+    public function instrumentClients($clientsArray) : void
+    {
+        $this->clients = $clientsArray;
+    }
+
     public function activate(): bool
     {
-        AwsGlobal::setInstrumentation($this);
-
         try {
-            runkit7_method_copy('Aws\AwsClient', '__call_copy', 'Aws\AwsClient', '__call');
-            runkit7_method_copy('Aws\AwsClient', 'executeAsync_copy', 'Aws\AwsClient', 'executeAsync');
+            $middleware = Middleware::tap(function ($cmd, $req) {
+                $tracer = $this->getTracer();
+                $propagator = $this->getPropagator();
 
-            runkit7_method_redefine(
-                'Aws\AwsClient',
-                '__call',
-                '$name, $args',
-                '   
-                
-                $tracer = \OpenTelemetry\Instrumentation\AwsSdk\AwsGlobal::getInstrumentation()->getTracer();
                 $carrier = [];
-                
-                $this->span = $tracer->spanBuilder($this->getApi()->getServiceName() . "." . $name)->setSpanKind(\OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation::SPAN_KIND)->startSpan();
-                $this->scope = $this->span->activate();
-                
-                $propagator = \OpenTelemetry\Instrumentation\AwsSdk\AwsGlobal::getInstrumentation()->getPropagator();
-                $propagator->inject($carrier);
-                
-                $this->span->setAttributes([
-                    "rpc.method" => $name,
-                    "rpc.service" => $this->getApi()->getServiceName(),
-                    "rpc.system" => "aws-api",
-                    "aws.region" => $this->getRegion()
-                ]);
-                
-                return $this->__call_copy($name, $args);
-                    
-                
-                ',
-            );
 
-            runkit7_method_redefine(
-                'Aws\AwsClient',
-                'executeAsync',
-                '$command',
-                ' 
-                    $this->scope->detach();
-                    $this->span->end();
-                    return $this->executeAsync_copy($command);
-                ',
-            );
+                $this->span = $tracer->spanBuilder($this->clientName . '.' . $cmd->getName())->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
+                $this->scope = $this->span->activate();
+
+                $propagator->inject($carrier, null, $this->getContext());
+
+                $this->span->setAttributes([
+                    'rpc.method' => $cmd->getName(),
+                    'rpc.service' => $this->clientName,
+                    'rpc.system' => 'aws-api',
+                    'aws.region' => $this->region,
+                    ]);
+            });
+
+            $end_middleware = Middleware::mapResult(function (ResultInterface $result) {
+                $this->span->setAttributes([
+                    'http.status_code' => $result['@metadata']['statusCode'],
+                ]);
+
+                $this->span->end();
+                $this->scope->detach();
+
+                return $result;
+            });
+
+            foreach ($this->clients as $client) {
+                $this->clientName = $client->getApi()->getServiceName();
+                $this->region = $client->getRegion();
+
+                $client->getHandlerList()->prependInit($middleware, 'instrumentation');
+                $client->getHandlerList()->appendSign($end_middleware, 'end_instrumentation');
+            }
         } catch (\Throwable $e) {
             return false;
         }
