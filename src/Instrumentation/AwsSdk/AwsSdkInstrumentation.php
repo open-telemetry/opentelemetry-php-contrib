@@ -94,7 +94,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
                 $carrier = [];
                 /** @phan-suppress-next-line PhanTypeMismatchArgument */
-                $this->span = $tracer->spanBuilder($this->clientName)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
+                $this->span = $tracer->spanBuilder($this->clientName)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan(); //@phpstan-ignore-line
                 $this->scope = $this->span->activate();
 
                 $propagator->inject($carrier);
