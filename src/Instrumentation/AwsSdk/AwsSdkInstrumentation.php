@@ -30,8 +30,8 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     private TextMapPropagatorInterface $propagator;
     private TracerProviderInterface $tracerProvider;
     private $clients = [] ;
-    private String $clientName;
-    private String $region;
+    private string $clientName = 'awsClient';
+    private string $region;
     private SpanInterface $span;
     private ScopeInterface $scope;
 
@@ -80,16 +80,12 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
     }
 
-    public function getContext():Context
-    {
-        return Context::getRoot();
-    }
-
     public function instrumentClients($clientsArray) : void
     {
         $this->clients = $clientsArray;
     }
 
+    /** @psalm-suppress ArgumentTypeCoercion */
     public function activate(): bool
     {
         try {
@@ -98,11 +94,11 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                 $propagator = $this->getPropagator();
 
                 $carrier = [];
-
-                $this->span = $tracer->spanBuilder($this->clientName . '.' . $cmd->getName())->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
+                /** @phan-suppress-next-line PhanTypeMismatchArgument */
+                $this->span = $tracer->spanBuilder($this->clientName)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
                 $this->scope = $this->span->activate();
 
-                $propagator->inject($carrier, null, $this->getContext());
+                $propagator->inject($carrier);
 
                 $this->span->setAttributes([
                     'rpc.method' => $cmd->getName(),
