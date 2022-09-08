@@ -16,6 +16,7 @@
         "ext-json": "*",
         "open-telemetry/opentelemetry": "^0.0.15",
         "php-http/discovery": "^1.14",
+        "aws/aws-sdk-php": "^3.232",
         "php-http/message": "^1.12"
     },
     "replace": {

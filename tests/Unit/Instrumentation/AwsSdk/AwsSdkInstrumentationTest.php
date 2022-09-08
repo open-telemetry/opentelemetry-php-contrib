@@ -4,11 +4,23 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Test\Unit\Instrumentation\AwsSdk;
 
+use DG\BypassFinals;
+use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Instrumentation\AwsSdk\AwsSdkInstrumentation;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
 
 class AwsSdkInstrumentationTest extends TestCase
 {
+    private AwsSdkInstrumentation $awsSdkInstrumentation;
+
+    protected function setUp(): void
+    {
+        BypassFinals::enable();
+        $this->awsSdkInstrumentation = new AwsSdkInstrumentation();
+    }
+
     public function testInstrumentationClassName()
     {
         $this->assertEquals(
@@ -37,10 +49,44 @@ class AwsSdkInstrumentationTest extends TestCase
         );
     }
 
+    public function testGetXrayPropagator()
+    {
+        $propagator = new Propagator();
+        $this->awsSdkInstrumentation->setPropagator($propagator);
+
+        $this->assertSame(
+            $this->awsSdkInstrumentation->getPropagator(),
+            $propagator
+        );
+    }
+
+    public function testGetTracerProvider()
+    {
+        $tracerProvider = $this->createMock(TracerProviderInterface::class);
+        $this->awsSdkInstrumentation->setTracerProvider($tracerProvider);
+
+        $this->assertSame(
+            $this->awsSdkInstrumentation->getTracerProvider(),
+            $tracerProvider
+        );
+    }
+
+    public function testGetTracer()
+    {
+        $tracer = $this->createMock(TracerInterface::class);
+        $tracerProvider = $this->createMock(TracerProviderInterface::class);
+        $tracerProvider->expects($this->once())
+            ->method('getTracer')
+            ->willReturn($tracer);
+
+        $this->awsSdkInstrumentation->setTracerProvider($tracerProvider);
+        $this->assertSame($tracer, $this->awsSdkInstrumentation->getTracer());
+    }
+
     public function testInstrumentationActivated()
     {
         $this->assertTrue(
-            (new AwsSdkInstrumentation())->activate()
+            ($this->awsSdkInstrumentation)->activate()
         );
     }
 }
