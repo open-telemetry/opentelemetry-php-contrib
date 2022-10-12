@@ -9,6 +9,7 @@ use OpenTelemetry\API\Metrics\Noop\NoopMeterProvider;
 use OpenTelemetry\API\Trace\NoopTracerProvider;
 use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
+use OpenTelemetry\Symfony\OtelBundle\Console\ConsoleListener;
 use OpenTelemetry\Symfony\OtelBundle\DependencyInjection\OtelExtension;
 use OpenTelemetry\Symfony\OtelBundle\HttpKernel\RequestListener;
 use Symfony\Component\DependencyInjection\Reference;
@@ -23,6 +24,24 @@ final class OtelExtensionTest extends AbstractExtensionTestCase
         return [
             new OtelExtension(),
         ];
+    }
+
+    public function testEmptyConfigEnablesConsoleTracing(): void
+    {
+        $this->load();
+
+        $this->assertContainerBuilderHasService(ConsoleListener::class);
+    }
+
+    public function testConsoleTracingCanBeDisabled(): void
+    {
+        $this->load([
+            'tracing' => [
+                'console' => false,
+            ],
+        ]);
+
+        $this->assertContainerBuilderNotHasService(ConsoleListener::class);
     }
 
     public function testEmptyConfigEnablesKernelTracing(): void

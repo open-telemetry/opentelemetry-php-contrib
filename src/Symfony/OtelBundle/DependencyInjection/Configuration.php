@@ -9,6 +9,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Console\Application;
 use Symfony\Component\HttpKernel\HttpKernel;
 
 /**
@@ -28,6 +29,9 @@ final class Configuration implements ConfigurationInterface
 
         $tracing->children()->append($this->httpTracingNode());
 
+        if (class_exists(Application::class)) {
+            $tracing->children()->append($this->consoleTracingNode());
+        }
         if (class_exists(HttpKernel::class)) {
             $tracing->children()->append($this->kernelTracingNode());
         }
@@ -60,6 +64,13 @@ final class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
             ->end()
+        ;
+    }
+
+    private function consoleTracingNode(): NodeDefinition
+    {
+        return (new ArrayNodeDefinition('console'))
+            ->canBeDisabled()
         ;
     }
 
