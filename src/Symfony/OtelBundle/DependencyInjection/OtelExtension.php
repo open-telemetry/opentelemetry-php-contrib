@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class OtelExtension extends Extension
 {
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);
 
@@ -25,6 +25,9 @@ final class OtelExtension extends Extension
         $container->setParameter('otel.tracing.http.server.request_headers', $config['tracing']['http']['server']['requestHeaders']);
         $container->setParameter('otel.tracing.http.server.response_headers', $config['tracing']['http']['server']['responseHeaders']);
 
+        if ($config['tracing']['console']['enabled'] ?? false) {
+            $loader->load(__DIR__ . '/../Resources/services_console.php');
+        }
         if ($config['tracing']['kernel']['enabled'] ?? false) {
             $loader->load(__DIR__ . '/../Resources/services_kernel.php');
             $this->loadKernelTracing($config['tracing']['kernel'], $container);

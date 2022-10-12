@@ -43,6 +43,9 @@ final class ConfigurationTest extends AbstractExtensionConfigurationTestCase
                         ],
                     ],
                 ],
+                'console' => [
+                    'enabled' => true,
+                ],
                 'kernel' => [
                     'enabled' => true,
                     'extractRemoteContext' => true,
