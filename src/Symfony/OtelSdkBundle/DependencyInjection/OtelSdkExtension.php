@@ -32,7 +32,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     private const PROVIDER_ARG_PROCESSOR = 0;
     private const PROCESSOR_ARG_EXPORTER = 0;
     private const DEFAULT_SERVICE_NAME = 'SymfonyApplication';
-    private const DEV_ENVIRONNEMENT = 'dev';
+    private const DEV_ENVIRONMENT  = 'dev';
 
     private string $serviceName = self::DEFAULT_SERVICE_NAME;
     private ContainerBuilder $container;
@@ -437,7 +437,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         $this->getContainer()->setDefinition($id, $definition);
 
         $env  = $this->container->getParameter('kernel.environment');
-        if (self::DEV_ENVIRONNEMENT === $env) {
+        if (self::DEV_ENVIRONMENT  === $env) {
             $debugId = 'debug.open_telemetry.sdk.trace.span_processor.traceable';
             $this->getContainer()->getDefinition($debugId)
                 ->setArgument(
@@ -586,7 +586,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     private function loadDebugConfig(): void
     {
         $env = $this->container->getParameter('kernel.environment');
-        if (self::DEV_ENVIRONNEMENT !== $env) {
+        if (self::DEV_ENVIRONMENT  !== $env) {
             return;
         }
 

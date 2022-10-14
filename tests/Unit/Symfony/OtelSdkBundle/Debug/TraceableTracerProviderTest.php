@@ -8,6 +8,7 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\RandomIdGenerator;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOnSampler;
+use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanLimitsBuilder;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -55,7 +56,7 @@ class TraceableTracerProviderTest extends TestCase
     public function testForwardsGetTracer(): void
     {
         $tracerProvider = new TracerProvider(
-            [new SimpleSpanProcessor()],
+            [new SimpleSpanProcessor($this->createMock(SpanExporterInterface::class))],
             new AlwaysOnSampler(),
             ResourceInfoFactory::emptyResource(),
             (new SpanLimitsBuilder())->build(),

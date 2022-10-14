@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\DataCollector;
 
-use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
+use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
-use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 
-class OtelDataCollector extends DataCollector implements LateDataCollectorInterface
+class OtelDataCollector extends DataCollector implements LateDataCollectorInterface, InstrumentationInterface
 {
-    private ?TracerInterface $tracer = null;
-    private ?TracerProviderInterface $tracerProvider = null;
+    use InstrumentationTrait;
+
     public array $collectedSpans = [];
 
     public function reset(): void
@@ -70,23 +70,8 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
         ];
     }
 
-    public function setTracer(TracerInterface $tracer): void
+    public function setExporterData(SpanExporterInterface $exporter): void
     {
-        $this->tracer = $tracer;
-    }
-
-    public function setTracerProvider(TracerProviderInterface $tracerProvider): void
-    {
-        $this->tracerProvider = $tracerProvider;
-    }
-
-    public function setExporterData(?SpanExporterInterface $exporter): void
-    {
-        if (null === $exporter) {
-            $this->data['exporter'] = null;
-
-            return;
-        }
         $this->data['exporter'] = $this->getClassLocation(get_class($exporter));
         //Add directory to exporter class because all exporter are named "Exporter"
         $this->data['exporter']['class'] = str_replace('.php', '', implode('/', array_slice(explode('/', $this->data['exporter']['file']), -2, 2, true)));
@@ -94,12 +79,12 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
 
     private function loadDataFromTracerSharedState(): void
     {
-        $objectWithSharedState = $this->tracer ?? $this->tracerProvider ?? null;
-        if ($objectWithSharedState === null) {
+        $objectWithSharedState = $this->getTracerProvider();
+        $reflectedTracer = new \ReflectionClass($objectWithSharedState);
+        if (false === $reflectedTracer->hasProperty('tracerSharedState')) {
             return;
         }
 
-        $reflectedTracer = new \ReflectionClass($objectWithSharedState);
         $tss = $reflectedTracer->getProperty('tracerSharedState');
         $tss->setAccessible(true);
         $this->data['id_generator'] = $this->getClassLocation(get_class($tss->getValue($objectWithSharedState)->getIdGenerator()));
@@ -143,5 +128,20 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
             'links' => $spanData->getLinks(),
             'events' => $spanData->getEvents(),
         ];
+    }
+
+    public function getVersion() : ?string
+    {
+        return null;
+    }
+
+    public function getSchemaUrl() : ?string
+    {
+        return null;
+    }
+
+    public function init() : bool
+    {
+        return true;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Symfony\OtelSdkBundle\Debug;
 
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
 use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
@@ -28,7 +29,7 @@ class TraceableSpanProcessor implements SpanProcessorInterface
         }
     }
 
-    public function onStart(ReadWriteSpanInterface $span, ?Context $parentContext = null): void
+    public function onStart(ReadWriteSpanInterface $span, Context $parentContext): void
     {
         $this->dataCollector->collectedSpans[$span->getContext()->getSpanId()] = $span;
         $this->spanProcessor->onStart($span, $parentContext);
@@ -40,12 +41,12 @@ class TraceableSpanProcessor implements SpanProcessorInterface
         $this->dataCollector->collectedSpans[$span->getContext()->getSpanId()] = $span;
     }
 
-    public function forceFlush(): bool
+    public function forceFlush(?CancellationInterface $cancellation = null): bool
     {
         return $this->spanProcessor->forceFlush();
     }
 
-    public function shutdown(): bool
+    public function shutdown(CancellationInterface $cancellation = null): bool
     {
         return $this->spanProcessor->shutdown();
     }

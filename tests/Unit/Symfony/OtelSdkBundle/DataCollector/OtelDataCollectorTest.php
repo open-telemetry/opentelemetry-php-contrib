@@ -15,7 +15,6 @@ use OpenTelemetry\SDK\Trace\SpanBuilder;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanLimitsBuilder;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
-use OpenTelemetry\SDK\Trace\Tracer;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\TracerSharedState;
 use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
@@ -27,7 +26,7 @@ class OtelDataCollectorTest extends TestCase
     public function testReset(): void
     {
         $dataCollector = new OtelDataCollector();
-        $dataCollector->setExporterData(null);
+        $dataCollector->setExporterData($this->createMock(SpanExporterInterface::class));
         $this->assertEquals(1, count($dataCollector->getData()));
         $dataCollector->reset();
         $this->assertEquals(0, count($dataCollector->getData()));
@@ -51,7 +50,7 @@ class OtelDataCollectorTest extends TestCase
     /**
      * @dataProvider exporterDataProvider
      */
-    public function testSetExporterData(?SpanExporterInterface $spanExporter, ?array $expectedExporterData): void
+    public function testSetExporterData(SpanExporterInterface $spanExporter, ?array $expectedExporterData): void
     {
         $dataCollector = new OtelDataCollector();
         $dataCollector->setExporterData($spanExporter);
@@ -65,41 +64,10 @@ class OtelDataCollectorTest extends TestCase
         $this->assertEquals(['spans' => []], $dataCollector->getData());
     }
 
-    public function testLateCollectWithTracerSharedState(): void
-    {
-        $sharedState = new TracerSharedState(
-            new RandomIdGenerator(),
-            ResourceInfoFactory::emptyResource(),
-            (new SpanLimitsBuilder())->build(),
-            new AlwaysOnSampler(),
-            [new SimpleSpanProcessor()],
-        );
-
-        $tracer = new Tracer($sharedState, $this->createMock(InstrumentationScopeInterface::class));
-        $dataCollector = new OtelDataCollector();
-        $dataCollector->setTracer($tracer);
-        $dataCollector->lateCollect();
-        $this->assertEquals([], $dataCollector->getData()['spans']);
-        $this->assertEquals([
-            'class' => 'RandomIdGenerator',
-            'file' => (new \ReflectionClass(RandomIdGenerator::class))->getFileName(),
-        ], $dataCollector->getData()['id_generator']);
-        $this->assertEquals([
-            'class' => 'AlwaysOnSampler',
-            'file' => (new \ReflectionClass(AlwaysOnSampler::class))->getFileName(),
-        ], $dataCollector->getData()['sampler']);
-        $this->assertEquals([
-            'class' => 'SimpleSpanProcessor',
-            'file' => (new \ReflectionClass(SimpleSpanProcessor::class))->getFileName(),
-        ], $dataCollector->getData()['span_processor']);
-        $this->assertInstanceOf(Data::class, $dataCollector->getData()['resource_info_attributes']);
-        $this->assertInstanceOf(Data::class, $dataCollector->getData()['span_limits']);
-    }
-
     public function testLateCollectWithTracerProviderSharedState(): void
     {
         $tracerProvider = new TracerProvider(
-            [new SimpleSpanProcessor()],
+            [new SimpleSpanProcessor($this->createMock(SpanExporterInterface::class))],
             new AlwaysOnSampler(),
             ResourceInfoFactory::emptyResource(),
             (new SpanLimitsBuilder())->build(),
@@ -132,7 +100,7 @@ class OtelDataCollectorTest extends TestCase
             ResourceInfoFactory::emptyResource(),
             (new SpanLimitsBuilder())->build(),
             new AlwaysOnSampler(),
-            [new SimpleSpanProcessor()],
+            [new SimpleSpanProcessor($this->createMock(SpanExporterInterface::class))],
         );
         $span = (new SpanBuilder('test', $this->createMock(InstrumentationScopeInterface::class), $sharedState))->startSpan();
         $dataCollector = new OtelDataCollector();
@@ -145,7 +113,6 @@ class OtelDataCollectorTest extends TestCase
 
     public function exporterDataProvider(): iterable
     {
-        yield 'null exporter' => [null, null];
         yield 'Jaeger exporter' => [JaegerExporter::fromConnectionString('http://endpoint:1000', 'name'), [
                 'class' => 'Jaeger/Exporter',
                 'file' => (new \ReflectionClass(JaegerExporter::class))->getFileName(),

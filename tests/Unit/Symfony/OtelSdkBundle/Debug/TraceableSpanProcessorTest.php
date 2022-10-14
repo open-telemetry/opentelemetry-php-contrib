@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Test\Unit\Symfony\OtelSdkBundle\Debug;
 
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\SDK\Common\Time\ClockInterface;
 use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
 use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
@@ -95,9 +96,7 @@ class TraceableSpanProcessorTest extends TestCase
     public function spanProcessorWithExporterDataProvider(): iterable
     {
         $spanExporter = $this->createMock(SpanExporterInterface::class);
-        yield 'simple span processor without exporter' => [new SimpleSpanProcessor(), null];
         yield 'simple span processor with Span Exporter' => [new SimpleSpanProcessor($spanExporter), $spanExporter];
-        yield 'batch span processor without exporter' => [new BatchSpanProcessor(null), null];
-        yield 'batch span processor with Span Exporter' => [new BatchSpanProcessor($spanExporter), $spanExporter];
+        yield 'batch span processor with Span Exporter' => [new BatchSpanProcessor($spanExporter, $this->createMock(ClockInterface::class)), $spanExporter];
     }
 }
