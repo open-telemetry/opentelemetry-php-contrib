@@ -104,6 +104,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     );
 
     // TRACER
+    $helper->setAlias(Trace\TracerProviderInterface::class, 'open_telemetry.sdk.trace.tracer_provider', );
 
     $helper->setService(Trace\TracerProvider::class)
         ->args([
