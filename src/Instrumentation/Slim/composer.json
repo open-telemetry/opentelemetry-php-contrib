@@ -1,0 +1,24 @@
+{
+  "name": "open-telemetry/opentelemetry-auto-slim",
+  "description": "OpenTelemetry auto-instrumentation for Slim Framework.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "slim", "instrumentation"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^8.0",
+    "ext-otel_instrumentation": "*",
+    "open-telemetry/api": "dev-main",
+    "slim/slim": "^4"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\Slim\\": "src/"
+    },
+    "files": [
+      "src/_register.php"
+    ]
+  }
+}
