@@ -1,15 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Instrumentation\Psr15;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use function OpenTelemetry\Instrumentation\hook;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Throwable;
-use function OpenTelemetry\Instrumentation\hook;
 
 class Psr15Instrumentation
 {

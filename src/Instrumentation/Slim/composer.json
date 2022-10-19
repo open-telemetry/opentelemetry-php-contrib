@@ -18,7 +18,7 @@
       "OpenTelemetry\\Contrib\\Instrumentation\\Slim\\": "src/"
     },
     "files": [
-      "src/_register.php"
+      "_register.php"
     ]
   }
 }
