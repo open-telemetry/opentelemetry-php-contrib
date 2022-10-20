@@ -16,6 +16,8 @@ jobs:
         operating-system: [ubuntu-latest]
         php-version: ['7.4', '8.0', '8.1']
         project: ['Aws', 'Symfony']
+    # todo exclude some matrix combinations based on php version requirements
+    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#excluding-matrix-configurations
 
     steps:
     - uses: actions/checkout@v2
