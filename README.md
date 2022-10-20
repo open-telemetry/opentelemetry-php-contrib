@@ -24,14 +24,6 @@ Refer to the documentation for the individual components on how to install them
 - [AWS](/src/AWS/README.md)
 - [Symfony SdkBundle](/src/Symfony/OtelSdkBundle/README.md)
 
-### Install the complete package:
-As an alternative to installing individual components you can install the whole package with all components
-
-
-```bash
-$ composer require open-telemetry/opentelemetry-php-contrib
-```
-
 ## Usage/Examples   
 
 ### AWS
@@ -47,3 +39,10 @@ $ composer require open-telemetry/opentelemetry-php-contrib
 
 Please, consult the documentation of the main [OpenTelemetry php project](https://github.com/open-telemetry/opentelemetry-php).
 
+### Subprojects
+This repository is organised into multiple separate sub-projects, under `/src`.
+Please remember to run all tests as you develop, the makefile supports a `PROJECTS` variable, which corresponds to the path of the project (relative to `src/`), eg
+
+```
+$ PROJECT=Symfony PHP_VERSION=8.1 make all
+```

@@ -14,17 +14,37 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.4 || ^8.0",
-        "open-telemetry/sdk": "self.version"
+        "open-telemetry/sdk": "^0",
+        "aws/aws-sdk-php": "^3.232"
+    },
+    "require-dev": {
+        "dg/bypass-finals": "^v1.4.1",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "mikey179/vfsstream": "^1.6",
+        "open-telemetry/dev-tools": "dev-main",
+        "phan/phan": "^4.1 || ^5",
+        "php-http/mock-client": "*",
+        "phpstan/phpstan": "^1.4",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "phpunit/phpunit": "~9",
+        "psalm/plugin-phpunit": "^0.17.0",
+        "vimeo/psalm": "^4.0"
     },
     "autoload": {
         "psr-4": {
-            "OpenTelemetry\\Aws\\": "."
+            "OpenTelemetry\\Aws\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Tests\\Aws\\": "tests/"
         }
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "composer/package-versions-deprecated": true
+            "composer/package-versions-deprecated": true,
+            "symfony/runtime": true
         }
     }
 }

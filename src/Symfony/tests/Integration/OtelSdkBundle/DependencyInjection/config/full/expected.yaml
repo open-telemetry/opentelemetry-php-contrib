@@ -1,0 +1,98 @@
+enabled: true
+
+resource:
+  limits:
+    attribute_count: 80
+    attribute_value_length: 100
+
+  attributes:
+    foo.bar: baz
+    service.name: fooService
+    service.namespace: fooSpace
+    k8s.cluster.name: production-1
+
+trace:
+  enabled: true
+
+  sampler:
+    root:
+      type: custom
+      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\Sampler
+      options:
+        foo: bar
+    remote:
+      sampled:
+        type: trace_id_ratio_based
+        options:
+          probability: 0.5
+      not_sampled:
+        type: always_off
+        options: []
+    local:
+      sampled:
+        type: always_on
+        options: []
+      not_sampled:
+        type: always_off
+        options: []
+  span:
+
+    limits:
+      attribute_count: 10
+      attribute_value_length: 20
+      event_count: 30
+      link_count: 40
+      attribute_per_event: 50
+      attribute_per_link: 60
+
+    processors:
+      processor1:
+        type: simple
+        options: [ ]
+      processor2:
+        type: batch
+        options: [ ]
+      processor3:
+        type: noop
+        options: []
+      processor4:
+        type: custom
+        class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanProcessor
+        options:
+          foo: bar
+      processor5:
+        type: custom
+        id: "@my_span_processor"
+        options:
+          foo: baz
+
+  exporters:
+    exporter1:
+      type: zipkin
+      processor: default
+      url: http://zipkinhost:1234/path
+      options: []
+    exporter2:
+      type: jaeger
+      url: https://foo:bar@jaegerhost:1234/path/to/endpoint
+      processor: default
+      options:
+        name: foo
+    exporter3:
+      type: newrelic
+      processor: simple
+      url: http://newrelichost:1234/path
+      options:
+        license_key: abcde
+    exporter4:
+      type: custom
+      processor: processor4
+      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporter
+      options:
+        log_file: /tmp/otel/exporter.log
+    exporter5:
+      type: custom
+      processor: processor5
+      id: "@my_custom_exporter"
+      options: []
+

@@ -1,0 +1,73 @@
+{
+    "name": "open-telemetry/contrib-symfony-instrumentation-bundle",
+    "description": "OpenTelemetry Symfony integration",
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "ext-json": "*",
+        "open-telemetry/opentelemetry": "^0.0.15",
+        "php-http/discovery": "^1.14",
+        "php-http/message": "^1.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Symfony\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Tests\\Symfony\\": "tests"
+        }
+    },
+    "require-dev": {
+        "composer/xdebug-handler": "^2.0",
+        "dg/bypass-finals": "^1.3",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "guzzlehttp/guzzle": "^7.3",
+        "guzzlehttp/psr7": "^2.0@RC",
+        "kriswallsmith/buzz": "^1.2",
+        "matthiasnoback/symfony-dependency-injection-test": "^4.3",
+        "mikey179/vfsstream": "^1.6",
+        "nyholm/psr7": "^1.4",
+        "open-telemetry/dev-tools": "dev-main",
+        "phan/phan": "^4.1 || ^5",
+        "phpstan/phpstan": "^1.4",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "phpstan/phpstan-symfony": "^1.1",
+        "phpunit/phpunit": "^9.5",
+        "psalm/plugin-phpunit": "^0.13.0",
+        "symfony/config": "^4.4|^5.0|^6.0",
+        "symfony/http-client": "^5.3",
+        "symfony/http-kernel": "^4.4|^5.3|^6.0",
+        "symfony/options-resolver": "^4.4|^5.3|^6.0",
+        "symfony/polyfill-php80": "^1.16",
+        "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
+        "symfony/yaml": "^4.4|^5.3|^6.0",
+        "vimeo/psalm": "^4.0"
+    },
+    "suggest": {
+        "symfony/config": "Needed to use otel-sdk-bundle",
+        "symfony/dependency-injection": "Needed to use otel-sdk-bundle",
+        "symfony/options-resolver": "Needed to use otel-sdk-bundle"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "composer dump-autoload --optimize"
+        ],
+        "post-update-cmd": [
+            "composer dump-autoload --optimize"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "symfony/runtime": true
+        }
+    }
+}

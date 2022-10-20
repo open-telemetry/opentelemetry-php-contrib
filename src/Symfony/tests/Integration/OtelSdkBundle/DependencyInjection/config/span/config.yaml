@@ -1,0 +1,28 @@
+resource:
+  attributes:
+    service.name: foo
+
+trace:
+  span:
+    limits:
+      attribute_count: 10
+      attribute_value_length: 20
+      event_count: 30
+      link_count: 40
+      attribute_per_event: 50
+      attribute_per_link: 60
+    processors:
+      processor1: simple
+      processor2: batch
+      processor3:
+        type: noop
+      processor4:
+        type: custom
+        class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanProcessor
+        options:
+          foo: bar
+      processor5:
+        type: custom
+        id: "@my_span_processor"
+        options:
+          foo: baz
