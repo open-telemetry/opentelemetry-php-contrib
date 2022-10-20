@@ -31,7 +31,7 @@ class SlimInstrumentation
             'handle',
             static function (App $app, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, &$root) {
                 $request = $params[0]; // @var ServerRequestInterface $request
-                $root = $instrumentation->tracer()->spanBuilder(sprintf('%s %s', $request->getMethod(), (string) $request->getUri()->getPath()))
+                $root = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
