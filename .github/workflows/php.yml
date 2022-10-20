@@ -32,10 +32,9 @@ jobs:
 
     - name: Cache Composer packages
       id: composer-cache
-      working-directory: src/{{ matrix.project }}
       uses: actions/cache@v2
       with:
-        path: vendor
+        path: src/{{ matrix.project}}/vendor
         key: ${{ runner.os }}-${{ matrix.php-version }}-php-${{ hashFiles('**/composer.json') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.php-version }}-php-
