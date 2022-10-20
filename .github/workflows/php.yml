@@ -27,8 +27,8 @@ jobs:
         coverage: xdebug
         extensions: ast
 
-    - name: chdir
-      run: cd ${{ matrix.project }}
+    - name: Change directory
+      run: cd src/${{ matrix.project }}
 
     - name: Validate composer.json and composer.lock
       run: composer validate
