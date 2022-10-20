@@ -25,7 +25,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast
+        extensions: ast, grpc
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -91,5 +91,5 @@ jobs:
     uses: opentelemetry-php/gh-workflows/.github/workflows/validate-packages.yml@main
     needs: php
     with:
-      matrix_extension: '["ast, json"]'
+      matrix_extension: '["ast, json, grpc"]'
       install_directory: '~/.test/.packages'
