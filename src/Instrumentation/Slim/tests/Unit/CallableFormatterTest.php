@@ -1,9 +1,10 @@
 <?php
 
-namespace OpenTelemetry\Instrumentation\Slim\tests\Unit;
+namespace OpenTelemetry\Tests\Instrumentation\Slim\Unit;
 
 use OpenTelemetry\Contrib\Instrumentation\Slim\CallableFormatter;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class CallableFormatterTest extends TestCase
 {
@@ -23,7 +24,7 @@ class CallableFormatterTest extends TestCase
                 'MyCallable',
             ],
             'array with object' => [
-                [new \stdClass(), 'foo'],
+                [new stdClass(), 'foo'],
                 'stdClass->foo',
             ],
             'array with strings' => [
@@ -31,19 +32,23 @@ class CallableFormatterTest extends TestCase
                 'MyClass::foo',
             ],
             'closure returning type' => [
-                function(): \stdClass { return new \stdClass();},
+                function(): stdClass { return new stdClass();},
                 'stdClass',
             ],
             'object' => [
-                new \stdClass(),
+                new stdClass(),
                 'stdClass',
+            ],
+            'closure without return type' => [
+                function() {},
+                'callable',
             ],
         ];
     }
 
     public function test_format_with_executed_closure(): void
     {
-        $closure = function(): \stdClass { return new \stdClass(); };
+        $closure = function(): stdClass { return new stdClass(); };
         $this->assertInstanceOf(\Closure::class, $closure);
         $this->assertSame('stdClass', CallableFormatter::format($closure()));
     }

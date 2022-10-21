@@ -8,7 +8,7 @@ use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\CallableFormatter;
+use Psr\Http\Server\RequestHandlerInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
@@ -25,11 +25,12 @@ class SlimInstrumentation
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim');
         // @var SpanInterface $root
-        $root = null; //todo probably better to store this in context
+        $root = null; //todo find another way to access root span (or remove functionality)
+        //@todo move this into PSR-15
         hook(
-            App::class,
+            RequestHandlerInterface::class,
             'handle',
-            static function (App $app, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, &$root) {
+            static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, &$root) {
                 $request = $params[0]; // @var ServerRequestInterface $request
                 $root = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
                     ->setAttribute('code.function', $function)
@@ -41,9 +42,10 @@ class SlimInstrumentation
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
                     ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme())
                     ->startSpan();
+                //die('here');
                 Context::storage()->attach($root->storeInContext(Context::getCurrent()));
             },
-            static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) {
+            static function (RequestHandlerInterface $handler, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
                 if (!$scope || $scope->context() === Context::getCurrent()) {
@@ -81,12 +83,12 @@ class SlimInstrumentation
             static function (InvocationStrategyInterface $strategy, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $callable = $params[0];
                 $name = CallableFormatter::format($callable);
-                $span = $instrumentation->tracer()->spanBuilder($name)
+                $builder = $instrumentation->tracer()->spanBuilder($name)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno)
-                    ->startSpan();
+                    ->setAttribute('code.lineno', $lineno);
+                $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
             static function (InvocationStrategyInterface $strategy, array $params, ?ResponseInterface $response, ?Throwable $exception) {

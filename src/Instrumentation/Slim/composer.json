@@ -14,6 +14,9 @@
     "slim/slim": "^4"
   },
   "require-dev": {
+    "nyholm/psr7": "*",
+    "php-http/mock-client": "*",
+    "open-telemetry/sdk": "dev-main",
     "phpunit/phpunit": "^9.5"
   },
   "autoload": {

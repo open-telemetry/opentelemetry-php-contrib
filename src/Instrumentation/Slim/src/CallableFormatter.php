@@ -14,11 +14,14 @@ class CallableFormatter
      */
     public static function format($callable): string
     {
+        if ($callable instanceof Closure) {
+            $type = (new ReflectionFunction($callable))->getReturnType();
+            return $type ? $type->getName() : 'callable';
+        }
         return match (true) {
             is_string($callable) => $callable,
             is_array($callable) && is_object($callable[0]) => get_class($callable[0]) . '->' . $callable[1],
             is_array($callable) => $callable[0] . '::' . $callable[1],
-            $callable instanceof Closure => (new ReflectionFunction($callable))->getReturnType()->getName(),
             is_object($callable) => get_class($callable),
             default => 'callable',
         };
