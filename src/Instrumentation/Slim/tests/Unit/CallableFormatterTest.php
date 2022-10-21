@@ -30,9 +30,9 @@ class CallableFormatterTest extends TestCase
                 ['MyClass', 'foo'],
                 'MyClass::foo',
             ],
-            'closure' => [
-                function() {},
-                'Closure',
+            'closure returning type' => [
+                function(): \stdClass { return new \stdClass();},
+                'stdClass',
             ],
             'object' => [
                 new \stdClass(),
@@ -43,8 +43,8 @@ class CallableFormatterTest extends TestCase
 
     public function test_format_with_executed_closure(): void
     {
-        $closure = function(string $foo): string { return $foo; };
+        $closure = function(): \stdClass { return new \stdClass(); };
         $this->assertInstanceOf(\Closure::class, $closure);
-        $this->assertSame('closure', $closure('bar'));
+        $this->assertSame('stdClass', CallableFormatter::format($closure()));
     }
 }
