@@ -50,8 +50,11 @@ class SlimInstrumentation
                     return;
                 }
                 $span = Span::fromContext($scope->context());
-                $exception && $span->recordException($exception);
-                $span->setStatus($exception ? StatusCode::STATUS_ERROR : StatusCode::STATUS_OK);
+                if ($exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
                 $span->end();
             }
         );

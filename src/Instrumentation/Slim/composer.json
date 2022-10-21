@@ -13,6 +13,9 @@
     "open-telemetry/api": "dev-main",
     "slim/slim": "^4"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  },
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Instrumentation\\Slim\\": "src/"
@@ -20,5 +23,10 @@
     "files": [
       "_register.php"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\Slim\\": "tests/"
+    }
   }
 }
