@@ -1,0 +1,30 @@
+resource:
+  attributes:
+    service.name: foo
+
+
+trace:
+  exporters:
+    # dsn example
+    exporter1: zipkin+http://zipkinhost:1234/path
+    # dsn key example
+    exporter2:
+      dsn: jaeger+https://foo:bar@jaegerhost:1234/path/to/endpoint?name=foo
+    # parameter example
+    exporter3:
+      type: newrelic
+      processor: simple
+      url: http://newrelichost:1234/path
+      options:
+        license_key: abcde
+    # custom exporter referenced via class
+    exporter4:
+      type: custom
+      processor: default
+      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporter
+      options:
+        log_file: /tmp/otel/exporter.log
+    exporter5:
+      type: custom
+      processor: batch
+      id: "@my_custom_exporter"

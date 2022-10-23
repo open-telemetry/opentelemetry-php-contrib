@@ -1,0 +1,24 @@
+resource:
+  attributes:
+    service.name: foo
+
+trace:
+  sampler:
+    root:
+      type: custom
+      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\Sampler
+      options:
+        foo: bar
+    remote:
+      sampled:
+        type: trace_id_ratio_based
+        options:
+          probability: 0.5
+      not_sampled: always_off
+    local:
+      sampled:
+        type: custom
+        id: "@my_custom_sampler"
+        options:
+          foo: baz
+      not_sampled: always_off

@@ -8,7 +8,7 @@ project_url: "https://github.com/open-telemetry/opentelemetry-php-contrib.git"
 splits:
   - prefix: "src/Aws"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-aws.git"
-  - prefix: "src/Symfony/OtelSdkBundle"
+  - prefix: "src/Symfony"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sdk-bundle.git"
 
 # List of references to split (defined as regexp)
