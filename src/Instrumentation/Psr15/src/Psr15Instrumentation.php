@@ -34,9 +34,6 @@ class Psr15Instrumentation
             static function (MiddlewareInterface $middleware, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
-                if (!$scope || $scope->context() === Context::getCurrent()) {
-                    return;
-                }
                 $span = Span::fromContext($scope->context());
                 $exception && $span->recordException($exception);
                 $span->setStatus($exception ? StatusCode::STATUS_ERROR : StatusCode::STATUS_OK);

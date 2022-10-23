@@ -52,4 +52,13 @@ class CallableFormatterTest extends TestCase
         $this->assertInstanceOf(\Closure::class, $closure);
         $this->assertSame('stdClass', CallableFormatter::format($closure()));
     }
+
+    public function test_format_first_class_callable(): void
+    {
+        if (PHP_VERSION < 8.1) {
+            $this->markTestSkipped();
+        }
+        $function = function(): stdClass { return new stdClass(); };
+        $this->assertSame('stdClass', CallableFormatter::format($function(...)));
+    }
 }

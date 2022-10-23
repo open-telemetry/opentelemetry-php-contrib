@@ -31,26 +31,22 @@ class SlimInstrumentation
             RequestHandlerInterface::class,
             'handle',
             static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, &$root) {
-                $request = $params[0]; // @var ServerRequestInterface $request
-                $root = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
+                $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
+                $root = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
                     ->setAttribute('code.lineno', $lineno)
-                    ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
-                    ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme())
+                    ->setAttribute(TraceAttributes::HTTP_URL, (string) $request?->getUri())
+                    ->setAttribute(TraceAttributes::HTTP_METHOD, $request?->getMethod())
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request?->getHeaderLine('Content-Length'))
+                    ->setAttribute(TraceAttributes::HTTP_SCHEME, $request?->getUri()?->getScheme())
                     ->startSpan();
-                //die('here');
                 Context::storage()->attach($root->storeInContext(Context::getCurrent()));
             },
             static function (RequestHandlerInterface $handler, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
-                if (!$scope || $scope->context() === Context::getCurrent()) {
-                    return;
-                }
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
                     $span->recordException($exception);

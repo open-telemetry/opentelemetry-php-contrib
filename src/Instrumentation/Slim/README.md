@@ -14,7 +14,7 @@ To export spans, you will need to create and register a `TracerProvider` early i
 <?php
 require_once 'vendor/autoload.php';
 
-$tracerProvider = <create tracer provider>;
+$tracerProvider = /*create tracer provider*/;
 $scope = \OpenTelemetry\API\Common\Instrumentation\Configurator::create()
     ->withTracerProvider($tracerProvider)
     ->activate();
