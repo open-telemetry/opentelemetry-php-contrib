@@ -18,9 +18,7 @@ class CallableFormatterTest extends TestCase
         if (PHP_VERSION < 8.1) {
             $this->markTestSkipped();
         }
-        $function = function (): stdClass {
-            return new stdClass();
-        };
-        $this->assertSame('stdClass', CallableFormatter::format($function(...)));
+        $function = 'var_dump';
+        $this->assertSame(CallableFormatter::format($function), CallableFormatter::format($function(...)));
     }
 }
