@@ -17,9 +17,9 @@ class CallableFormatterTest extends TestCase
     /**
      * @dataProvider callableProvider
      */
-    public function test_format($callable, string $expected): void
+    public function test_format($callable, string $contains): void
     {
-        $this->assertSame($expected, CallableFormatter::format($callable));
+        $this->assertStringContainsString($contains, CallableFormatter::format($callable));
     }
 
     public function callableProvider(): array
@@ -29,6 +29,10 @@ class CallableFormatterTest extends TestCase
                 'MyCallable',
                 'MyCallable',
             ],
+            'function' => [
+                'var_dump',
+                'var_dump',
+            ],
             'array with object' => [
                 [new stdClass(), 'foo'],
                 'stdClass->foo',
@@ -37,26 +41,20 @@ class CallableFormatterTest extends TestCase
                 ['MyClass', 'foo'],
                 'MyClass::foo',
             ],
-            'closure returning type' => [
-                function (): stdClass {
-                    return new stdClass();
+            'closure' => [
+                function () {
                 },
-                'stdClass',
+                '{closure}',
             ],
             'object' => [
                 new stdClass(),
                 'stdClass',
             ],
-            'closure without return type' => [
-                function () {
-                },
-                'callable',
-            ],
             'closure from callable' => [
                 Closure::fromCallable(function (): stdClass {
                     return new stdClass();
                 }),
-                'stdClass',
+                '{closure}',
             ],
         ];
     }
