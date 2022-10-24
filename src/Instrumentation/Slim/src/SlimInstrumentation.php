@@ -27,8 +27,9 @@ class SlimInstrumentation
 
         /**
          * Update root span's name after Slim routing, using either route name or method+pattern.
-         * The root span should have been created by psr-15 auto-instrumentation, and stored as
-         * a request attribute.
+         * This relies upon the existence of a request attribute with key SpanInterface::class
+         * and type SpanInterface which represents the root span, having been previously set (eg
+         * by Psr15 auto-instrumentation)
          *
          * @psalm-suppress ArgumentTypeCoercion
          */

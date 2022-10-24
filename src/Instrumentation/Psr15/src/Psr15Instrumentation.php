@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Psr15;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -66,7 +67,13 @@ class Psr15Instrumentation
             'handle',
             static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
-                $root = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                $parent = Context::getCurrent();
+                if ($request instanceof ServerRequestInterface && !$request->getAttribute(SpanInterface::class)) {
+                    //extract from request headers
+                    $parent = (new TraceContextPropagator())->extract($request->getHeaders());
+                }
+                $span = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                    ->setParent($parent)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
@@ -77,9 +84,9 @@ class Psr15Instrumentation
                     ->setAttribute(TraceAttributes::HTTP_SCHEME, $request?->getUri()?->getScheme())
                     ->startSpan();
 
-                Context::storage()->attach($root->storeInContext(Context::getCurrent()));
-                if ($request && $request instanceof ServerRequestInterface) {
-                    $request = $request->withAttribute(SpanInterface::class, $root);
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                if ($request instanceof ServerRequestInterface) {
+                    $request = $request->withAttribute(SpanInterface::class, $span);
 
                     return [$request];
                 }
