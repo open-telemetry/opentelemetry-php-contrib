@@ -10,8 +10,8 @@ use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Uri;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\Contrib\Instrumentation\Psr15\Psr15Instrumentation;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -60,7 +60,7 @@ class Psr15InstrumentationTest extends TestCase
         $handler = new class() implements RequestHandlerInterface {
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
-                $span = $request->getAttribute(Psr15Instrumentation::ROOT_SPAN);
+                $span = $request->getAttribute(SpanInterface::class);
                 Assert::assertInstanceOf(Span::class, $span);
 
                 return new Response();

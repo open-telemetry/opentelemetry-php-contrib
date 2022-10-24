@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Psr15;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
@@ -21,8 +22,6 @@ use Throwable;
  */
 class Psr15Instrumentation
 {
-    public const ROOT_SPAN = '__psr15_root_span';
-
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr15');
@@ -51,7 +50,7 @@ class Psr15Instrumentation
                 }
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception);
+                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 $span->end();
@@ -93,7 +92,7 @@ class Psr15Instrumentation
                 }
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception);
+                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

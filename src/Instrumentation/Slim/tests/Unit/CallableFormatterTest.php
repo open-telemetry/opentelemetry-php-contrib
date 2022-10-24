@@ -9,6 +9,9 @@ use OpenTelemetry\Contrib\Instrumentation\Slim\CallableFormatter;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
+/**
+ * @covers \OpenTelemetry\Contrib\Instrumentation\Slim\CallableFormatter
+ */
 class CallableFormatterTest extends TestCase
 {
     /**

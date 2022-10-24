@@ -7,9 +7,10 @@ namespace OpenTelemetry\Contrib\Instrumentation\Slim;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Psr15\Psr15Instrumentation;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Interfaces\InvocationStrategyInterface;
@@ -29,8 +30,6 @@ class SlimInstrumentation
          * The root span should have been created by psr-15 auto-instrumentation, and stored as
          * a request attribute.
          *
-         * @phan-suppress PhanUndeclaredClassConstant (remove after publishing psr-15 package and adding to composer dependencies)
-         * @psalm-suppress UndefinedClass
          * @psalm-suppress ArgumentTypeCoercion
          */
         hook(
@@ -45,7 +44,7 @@ class SlimInstrumentation
                 if (!$request instanceof ServerRequestInterface) {
                     return;
                 }
-                $span = $request->getAttribute(Psr15Instrumentation::ROOT_SPAN); //@phpstan-ignore-line
+                $span = $request->getAttribute(SpanInterface::class);
                 if (!$span instanceof SpanInterface) {
                     return;
                 }
@@ -83,7 +82,10 @@ class SlimInstrumentation
                     return;
                 }
                 $span = Span::fromContext($scope->context());
-                $exception && $span->recordException($exception);
+                if ($exception) {
+                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
                 $span->end();
             }
         );
