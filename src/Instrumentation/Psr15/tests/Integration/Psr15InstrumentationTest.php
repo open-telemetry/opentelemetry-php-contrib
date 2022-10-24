@@ -10,6 +10,7 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Uri;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\Context\ScopeInterface;
@@ -48,6 +49,7 @@ class Psr15InstrumentationTest extends TestCase
 
         $this->scope = Configurator::create()
             ->withTracerProvider($this->tracerProvider)
+            ->withPropagator(new TraceContextPropagator())
             ->activate();
     }
 

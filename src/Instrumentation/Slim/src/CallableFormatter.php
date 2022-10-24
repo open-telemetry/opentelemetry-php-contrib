@@ -17,7 +17,9 @@ class CallableFormatter
     public static function format($callable): string
     {
         if ($callable instanceof Closure || (is_string($callable) && function_exists($callable))) {
-            return (new ReflectionFunction($callable))->getName();
+            $reflection = new ReflectionFunction($callable);
+
+            return $reflection->getClosureScopeClass()?->getName() . '::' . $reflection->getName();
         }
 
         return match (true) {

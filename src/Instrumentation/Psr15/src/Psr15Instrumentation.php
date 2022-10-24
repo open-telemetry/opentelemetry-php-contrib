@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Psr15;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
@@ -70,21 +71,22 @@ class Psr15Instrumentation
                 $parent = Context::getCurrent();
                 if ($request instanceof ServerRequestInterface && !$request->getAttribute(SpanInterface::class)) {
                     //extract from request headers
-                    $parent = (new TraceContextPropagator())->extract($request->getHeaders());
+                    $parent = Globals::propagator()->extract($request->getHeaders());
                 }
                 $span = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
                     ->setParent($parent)
+                    ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
                     ->setAttribute('code.lineno', $lineno)
-                    ->setAttribute(TraceAttributes::HTTP_URL, (string) $request?->getUri())
+                    ->setAttribute(TraceAttributes::HTTP_URL, $request?->getUri()->__toString())
                     ->setAttribute(TraceAttributes::HTTP_METHOD, $request?->getMethod())
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request?->getHeaderLine('Content-Length'))
                     ->setAttribute(TraceAttributes::HTTP_SCHEME, $request?->getUri()?->getScheme())
                     ->startSpan();
 
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                Context::storage()->attach($span->storeInContext($parent));
                 if ($request instanceof ServerRequestInterface) {
                     $request = $request->withAttribute(SpanInterface::class, $span);
 
@@ -101,6 +103,9 @@ class Psr15Instrumentation
                 if ($exception) {
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+                if ($response?->getStatusCode() >= 500) {
+                    $span->setStatus(StatusCode::STATUS_ERROR);
                 }
 
                 $span->end();

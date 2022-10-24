@@ -10,6 +10,7 @@
   "require": {
     "php": "^8.0",
     "ext-otel_instrumentation": "*",
+    "ext-reflection": "*",
     "open-telemetry/api": "dev-main",
     "slim/slim": "^4"
   },
