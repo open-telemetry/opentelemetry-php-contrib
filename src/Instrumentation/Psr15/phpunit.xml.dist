@@ -38,7 +38,6 @@
     <testsuites>
         <testsuite name="unit">
             <directory>tests/Unit</directory>
-            <directory phpVersion="8.1">tests/Unit81</directory>
         </testsuite>
         <testsuite name="integration">
             <directory>tests/Integration</directory>

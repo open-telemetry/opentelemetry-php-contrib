@@ -20,5 +20,17 @@
     "files": [
       "_register.php"
     ]
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "nyholm/psr7": "*",
+    "phan/phan": "^5.0",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.16",
+    "open-telemetry/sdk": "dev-main",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^4.0"
   }
 }

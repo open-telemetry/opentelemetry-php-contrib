@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Tests\Instrumentation\Slim\Unit;
 
+use Closure;
 use OpenTelemetry\Contrib\Instrumentation\Slim\CallableFormatter;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -32,7 +35,9 @@ class CallableFormatterTest extends TestCase
                 'MyClass::foo',
             ],
             'closure returning type' => [
-                function(): stdClass { return new stdClass();},
+                function (): stdClass {
+                    return new stdClass();
+                },
                 'stdClass',
             ],
             'object' => [
@@ -40,25 +45,25 @@ class CallableFormatterTest extends TestCase
                 'stdClass',
             ],
             'closure without return type' => [
-                function() {},
+                function () {
+                },
                 'callable',
+            ],
+            'closure from callable' => [
+                Closure::fromCallable(function (): stdClass {
+                    return new stdClass();
+                }),
+                'stdClass',
             ],
         ];
     }
 
     public function test_format_with_executed_closure(): void
     {
-        $closure = function(): stdClass { return new stdClass(); };
-        $this->assertInstanceOf(\Closure::class, $closure);
+        $closure = function (): stdClass {
+            return new stdClass();
+        };
+        $this->assertInstanceOf(Closure::class, $closure);
         $this->assertSame('stdClass', CallableFormatter::format($closure()));
-    }
-
-    public function test_format_first_class_callable(): void
-    {
-        if (PHP_VERSION < 8.1) {
-            $this->markTestSkipped();
-        }
-        $function = function(): stdClass { return new stdClass(); };
-        $this->assertSame('stdClass', CallableFormatter::format($function(...)));
     }
 }

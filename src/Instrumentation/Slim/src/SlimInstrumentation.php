@@ -6,15 +6,14 @@ namespace OpenTelemetry\Contrib\Instrumentation\Slim;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\Context\Context;
-use Psr\Http\Server\RequestHandlerInterface;
+use OpenTelemetry\Contrib\Instrumentation\Psr15\Psr15Instrumentation;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\App;
 use Slim\Interfaces\InvocationStrategyInterface;
+use Slim\Interfaces\RouteInterface;
 use Slim\Middleware\RoutingMiddleware;
 use Slim\Routing\RouteContext;
 use Throwable;
@@ -24,62 +23,52 @@ class SlimInstrumentation
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim');
-        // @var SpanInterface $root
-        $root = null; //todo find another way to access root span (or remove functionality)
-        //@todo move this into PSR-15
-        hook(
-            RequestHandlerInterface::class,
-            'handle',
-            static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, &$root) {
-                $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
-                $root = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno)
-                    ->setAttribute(TraceAttributes::HTTP_URL, (string) $request?->getUri())
-                    ->setAttribute(TraceAttributes::HTTP_METHOD, $request?->getMethod())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request?->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::HTTP_SCHEME, $request?->getUri()?->getScheme())
-                    ->startSpan();
-                Context::storage()->attach($root->storeInContext(Context::getCurrent()));
-            },
-            static function (RequestHandlerInterface $handler, array $params, ?ResponseInterface $response, ?Throwable $exception) {
-                $scope = Context::storage()->scope();
-                $scope?->detach();
-                $span = Span::fromContext($scope->context());
-                if ($exception) {
-                    $span->recordException($exception);
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-                }
 
-                $span->end();
-            }
-        );
-        //update root span's name after routing
+        /**
+         * Update root span's name after Slim routing, using either route name or method+pattern.
+         * The root span should have been created by psr-15 auto-instrumentation, and stored as
+         * a request attribute.
+         *
+         * @phan-suppress PhanUndeclaredClassConstant (remove after publishing psr-15 package and adding to composer dependencies)
+         * @psalm-suppress UndefinedClass
+         * @psalm-suppress ArgumentTypeCoercion
+         */
         hook(
             RoutingMiddleware::class,
             'performRouting',
             null,
-            static function (RoutingMiddleware $middleware, array $params, ServerRequestInterface $new, ?Throwable $exception) use (&$root) {
+            static function (RoutingMiddleware $middleware, array $params, ServerRequestInterface $new, ?Throwable $exception) {
                 if ($exception) {
                     return;
                 }
-                // @var ServerRequestInterface $request
                 $request = $params[0];
-                // @var \Slim\Interfaces\RouteInterface $route
-                $route = $new->getAttribute(RouteContext::ROUTE);
-                $root->updateName($route->getName() ?? sprintf('%s %s', $request->getMethod(), (string) $route->getPattern()));
+                if (!$request instanceof ServerRequestInterface) {
+                    return;
+                }
+                $span = $request->getAttribute(Psr15Instrumentation::ROOT_SPAN); //@phpstan-ignore-line
+                if (!$span instanceof SpanInterface) {
+                    return;
+                }
+                $route = $request->getAttribute(RouteContext::ROUTE);
+                if (!$route instanceof RouteInterface) {
+                    return;
+                }
+                $span->updateName($route->getName() ?? sprintf('%s %s', $request->getMethod(), $route->getPattern())); //@phpstan-ignore-line
             }
         );
-        //route callable/action
+
+        /**
+         * Create a span for Slim route's action/controller/callable
+         *
+         * @psalm-suppress ArgumentTypeCoercion
+         */
         hook(
             InvocationStrategyInterface::class,
             '__invoke',
             static function (InvocationStrategyInterface $strategy, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $callable = $params[0];
                 $name = CallableFormatter::format($callable);
-                $builder = $instrumentation->tracer()->spanBuilder($name)
+                $builder = $instrumentation->tracer()->spanBuilder($name) //@phpstan-ignore-line
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
@@ -90,6 +79,9 @@ class SlimInstrumentation
             static function (InvocationStrategyInterface $strategy, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
+                if (!$scope) {
+                    return;
+                }
                 $span = Span::fromContext($scope->context());
                 $exception && $span->recordException($exception);
                 $span->end();
