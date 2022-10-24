@@ -16,7 +16,7 @@ class CallableFormatter
      */
     public static function format($callable): string
     {
-        if ($callable instanceof Closure) {
+        if ($callable instanceof Closure || (is_string($callable) && function_exists($callable))) {
             $type = (new ReflectionFunction($callable))->getReturnType();
 
             return $type ? $type->getName() : 'callable'; // @phpstan-ignore-line
