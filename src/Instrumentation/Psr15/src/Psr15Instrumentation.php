@@ -80,7 +80,7 @@ class Psr15Instrumentation
 
                 Context::storage()->attach($root->storeInContext(Context::getCurrent()));
                 if ($request && $request instanceof ServerRequestInterface) {
-                    $request = $request->withAttribute(self::ROOT_SPAN, $root);
+                    $request = $request->withAttribute(SpanInterface::class, $root);
 
                     return [$request];
                 }
