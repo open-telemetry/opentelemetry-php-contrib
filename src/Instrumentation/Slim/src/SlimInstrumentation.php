@@ -78,10 +78,10 @@ class SlimInstrumentation
             },
             static function (InvocationStrategyInterface $strategy, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
-                $scope?->detach();
                 if (!$scope) {
                     return;
                 }
+                $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);

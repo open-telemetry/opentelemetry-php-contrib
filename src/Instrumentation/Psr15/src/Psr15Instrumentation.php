@@ -46,10 +46,10 @@ class Psr15Instrumentation
             },
             static function (MiddlewareInterface $middleware, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
-                $scope?->detach();
                 if (!$scope) {
                     return;
                 }
+                $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
@@ -95,10 +95,10 @@ class Psr15Instrumentation
             },
             static function (RequestHandlerInterface $handler, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
-                $scope?->detach();
                 if (!$scope) {
                     return;
                 }
+                $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);

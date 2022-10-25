@@ -6,7 +6,7 @@
 * OpenTelemetry SDK and exporters (required to actually export traces)
 
 ## Overview
-Auto-instrumentation hooks are registered via composer, and spans will automatically be created for each psr-15 middleware that is executed.
+Auto-instrumentation hooks are registered via composer, and spans will automatically be created for each PSR-15 middleware that is executed.
 
 To export spans, you will need to create and register a `TracerProvider` early in your application's lifecycle:
 
