@@ -13,29 +13,44 @@ use PHPUnit\Framework\TestCase;
  */
 class CallableFormatterTest extends TestCase
 {
-    public function test_format_first_class_callable(): void
+    /**
+     * @dataProvider callableProvider
+     */
+    public function test_format_first_class_callables(Callable $callable, string $expected): void
     {
-        if (PHP_VERSION < 8.1) {
-            $this->markTestSkipped();
-        }
-        $function = 'var_dump';
-        $this->assertSame(CallableFormatter::format($function), CallableFormatter::format($function(...)));
+        $this->assertSame($expected, CallableFormatter::format($callable));
     }
 
-    public function test_format_first_class_callable_method(): void
+    public function callableProvider(): array
     {
-        $class = new TestClass();
-        $this->assertStringContainsString('TestClass::method', CallableFormatter::format($class->method(...)));
-    }
-
-    public function test_format_first_class_callable_static_method(): void
-    {
-        $this->assertStringContainsString('TestClass::staticMethod', CallableFormatter::format(TestClass::staticMethod(...)));
+        return [
+            'first-class from built-in' => [
+                var_dump(...),
+                'var_dump',
+            ],
+            'first-class static method' => [
+                TestClass::staticMethod(...),
+                'TestClass::staticMethod',
+            ],
+            'first-class method' => [
+                (new TestClass())->method(...),
+                'TestClass::method',
+            ],
+            'first-class __invoke' => [
+                (new TestClass())(...),
+                'TestClass::__invoke',
+            ],
+            'bound first-class callable' => [
+                (static fn() => null)->bindTo(null, TestClass::class),
+                '{closure}',
+            ],
+        ];
     }
 }
 
 class TestClass
 {
-    public function method(){}
-    public static function staticMethod(){}
+    public function __invoke() {}
+    public function method() {}
+    public static function staticMethod() {}
 }

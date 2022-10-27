@@ -1,13 +1,16 @@
 version: '3.7'
 services:
   php:
-    image: ghcr.io/open-telemetry/opentelemetry-php/opentelemetry-php-base:${PHP_VERSION:-7.4}
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
     volumes:
     - ./:/usr/src/myapp
     user: "${PHP_USER}:root"
     environment:
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
       XDEBUG_CONFIG: ${XDEBUG_CONFIG:-''}
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-''}
   zipkin:
     image: openzipkin/zipkin-slim
     ports:

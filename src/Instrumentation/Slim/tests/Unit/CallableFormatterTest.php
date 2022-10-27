@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Slim\Unit;
 
-use Closure;
 use OpenTelemetry\Contrib\Instrumentation\Slim\CallableFormatter;
 use PHPUnit\Framework\TestCase;
-use stdClass;
 
 /**
  * @covers \OpenTelemetry\Contrib\Instrumentation\Slim\CallableFormatter
@@ -17,54 +15,78 @@ class CallableFormatterTest extends TestCase
     /**
      * @dataProvider callableProvider
      */
-    public function test_format($callable, string $contains): void
+    public function test_format($callable, string $expected): void
     {
-        $this->assertStringContainsString($contains, CallableFormatter::format($callable));
+        $this->assertSame($expected, CallableFormatter::format($callable));
     }
 
     public function callableProvider(): array
     {
         return [
-            'string' => [
-                'MyCallable',
-                'MyCallable',
-            ],
-            'function' => [
+            'builtin' => [
                 'var_dump',
                 'var_dump',
             ],
-            'array with object' => [
-                [new stdClass(), 'foo'],
-                'stdClass->foo',
+            [
+                [TestClass::class, 'staticMethod'],
+                'TestClass::staticMethod',
             ],
-            'array with strings' => [
-                ['MyClass', 'foo'],
-                'MyClass::foo',
+            [
+                [new TestClass(), 'method'],
+                'TestClass::method',
             ],
-            'closure' => [
-                function () {
+            [
+                new TestClass(),
+                'TestClass::__invoke',
+            ],
+            [
+                static fn () => null,
+                '{closure}',
+            ],
+            [
+                (static fn () => null)->bindTo(null, TestClass::class),
+                '{closure}',
+            ],
+            [
+                (fn () => null)->bindTo(new TestClass()),
+                '{closure}',
+            ],
+            [
+                [(new class() extends TestClass {
+                })::class, 'staticMethod'],
+                'TestClass@anonymous::staticMethod',
+            ],
+            [
+                [new class() extends TestClass {
+                }, 'method'],
+                'TestClass@anonymous::method',
+            ],
+            [
+                new class() extends TestClass {
                 },
-                '{closure}',
+                'TestClass@anonymous::__invoke',
             ],
-            'object' => [
-                new stdClass(),
-                'stdClass',
-            ],
-            'closure from callable' => [
-                Closure::fromCallable(function (): stdClass {
-                    return new stdClass();
-                }),
-                '{closure}',
+            [
+                new class() {
+                    public function __invoke()
+                    {
+                    }
+                },
+                'class@anonymous::__invoke',
             ],
         ];
     }
+}
 
-    public function test_format_with_executed_closure(): void
+class TestClass
+{
+    public function __invoke()
     {
-        $closure = function (): stdClass {
-            return new stdClass();
-        };
-        $this->assertInstanceOf(Closure::class, $closure);
-        $this->assertSame('stdClass', CallableFormatter::format($closure()));
+    }
+    public function method()
+    {
+    }
+    public static function staticMethod()
+    {
     }
 }
