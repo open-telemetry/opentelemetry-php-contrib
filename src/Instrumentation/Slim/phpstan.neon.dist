@@ -10,3 +10,5 @@ parameters:
     excludePaths:
         analyseAndScan:
             - tests/Unit
+    ignoreErrors:
+        - '#Call to an undefined method Mockery\\LegacyMockInterface\:\:allows\(\)#'

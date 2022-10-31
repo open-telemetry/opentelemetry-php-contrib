@@ -16,9 +16,11 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
+    "mockery/mockery": "^1.5",
     "nyholm/psr7": "*",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
+    "phpstan/phpstan-mockery": "^1.1.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.16",
