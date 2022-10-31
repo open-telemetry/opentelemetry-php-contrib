@@ -259,6 +259,38 @@ class DetectorTest extends TestCase
     /**
      * @test
      */
+    public function TestV4EndpointFails()
+    {
+        putenv(self::ECS_ENV_VAR_V4_KEY . '=' . self::ECS_ENV_VAR_V4_VAL);
+
+        $mockData = $this->createMock(DataProvider::class);
+        $mockData->method('getCgroupData')->willReturn(self::INVALID_CGROUP_LENGTH);
+        $mockData->method('getHostName')->willReturn(null);
+
+        $mockGuzzle = new MockHandler([
+            new Response(500, ['Content-Type' => 'application/json'], '{"message":"cuz I have a baad daaay"}'),
+        ]);
+        $handlerStack = HandlerStack::create($mockGuzzle);
+        $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
+
+        $detector = new Detector($mockData, $client, $requestFactory);
+
+        $this->assertEquals(ResourceInfo::create(
+            Attributes::create(
+                [
+                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributeValues::CLOUD_PROVIDER_AWS,
+                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributeValues::CLOUD_PLATFORM_AWS_ECS,
+                ]
+            )
+        ), $detector->getResource());
+
+        putenv(self::ECS_ENV_VAR_V4_KEY);
+    }
+
+    /**
+     * @test
+     */
     public function TestV4ResourceLaunchTypeEc2()
     {
         putenv(self::ECS_ENV_VAR_V4_KEY . '=' . self::ECS_ENV_VAR_V4_VAL);

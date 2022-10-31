@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Ecs;
 
+use OpenTelemetry\SDK\Behavior\LogsMessagesTrait;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
@@ -36,6 +37,8 @@ use Throwable;
  */
 class Detector implements ResourceDetectorInterface
 {
+    use LogsMessagesTrait;
+
     private const ECS_METADATA_KEY_V4 = 'ECS_CONTAINER_METADATA_URI_V4';
     private const ECS_METADATA_KEY_V3 = 'ECS_CONTAINER_METADATA_URI';
 
@@ -86,9 +89,8 @@ class Detector implements ResourceDetectorInterface
     public function getResource(): ResourceInfo
     {
         $metadataEndpointV4 = getenv(self::ECS_METADATA_KEY_V4);
-        // Check if running on ECS by looking for below environment variables
+
         if (!$metadataEndpointV4 && !getenv(self::ECS_METADATA_KEY_V3)) {
-            // TODO: add 'Process is not running on ECS' when logs are added
             return ResourceInfoFactory::emptyResource();
         }
 
@@ -126,7 +128,7 @@ class Detector implements ResourceDetectorInterface
                 }
             }
         } catch (Throwable $e) {
-            // TODO: add 'Failed to read container ID' when logging is added
+            self::logDebug('Failed to read container ID', ['exception' => $e]);
         }
 
         return null;
@@ -143,7 +145,11 @@ class Detector implements ResourceDetectorInterface
             ->createRequest('GET', $metadataEndpointV4);
         $containerResponse = $this->client->sendRequest($containerRequest);
         if ($containerResponse->getStatusCode() > 299) {
-            // TODO: Log error
+            self::logError(sprintf('Cannot retrieve container metadata from %s endpoint', $metadataEndpointV4), [
+                'status_code' => $containerResponse->getStatusCode(),
+                'response_body' => $containerResponse->getBody()->getContents(),
+            ]);
+
             return ResourceInfoFactory::emptyResource();
         }
 
@@ -151,7 +157,11 @@ class Detector implements ResourceDetectorInterface
             ->createRequest('GET', $metadataEndpointV4 . '/task');
         $taskResponse = $this->client->sendRequest($taskRequest);
         if ($taskResponse->getStatusCode() > 299) {
-            // TODO: Log error
+            self::logError(sprintf('Cannot retrieve task metadata from %s endpoint', $metadataEndpointV4 . '/task'), [
+                'status_code' => $taskResponse->getStatusCode(),
+                'response_body' => $taskResponse->getBody()->getContents(),
+            ]);
+
             return ResourceInfoFactory::emptyResource();
         }
 
