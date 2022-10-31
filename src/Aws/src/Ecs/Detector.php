@@ -56,11 +56,32 @@ class Detector implements ResourceDetectorInterface
     }
 
     /**
-     * If running on ECS with an ECS agent v1.3, returns a resource with the following attributes set:
-     *
-     * -
-     *
      * If not running on ECS, returns empty resource.
+     *
+     * If running on ECS with an ECS agent v1.3, returns a resource with the following attributes set:
+     * - cloud.provider => aws
+     * - cloud.platform => aws_ecs
+     * - container.name => <hostname>, which is usually the container name in the ECS task definition
+     * - container.id => <cgroup_id>
+     *
+     * If running on ECS with an ECS agent v1.4, the returned resource has additionally the following
+     * attributes as specified in https://opentelemetry.io/docs/reference/specification/resource/semantic_conventions/cloud_provider/aws/ecs/:
+     *
+     * - aws.ecs.container.arn
+     * - aws.ecs.cluster.arn
+     * - aws.ecs.launchtype
+     * - aws.ecs.task.arn
+     * - aws.ecs.task.family
+     * - aws.ecs.task.revision
+     *
+     * If running on ECS with an ECS agent v1.4 and the task definition is configured to report
+     * logs in AWS CloudWatch, the returned resource has additionally the following attributes as specified
+     * in https://opentelemetry.io/docs/reference/specification/resource/semantic_conventions/cloud_provider/aws/logs:
+     *
+     * - aws.log.group.names
+     * - aws.log.group.arns
+     * - aws.log.stream.names
+     * - aws.log.stream.arns
      */
     public function getResource(): ResourceInfo
     {
