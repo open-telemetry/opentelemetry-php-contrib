@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Psr15;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
+use OpenTelemetry\API\Trace\NonRecordingSpan;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -34,7 +35,7 @@ class Psr15Instrumentation
         hook(
             MiddlewareInterface::class,
             'process',
-            static function (MiddlewareInterface $middleware, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (MiddlewareInterface $middleware, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = $instrumentation->tracer()->spanBuilder(sprintf('%s::%s', $class, $function))
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
@@ -44,7 +45,7 @@ class Psr15Instrumentation
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
-            static function (MiddlewareInterface $middleware, array $params, ?ResponseInterface $response, ?Throwable $exception) {
+            post: static function (MiddlewareInterface $middleware, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -60,40 +61,49 @@ class Psr15Instrumentation
         );
 
         /**
-         * Create a span to wrap RequestHandlerInterface::handle
-         * Stores the span as a request attribute which may be accessed by later hooks.
+         * Create a span to wrap RequestHandlerInterface::handle. The first execution is assumed to be the root span, which
+         * is stored as a request attribute which may be accessed by later hooks.
          */
         hook(
             RequestHandlerInterface::class,
             'handle',
-            static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
-                $parent = Context::getCurrent();
-                if ($request instanceof ServerRequestInterface && !$request->getAttribute(SpanInterface::class)) {
-                    //extract from request headers
-                    $parent = Globals::propagator()->extract($request->getHeaders());
+                if (!$request instanceof ServerRequestInterface) {
+                    //`pre` hook runs before params are checked, so this is theoretically possible. activate a non-recording
+                    //span so that the post handler has something to close
+                    $root = new NonRecordingSpan();
+                    $root->activate();
+                    Context::storage()->attach($root->storeInContext(Context::getCurrent()));
+                    return;
                 }
-                $span = $instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
-                    ->setParent($parent)
+                $root = $request->getAttribute(SpanInterface::class);
+                $builder = $instrumentation->tracer()->spanBuilder($root ? $function : sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno)
-                    ->setAttribute(TraceAttributes::HTTP_URL, $request?->getUri()->__toString())
-                    ->setAttribute(TraceAttributes::HTTP_METHOD, $request?->getMethod())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request?->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::HTTP_SCHEME, $request?->getUri()?->getScheme())
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext($parent));
-                if ($request instanceof ServerRequestInterface) {
+                    ->setAttribute('code.lineno', $lineno);
+                $parent = Context::getCurrent();
+                if (!$root) {
+                    //create http root span
+                    $parent = Globals::propagator()->extract($request->getHeaders());
+                    $span = $builder
+                        ->setParent($parent)
+                        ->setAttribute(TraceAttributes::HTTP_URL, $request?->getUri()->__toString())
+                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request?->getMethod())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request?->getHeaderLine('Content-Length'))
+                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request?->getUri()?->getScheme())
+                        ->startSpan();
                     $request = $request->withAttribute(SpanInterface::class, $span);
-
-                    return [$request];
+                } else {
+                    $span = $builder->startSpan();
                 }
+                Context::storage()->attach($span->storeInContext($parent));
+
+                return [$request];
             },
-            static function (RequestHandlerInterface $handler, array $params, ?ResponseInterface $response, ?Throwable $exception) {
+            post: static function (RequestHandlerInterface $handler, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;

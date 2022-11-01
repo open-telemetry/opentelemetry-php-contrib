@@ -22,7 +22,7 @@ test: test-unit test-integration ## Run unit and integration tests
 test-unit: ## Run unit tests
 	$(DC_RUN_PHP) env XDEBUG_MODE=coverage vendor/bin/phpunit --testsuite unit --colors=always --coverage-text --testdox --coverage-clover coverage.clover --coverage-html=tests/coverage/html
 test-integration: ## Run integration tests
-	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testsuite integration  --coverage-text --testdox --colors=always
+	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testsuite integration  --testdox --colors=always
 test-coverage: ## Run unit tests and generate coverage
 	$(DC_RUN_PHP) env XDEBUG_MODE=coverage vendor/bin/phpunit --testsuite unit --coverage-html=tests/coverage/html
 phan: ## Run phan
