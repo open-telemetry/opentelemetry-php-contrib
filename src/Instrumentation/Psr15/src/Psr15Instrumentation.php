@@ -78,7 +78,11 @@ class Psr15Instrumentation
                     return;
                 }
                 $root = $request->getAttribute(SpanInterface::class);
-                $builder = $instrumentation->tracer()->spanBuilder($root ? $function : sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                $builder = $instrumentation->tracer()->spanBuilder(
+                        $root
+                        ? sprintf('%s::%s', $class, $function)
+                        : sprintf('HTTP %s', $request?->getMethod() ?? 'unknown')
+                    )
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
