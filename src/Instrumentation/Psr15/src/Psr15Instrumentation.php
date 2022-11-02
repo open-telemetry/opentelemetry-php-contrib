@@ -69,15 +69,9 @@ class Psr15Instrumentation
             'handle',
             pre: static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
-                if (!$request instanceof ServerRequestInterface) {
-                    //`pre` hook runs before params are checked, so this is theoretically possible. activate a non-recording
-                    //span so that the post handler has something to close
-                    $root = new NonRecordingSpan();
-                    $root->activate();
-                    Context::storage()->attach($root->storeInContext(Context::getCurrent()));
-                    return;
-                }
-                $root = $request->getAttribute(SpanInterface::class);
+                $root = $request
+                    ? $request->getAttribute(SpanInterface::class)
+                    : Span::getCurrent();
                 $builder = $instrumentation->tracer()->spanBuilder(
                         $root
                         ? sprintf('%s::%s', $class, $function)
