@@ -6,7 +6,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Psr15;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
-use OpenTelemetry\API\Trace\NonRecordingSpan;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -73,25 +72,25 @@ class Psr15Instrumentation
                     ? $request->getAttribute(SpanInterface::class)
                     : Span::getCurrent();
                 $builder = $instrumentation->tracer()->spanBuilder(
-                        $root
-                        ? sprintf('%s::%s', $class, $function)
-                        : sprintf('HTTP %s', $request?->getMethod() ?? 'unknown')
-                    )
+                    $root
+                    ? sprintf('%s::%s', $class, $function)
+                    : sprintf('HTTP %s', $request?->getMethod() ?? 'unknown')
+                )
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
                     ->setAttribute('code.lineno', $lineno);
                 $parent = Context::getCurrent();
-                if (!$root) {
+                if (!$root && $request) {
                     //create http root span
                     $parent = Globals::propagator()->extract($request->getHeaders());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::HTTP_URL, $request?->getUri()->__toString())
-                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request?->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request?->getHeaderLine('Content-Length'))
-                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request?->getUri()?->getScheme())
+                        ->setAttribute(TraceAttributes::HTTP_URL, $request->getUri()->__toString())
+                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
+                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme())
                         ->startSpan();
                     $request = $request->withAttribute(SpanInterface::class, $span);
                 } else {
@@ -112,8 +111,13 @@ class Psr15Instrumentation
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
-                if ($response?->getStatusCode() >= 500) {
-                    $span->setStatus(StatusCode::STATUS_ERROR);
+                if ($response) {
+                    if ($response->getStatusCode() >= 400) {
+                        $span->setStatus(StatusCode::STATUS_ERROR);
+                    }
+                    $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->getHeaderLine('Content-Length'));
                 }
 
                 $span->end();
