@@ -9,6 +9,8 @@ use Mockery;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
+use OpenTelemetry\API\Common\Instrumentation\Globals;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -50,22 +52,13 @@ class SlimInstrumentationTest extends TestCase
         $this->scope->detach();
     }
 
-    public function test_app_handle_creates_span(): void
-    {
-        $app = $this->createMockApp($this->createMock(ResponseInterface::class));
-        $request = new ServerRequest('GET', 'http://www.example.com/foo');
-        $app->handle($request);
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
-        $this->assertSame('HTTP GET', $span->getName());
-    }
-
     /**
      * @dataProvider routeProvider
      */
-    public function test_routing_updates_span_name(RouteInterface $route, string $expected): void
+    public function test_routing_updates_root_span_name(RouteInterface $route, string $expected): void
     {
-        $request = new ServerRequest('GET', 'http://example.com/foo');
+        $span = Globals::tracerProvider()->getTracer('test')->spanBuilder('root')->startSpan();
+        $request = (new ServerRequest('GET', 'http://example.com/foo'))->withAttribute(SpanInterface::class, $span);
 
         $routingMiddleware = new class($this->createMock(RouteResolverInterface::class), $this->createMock(RouteParserInterface::class)) extends RoutingMiddleware {
             public function performRouting(ServerRequestInterface $request): ServerRequestInterface
@@ -79,6 +72,7 @@ class SlimInstrumentationTest extends TestCase
         );
         $app->handle($request->withAttribute(RouteContext::ROUTE, $route));
         $routingMiddleware->performRouting($request);
+        $span->end();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
         $this->assertSame($expected, $span->getName());
