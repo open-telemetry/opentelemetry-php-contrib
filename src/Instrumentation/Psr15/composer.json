@@ -1,0 +1,36 @@
+{
+  "name": "open-telemetry/opentelemetry-auto-psr15",
+  "description": "OpenTelemetry auto-instrumentation for psr15 middleware.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "psr15", "instrumentation"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^8.0",
+    "ext-otel_instrumentation": "*",
+    "open-telemetry/api": "dev-main",
+    "psr/http-server-middleware": "^1"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\Psr15\\": "src/"
+    },
+    "files": [
+      "_register.php"
+    ]
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "nyholm/psr7": "*",
+    "phan/phan": "^5.0",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.16",
+    "open-telemetry/sdk": "dev-main",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^4.0"
+  }
+}
