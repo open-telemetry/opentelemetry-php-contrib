@@ -13,7 +13,9 @@ use OpenTelemetry\API\Common\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\Contrib\Instrumentation\Psr15\Psr15Instrumentation;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -161,8 +163,9 @@ class Psr15InstrumentationTest extends TestCase
                 if ($this->exception) {
                     throw $this->exception;
                 }
-                $span = $request->getAttribute(SpanInterface::class);
-                Assert::assertInstanceOf(Span::class, $span);
+                $rootSpan = Context::getCurrent()->get(Psr15Instrumentation::$rootSpan);
+                Assert::assertNotNull($rootSpan);
+                Assert::assertInstanceOf(Span::class, $rootSpan);
 
                 return new Response();
             }

@@ -7,10 +7,10 @@ namespace OpenTelemetry\Contrib\Instrumentation\Psr15;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextKey;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
@@ -24,6 +24,8 @@ use Throwable;
  */
 class Psr15Instrumentation
 {
+    public static ContextKey $rootSpan;
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr15');
@@ -68,9 +70,7 @@ class Psr15Instrumentation
             'handle',
             pre: static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
-                $root = $request
-                    ? $request->getAttribute(SpanInterface::class)
-                    : Span::getCurrent();
+                $root = Context::getCurrent()->get(Psr15Instrumentation::$rootSpan);
                 $builder = $instrumentation->tracer()->spanBuilder(
                     $root
                     ? sprintf('%s::%s', $class, $function)
@@ -92,7 +92,7 @@ class Psr15Instrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
                         ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme())
                         ->startSpan();
-                    $request = $request->withAttribute(SpanInterface::class, $span);
+                    $parent = $parent->with(Psr15Instrumentation::$rootSpan, $span);
                 } else {
                     $span = $builder->startSpan();
                 }
@@ -125,3 +125,5 @@ class Psr15Instrumentation
         );
     }
 }
+
+Psr15Instrumentation::$rootSpan = Context::createKey('rootSpan');
