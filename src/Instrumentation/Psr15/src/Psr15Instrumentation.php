@@ -10,7 +10,6 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Context\ContextKey;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
@@ -24,12 +23,11 @@ use Throwable;
  */
 class Psr15Instrumentation
 {
-    public static ContextKey $rootSpan;
+    public static $rootSpan;
 
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr15');
-
         /**
          * Create a span for each psr-15 middleware that is executed.
          */
@@ -126,4 +124,4 @@ class Psr15Instrumentation
     }
 }
 
-Psr15Instrumentation::$rootSpan = Context::createKey('rootSpan');
+Psr15Instrumentation::$rootSpan ??= Context::createKey('rootSpan');
