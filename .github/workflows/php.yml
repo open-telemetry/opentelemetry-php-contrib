@@ -9,9 +9,10 @@ on:
 
 jobs:
   php:
-
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         operating-system: [ubuntu-latest]
         php-version: ['7.4', '8.0', '8.1']

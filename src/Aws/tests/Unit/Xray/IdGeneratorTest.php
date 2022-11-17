@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Aws\Unit\Xray;
 
-use OpenTelemetry\API\Trace\SpanContext;
+use OpenTelemetry\API\Trace\SpanContextValidator;
 use OpenTelemetry\Aws\Xray\IdGenerator;
 use PHPUnit\Framework\TestCase;
 
@@ -13,7 +13,7 @@ class IdGeneratorTest extends TestCase
     public function testGeneratedTraceIdIsValid()
     {
         $this->assertTrue(
-            SpanContext::isValidTraceId(
+            SpanContextValidator::isValidTraceId(
                 (new IdGenerator())->generateTraceId()
             )
         );
@@ -44,7 +44,7 @@ class IdGeneratorTest extends TestCase
     public function testGeneratedSpanIdIsValid()
     {
         $this->assertTrue(
-            SpanContext::isValidSpanId(
+            SpanContextValidator::isValidSpanId(
                 (new IdGenerator())->generateSpanId()
             )
         );
