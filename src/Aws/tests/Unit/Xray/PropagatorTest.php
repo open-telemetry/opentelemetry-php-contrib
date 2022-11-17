@@ -6,9 +6,11 @@ namespace OpenTelemetry\Tests\Aws\Unit\Xray;
 
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanContextInterface;
+use OpenTelemetry\API\Trace\SpanContextValidator;
 use OpenTelemetry\API\Trace\TraceState;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Trace\Span;
 use PHPUnit\Framework\TestCase;
 
@@ -109,7 +111,7 @@ class PropagatorTest extends TestCase
             $carrier,
             null,
             $this->withSpanContext(
-                SpanContext::create(SpanContext::INVALID_TRACE, SpanContext::INVALID_SPAN, SpanContextInterface::TRACE_FLAG_SAMPLED, new TraceState('vendor1=opaqueValue1')),
+                SpanContext::create(SpanContextValidator::INVALID_TRACE, SpanContextValidator::INVALID_SPAN, SpanContextInterface::TRACE_FLAG_SAMPLED, new TraceState('vendor1=opaqueValue1')),
                 Context::getCurrent()
             )
         );
@@ -166,8 +168,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -183,8 +185,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -201,8 +203,8 @@ class PropagatorTest extends TestCase
             $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
             $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-            $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-            $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+            $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+            $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
             $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
             $this->assertFalse($context->isRemote());
         }
@@ -219,8 +221,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -236,8 +238,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -253,8 +255,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -270,8 +272,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -287,8 +289,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -304,8 +306,8 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
@@ -321,13 +323,13 @@ class PropagatorTest extends TestCase
         $carrier = [Propagator::AWSXRAY_TRACE_ID_HEADER => $traceHeader];
         $context = Span::fromContext((new Propagator())->extract($carrier))->getContext();
 
-        $this->assertSame(SpanContext::INVALID_TRACE, $context->getTraceId());
-        $this->assertSame(SpanContext::INVALID_SPAN, $context->getSpanId());
+        $this->assertSame(SpanContextValidator::INVALID_TRACE, $context->getTraceId());
+        $this->assertSame(SpanContextValidator::INVALID_SPAN, $context->getSpanId());
         $this->assertSame(self::NOT_SAMPLED, ($context->isSampled() ? '1' : '0'));
         $this->assertFalse($context->isRemote());
     }
 
-    private function withSpanContext(SpanContextInterface $spanContext, Context $context): Context
+    private function withSpanContext(SpanContextInterface $spanContext, ContextInterface $context): ContextInterface
     {
         return $context->withContextValue(Span::wrap($spanContext));
     }
