@@ -163,7 +163,7 @@ class Psr15InstrumentationTest extends TestCase
                 if ($this->exception) {
                     throw $this->exception;
                 }
-                $rootSpan = Context::getCurrent()->get(Psr15Instrumentation::$rootSpan);
+                $rootSpan = Context::getCurrent()->get(Psr15Instrumentation::getRootSpan());
                 Assert::assertNotNull($rootSpan);
                 Assert::assertInstanceOf(Span::class, $rootSpan);
 

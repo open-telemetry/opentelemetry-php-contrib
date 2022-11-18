@@ -23,10 +23,17 @@ use Throwable;
  */
 class Psr15Instrumentation
 {
-    public static $rootSpan;
+    private static $rootSpan;
+
+    public static function getRootSpan()
+    {
+        return Psr15Instrumentation::$rootSpan;
+    }
 
     public static function register(): void
     {
+        Psr15Instrumentation::$rootSpan ??= Context::createKey('rootSpan');
+
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr15');
         /**
          * Create a span for each psr-15 middleware that is executed.
@@ -68,7 +75,7 @@ class Psr15Instrumentation
             'handle',
             pre: static function (RequestHandlerInterface $handler, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
-                $root = Context::getCurrent()->get(Psr15Instrumentation::$rootSpan);
+                $root = Context::getCurrent()->get(Psr15Instrumentation::getRootSpan());
                 $builder = $instrumentation->tracer()->spanBuilder(
                     $root
                     ? sprintf('%s::%s', $class, $function)
@@ -90,7 +97,7 @@ class Psr15Instrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
                         ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme())
                         ->startSpan();
-                    $parent = $parent->with(Psr15Instrumentation::$rootSpan, $span);
+                    $parent = $parent->with(Psr15Instrumentation::getRootSpan(), $span);
                 } else {
                     $span = $builder->startSpan();
                 }
@@ -123,5 +130,3 @@ class Psr15Instrumentation
         );
     }
 }
-
-Psr15Instrumentation::$rootSpan ??= Context::createKey('rootSpan');
