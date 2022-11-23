@@ -10,7 +10,7 @@
   "require": {
     "php": "^8.0",
     "ext-otel_instrumentation": "*",
-    "open-telemetry/api": "dev-main",
+    "open-telemetry/api": "^0",
     "psr/http-server-middleware": "^1"
   },
   "autoload": {
@@ -29,7 +29,7 @@
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.16",
-    "open-telemetry/sdk": "dev-main",
+    "open-telemetry/sdk": "^0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0"
   }
