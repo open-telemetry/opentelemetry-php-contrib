@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-// $ PHP_VERSION=8.1 docker-compose run --rm php -dextension=examples/instrumentation/Psr18/otel_instrumentation.so examples/instrumentation/Psr18/request.php
-
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
+use OpenTelemetry\API\Common\Instrumentation;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
-use function OpenTelemetry\Instrumentation\Psr18\enableHttpClientTracing;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOnSampler;
@@ -23,14 +21,18 @@ $tracerProvider =  new TracerProvider(
     new AlwaysOnSampler(),
     ResourceInfoFactory::emptyResource(),
 );
-enableHttpClientTracing(
-    $tracerProvider->getTracer('io.opentelemetry.contrib.php'),
-    TraceContextPropagator::getInstance(),
-);
 
-$client = new Client();
+$scope = Instrumentation\Configurator::create()
+    ->withTracerProvider($tracerProvider)
+    ->withPropagator(TraceContextPropagator::getInstance())
+    ->activate();
 
-$response = $client->sendRequest(new Request('GET', 'https://postman-echo.com/get'));
-echo json_encode(json_decode($response->getBody()->getContents()), JSON_PRETTY_PRINT), PHP_EOL;
+try {
+    $client = new Client();
 
-$tracerProvider->shutdown();
+    $response = $client->sendRequest(new Request('GET', 'https://postman-echo.com/get'));
+    echo json_encode(json_decode($response->getBody()->getContents()), JSON_PRETTY_PRINT), PHP_EOL;
+} finally {
+    $scope->detach();
+    $tracerProvider->shutdown();
+}
