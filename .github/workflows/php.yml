@@ -16,7 +16,13 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-version: ['7.4', '8.0', '8.1']
-        project: ['Aws', 'Symfony', 'Instrumentation/Slim', 'Instrumentation/Psr15']
+        project: [
+          'Aws',
+          'Context/Swoole',
+          'Instrumentation/Slim',
+          'Instrumentation/Psr15',
+          'Symfony'
+        ]
         exclude:
           - project: 'Instrumentation/Slim'
             php-version: 7.4
