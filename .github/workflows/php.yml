@@ -21,12 +21,15 @@ jobs:
           'Context/Swoole',
           'Instrumentation/Slim',
           'Instrumentation/Psr15',
+          'Instrumentation/Psr18',
           'Symfony'
         ]
         exclude:
           - project: 'Instrumentation/Slim'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'
+            php-version: 7.4
+          - project: 'Instrumentation/Psr18'
             php-version: 7.4
 
     steps:
