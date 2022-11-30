@@ -14,7 +14,6 @@ use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 
 require_once dirname(__DIR__, 3) . '/vendor/autoload.php';
-require_once dirname(__DIR__, 3) . '/src/Instrumentation/Psr18/client_tracing.php';
 
 $tracerProvider =  new TracerProvider(
     new BatchSpanProcessor(new ConsoleSpanExporter(), ClockFactory::getDefault()),

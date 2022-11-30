@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Instrumentation\Psr18;
+namespace OpenTelemetry\Contrib\Instrumentation\Psr18;
 
 use function assert;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
@@ -11,9 +11,14 @@ use Psr\Http\Message\RequestInterface;
 /**
  * @internal
  */
-enum HeadersPropagator implements PropagationSetterInterface
+class HeadersPropagator implements PropagationSetterInterface
 {
-    case Instance;
+    public static function instance(): self
+    {
+        static $instance;
+
+        return $instance ??= new self();
+    }
 
     public function set(&$carrier, string $key, string $value): void
     {
