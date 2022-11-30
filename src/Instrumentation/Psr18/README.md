@@ -7,7 +7,8 @@
 * A psr-18 client
 
 ## Overview
-Auto-instrumentation hooks are registered via composer, and spans will automatically be created for each PSR-15 middleware that is executed.
+Auto-instrumentation hooks are registered via composer, and spans will automatically be created for each PSR-18 request that is sent.
+Also, the request will automatically have a `traceparent` header added to facilitate distributed tracing.
 
 To export spans, you will need to create and register a `TracerProvider` early in your application's lifecycle:
 
@@ -20,7 +21,7 @@ $scope = \OpenTelemetry\API\Common\Instrumentation\Configurator::create()
     ->withTracerProvider($tracerProvider)
     ->activate();
 
-//your application runs here
+$client->sendRequest($request);
 
 $scope->detach();
 $tracerProvider->shutdown();
