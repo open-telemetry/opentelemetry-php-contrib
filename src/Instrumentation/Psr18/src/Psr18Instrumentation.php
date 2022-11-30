@@ -25,10 +25,12 @@ class Psr18Instrumentation
     /** @psalm-suppress ArgumentTypeCoercion */
     public static function register(): void
     {
+        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr18', schemaUrl: TraceAttributes::SCHEMA_URL);
+
         hook(
             ClientInterface::class,
             'sendRequest',
-            pre: static function (ClientInterface $client, array $params, string $class, string $function, ?string $filename, ?int $lineno): ?array {
+            pre: static function (ClientInterface $client, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): ?array {
                 $request = $params[0] ?? null;
                 if (!$request instanceof RequestInterface) {
                     Context::storage()->attach(Context::getCurrent());
@@ -36,8 +38,6 @@ class Psr18Instrumentation
                     return null;
                 }
 
-                static $instrumentation;
-                $instrumentation ??= new CachedInstrumentation('io.opentelemetry.contrib.php.psr18', schemaUrl: TraceAttributes::SCHEMA_URL);
                 $propagator = Instrumentation\Globals::propagator();
                 $parentContext = Context::getCurrent();
 
@@ -64,7 +64,10 @@ class Psr18Instrumentation
                 }
                 foreach ((array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []) as $header) {
                     if ($request->hasHeader($header)) {
-                        $spanBuilder->setAttribute(sprintf('http.request.header.%s', strtr(strtolower($header), ['-' => '_'])), $request->getHeader($header));
+                        $spanBuilder->setAttribute(
+                            sprintf('http.request.header.%s', strtr(strtolower($header), ['-' => '_'])),
+                            $request->getHeader($header)
+                        );
                     }
                 }
 
