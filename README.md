@@ -5,8 +5,6 @@
 
 
 ## Current Project Status
-This project currently lives in a pre-alpha status.  Our current release is not production ready; it has been created in order to receive feedback from the community.
-
 For more information, please, consult the documentation of the main [OpenTelemetry php project](https://github.com/open-telemetry/opentelemetry-php).
 
 ## Issues
@@ -15,16 +13,18 @@ Issues have been disabled for this repo in order to help main consistency betwee
 
 ## Installation
 ### Install  individual packages:
-(This is the recommened way to install the components)
-
+(This is the recommended way to install the components)
 
 Refer to the documentation for the individual components on how to install them
-
 
 - [AWS](/src/AWS/README.md)
 - [Symfony SdkBundle](/src/Symfony/OtelSdkBundle/README.md)
 
 ## Usage/Examples   
+
+### Auto-instrumentation
+Auto-instrumentation requires the [otel_instrumentation](https://github.com/open-telemetry/opentelemetry-php-instrumentation) PHP extension, and
+the installation of one or more packages from [src/Instrumentation](./src/Instrumentation)
 
 ### AWS
 - You can find examples on how to use the ASW classes in the  [examples directory](/examples/aws/README.md).
