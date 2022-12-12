@@ -10,12 +10,11 @@ on:
 jobs:
   php:
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: false
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-latest]
-        php-version: ['7.4', '8.0', '8.1']
+        php-version: ['7.4', '8.0', '8.1', '8.2']
         project: [
           'Aws',
           'Context/Swoole',
@@ -65,6 +64,7 @@ jobs:
 
     - name: Check Style
       working-directory: src/${{ matrix.project }}
+      continue-on-error: ${{ matrix.php-version == 8.2 }} #temporary, until php-cs-fixer is happy with php8.2
       run: vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv
 
     - name: Run Phan
