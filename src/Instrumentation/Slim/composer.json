@@ -11,7 +11,7 @@
     "php": "^8.0",
     "ext-otel_instrumentation": "*",
     "ext-reflection": "*",
-    "open-telemetry/api": "^0",
+    "open-telemetry/api": "*",
     "slim/slim": "^4"
   },
   "require-dev": {
