@@ -10,7 +10,7 @@
   "require": {
     "php": "^8.0",
     "ext-otel_instrumentation": "*",
-    "open-telemetry/api": "^0",
+    "open-telemetry/api": "*",
     "psr/http-server-middleware": "^1"
   },
   "autoload": {

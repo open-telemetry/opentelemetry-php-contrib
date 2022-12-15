@@ -12,7 +12,7 @@
   ],
   "require": {
     "php": "^7.4 || ^8.0",
-    "open-telemetry/context": "^0"
+    "open-telemetry/context": "*"
   },
   "autoload": {
     "psr-4": {
