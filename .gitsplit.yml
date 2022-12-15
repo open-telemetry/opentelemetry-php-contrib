@@ -23,5 +23,3 @@ splits:
 origins:
   - ^main$
   - ^split$
-  - ^v?\d+\.\d+\.\d+$
-  - ^v?\d+\.\d+\.\d+-?beta\d+$
