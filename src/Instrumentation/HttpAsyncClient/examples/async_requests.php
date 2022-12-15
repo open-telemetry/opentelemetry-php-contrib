@@ -7,9 +7,9 @@ use Http\Adapter\Guzzle7\Client;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use OpenTelemetry\API\Common\Instrumentation;
+use OpenTelemetry\API\Common\Log\LoggerHolder;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
-use OpenTelemetry\SDK\Common\Export\Stream\StreamTransport;
-use OpenTelemetry\SDK\Common\Log\LoggerHolder;
+use OpenTelemetry\SDK\Common\Export\Stream\StreamTransportFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOnSampler;
@@ -24,7 +24,7 @@ LoggerHolder::set(
     new Logger('otel-php', [new StreamHandler(STDOUT, LogLevel::DEBUG)])
 );
 
-$transport = new StreamTransport(fopen('php://stdout', 'a'), 'application/json');
+$transport = (new StreamTransportFactory())->create('php://output', 'application/json');
 $exporter = new ConsoleSpanExporter($transport);
 
 $tracerProvider =  new TracerProvider(
@@ -47,6 +47,7 @@ try {
         new Request('POST', 'https://postman-echo.com/post'),
         new Request('GET', 'https://httpbin.org/does-not-exist'),
         new Request('GET', 'https://httpbin.org/get'),
+        new Request('PUT', 'localhost:2222/not-found'),
     ];
     $client = new Client();
     $promises = [];
