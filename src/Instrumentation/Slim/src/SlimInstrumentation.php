@@ -37,8 +37,8 @@ class SlimInstrumentation
             RoutingMiddleware::class,
             'performRouting',
             pre: null,
-            post: static function (RoutingMiddleware $middleware, array $params, ServerRequestInterface $request, ?Throwable $exception) {
-                if ($exception) {
+            post: static function (RoutingMiddleware $middleware, array $params, ?ServerRequestInterface $request, ?Throwable $exception) {
+                if ($exception || !$request) {
                     return;
                 }
                 $span = $request->getAttribute(SpanInterface::class);
