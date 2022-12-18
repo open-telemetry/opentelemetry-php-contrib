@@ -71,7 +71,6 @@ class SlimInstrumentationTest extends TestCase
             $routingMiddleware
         );
         $app->handle($request->withAttribute(RouteContext::ROUTE, $route));
-        $routingMiddleware->performRouting($request);
         $span->end();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
@@ -99,6 +98,7 @@ class SlimInstrumentationTest extends TestCase
             ],
         ];
     }
+
     public function test_invocation_strategy(): void
     {
         $strategy = $this->createMockStrategy();
@@ -112,6 +112,33 @@ class SlimInstrumentationTest extends TestCase
             []
         );
         $this->assertCount(1, $this->storage);
+    }
+
+    public function test_routing_exception(): void
+    {
+        $span = Globals::tracerProvider()->getTracer('test')->spanBuilder('root')->startSpan();
+        $request = (new ServerRequest('GET', 'http://example.com/foo'));
+
+        $routingMiddleware = new class($this->createMock(RouteResolverInterface::class), $this->createMock(RouteParserInterface::class)) extends RoutingMiddleware {
+            public function performRouting(ServerRequestInterface $request): ServerRequestInterface
+            {
+                throw new \Exception('routing failed');
+            }
+        };
+        $app = $this->createMockApp(
+            $this->createMock(ResponseInterface::class),
+            $routingMiddleware
+        );
+
+        try {
+            $app->handle($request);
+        } catch (\Exception $e) {
+            $this->assertSame('routing failed', $e->getMessage());
+        }
+        $span->end();
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
+        $this->assertSame('root', $span->getName(), 'span name was not updated because routing failed');
     }
 
     public function createMockStrategy(): InvocationStrategyInterface
