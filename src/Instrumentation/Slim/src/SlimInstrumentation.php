@@ -30,6 +30,7 @@ class SlimInstrumentation
          * This relies upon the existence of a request attribute with key SpanInterface::class
          * and type SpanInterface which represents the root span, having been previously set (eg
          * by PSR-15 auto-instrumentation)
+         * If routing fails (eg 404/not found), then the root span name will not be updated.
          *
          * @psalm-suppress ArgumentTypeCoercion
          */
