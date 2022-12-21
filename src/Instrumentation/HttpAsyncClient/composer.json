@@ -10,7 +10,7 @@
   "require": {
     "php": "^8.0",
     "ext-otel_instrumentation": "*",
-    "open-telemetry/api": "^0",
+    "open-telemetry/api": "^1",
     "php-http/httplug": "^2"
   },
   "autoload": {
@@ -24,7 +24,6 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
     "monolog/monolog": "*",
-    "open-telemetry/exporter-zipkin": "*",
     "php-http/guzzle7-adapter": "*",
     "nyholm/psr7": "*",
     "phan/phan": "^5.0",
@@ -32,7 +31,7 @@
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.16",
-    "open-telemetry/sdk": "^0",
+    "open-telemetry/sdk": "*",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0"
   }

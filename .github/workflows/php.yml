@@ -18,12 +18,15 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
+          'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
           'Instrumentation/Psr15',
           'Instrumentation/Psr18',
           'Symfony'
         ]
         exclude:
+          - project: 'Instrumentation/HttpAsyncClient'
+            php-version: 7.4
           - project: 'Instrumentation/Slim'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'

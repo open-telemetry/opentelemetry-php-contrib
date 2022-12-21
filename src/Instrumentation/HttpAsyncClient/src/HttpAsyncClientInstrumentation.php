@@ -72,7 +72,7 @@ class HttpAsyncClientInstrumentation
 
                 $span = $spanBuilder->startSpan();
                 $context = $span->storeInContext($parentContext);
-                //$propagator->inject($request, HeadersPropagator::instance(), $context);
+                $propagator->inject($request, HeadersPropagator::instance(), $context);
 
                 Context::storage()->attach($context);
 
