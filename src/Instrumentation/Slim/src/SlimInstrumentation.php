@@ -65,7 +65,7 @@ class SlimInstrumentation
             pre: static function (InvocationStrategyInterface $strategy, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $callable = $params[0];
                 $name = CallableFormatter::format($callable);
-                $builder = $instrumentation->tracer()->spanBuilder($name) //@phpstan-ignore-line
+                $builder = $instrumentation->tracer()->spanBuilder($name)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
