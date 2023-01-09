@@ -24,3 +24,9 @@ $scope = \OpenTelemetry\API\Common\Instrumentation\Configurator::create()
 $scope->detach();
 $tracerProvider->shutdown();
 ```
+
+## Installation via composer
+
+```bash
+$ composer require open-telemetry/opentelemetry-auto-psr15
+```
