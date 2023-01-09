@@ -29,3 +29,8 @@ $client->sendAsyncRequest($request);
 $scope->detach();
 $tracerProvider->shutdown();
 ```
+## Installation via composer
+
+```bash
+$ composer require open-telemetry/opentelemetry-auto-http-async
+```
