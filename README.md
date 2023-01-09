@@ -17,8 +17,8 @@ Issues have been disabled for this repo in order to help main consistency betwee
 
 Refer to the documentation for the individual components on how to install them
 
-- [AWS](/src/AWS/README.md)
-- [Symfony SdkBundle](/src/Symfony/OtelSdkBundle/README.md)
+- [AWS](/src/Aws/README.md)
+- [Symfony SdkBundle](/src/Symfony/README.md)
 
 ## Usage/Examples   
 
@@ -31,7 +31,7 @@ the installation of one or more packages from [src/Instrumentation](./src/Instru
 
 ### Symfony
 #### SdkBundle
-- The documentation for the Symfony SdkBundle can be found [here](/src/Symfony/OtelSdkBundle/README.md).
+- The documentation for the Symfony SdkBundle can be found [here](/src/Symfony/README.md).
 - An example symfony application using the SdkBundle can be found [here](https://github.com/opentelemetry-php/otel-sdk-bundle-example-sf5).
 
 
