@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Slim;
 
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Slim\App;
 use Slim\Interfaces\InvocationStrategyInterface;
 use Slim\Interfaces\RouteInterface;
 use Slim\Middleware\RoutingMiddleware;
@@ -25,11 +28,65 @@ class SlimInstrumentation
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim');
 
+        hook(
+            App::class,
+            'handle',
+            pre: static function (App $app, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = $instrumentation->tracer()
+                    ->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                    ->setSpanKind(SpanKind::KIND_SERVER)
+                    ->setAttribute('code.function', $function)
+                    ->setAttribute('code.namespace', $class)
+                    ->setAttribute('code.filepath', $filename)
+                    ->setAttribute('code.lineno', $lineno);
+                $parent = Context::getCurrent();
+                if ($request) {
+                    $parent = Globals::propagator()->extract($request->getHeaders());
+                    $span = $builder
+                        ->setParent($parent)
+                        ->setAttribute(TraceAttributes::HTTP_URL, $request->getUri()->__toString())
+                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
+                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme())
+                        ->startSpan();
+                    $request = $request->withAttribute(SpanInterface::class, $span);
+                } else {
+                    $span = $builder->startSpan();
+                }
+                Context::storage()->attach($span->storeInContext($parent));
+
+                return [$request];
+            },
+            post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) {
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+                if ($exception) {
+                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+                if ($response) {
+                    if ($response->getStatusCode() >= 400) {
+                        $span->setStatus(StatusCode::STATUS_ERROR);
+                    }
+                    $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->getHeaderLine('Content-Length'));
+                }
+
+                $span->end();
+            }
+        );
+
         /**
          * Update root span's name after Slim routing, using either route name or method+pattern.
          * This relies upon the existence of a request attribute with key SpanInterface::class
-         * and type SpanInterface which represents the root span, having been previously set (eg
-         * by PSR-15 auto-instrumentation)
+         * and type SpanInterface which represents the root span, having been previously set
          * If routing fails (eg 404/not found), then the root span name will not be updated.
          *
          * @psalm-suppress ArgumentTypeCoercion
@@ -65,7 +122,7 @@ class SlimInstrumentation
             pre: static function (InvocationStrategyInterface $strategy, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $callable = $params[0];
                 $name = CallableFormatter::format($callable);
-                $builder = $instrumentation->tracer()->spanBuilder($name) //@phpstan-ignore-line
+                $builder = $instrumentation->tracer()->spanBuilder($name)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)

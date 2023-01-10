@@ -9,8 +9,6 @@ use Mockery;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
-use OpenTelemetry\API\Common\Instrumentation\Globals;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -57,8 +55,7 @@ class SlimInstrumentationTest extends TestCase
      */
     public function test_routing_updates_root_span_name(RouteInterface $route, string $expected): void
     {
-        $span = Globals::tracerProvider()->getTracer('test')->spanBuilder('root')->startSpan();
-        $request = (new ServerRequest('GET', 'http://example.com/foo'))->withAttribute(SpanInterface::class, $span);
+        $request = new ServerRequest('GET', 'http://example.com/foo');
 
         $routingMiddleware = new class($this->createMock(RouteResolverInterface::class), $this->createMock(RouteParserInterface::class)) extends RoutingMiddleware {
             public function performRouting(ServerRequestInterface $request): ServerRequestInterface
@@ -71,7 +68,6 @@ class SlimInstrumentationTest extends TestCase
             $routingMiddleware
         );
         $app->handle($request->withAttribute(RouteContext::ROUTE, $route));
-        $span->end();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
         $this->assertSame($expected, $span->getName());
@@ -116,7 +112,6 @@ class SlimInstrumentationTest extends TestCase
 
     public function test_routing_exception(): void
     {
-        $span = Globals::tracerProvider()->getTracer('test')->spanBuilder('root')->startSpan();
         $request = (new ServerRequest('GET', 'http://example.com/foo'));
 
         $routingMiddleware = new class($this->createMock(RouteResolverInterface::class), $this->createMock(RouteParserInterface::class)) extends RoutingMiddleware {
@@ -135,10 +130,9 @@ class SlimInstrumentationTest extends TestCase
         } catch (\Exception $e) {
             $this->assertSame('routing failed', $e->getMessage());
         }
-        $span->end();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
-        $this->assertSame('root', $span->getName(), 'span name was not updated because routing failed');
+        $this->assertSame('HTTP GET', $span->getName(), 'span name was not updated because routing failed');
     }
 
     public function createMockStrategy(): InvocationStrategyInterface
