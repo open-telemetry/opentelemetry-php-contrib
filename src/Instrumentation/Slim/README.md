@@ -6,9 +6,20 @@
 * OpenTelemetry SDK and exporters (required to actually export traces)
 
 ## Overview
-Auto-instrumentation hooks are registered via composer, and spans will automatically be created for each psr-15 middleware that is executed.
+Auto-instrumentation hooks are registered via composer, and spans will automatically be created for:
 
-To export spans, you will need to create and register a `TracerProvider` early in your application's lifecycle:
+* `App::handle()` - root span
+* `InvocationStrategyInterface` - controller/action
+* `RoutingMiddleware::performRouting` - update root span's name with either route name or pattern
+
+To export spans, you will need to create and register a `TracerProvider` early in your application's
+lifecycle. This can be done either manually or using SDK autoloading.
+
+### Using SDK autoloading
+
+See https://github.com/open-telemetry/opentelemetry-php#sdk-autoloading
+
+### Manual setup
 
 ```php
 <?php
