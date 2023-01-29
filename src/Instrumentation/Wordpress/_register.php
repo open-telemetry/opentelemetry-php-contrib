@@ -6,6 +6,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Wordpress\WordpressInstrumentation;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -33,3 +34,22 @@ $span = $instrumentation
 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
 WordpressInstrumentation::register($instrumentation);
+
+//register a shutdown function to end root span (@todo, ensure it runs _before_ tracer shuts down)
+register_shutdown_function(function() use ($span) {
+    //@todo there could be other interesting settings from wordpress...
+    $span->setAttribute('wp.is_admin', is_admin());
+
+    if (is_404()) {
+        $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, 404);
+        $span->setStatus(StatusCode::STATUS_ERROR);
+    }
+    //@todo check for other errors?
+
+    $span->end();
+    $scope = Context::storage()->scope();
+    if (!$scope) {
+        return;
+    }
+    $scope->detach();
+});

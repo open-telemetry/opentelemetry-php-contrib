@@ -14,17 +14,19 @@ OpenTelemetry depends on composer, unlike Wordpress. I developed this against [j
 
 ### apache
 
-Configure (eg via `.htaccess`) a PHP prepend and append file:
+Configure (eg via `.htaccess`) a PHP prepend file to initialize composer:
 
 ```
 php_value auto_prepend_file /var/www/vendor/autoload.php
-php_value auto_append_file /var/www/vendor/open-telemetry/opentelemetry-auto-wordpress/_post.php
 ```
 
 This will install the composer autoloader before running Wordpress. As part of composer autoloading,
 scripts are executed for installed modules (which includes this library's `_register.php` file).
 
-`_post.php` adds some attributes and ends the root span after Wordpress has finished processing the request.
+The initialization script for Wordpress auto-instrumentation, `_register.php`, will:
+* start a root span
+* create a shutdown function to end the root span
+* initialize auto-instrumentation hooks
 
 ## Installation via composer
 
