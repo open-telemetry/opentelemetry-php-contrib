@@ -22,7 +22,7 @@ $request = (new ServerRequestCreator($factory, $factory, $factory, $factory))->f
 $span = $instrumentation
     ->tracer()
     ->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
-    ->setSpanKind(SpanKind::KIND_CLIENT)
+    ->setSpanKind(SpanKind::KIND_SERVER)
     ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
     ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
     ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
@@ -36,11 +36,11 @@ Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 WordpressInstrumentation::register($instrumentation);
 
 //register a shutdown function to end root span (@todo, ensure it runs _before_ tracer shuts down)
-register_shutdown_function(function() use ($span) {
+register_shutdown_function(function () use ($span) {
     //@todo there could be other interesting settings from wordpress...
-    $span->setAttribute('wp.is_admin', is_admin());
+    function_exists('is_admin') && $span->setAttribute('wp.is_admin', is_admin());
 
-    if (is_404()) {
+    if (function_exists('is_404') && is_404()) {
         $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, 404);
         $span->setStatus(StatusCode::STATUS_ERROR);
     }
