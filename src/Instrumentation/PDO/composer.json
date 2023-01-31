@@ -21,6 +21,7 @@
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.16",
+    "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0"
   },
