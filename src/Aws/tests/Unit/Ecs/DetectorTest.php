@@ -9,6 +9,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
+use OpenTelemetry\API\Common\Log\LoggerHolder;
 use OpenTelemetry\Aws\Ecs\DataProvider;
 use OpenTelemetry\Aws\Ecs\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -17,6 +18,7 @@ use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use OpenTelemetry\SemConv\ResourceAttributeValues;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 class DetectorTest extends TestCase
 {
@@ -35,6 +37,11 @@ class DetectorTest extends TestCase
     private const ECS_ENV_VAR_V3_KEY = 'ECS_CONTAINER_METADATA_URI';
     private const ECS_ENV_VAR_V4_VAL = 'ecs_metadata_v4_uri';
     private const ECS_ENV_VAR_V3_VAL = 'ecs_metadata_v3_uri';
+
+    public function setUp(): void
+    {
+        LoggerHolder::set(new NullLogger());
+    }
 
     /**
      * @test

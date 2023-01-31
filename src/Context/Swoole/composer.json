@@ -10,9 +10,11 @@
       "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
     }
   ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "require": {
     "php": "^7.4 || ^8.0",
-    "open-telemetry/context": "*"
+    "open-telemetry/context": "^1.0"
   },
   "autoload": {
     "psr-4": {
@@ -27,7 +29,7 @@
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.16",
-    "open-telemetry/sdk": "^0",
+    "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0"
   }
