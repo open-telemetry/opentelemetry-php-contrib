@@ -8,6 +8,7 @@ use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
@@ -71,15 +72,19 @@ class PDOInstrumentation
             }
         );
     }
-    private static function makeBuilder(CachedInstrumentation $instrumentation,
-        string $name, string $function, string $class, ?string $filename, ?int $lineno) {
-        $builder = $instrumentation->tracer()
+    private static function makeBuilder(
+        CachedInstrumentation $instrumentation,
+        string $name,
+        string $function,
+        string $class,
+        ?string $filename,
+        ?int $lineno): SpanBuilderInterface {
+        return $instrumentation->tracer()
                     ->spanBuilder($name)
                     ->setAttribute('code.function', $function)
                     ->setAttribute('code.namespace', $class)
                     ->setAttribute('code.filepath', $filename)
                     ->setAttribute('code.lineno', $lineno);
-        return $builder;
     }
     private static function end(?Throwable $exception): void
     {

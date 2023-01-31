@@ -47,7 +47,6 @@ class PDOInstrumentationTest extends TestCase
         $pdo =  new \PDO('sqlite::memory:');
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
-        var_dump($span->getName());
         $this->assertSame('PDO::__construct', $span->getName());
     }
 
