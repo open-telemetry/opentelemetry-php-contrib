@@ -10,6 +10,8 @@
       "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
     }
   ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "require": {
     "php": "^7.4 || ^8.0",
     "open-telemetry/context": "^1.0"

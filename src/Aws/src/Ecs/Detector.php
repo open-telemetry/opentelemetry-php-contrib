@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws\Ecs;
 
-use OpenTelemetry\SDK\Behavior\LogsMessagesTrait;
+use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
