@@ -7,7 +7,7 @@
 * OpenTelemetry extension
 * OpenTelemetry SDK exporter (required to actually export traces)
 * Wordpress installation
-* (optional) OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
+* OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
 
 ## Overview
 OpenTelemetry depends on composer, unlike Wordpress. I developed this against [johnpbloch/wordpress-core](https://github.com/johnpbloch/wordpress-core-installer), but it may also work with other installation methods.
@@ -21,10 +21,12 @@ php_value auto_prepend_file /var/www/vendor/autoload.php
 ```
 
 This will install the composer autoloader before running Wordpress. As part of composer autoloading,
-scripts are executed for installed modules (which includes this library's `_register.php` file).
+scripts are executed for installed modules, importantly:
+* OpenTelemetry SDK Autoloader
+* this library's `_register.php` file
 
 The initialization script for Wordpress auto-instrumentation, `_register.php`, will:
-* start a root span
+* start a root span based on the incoming request
 * create a shutdown function to end the root span
 * initialize auto-instrumentation hooks
 
