@@ -16,6 +16,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-psr18.git"
   - prefix: "src/Instrumentation/Slim"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-slim.git"
+  - prefix: "src/Instrumentation/Wordpress"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-wordpress.git"
   - prefix: "src/Context/Swoole"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-swoole.git"
 
