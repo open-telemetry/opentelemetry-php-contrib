@@ -10,6 +10,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-aws.git"
   - prefix: "src/Symfony"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sdk-bundle.git"
+  - prefix: "src/Instrumentation/PDO"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-pdo.git"
   - prefix: "src/Instrumentation/Psr15"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-psr15.git"
   - prefix: "src/Instrumentation/Psr18"
