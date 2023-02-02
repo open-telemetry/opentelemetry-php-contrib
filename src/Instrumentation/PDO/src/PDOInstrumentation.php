@@ -31,8 +31,8 @@ class PDOInstrumentation
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $params[0] ?? 'unknown')
                     ->setAttribute(TraceAttributes::DB_USER, $params[1] ?? 'unknown')
-                    // parse connection string
-                    ->setAttribute(TraceAttributes::DB_SYSTEM, 'mysql');
+                    // TODO parse connection string, undefined for now
+                    ->setAttribute(TraceAttributes::DB_SYSTEM, 'undefined');
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -94,7 +94,7 @@ class PDOInstrumentation
             'fetchAll',
             pre: static function (\PDOStatement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = self::makeBuilder($instrumentation, 'PDOStatement::fetch', $function, $class, $filename, $lineno)
+                $builder = self::makeBuilder($instrumentation, 'PDOStatement::fetchAll', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -110,7 +110,7 @@ class PDOInstrumentation
             'execute',
             pre: static function (\PDOStatement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = self::makeBuilder($instrumentation, 'PDOStatement::fetch', $function, $class, $filename, $lineno)
+                $builder = self::makeBuilder($instrumentation, 'PDOStatement::execute', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
