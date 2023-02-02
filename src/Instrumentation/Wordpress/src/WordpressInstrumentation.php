@@ -36,12 +36,12 @@ class WordpressInstrumentation
             class: 'wpdb',
             function: '__construct',
             pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                self::builder($instrumentation, 'wpdb.__connect', $function, $class, $filename, $lineno)
+                $span = self::builder($instrumentation, 'wpdb.__connect', $function, $class, $filename, $lineno)
                     ->setAttribute(TraceAttributes::DB_USER, $params[0] ?? 'unknown')
                     ->setAttribute(TraceAttributes::DB_NAME, $params[1] ?? 'unknown')
                     ->setAttribute(TraceAttributes::DB_SYSTEM, 'mysql')
-                    ->startSpan()
-                    ->activate();
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
             post: static function ($object, ?array $params, mixed $return, ?Throwable $exception) {
                 self::end($exception);
@@ -55,11 +55,11 @@ class WordpressInstrumentation
             class: 'wpdb',
             function: 'query',
             pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                self::builder($instrumentation, 'wpdb.query', $function, $class, $filename, $lineno)
+                $span = self::builder($instrumentation, 'wpdb.query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::DB_STATEMENT, $params[0] ?? 'undefined')
-                    ->startSpan()
-                    ->activate();
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
             post: static function ($object, ?array $params, mixed $return, ?Throwable $exception) {
                 self::end($exception);
@@ -77,10 +77,10 @@ class WordpressInstrumentation
             class: $class,
             function: $function,
             pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation, $name, $spanKind) {
-                self::builder($instrumentation, $name, $function, $class, $filename, $lineno)
+                $span = self::builder($instrumentation, $name, $function, $class, $filename, $lineno)
                     ->setSpanKind($spanKind)
-                    ->startSpan()
-                    ->activate();
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
             post: static function ($object, ?array $params, mixed $return, ?Throwable $exception) {
                 self::end($exception);
