@@ -14,6 +14,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use Nyholm\Dsn\DsnParser;
 use Throwable;
 
 class PDOInstrumentation
@@ -31,8 +32,7 @@ class PDOInstrumentation
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $params[0] ?? 'unknown')
                     ->setAttribute(TraceAttributes::DB_USER, $params[1] ?? 'unknown')
-                    // TODO parse connection string, undefined for now
-                    ->setAttribute(TraceAttributes::DB_SYSTEM, 'undefined');
+                    ->setAttribute(TraceAttributes::DB_SYSTEM, self::getDB($params[0]));
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -150,5 +150,18 @@ class PDOInstrumentation
         }
 
         $span->end();
+    }
+    private static function getDB(string $dsn) {
+        $scheme = 'undefined';
+        try {
+            $parsedDsn = DsnParser::parseFunc($dsn);
+            $args = $parsedDsn->getArguments();
+            if (count($args) > 0) {
+                $scheme = $args[0]->getScheme();
+            }
+        } catch (InvalidDsnException $e) {
+            $scheme = 'undefined';
+        }
+        return $scheme;
     }
 }
