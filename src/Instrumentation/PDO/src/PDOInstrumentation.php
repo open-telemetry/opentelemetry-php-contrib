@@ -41,8 +41,8 @@ class PDOInstrumentation
                     return;
                 }
                 $span = Span::fromContext($scope->context());
-                $scheme = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
-                $span->setAttribute(TraceAttributes::DB_SYSTEM, $scheme);
+                $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                $span->setAttribute(TraceAttributes::DB_SYSTEM, $dbSystem);
                 self::end($exception);
             }
         );
