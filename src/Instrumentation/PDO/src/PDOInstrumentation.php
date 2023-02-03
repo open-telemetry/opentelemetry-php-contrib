@@ -14,7 +14,6 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
-use Nyholm\Dsn\DsnParser;
 use Throwable;
 
 class PDOInstrumentation
@@ -31,14 +30,21 @@ class PDOInstrumentation
                 $builder = self::makeBuilder($instrumentation, 'PDO::__construct', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $params[0] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_USER, $params[1] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_SYSTEM, self::getDB($params[0]));
+                    ->setAttribute(TraceAttributes::DB_USER, $params[1] ?? 'unknown');
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);            }
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+                $span = Span::fromContext($scope->context());
+                $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                $span->setAttribute(TraceAttributes::DB_SYSTEM, $dbSystem);
+                self::end($exception);
+            }
         );
 
         hook(
@@ -54,7 +60,8 @@ class PDOInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);            }
+                self::end($exception);
+            }
         );
 
         hook(
@@ -70,7 +77,8 @@ class PDOInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);            }
+                self::end($exception);
+            }
         );
 
         hook(
@@ -150,18 +158,5 @@ class PDOInstrumentation
         }
 
         $span->end();
-    }
-    private static function getDB(string $dsn) {
-        $scheme = 'undefined';
-        try {
-            $parsedDsn = DsnParser::parseFunc($dsn);
-            $args = $parsedDsn->getArguments();
-            if (count($args) > 0) {
-                $scheme = $args[0]->getScheme();
-            }
-        } catch (InvalidDsnException $e) {
-            $scheme = 'undefined';
-        }
-        return $scheme;
     }
 }
