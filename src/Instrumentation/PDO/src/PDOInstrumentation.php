@@ -28,9 +28,11 @@ class PDOInstrumentation
             pre: static function (\PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::__construct', $function, $class, $filename, $lineno)
-                    ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $params[0] ?? 'unknown')
+                    ->setSpanKind(SpanKind::KIND_CLIENT);
+                if ($class === \PDO::class) {
+                    $builder->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $params[0] ?? 'unknown')
                     ->setAttribute(TraceAttributes::DB_USER, $params[1] ?? 'unknown');
+                }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -53,8 +55,10 @@ class PDOInstrumentation
             pre: static function (\PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
-                    ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_STATEMENT, $params[0] ?? 'undefined');
+                    ->setSpanKind(SpanKind::KIND_CLIENT);
+                if ($class === \PDO::class) {
+                    $builder->setAttribute(TraceAttributes::DB_STATEMENT, $params[0] ?? 'undefined');
+                }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -70,8 +74,10 @@ class PDOInstrumentation
             pre: static function (\PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
-                    ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_STATEMENT, $params[0] ?? 'undefined');
+                    ->setSpanKind(SpanKind::KIND_CLIENT);
+                if ($class === \PDO::class) {
+                    $builder->setAttribute(TraceAttributes::DB_STATEMENT, $params[0] ?? 'undefined');
+                }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
