@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Wordpress;
 
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7Server\ServerRequestCreator;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
@@ -16,8 +18,10 @@ use Throwable;
 
 class WordpressInstrumentation
 {
-    public static function register(CachedInstrumentation $instrumentation): void
+    public static function register(): void
     {
+        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.wordpress');
+
         self::_hook($instrumentation, 'WP', 'main', 'WP.main');
         self::_hook($instrumentation, 'WP', 'init', 'WP.init');
         self::_hook($instrumentation, 'WP', 'parse_request', 'WP.parse_request');
@@ -63,6 +67,49 @@ class WordpressInstrumentation
             },
             post: static function ($object, ?array $params, mixed $return, ?Throwable $exception) {
                 self::end($exception);
+            }
+        );
+
+        //wp_initial_constants is earliest hookable WordPress function that is run once. Here we use it to create the root span
+        hook(
+            class: null,
+            function: 'wp_initial_constants',
+            pre: static function () use ($instrumentation) {
+                $factory = new Psr17Factory();
+                $request = (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
+
+                $span = $instrumentation
+                    ->tracer()
+                    ->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
+                    ->setSpanKind(SpanKind::KIND_SERVER)
+                    ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
+                    ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
+                    ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
+                    ->setAttribute(TraceAttributes::HTTP_USER_AGENT, $request->getHeaderLine('User-Agent'))
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
+                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $request->getUri()->getHost())
+                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $request->getUri()->getPort())
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+
+                //register a shutdown function to end root span (@todo, ensure it runs _before_ tracer shuts down)
+                register_shutdown_function(function () use ($span) {
+                    //@todo there could be other interesting settings from wordpress...
+                    function_exists('is_admin') && $span->setAttribute('wp.is_admin', is_admin());
+
+                    if (function_exists('is_404') && is_404()) {
+                        $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, 404);
+                        $span->setStatus(StatusCode::STATUS_ERROR);
+                    }
+                    //@todo check for other errors?
+
+                    $span->end();
+                    $scope = Context::storage()->scope();
+                    if (!$scope) {
+                        return;
+                    }
+                    $scope->detach();
+                });
             }
         );
     }
