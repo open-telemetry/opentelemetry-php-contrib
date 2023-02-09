@@ -88,17 +88,68 @@ class PDOInstrumentation
         );
 
         hook(
-            \PDOStatement::class,
-            'fetch',
-            pre: static function (\PDOStatement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            \PDO::class,
+            'prepare',
+            pre: static function (\PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = self::makeBuilder($instrumentation, 'PDOStatement::fetch', $function, $class, $filename, $lineno)
+                $builder = self::makeBuilder($instrumentation, 'PDO::prepare', $function, $class, $filename, $lineno)
+                    ->setSpanKind(SpanKind::KIND_CLIENT);
+                if ($class === \PDO::class) {
+                    $builder->setAttribute(TraceAttributes::DB_STATEMENT, $params[0] ?? 'undefined');
+                }
+                $parent = Context::getCurrent();
+                $span = $builder->startSpan();
+                Context::storage()->attach($span->storeInContext($parent));
+            },
+            post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
+                self::end($exception);
+            }
+        );
+
+        hook(
+            \PDO::class,
+            'beginTransaction',
+            pre: static function (\PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = self::makeBuilder($instrumentation, 'PDO::beginTransaction', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
             },
-            post: static function (\PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
+            post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
+                self::end($exception);
+            }
+        );
+
+        hook(
+            \PDO::class,
+            'commit',
+            pre: static function (\PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = self::makeBuilder($instrumentation, 'PDO::commit', $function, $class, $filename, $lineno)
+                    ->setSpanKind(SpanKind::KIND_CLIENT);
+                $parent = Context::getCurrent();
+                $span = $builder->startSpan();
+                Context::storage()->attach($span->storeInContext($parent));
+            },
+            post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
+                self::end($exception);
+            }
+        );
+
+        hook(
+            \PDO::class,
+            'rollBack',
+            pre: static function (\PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = self::makeBuilder($instrumentation, 'PDO::rollBack', $function, $class, $filename, $lineno)
+                    ->setSpanKind(SpanKind::KIND_CLIENT);
+                $parent = Context::getCurrent();
+                $span = $builder->startSpan();
+                Context::storage()->attach($span->storeInContext($parent));
+            },
+            post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
             }
         );
