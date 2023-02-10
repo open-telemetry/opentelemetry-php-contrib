@@ -35,10 +35,5 @@
     "psr-4": {
       "OpenTelemetry\\Tests\\Instrumentation\\IO\\": "tests/"
     }
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": true
-    }
   }
 }
