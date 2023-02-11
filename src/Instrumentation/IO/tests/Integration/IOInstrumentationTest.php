@@ -25,14 +25,14 @@ class IOInstrumentationTest extends TestCase
     public function setUp(): void
     {
         $this->storage = new ArrayObject();
-        $tracerProvider = new TracerProvider(
+        $this->tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
                 new InMemoryExporter($this->storage)
             )
         );
 
         $this->scope = Configurator::create()
-            ->withTracerProvider($tracerProvider)
+            ->withTracerProvider($this->tracerProvider)
             ->activate();
     }
 
@@ -53,7 +53,7 @@ class IOInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(1);
         $this->assertSame('file_put_contents', $span->getName());
         
-        file_get_contents("php://memory");
+        $str = file_get_contents("php://memory");
         $this->assertCount(3, $this->storage);
         $span = $this->storage->offsetGet(2);
         $this->assertSame('file_get_contents', $span->getName());
