@@ -27,7 +27,7 @@ class IOInstrumentation
         self::_hook($instrumentation, null, 'fread', 'fread');
         self::_hook($instrumentation, null, 'file_get_contents', 'file_get_contents');
         self::_hook($instrumentation, null, 'file_put_contents', 'file_put_contents');
-        
+
         self::_hook($instrumentation, null, 'curl_exec', 'curl_exec');
     }
 
@@ -39,7 +39,7 @@ class IOInstrumentation
         hook(
             class: $class,
             function: $function,
-            pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation, $name) {
+            pre: static function ($object, ?array $params, ?string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $name) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, $name, $function, $filename, $lineno);
                 $parent = Context::getCurrent();
@@ -58,6 +58,7 @@ class IOInstrumentation
         string $function,
         ?string $filename,
         ?int $lineno): SpanBuilderInterface {
+        /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
                     ->spanBuilder($name)
                     ->setAttribute('code.function', $function)
