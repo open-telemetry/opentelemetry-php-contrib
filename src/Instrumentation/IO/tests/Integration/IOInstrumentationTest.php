@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\IO\tests\Integration;
 
 use ArrayObject;
-use Mockery;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -16,12 +14,10 @@ use PHPUnit\Framework\TestCase;
 
 class IOInstrumentationTest extends TestCase
 {
-    
     private ScopeInterface $scope;
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
-    
     public function setUp(): void
     {
         $this->storage = new ArrayObject();
@@ -43,22 +39,22 @@ class IOInstrumentationTest extends TestCase
 
     public function test_io_calls(): void
     {
-        $resource = fopen("php://memory", "r");
+        $resource = fopen('php://memory', 'r');
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('fopen', $span->getName());
 
-        file_put_contents("php://memory", "data");
+        file_put_contents('php://memory', 'data');
         $this->assertCount(2, $this->storage);
         $span = $this->storage->offsetGet(1);
         $this->assertSame('file_put_contents', $span->getName());
         
-        $str = file_get_contents("php://memory");
+        $str = file_get_contents('php://memory');
         $this->assertCount(3, $this->storage);
         $span = $this->storage->offsetGet(2);
         $this->assertSame('file_get_contents', $span->getName());
 
-        fwrite($resource, "data");
+        fwrite($resource, 'data');
         $this->assertCount(4, $this->storage);
         $span = $this->storage->offsetGet(3);
         $this->assertSame('fwrite', $span->getName());
