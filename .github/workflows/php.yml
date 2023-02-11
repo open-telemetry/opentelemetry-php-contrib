@@ -22,6 +22,7 @@ jobs:
           'Instrumentation/Slim',
           'Instrumentation/Psr15',
           'Instrumentation/Psr18',
+          'Instrumentation/IO',
           'Symfony'
         ]
         exclude:
@@ -32,6 +33,8 @@ jobs:
           - project: 'Instrumentation/Psr15'
             php-version: 7.4
           - project: 'Instrumentation/Psr18'
+            php-version: 7.4
+          - project: 'Instrumentation/IO'
             php-version: 7.4
 
     steps:
