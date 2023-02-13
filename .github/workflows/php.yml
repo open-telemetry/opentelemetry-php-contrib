@@ -23,6 +23,7 @@ jobs:
           'Instrumentation/Psr15',
           'Instrumentation/Psr18',
           'Instrumentation/IO',
+          'Instrumentation/PDO',
           'Symfony'
         ]
         exclude:
@@ -40,7 +41,12 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/IO'
             php-version: 8.1
-
+          - project: 'Instrumentation/PDO'
+            php-version: 7.4
+          - project: 'Instrumentation/PDO'
+            php-version: 8.0
+          - project: 'Instrumentation/PDO'
+            php-version: 8.1
     steps:
     - uses: actions/checkout@v3
 

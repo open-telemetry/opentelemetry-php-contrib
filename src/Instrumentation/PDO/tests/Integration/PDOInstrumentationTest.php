@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Integration;
 
 use ArrayObject;
-use Mockery;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -16,16 +15,17 @@ use PHPUnit\Framework\TestCase;
 
 class PDOInstrumentationTest extends TestCase
 {
-    
     private ScopeInterface $scope;
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
-    private function createDB():\PDO {
+    private function createDB():\PDO
+    {
         return new \PDO('sqlite::memory:');
     }
 
-    private function fillDB():string {
+    private function fillDB():string
+    {
         $statement =<<<SQL
         CREATE TABLE `technology` (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,20 +39,21 @@ class PDOInstrumentationTest extends TestCase
             ('CPP', '1979-05-06');
 
         SQL;
+
         return $statement;
     }
 
     public function setUp(): void
     {
         $this->storage = new ArrayObject();
-        $tracerProvider = new TracerProvider(
+        $this->tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
                 new InMemoryExporter($this->storage)
             )
         );
 
         $this->scope = Configurator::create()
-            ->withTracerProvider($tracerProvider)
+            ->withTracerProvider($this->tracerProvider)
             ->activate();
     }
 
