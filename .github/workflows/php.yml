@@ -24,6 +24,7 @@ jobs:
           'Instrumentation/Psr18',
           'Instrumentation/IO',
           'Instrumentation/PDO',
+          'Instrumentation/Symfony',
           'Symfony'
         ]
         exclude:
@@ -36,6 +37,8 @@ jobs:
           - project: 'Instrumentation/Psr18'
             php-version: 7.4
           - project: 'Instrumentation/IO'
+            php-version: 7.4
+          - project: 'Instrumentation/Symfony'
             php-version: 7.4
           - project: 'Instrumentation/IO'
             php-version: 8.0
