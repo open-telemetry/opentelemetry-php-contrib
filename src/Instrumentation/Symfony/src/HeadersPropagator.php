@@ -19,12 +19,13 @@ class HeadersPropagator implements PropagationGetterInterface
 
         return $instance ??= new self();
     }
-    
+
+    /** @psalm-suppress InvalidReturnType */
     public function keys($carrier): array
     {
         assert($carrier instanceof Request);
-
-        return $carrier->headers;
+        /** @psalm-suppress InvalidReturnStatement */
+        return $carrier->headers->keys();
     }
 
     public function get($carrier, string $key) : ?string

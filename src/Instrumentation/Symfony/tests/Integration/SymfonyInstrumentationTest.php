@@ -57,7 +57,7 @@ class SymfonyInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
     }
 
-    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = [], bool $handleAllThrowables = false)
+    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = [])
     {
         $controller ??= fn () => new Response('Hello');
 
@@ -73,6 +73,6 @@ class SymfonyInstrumentationTest extends TestCase
             ->method('getArguments')
             ->willReturn($arguments);
 
-        return new HttpKernel($eventDispatcher, $controllerResolver, $requestStack, $argumentResolver, $handleAllThrowables);
+        return new HttpKernel($eventDispatcher, $controllerResolver, $requestStack, $argumentResolver);
     }
 }
