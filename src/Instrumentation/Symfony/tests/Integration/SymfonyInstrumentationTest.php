@@ -11,6 +11,15 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Controller\ArgumentResolverInterface;
+use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
+use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class SymfonyInstrumentationTest extends TestCase
 {
@@ -37,7 +46,31 @@ class SymfonyInstrumentationTest extends TestCase
         $this->scope->detach();
     }
 
-    public function test_symfony_workflow(): void
+    public function test_http_kernel_handle(): void
     {
+        $this->expectException(\RuntimeException::class);
+        $kernel = $this->getHttpKernel(new EventDispatcher(), function () { throw new \RuntimeException(); });
+        $this->assertCount(0, $this->storage);
+        $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+        $this->assertCount(1, $this->storage);
+    }
+
+    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = [], bool $handleAllThrowables = false)
+    {
+        $controller ??= fn () => new Response('Hello');
+
+        $controllerResolver = $this->createMock(ControllerResolverInterface::class);
+        $controllerResolver
+            ->expects($this->any())
+            ->method('getController')
+            ->willReturn($controller);
+
+        $argumentResolver = $this->createMock(ArgumentResolverInterface::class);
+        $argumentResolver
+            ->expects($this->any())
+            ->method('getArguments')
+            ->willReturn($arguments);
+
+        return new HttpKernel($eventDispatcher, $controllerResolver, $requestStack, $argumentResolver, $handleAllThrowables);
     }
 }
