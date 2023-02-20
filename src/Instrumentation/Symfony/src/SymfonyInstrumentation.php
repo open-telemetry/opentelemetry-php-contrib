@@ -7,15 +7,14 @@ namespace OpenTelemetry\Contrib\Instrumentation\Symfony;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
-use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\HttpKernel;
 use Throwable;
 
 class SymfonyInstrumentation
@@ -37,16 +36,16 @@ class SymfonyInstrumentation
                     ->setAttribute('code.filepath', $filename)
                     ->setAttribute('code.lineno', $lineno);
                 $parent = Context::getCurrent();
-                 if ($request) {                
-                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
-                     $span = $builder
-                         ->setParent($parent)
-                         ->setAttribute(TraceAttributes::HTTP_URL, $request->getUri())
-                         ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
-                         ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->headers->get('Content-Length'))
-                         ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getScheme())
-                         ->startSpan();
-                     $request->attributes->set(SpanInterface::class, $span);
+                if ($request) {
+                    $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
+                    $span = $builder
+                        ->setParent($parent)
+                        ->setAttribute(TraceAttributes::HTTP_URL, $request->getUri())
+                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->headers->get('Content-Length'))
+                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getScheme())
+                        ->startSpan();
+                    $request->attributes->set(SpanInterface::class, $span);
                 } else {
                     $span = $builder->startSpan();
                 }

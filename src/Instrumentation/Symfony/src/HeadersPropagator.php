@@ -33,5 +33,4 @@ class HeadersPropagator implements PropagationGetterInterface
 
         return $carrier->headers->get($key);
     }
-
 }
