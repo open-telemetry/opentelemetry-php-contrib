@@ -8,7 +8,7 @@
   "license": "Apache-2.0",
   "minimum-stability": "dev",
   "require": {
-    "php": "^8.2",
+    "php": "^8.0",
     "ext-otel_instrumentation": "*",
     "open-telemetry/api": "^1"
   },
@@ -34,11 +34,6 @@
   "autoload-dev": {
     "psr-4": {
       "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\": "tests/"
-    }
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": false
     }
   }
 }
