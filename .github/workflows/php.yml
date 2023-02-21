@@ -25,6 +25,7 @@ jobs:
           'Instrumentation/IO',
           'Instrumentation/PDO',
           'Instrumentation/Symfony',
+          'Instrumentation/Laravel',
           'Symfony'
         ]
         exclude:
@@ -39,6 +40,8 @@ jobs:
           - project: 'Instrumentation/IO'
             php-version: 7.4
           - project: 'Instrumentation/Symfony'
+            php-version: 7.4
+          - project: 'Instrumentation/Laravel'
             php-version: 7.4
           - project: 'Instrumentation/IO'
             php-version: 8.0
