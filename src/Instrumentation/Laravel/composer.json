@@ -9,7 +9,7 @@
   "minimum-stability": "dev",
   "require": {
     "php": "^8.0",
-    "laravel/framework": "^9.52.1",
+    "laravel/framework": "*",
     "ext-otel_instrumentation": "*",
     "open-telemetry/api": "^1"
   },

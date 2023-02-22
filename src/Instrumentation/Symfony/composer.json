@@ -11,7 +11,7 @@
     "php": "^8.0",
     "ext-otel_instrumentation": "*",
     "open-telemetry/api": "^1",
-    "symfony/http-kernel": "^6.0.20"
+    "symfony/http-kernel": "*"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
