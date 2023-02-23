@@ -25,6 +25,7 @@ class IOInstrumentation
         self::_hook($instrumentation, null, 'file_get_contents', 'file_get_contents');
         self::_hook($instrumentation, null, 'file_put_contents', 'file_put_contents');
 
+        self::_hook($instrumentation, null, 'curl_init', 'curl_init');
         self::_hook($instrumentation, null, 'curl_exec', 'curl_exec');
     }
 
@@ -39,6 +40,7 @@ class IOInstrumentation
             pre: static function ($object, ?array $params, ?string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $name) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, $name, $function, $filename, $lineno);
+                self::addParams($builder, $function, $params);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -58,10 +60,10 @@ class IOInstrumentation
     ): SpanBuilderInterface {
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
-                    ->spanBuilder($name)
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno);
+            ->spanBuilder($name)
+            ->setAttribute('code.function', $function)
+            ->setAttribute('code.filepath', $filename)
+            ->setAttribute('code.lineno', $lineno);
     }
     private static function end(?Throwable $exception): void
     {
@@ -77,5 +79,28 @@ class IOInstrumentation
         }
 
         $span->end();
+    }
+
+    private static function addParams(SpanBuilderInterface $builder, string $function, ?array $params): void
+    {
+        if ($params === null) {
+            return;
+        }
+        switch ($function) {
+            case 'curl_init':
+                isset($params[0]) && $builder->setAttribute('code.params.uri', $params[0]);
+
+                break;
+            case 'fopen':
+                $builder->setAttribute('code.params.filename', $params[0])
+                    ->setAttribute('code.params.mode', $params[1]);
+
+                break;
+            case 'file_get_contents':
+            case 'file_put_contents':
+                $builder->setAttribute('code.params.filename', $params[0]);
+
+                break;
+        }
     }
 }
