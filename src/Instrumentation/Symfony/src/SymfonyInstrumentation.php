@@ -61,6 +61,16 @@ class SymfonyInstrumentation
                 }
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
+
+                $request = ($params[0] instanceof Request) ? $params[0] : null;
+                if (null !== $request) {
+                    $routeName = $request->attributes->get('_route', '');
+
+                    if ('' !== $routeName) {
+                        $span->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                    }
+                }
+
                 if ($exception) {
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
