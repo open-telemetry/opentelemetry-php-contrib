@@ -75,7 +75,7 @@ class SymfonyInstrumentationTest extends TestCase
         $this->assertEquals('http', $attributes->get(TraceAttributes::HTTP_SCHEME));
         $this->assertEquals('test_route', $attributes->get(TraceAttributes::HTTP_ROUTE));
         $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_STATUS_CODE));
-        $this->assertEquals("1.0", $attributes->get(TraceAttributes::HTTP_FLAVOR));
+        $this->assertEquals('1.0', $attributes->get(TraceAttributes::HTTP_FLAVOR));
         $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
     }
 
