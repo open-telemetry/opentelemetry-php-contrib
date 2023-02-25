@@ -58,7 +58,7 @@ class SymfonyInstrumentationTest extends TestCase
         $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
     }
 
-    public function test_http_kernel_handle_with_route(): void
+    public function test_http_kernel_handle_attributes(): void
     {
         $kernel = $this->getHttpKernel(new EventDispatcher());
         $this->assertCount(0, $this->storage);
@@ -66,8 +66,17 @@ class SymfonyInstrumentationTest extends TestCase
         $request->attributes->set('_route', 'test_route');
 
         $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
+
+        $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('test_route', $this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_ROUTE));
+        $this->assertEquals('HTTP GET', $this->storage[0]->getName());
+        $this->assertEquals('http://:/', $attributes->get(TraceAttributes::HTTP_URL));
+        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_METHOD));
+        $this->assertEquals('http', $attributes->get(TraceAttributes::HTTP_SCHEME));
+        $this->assertEquals('test_route', $attributes->get(TraceAttributes::HTTP_ROUTE));
+        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_STATUS_CODE));
+        $this->assertEquals("1.0", $attributes->get(TraceAttributes::HTTP_FLAVOR));
+        $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
     }
 
     public function test_http_kernel_handle_with_empty_route(): void
