@@ -10,6 +10,7 @@ use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\SemConv\TraceAttributes;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -46,15 +47,49 @@ class SymfonyInstrumentationTest extends TestCase
         $this->scope->detach();
     }
 
-    public function test_http_kernel_handle(): void
+    public function test_http_kernel_handle_exception(): void
     {
         $this->expectException(\RuntimeException::class);
         $kernel = $this->getHttpKernel(new EventDispatcher(), function () {
             throw new \RuntimeException();
         });
         $this->assertCount(0, $this->storage);
+
+        $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+    }
+
+    public function test_http_kernel_handle_with_route(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $this->assertCount(0, $this->storage);
+        $request = new Request();
+        $request->attributes->set('_route', 'test_route');
+
+        $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
+        $this->assertCount(1, $this->storage);
+        $this->assertEquals('test_route', $this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_ROUTE));
+    }
+
+    public function test_http_kernel_handle_with_empty_route(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $this->assertCount(0, $this->storage);
+        $request = new Request();
+        $request->attributes->set('_route', '');
+
+        $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
+        $this->assertCount(1, $this->storage);
+        $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
+    }
+
+    public function test_http_kernel_handle_without_route(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $this->assertCount(0, $this->storage);
+
         $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
         $this->assertCount(1, $this->storage);
+        $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = [])
