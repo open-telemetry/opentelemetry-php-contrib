@@ -81,7 +81,11 @@ final class SymfonyInstrumentation
                     }
                     $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->headers->get('Content-Length') ?: \strlen($response->getContent()));
+                    /** @psalm-suppress PossiblyFalseArgument */
+                    $span->setAttribute(
+                        TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH,
+                        $response->headers->get('Content-Length', false !== $response->getContent() ? (string) \strlen($response->getContent()) : '0')
+                    );
                 }
 
                 $span->end();
