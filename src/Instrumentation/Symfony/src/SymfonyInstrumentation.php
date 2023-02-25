@@ -81,11 +81,14 @@ final class SymfonyInstrumentation
                     }
                     $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
+                    $contentLength = $response->headers->get('Content-Length');
                     /** @psalm-suppress PossiblyFalseArgument */
-                    $span->setAttribute(
-                        TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH,
-                        $response->headers->get('Content-Length', false !== $response->getContent() ? (string) \strlen($response->getContent()) : '0')
-                    );
+                    //BinaryFileResponse and StreamedResponse return boolean as response
+                    if (null === $contentLength && is_string($response->getContent())) {
+                        $contentLength = \strlen($response->getContent());
+                    }
+
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $contentLength);
                 }
 
                 $span->end();
