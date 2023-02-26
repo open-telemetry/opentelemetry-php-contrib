@@ -14,9 +14,11 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolverInterface;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Component\HttpKernel\HttpKernel;
@@ -55,7 +57,7 @@ class SymfonyInstrumentationTest extends TestCase
         });
         $this->assertCount(0, $this->storage);
 
-        $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->handle(new Request());
     }
 
     public function test_http_kernel_handle_attributes(): void
@@ -65,7 +67,7 @@ class SymfonyInstrumentationTest extends TestCase
         $request = new Request();
         $request->attributes->set('_route', 'test_route');
 
-        $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->handle($request);
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
@@ -77,6 +79,29 @@ class SymfonyInstrumentationTest extends TestCase
         $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_STATUS_CODE));
         $this->assertEquals('1.0', $attributes->get(TraceAttributes::HTTP_FLAVOR));
         $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
+    }
+
+    public function test_http_kernel_handle_stream_response(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new StreamedResponse(function () {
+            echo 'Hello';
+            flush();
+        }));
+        $this->assertCount(0, $this->storage);
+
+        $kernel->handle(new Request());
+        $this->assertCount(1, $this->storage);
+        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
+    }
+
+    public function test_http_kernel_handle_binary_file_response(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new BinaryFileResponse(__FILE__));
+        $this->assertCount(0, $this->storage);
+
+        $kernel->handle(new Request());
+        $this->assertCount(1, $this->storage);
+        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
     }
 
     public function test_http_kernel_handle_with_empty_route(): void
@@ -101,19 +126,17 @@ class SymfonyInstrumentationTest extends TestCase
         $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
     }
 
-    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = [])
+    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = []): HttpKernel
     {
         $controller ??= fn () => new Response('Hello');
 
         $controllerResolver = $this->createMock(ControllerResolverInterface::class);
         $controllerResolver
-            ->expects($this->any())
             ->method('getController')
             ->willReturn($controller);
 
         $argumentResolver = $this->createMock(ArgumentResolverInterface::class);
         $argumentResolver
-            ->expects($this->any())
             ->method('getArguments')
             ->willReturn($arguments);
 

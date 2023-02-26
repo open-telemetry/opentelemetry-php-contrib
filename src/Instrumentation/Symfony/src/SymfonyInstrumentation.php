@@ -83,7 +83,6 @@ final class SymfonyInstrumentation
                     $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
                     $contentLength = $response->headers->get('Content-Length');
                     /** @psalm-suppress PossiblyFalseArgument */
-                    //BinaryFileResponse and StreamedResponse return boolean as response
                     if (null === $contentLength && is_string($response->getContent())) {
                         $contentLength = \strlen($response->getContent());
                     }
