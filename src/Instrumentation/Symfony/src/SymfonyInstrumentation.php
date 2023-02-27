@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Throwable;
 
-class SymfonyInstrumentation
+final class SymfonyInstrumentation
 {
     public static function register(): void
     {
@@ -76,12 +76,18 @@ class SymfonyInstrumentation
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {
-                    if ($response->getStatusCode() >= 400) {
+                    if ($response->getStatusCode() >= Response::HTTP_BAD_REQUEST) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
                     $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->headers->get('Content-Length'));
+                    $contentLength = $response->headers->get('Content-Length');
+                    /** @psalm-suppress PossiblyFalseArgument */
+                    if (null === $contentLength && is_string($response->getContent())) {
+                        $contentLength = \strlen($response->getContent());
+                    }
+
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $contentLength);
                 }
 
                 $span->end();
