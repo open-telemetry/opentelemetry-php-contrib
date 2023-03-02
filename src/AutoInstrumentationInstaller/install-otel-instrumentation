@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+require __DIR__ . '/installer_internals.php';
+
+if (!isset($argc)) {
+  return;
+}
+
+check_preconditions();
+$mode = check_args($argc, $argv);
+
+$opentelemetry_auto_packages = get_auto_packages();
+
+if ($mode == "basic") {
+  make_basic_setup($dependencies, $opentelemetry_core_packages, $opentelemetry_auto_packages);
+} else {
+  make_advanced_setup($opentelemetry_core_packages, $opentelemetry_auto_packages);
+}
+unlink("pickle.phar");
+if (check_postconditions(get_php_info_output())) {
+  colorLog("\notel_instrumentation extension has been successfully installed", 's');
+}
