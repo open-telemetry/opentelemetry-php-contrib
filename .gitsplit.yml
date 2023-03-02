@@ -28,6 +28,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-wordpress.git"
   - prefix: "src/Context/Swoole"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-swoole.git"
+  - prefix: "src/Instrumentation/bin"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-instrumentation-installer.git"
 
 # List of references to split (defined as regexp)
 origins:
