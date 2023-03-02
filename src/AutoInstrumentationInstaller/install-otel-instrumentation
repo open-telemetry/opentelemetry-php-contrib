@@ -17,8 +17,9 @@ $dependencies = array(
 $opentelemetry_core_packages = array(
   "open-telemetry/sdk", 
   "open-telemetry/api",
-  "open-telemetry/exporer-otlp",
-  "open-telemetry/exporer-zipkin",
+  "open-telemetry/exporter-otlp",
+  "open-telemetry/exporter-zipkin",
+  "open-telemetry/transport-grpc",
 );
 
 function command_exists($command_name) {
