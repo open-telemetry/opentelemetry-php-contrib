@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="./lib/default.min.css">
+<script src="./lib/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script type="text/javascript">
+function getClassName(fullFuncName) {
+   var position = fullFuncName.search(':');
+   if (position == -1) {
+      position = fullFuncName.search('-');
+      if (position != -1) {
+         return '\\' + fullFuncName.substr(0, position);
+      }
+   } else {
+      return '\\' + fullFuncName.substr(0, position);
+   }
+   return 'null';
+}
+function getFuncName(fullFuncName) {
+   var position = fullFuncName.search(':');
+   if (position == -1) {
+      position = fullFuncName.search('-');
+      if (position != -1) {
+         return fullFuncName.substr(position+2, fullFuncName.length - position);
+      }
+   } else {
+      return fullFuncName.substr(position+2, fullFuncName.length - position);
+   }
+   return fullFuncName;
+}
+
+function genUseStatements(names) {
+   var code = '  use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation\n';
+   code += '  use OpenTelemetry\API\Trace\Span\n';
+   code += '  use OpenTelemetry\API\Trace\SpanBuilderInterface\n';
+   code += '  use OpenTelemetry\API\Trace\StatusCode\n';
+   code += '  use OpenTelemetry\Context\Context\n';
+   code += '  use function OpenTelemetry\Instrumentation\hook\n';
+   code += '  use OpenTelemetry\SemConv\TraceAttributes\n';
+   code += '  use Throwable;\n';
+   for(var i = 0; i < names.length; i++) {
+      var name = getClassName(names[i]);
+      if (name != 'null') {
+        code += '  use ' + name + ';\n';
+      }
+   }
+   return code;
+}
+
+function injectBody(fullFuncName) {
+   var code = '\n';
+   code += '      hook(\n';
+   code += '        ' + getClassName(fullFuncName) + ',\n';
+   code += '        ' + getFuncName(fullFuncName) + ',\n';
+   code += '        pre: static function (' + getClassName(fullFuncName)
+   code += ' $instance, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {\n';
+   code += '          $builder = $instrumentation->tracer()\n';
+   code += '          ->spanBuilder(\'' + (fullFuncName) + '\'' + ')\n';
+   code += '          ->setSpanKind(SpanKind::KIND_SERVER)\n';
+   code += '          ->setAttribute(\'code.function\', $function)\n';
+   code += '          ->setAttribute(\'code.namespace\', $class)\n';
+   code += '          ->setAttribute(\'code.filepath\', $filename)\n';
+   code += '          ->setAttribute(\'code.lineno\', $lineno);\n';
+   code += '          $parent = Context::getCurrent();\n';
+   code += '          $span = $builder->startSpan();\n';
+   code += '          Context::storage()->attach($span->storeInContext($parent));\n';
+   code += '          return [];\n';
+   code += '        },\n';
+   code += '        post: static function (' + getClassName(fullFuncName)
+   code += ' $instance, array $params, ?mixed $response, ?Throwable $exception) {\n';
+   code += '          $scope = Context::storage()->scope();\n';
+   code += '          if (!$scope) {\n';
+   code += '            return;\n';
+   code += '          }\n';
+   code += '          $scope->detach();\n';
+   code += '          $span = Span::fromContext($scope->context());\n';
+   code += '          if ($exception) {\n';
+   code += '            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);\n';
+   code += '            $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());\n';
+   code += '          }\n';
+   code += '          $span->end();\n';
+   code += '        }\n';
+   code += '      );\n';
+   return code;
+}
+function clicked() {
+  var array = []
+  var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+
+  for (var i = 0; i < checkboxes.length; i++) {
+    array.push(checkboxes[i].id)
+  }
+  if (checkboxes.length > 0) {
+      var value = '';
+      var code = '  ?php\n\n';
+      code += '  declare(strict_types=1);\n\n';
+      code += genUseStatements(array);
+      code += '\n';
+      code += '  namespace OpenTelemetry\Contrib\Instrumentation\X\n\n';
+      code += '  class XInstrumentation\n';
+      code += '  {\n';
+      code += '    public static function register(): void\n';
+      code += '    {\n';
+      code += '      $instrumentation = new CachedInstrumentation(\'io.opentelemetry.contrib.php.x\');\n';
+      for(var i = 0; i < array.length; i++) {
+         code += injectBody(array[i]);
+         code += '\n';
+      }
+      code += '    }\n';
+      code += '  }\n';
+      value = hljs.highlight(code, {language: 'php'}).value
+      document.getElementById('code_content').innerHTML="<pre><code class=\"language-php\">" + value + "</code></pre>";
+  } else {
+   var value = '';
+   document.getElementById('code_content').innerHTML="<pre><code class=\"language-php\">" + value + "</code></pre>";
+  }
+}
+</script>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+   body {
+      font-family: Courier;
+   }
+   h1{
+      padding:20px;
+   }
+   .left,.right {
+      height: 100%;
+      width: 50%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      overflow-x: hidden;
+      padding-top: 5px;
+      overflow-x: auto;
+      white-space: nowrap;
+   }
+   .left {
+      left: 0;
+      background-color: rgb(70, 69, 76);
+      color: white;
+   }
+   .right {
+      right: 0;
+      background-color: rgb(221, 226, 235);
+      color: black;
+   }
+   .centered {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+   }
+   .centered img {
+      width: 150px;
+      border-radius: 50%;
+   }
+
+</style>
+</head>
