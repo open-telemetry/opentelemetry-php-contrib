@@ -1,10 +1,10 @@
 --TEST--
-Check if php_auto_instr_cfg is loaded
+Check if hookgen is loaded
 --EXTENSIONS--
-php_auto_instr_cfg
+hookgen
 --FILE--
 <?php
-echo 'The extension "php_auto_instr_cfg" is available';
+echo 'The extension "hookgen" is available';
 ?>
 --EXPECT--
-The extension "php_auto_instr_cfg" is available
+The extension "hookgen" is available
