@@ -1,0 +1,7 @@
+ARG_ENABLE('hookgen', 'hookgen support', 'no');
+
+if (PHP_HOOKGEN != 'no') {
+	AC_DEFINE('HAVE_HOOKGEN', 1, 'hookgen support enabled');
+
+	EXTENSION('hookgen', 'hookgen.c', null, '/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1');
+}
