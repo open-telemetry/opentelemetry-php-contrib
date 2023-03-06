@@ -38,10 +38,14 @@ function genUseStatements(names) {
    code += '  use function OpenTelemetry\Instrumentation\hook\n';
    code += '  use OpenTelemetry\SemConv\TraceAttributes\n';
    code += '  use Throwable;\n';
+   var namespaces = {};
    for(var i = 0; i < names.length; i++) {
       var name = getClassName(names[i]);
-      if (name != 'null') {
-        code += '  use ' + name + ';\n';
+      if (namespaces[name] === undefined) {
+         if (name != 'null') {
+            code += '  use ' + name + ';\n';
+         }
+         namespaces[name] = name;
       }
    }
    return code;
