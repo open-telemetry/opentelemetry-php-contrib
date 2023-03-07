@@ -1,15 +1,8 @@
 # OpenTelemetry IO auto-instrumentation
 
 **Preferred and simplest way to install auto-instrumentation is to use opentelemetry-instrumentation-installer.**
-**In this case only two steps are needed:**
 
-```
-    composer require open-telemetry/opentelemetry-instrumentation-installer
-    ./vendor/bin/install-otel-instrumentation basic
-```
-
-**Installer (opentelemetry-instrumentation-installer) works in two modes. More on that here:** https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller
-
+**Look here:** https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller
 
 ## Requirements in case of manual setup
 
