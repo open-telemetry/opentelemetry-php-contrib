@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\ServiceProvider;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
@@ -20,6 +22,41 @@ use Throwable;
 
 class LaravelInstrumentation
 {
+    private static $watchersInstalled = false;
+    private static $application;
+    public static function registerWatchers(Application $app)
+    {
+        $app['events']->listen(RequestSending::class, ['recordRequest']);
+        $app['events']->listen(ConnectionFailed::class, ['recordConnectionFailed']);
+        $app['events']->listen(ResponseReceived::class, ['recordResponse']);
+    }
+
+    public function recordRequest(RequestSending $request): void
+    {
+        $name = 'recordRequest';
+        $builder = $instrumentation->tracer()->spanBuilder($name)
+            ->setAttribute('code.function', $function)
+            ->setAttribute('code.namespace', $class)
+            ->setAttribute('code.filepath', $filename)
+            ->setAttribute('code.lineno', $lineno);
+        $span = $builder->startSpan();
+        Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+        $scope = Context::storage()->scope();
+        if (!$scope) {
+            return;
+        }
+        $scope->detach();
+        $span->end();
+    }
+
+    public function recordConnectionFailed(ConnectionFailed $request): void
+    {
+    }
+
+    public function recordResponse(ResponseReceived $request): void
+    {
+    }
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');
@@ -75,6 +112,57 @@ class LaravelInstrumentation
                 }
 
                 $span->end();
+            }
+        );
+        hook(
+            ServiceProvider::class,
+            'boot',
+            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                if (!self::$watchersInstalled) {
+                    self::$watchersInstalled = true;
+                    self::registerWatchers(self::$application);
+                    $name = 'ServiceProvider::boot';
+                    $builder = $instrumentation->tracer()->spanBuilder($name)
+                        ->setAttribute('code.function', $function)
+                        ->setAttribute('code.namespace', $class)
+                        ->setAttribute('code.filepath', $filename)
+                        ->setAttribute('code.lineno', $lineno);
+                    $span = $builder->startSpan();
+                    Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                    $scope = Context::storage()->scope();
+                    if (!$scope) {
+                        return;
+                    }
+                    $scope->detach();
+                    $span->end();
+                }
+            },
+            post: static function (ServiceProvider $provider, array $params, null $ret, ?Throwable $exception) {
+            }
+        );
+        hook(
+            ServiceProvider::class,
+            '__construct',
+            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                {
+                    $name = 'ServiceProvider::__construct:' . spl_object_id($params[0]);
+                    $builder = $instrumentation->tracer()->spanBuilder($name)
+                        ->setAttribute('code.function', $function)
+                        ->setAttribute('code.namespace', $class)
+                        ->setAttribute('code.filepath', $filename)
+                        ->setAttribute('code.lineno', $lineno);
+                    $span = $builder->startSpan();
+                    Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                    $scope = Context::storage()->scope();
+                    if (!$scope) {
+                        return;
+                    }
+                    $scope->detach();
+                    $span->end();
+                }
+            },
+            post: static function (ServiceProvider $provider, array $params, null $ret, ?Throwable $exception) {
+                self::$application = $params[0];
             }
         );
     }
