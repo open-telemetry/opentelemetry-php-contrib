@@ -1,8 +1,8 @@
 # OpenTelemetry IO auto-instrumentation
 
-**Preferred and simplest way to install auto-instrumentation is to use opentelemetry-instrumentation-installer.**
+**Preferred and simplest way to install auto-instrumentation (c extension plus instrumentation libraries) is to use [opentelemetry-instrumentation-installer](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller).**
+**The same process can be done manually by installing [c extension](https://github.com/open-telemetry/opentelemetry-php-instrumentation#installation) plus all needed instrumentation libraries like [IO](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Instrumentation/IO#Installation-via-composer)**
 
-**Look here:** https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller
 
 ## Requirements in case of manual setup
 
@@ -12,13 +12,13 @@
 ## Overview
 Auto-instrumentation hooks are registered via composer, and spans will automatically be created for
 folowing functions:
-    `fopen`
-    `fwrite`
-    `fread`
-    `file_get_contents`
-    `file_put_contents`
-    `curl_init`
-    `curl_exec`
+- `fopen`
+- `fwrite`
+- `fread`
+- `file_get_contents`
+- `file_put_contents`
+- `curl_init`
+- `curl_exec`
 
 To export spans, you will need to create and register a `TracerProvider` early in your application's
 lifecycle. This can be done either manually or using SDK autoloading.
