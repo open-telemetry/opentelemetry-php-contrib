@@ -1,5 +1,8 @@
 # OpenTelemetry Slim Framework auto-instrumentation
 
+**Preferred and simplest way to install auto-instrumentation (c extension plus instrumentation libraries) is to use [opentelemetry-instrumentation-installer](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller).**
+**The same process can be done manually by installing [c extension](https://github.com/open-telemetry/opentelemetry-php-instrumentation#installation) plus all needed instrumentation libraries like [Slim](#Installation-via-composer)**
+
 ## Requirements
 
 * OpenTelemetry extension
