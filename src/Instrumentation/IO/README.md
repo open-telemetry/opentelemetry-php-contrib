@@ -1,7 +1,7 @@
 # OpenTelemetry IO auto-instrumentation
 
 **Preferred and simplest way to install auto-instrumentation (c extension plus instrumentation libraries) is to use [opentelemetry-instrumentation-installer](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller).**
-**The same process can be done manually by installing [c extension](https://github.com/open-telemetry/opentelemetry-php-instrumentation#installation) plus all needed instrumentation libraries like [IO](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Instrumentation/IO#Installation-via-composer)**
+**The same process can be done manually by installing [c extension](https://github.com/open-telemetry/opentelemetry-php-instrumentation#installation) plus all needed instrumentation libraries like [IO](#Installation-via-composer)**
 
 
 ## Requirements in case of manual setup
