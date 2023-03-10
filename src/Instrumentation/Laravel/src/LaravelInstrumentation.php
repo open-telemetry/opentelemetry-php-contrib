@@ -6,6 +6,9 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
+use Illuminate\Http\Client\Events\ConnectionFailed;
+use Illuminate\Http\Client\Events\RequestSending;
+use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\ServiceProvider;
@@ -18,43 +21,110 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Throwable;
+
+class ClientRequestWatcher
+{
+    private CachedInstrumentation $instrumentation;
+    /**
+     * @var array<string, SpanInterface>
+     */
+    protected array $spans = [];
+
+    public function __construct(CachedInstrumentation $instr)
+    {
+        $this->instrumentation = $instr;
+    }
+    public function recordRequest(RequestSending $request): void
+    {
+        $parsedUrl = collect(parse_url($request->request->url()));
+        $processedUrl = $parsedUrl->get('scheme') . '://' . $parsedUrl->get('host') . $parsedUrl->get('path', '');
+
+        if ($parsedUrl->has('query')) {
+            $processedUrl .= '?' . $parsedUrl->get('query');
+        }
+
+        $span = $this->instrumentation->tracer()->spanBuilder('http ' . $request->request->method() . ' ' . $request->request->url())
+            ->setSpanKind(SpanKind::KIND_CLIENT)
+            ->setAttributes([
+                'http.method' => $request->request->method(),
+                'http.url' => $processedUrl,
+                'http.target' => $parsedUrl['path'] ?? '',
+                'http.host' => $parsedUrl['host'] ?? '',
+                'http.scheme' => $parsedUrl['scheme'] ?? '',
+                'net.peer.name' => $parsedUrl['host'] ?? '',
+                'net.peer.port' => $parsedUrl['port'] ?? '',
+            ])
+            ->startSpan();
+
+        $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
+    }
+
+    public function recordConnectionFailed(ConnectionFailed $request): void
+    {
+        $requestHash = $this->createRequestComparisonHash($request->request);
+
+        $span = $this->spans[$requestHash] ?? null;
+        if (null === $span) {
+            return;
+        }
+
+        $span->setStatus(StatusCode::STATUS_ERROR, 'Connection failed');
+        $span->end();
+
+        unset($this->spans[$requestHash]);
+    }
+
+    public function recordResponse(ResponseReceived $request): void
+    {
+        $requestHash = $this->createRequestComparisonHash($request->request);
+
+        $span = $this->spans[$requestHash] ?? null;
+        if (null === $span) {
+            return;
+        }
+
+        $span->setAttributes([
+            'http.status_code' => $request->response->status(),
+            'http.status_text' => HttpResponse::$statusTexts[$request->response->status()] ?? '',
+            'http.response_content_length' => $request->response->header('Content-Length') ?? null,
+            'http.response_content_type' => $request->response->header('Content-Type') ?? null,
+        ]);
+
+        $this->maybeRecordError($span, $request->response);
+        $span->end();
+
+        unset($this->spans[$requestHash]);
+    }
+    private function createRequestComparisonHash(\Illuminate\Http\Client\Request $request): string
+    {
+        return sha1($request->method() . '|' . $request->url() . '|' . $request->body());
+    }
+
+    private function maybeRecordError(SpanInterface $span, \Illuminate\Http\Client\Response $response): void
+    {
+        if ($response->successful()) {
+            return;
+        }
+
+        $span->setStatus(
+            StatusCode::STATUS_ERROR,
+            HttpResponse::$statusTexts[$response->status()] ?? $response->status()
+        );
+    }
+}
 
 class LaravelInstrumentation
 {
     private static $watchersInstalled = false;
     private static $application;
-    public static function registerWatchers(Application $app)
-    {
-        $app['events']->listen(RequestSending::class, ['recordRequest']);
-        $app['events']->listen(ConnectionFailed::class, ['recordConnectionFailed']);
-        $app['events']->listen(ResponseReceived::class, ['recordResponse']);
-    }
 
-    public function recordRequest(RequestSending $request): void
+    public static function registerWatchers(Application $app, ClientRequestWatcher $watcher)
     {
-        $name = 'recordRequest';
-        $builder = $instrumentation->tracer()->spanBuilder($name)
-            ->setAttribute('code.function', $function)
-            ->setAttribute('code.namespace', $class)
-            ->setAttribute('code.filepath', $filename)
-            ->setAttribute('code.lineno', $lineno);
-        $span = $builder->startSpan();
-        Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-        $scope = Context::storage()->scope();
-        if (!$scope) {
-            return;
-        }
-        $scope->detach();
-        $span->end();
-    }
-
-    public function recordConnectionFailed(ConnectionFailed $request): void
-    {
-    }
-
-    public function recordResponse(ResponseReceived $request): void
-    {
+        $app['events']->listen(RequestSending::class, [$watcher, 'recordRequest']);
+        $app['events']->listen(ConnectionFailed::class, [$watcher, 'recordConnectionFailed']);
+        $app['events']->listen(ResponseReceived::class, [$watcher, 'recordResponse']);
     }
 
     public static function register(): void
@@ -119,51 +189,19 @@ class LaravelInstrumentation
             'boot',
             pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 if (!self::$watchersInstalled) {
+                    self::registerWatchers(self::$application, new ClientRequestWatcher($instrumentation));
                     self::$watchersInstalled = true;
-                    self::registerWatchers(self::$application);
-                    $name = 'ServiceProvider::boot';
-                    $builder = $instrumentation->tracer()->spanBuilder($name)
-                        ->setAttribute('code.function', $function)
-                        ->setAttribute('code.namespace', $class)
-                        ->setAttribute('code.filepath', $filename)
-                        ->setAttribute('code.lineno', $lineno);
-                    $span = $builder->startSpan();
-                    Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-                    $scope = Context::storage()->scope();
-                    if (!$scope) {
-                        return;
-                    }
-                    $scope->detach();
-                    $span->end();
                 }
             },
-            post: static function (ServiceProvider $provider, array $params, null $ret, ?Throwable $exception) {
-            }
+            post: null
         );
         hook(
             ServiceProvider::class,
             '__construct',
             pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                {
-                    $name = 'ServiceProvider::__construct:' . spl_object_id($params[0]);
-                    $builder = $instrumentation->tracer()->spanBuilder($name)
-                        ->setAttribute('code.function', $function)
-                        ->setAttribute('code.namespace', $class)
-                        ->setAttribute('code.filepath', $filename)
-                        ->setAttribute('code.lineno', $lineno);
-                    $span = $builder->startSpan();
-                    Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-                    $scope = Context::storage()->scope();
-                    if (!$scope) {
-                        return;
-                    }
-                    $scope->detach();
-                    $span->end();
-                }
-            },
-            post: static function (ServiceProvider $provider, array $params, null $ret, ?Throwable $exception) {
                 self::$application = $params[0];
-            }
+            },
+            post: null
         );
     }
 }
