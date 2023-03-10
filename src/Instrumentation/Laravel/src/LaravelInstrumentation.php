@@ -88,8 +88,8 @@ class ClientRequestWatcher
         $span->setAttributes([
             'http.status_code' => $request->response->status(),
             'http.status_text' => HttpResponse::$statusTexts[$request->response->status()] ?? '',
-            'http.response_content_length' => $request->response->header('Content-Length') ?? null,
-            'http.response_content_type' => $request->response->header('Content-Type') ?? null,
+            'http.response_content_length' => $request->response->header('Content-Length'),
+            'http.response_content_type' => $request->response->header('Content-Type'),
         ]);
 
         $this->maybeRecordError($span, $request->response);
@@ -198,7 +198,7 @@ class LaravelInstrumentation
         hook(
             ServiceProvider::class,
             '__construct',
-            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 self::$application = $params[0];
             },
             post: null
