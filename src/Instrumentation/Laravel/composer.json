@@ -27,7 +27,8 @@
     "vimeo/psalm": "^4.0",
     "spatie/laravel-ignition": "*",
     "laravel/sail": "*",
-    "laravel/tinker": "*"
+    "laravel/tinker": "*",
+    "guzzlehttp/guzzle": "*"
   },
   "autoload": {
     "psr-4": {
@@ -39,7 +40,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "App\\": "app/",
+      "App\\": "tests/app/",
       "OpenTelemetry\\Tests\\Instrumentation\\Laravel\\": "tests/"
     }
   },

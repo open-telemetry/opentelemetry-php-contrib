@@ -5,19 +5,15 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Laravel\tests\Integration;
 
 use ArrayObject;
-use Illuminate\Container\Container;
-use Illuminate\Events\Dispatcher;
-use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Http;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use PHPUnit\Framework\TestCase;
+use OpenTelemetry\Tests\Instrumentation\Laravel\TestCase;
 
 class ByPassRouterKernel extends Kernel
 {
@@ -35,6 +31,7 @@ class LaravelInstrumentationTest extends TestCase
 
     public function setUp(): void
     {
+        parent::setUp();
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
@@ -50,18 +47,22 @@ class LaravelInstrumentationTest extends TestCase
     public function tearDown(): void
     {
         $this->scope->detach();
+        parent::tearDown();
     }
-    public function test_http_kernel_handle(): void
-    {
-        $app = new Application('.');
 
-        $container = new Container();
-        $events_dispatcher = new Dispatcher();
-        $router = new Router($events_dispatcher, $container);
-        $kernel = new ByPassRouterKernel($app, $router);
-        $request = Request::create('/', 'GET');
+    public function test_the_application_returns_a_successful_response(): void
+    {
         $this->assertCount(0, $this->storage);
-        $kernel->handle($request);
+        $response = $this->call('GET', '/');
+        $this->assertEquals(200, $response->status());
         $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('HTTP GET', $span->getName());
+    
+        $response = Http::get('opentelemetry.io');
+        $this->assertEquals(200, $response->status());
+        $this->assertCount(2, $this->storage);
+        $span = $this->storage->offsetGet(1);
+        $this->assertSame('http GET https://opentelemetry.io/', $span->getName());
     }
 }

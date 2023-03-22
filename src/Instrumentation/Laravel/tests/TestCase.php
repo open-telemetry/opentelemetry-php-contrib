@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Tests\Instrumentation\Laravel;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
