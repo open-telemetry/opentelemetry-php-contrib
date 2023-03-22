@@ -86,10 +86,8 @@ class ClientRequestWatcher
         }
 
         $span->setAttributes([
-            'http.status_code' => $request->response->status(),
-            'http.status_text' => HttpResponse::$statusTexts[$request->response->status()] ?? '',
-            'http.response_content_length' => $request->response->header('Content-Length'),
-            'http.response_content_type' => $request->response->header('Content-Type'),
+            TraceAttributes::HTTP_STATUS_CODE => $request->response->status(),
+            TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH => $request->response->header('Content-Length'),
         ]);
 
         $this->maybeRecordError($span, $request->response);
