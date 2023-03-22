@@ -38,13 +38,13 @@ class ClientRequestWatcher
         $span = $this->instrumentation->tracer()->spanBuilder('http ' . $request->request->method() . ' ' . $request->request->url())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
-                'http.method' => $request->request->method(),
-                'http.url' => $processedUrl,
-                'http.target' => $parsedUrl['path'] ?? '',
-                'http.host' => $parsedUrl['host'] ?? '',
-                'http.scheme' => $parsedUrl['scheme'] ?? '',
-                'net.peer.name' => $parsedUrl['host'] ?? '',
-                'net.peer.port' => $parsedUrl['port'] ?? '',
+                TraceAttributes::HTTP_METHOD => $request->request->method(),
+                TraceAttributes::HTTP_URL => $processedUrl,
+                TraceAttributes::HTTP_TARGET => $parsedUrl['path'] ?? '',
+                TraceAttributes::HTTP_HOST => $parsedUrl['host'] ?? '',
+                TraceAttributes::HTTP_SCHEME => $parsedUrl['scheme'] ?? '',
+                TraceAttributes::NET_PEER_NAME => $parsedUrl['host'] ?? '',
+                TraceAttributes::NET_PEER_PORT => $parsedUrl['port'] ?? '',
             ])
             ->startSpan();
 
