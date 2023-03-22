@@ -2,14 +2,8 @@ includes:
     - vendor/phpstan/phpstan-phpunit/extension.neon
 
 parameters:
-    reportUnmatchedIgnoredErrors: false
-    ignoreErrors:
-        -
-           message: '#Undefined variable: \$this#'
-           path: tests/*
-        -
-           message: '#is not contravariant with parameter#'
-           path: tests/*
+    excludePaths:
+        - 'tests/*'    
     tmpDir: var/cache/phpstan
     level: 5
     paths:
