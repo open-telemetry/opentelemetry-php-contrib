@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Events\ConnectionFailed;
 use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
@@ -14,7 +15,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
-class ClientRequestWatcher
+class ClientRequestWatcher extends Watcher
 {
     private CachedInstrumentation $instrumentation;
     /**
@@ -26,6 +27,15 @@ class ClientRequestWatcher
     {
         $this->instrumentation = $instr;
     }
+
+    /** @psalm-suppress UndefinedInterfaceMethod */
+    public function register(Application $app): void
+    {
+        $app['events']->listen(RequestSending::class, [$this, 'recordRequest']);
+        $app['events']->listen(ConnectionFailed::class, [$this, 'recordConnectionFailed']);
+        $app['events']->listen(ResponseReceived::class, [$this, 'recordResponse']);
+    }
+
     public function recordRequest(RequestSending $request): void
     {
         $parsedUrl = collect(parse_url($request->request->url()));

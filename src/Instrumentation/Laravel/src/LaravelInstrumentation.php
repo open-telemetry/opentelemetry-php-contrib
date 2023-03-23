@@ -6,9 +6,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
-use Illuminate\Http\Client\Events\ConnectionFailed;
-use Illuminate\Http\Client\Events\RequestSending;
-use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\ServiceProvider;
@@ -28,11 +25,9 @@ class LaravelInstrumentation
     private static $watchersInstalled = false;
     private static $application;
 
-    public static function registerWatchers(Application $app, ClientRequestWatcher $watcher)
+    public static function registerWatchers(Application $app, Watcher $watcher)
     {
-        $app['events']->listen(RequestSending::class, [$watcher, 'recordRequest']);
-        $app['events']->listen(ConnectionFailed::class, [$watcher, 'recordConnectionFailed']);
-        $app['events']->listen(ResponseReceived::class, [$watcher, 'recordResponse']);
+        $watcher->register($app);
     }
 
     public static function register(): void
