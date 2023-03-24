@@ -17,6 +17,7 @@ class HelloController extends Controller
         //
         $response = Http::get('http:/opentelemetry.io');
         $text = 'Hello Cruel World';
+        cache()->forever('opentelemetry', 'opentelemetry');
 
         return view('hello_index', ['text' => $text]);
     }
