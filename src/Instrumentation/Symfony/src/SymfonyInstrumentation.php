@@ -16,26 +16,35 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
-use Throwable;
 
 final class SymfonyInstrumentation
 {
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
+
         hook(
             HttpKernel::class,
             'handle',
-            pre: static function (HttpKernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (
+                HttpKernel $kernel,
+                array $params,
+                string $class,
+                string $function,
+                ?string $filename,
+                ?int $lineno,
+            ) use ($instrumentation): array {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $instrumentation->tracer()
-                    ->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                $builder = $instrumentation
+                    ->tracer()
+                    ->spanBuilder(\sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+
                 $parent = Context::getCurrent();
                 if ($request) {
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
@@ -54,9 +63,14 @@ final class SymfonyInstrumentation
 
                 return [$request];
             },
-            post: static function (HttpKernel $kernel, array $params, ?Response $response, ?Throwable $exception) {
+            post: static function (
+                HttpKernel $kernel,
+                array $params,
+                ?Response $response,
+                ?\Throwable $exception
+            ): void {
                 $scope = Context::storage()->scope();
-                if (!$scope) {
+                if (null === $scope) {
                     return;
                 }
                 $scope->detach();
@@ -71,10 +85,13 @@ final class SymfonyInstrumentation
                     }
                 }
 
-                if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                if (null !== $exception) {
+                    $span->recordException($exception, [
+                        TraceAttributes::EXCEPTION_ESCAPED => true,
+                    ]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
+
                 if ($response) {
                     if ($response->getStatusCode() >= Response::HTTP_BAD_REQUEST) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
