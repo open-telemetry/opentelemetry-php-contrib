@@ -9,6 +9,7 @@ use Illuminate\Container\Container;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
@@ -24,6 +25,14 @@ class ByPassRouterKernel extends Kernel
     protected function sendRequestThroughRouter($request)
     {
         return new Response();
+    }
+}
+
+class RouterKernelRedirectResponse extends Kernel
+{
+    protected function sendRequestThroughRouter($request)
+    {
+        return new RedirectResponse('/');
     }
 }
 
@@ -59,6 +68,20 @@ class LaravelInstrumentationTest extends TestCase
         $events_dispatcher = new Dispatcher();
         $router = new Router($events_dispatcher, $container);
         $kernel = new ByPassRouterKernel($app, $router);
+        $request = Request::create('/', 'GET');
+        $this->assertCount(0, $this->storage);
+        $kernel->handle($request);
+        $this->assertCount(1, $this->storage);
+    }
+
+    public function test_http_kernel_redirect_response_handle(): void
+    {
+        $app = new Application('.');
+
+        $container = new Container();
+        $events_dispatcher = new Dispatcher();
+        $router = new Router($events_dispatcher, $container);
+        $kernel = new RouterKernelRedirectResponse($app, $router);
         $request = Request::create('/', 'GET');
         $this->assertCount(0, $this->storage);
         $kernel->handle($request);
