@@ -58,6 +58,7 @@ final class HttpClientInstrumentation
 
                 $previousOnProgress = $params[2]['on_progress'] ?? null;
 
+                //As Response are lazy we end span when status code was received
                 $params[2]['on_progress'] = static function (int $dlNow, int $dlSize, array $info) use (
                     $previousOnProgress,
                     $span
