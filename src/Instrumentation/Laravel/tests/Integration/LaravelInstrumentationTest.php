@@ -13,6 +13,7 @@ use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\Tests\Instrumentation\Laravel\TestCase;
 
 class ByPassRouterKernel extends Kernel
@@ -32,6 +33,7 @@ class LaravelInstrumentationTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
+
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
@@ -61,8 +63,18 @@ class LaravelInstrumentationTest extends TestCase
     
         $response = Http::get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(2, $this->storage);
         $span = $this->storage->offsetGet(1);
         $this->assertSame('http GET https://opentelemetry.io/', $span->getName());
+    }
+    public function test_cache(): void
+    {
+        $this->assertCount(0, $this->storage);
+        $response = $this->call('GET', '/hello');
+        $this->assertEquals(200, $response->status());
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('HTTP GET', $span->getName());
+        $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::HTTP_URL));
+        $this->assertCount(1, $span->getEvents());
     }
 }

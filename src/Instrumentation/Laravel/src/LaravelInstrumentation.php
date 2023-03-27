@@ -104,6 +104,7 @@ class LaravelInstrumentation
             ServiceProvider::class,
             '__construct',
             pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                self::$watchersInstalled = false;
                 self::$application = $params[0];
             },
             post: null

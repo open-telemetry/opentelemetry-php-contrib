@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class HelloController extends Controller
 {
@@ -14,8 +13,6 @@ class HelloController extends Controller
      */
     public function index()
     {
-        //
-        $response = Http::get('http:/opentelemetry.io');
         $text = 'Hello Cruel World';
         cache()->forever('opentelemetry', 'opentelemetry');
 
