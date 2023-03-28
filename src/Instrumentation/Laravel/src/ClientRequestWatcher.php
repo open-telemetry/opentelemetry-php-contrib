@@ -44,7 +44,6 @@ class ClientRequestWatcher extends Watcher
         if ($parsedUrl->has('query')) {
             $processedUrl .= '?' . $parsedUrl->get('query');
         }
-
         $span = $this->instrumentation->tracer()->spanBuilder('http ' . $request->request->method() . ' ' . $request->request->url())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
@@ -57,7 +56,6 @@ class ClientRequestWatcher extends Watcher
                 TraceAttributes::NET_PEER_PORT => $parsedUrl['port'] ?? '',
             ])
             ->startSpan();
-
         $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
     }
 

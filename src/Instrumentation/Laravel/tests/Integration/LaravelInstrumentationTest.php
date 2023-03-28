@@ -71,10 +71,12 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage->offsetGet(0);
+        $this->assertCount(2, $this->storage);
+        $span = $this->storage->offsetGet(1);
         $this->assertSame('HTTP GET', $span->getName());
         $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::HTTP_URL));
         $this->assertCount(2, $span->getEvents());
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('sql SELECT', $span->getName());
     }
 }
