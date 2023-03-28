@@ -33,6 +33,7 @@ final class HttpClientInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
+                $requestOptions = $params[2];
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
@@ -52,14 +53,14 @@ final class HttpClientInstrumentation
                     ->setParent($parent)
                     ->startSpan();
 
-                if (!isset($params[2]['headers'])) {
-                    $params[2]['headers'] = [];
+                if (!isset($requestOptions['headers'])) {
+                    $requestOptions['headers'] = [];
                 }
 
-                $previousOnProgress = $params[2]['on_progress'] ?? null;
+                $previousOnProgress = $requestOptions['on_progress'] ?? null;
 
                 //As Response are lazy we end span when status code was received
-                $params[2]['on_progress'] = static function (int $dlNow, int $dlSize, array $info) use (
+                $requestOptions['on_progress'] = static function (int $dlNow, int $dlSize, array $info) use (
                     $previousOnProgress,
                     $span
                 ): void {
@@ -82,9 +83,10 @@ final class HttpClientInstrumentation
                 };
 
                 $context = $span->storeInContext($parent);
-                $propagator->inject($params[2]['headers'], ArrayAccessGetterSetter::getInstance(), $context);
+                $propagator->inject($requestOptions['headers'], ArrayAccessGetterSetter::getInstance(), $context);
 
                 Context::storage()->attach($context);
+                $params[2] = $requestOptions;
 
                 return $params;
             },
