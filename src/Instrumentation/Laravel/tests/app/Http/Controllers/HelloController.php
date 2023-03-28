@@ -18,6 +18,9 @@ class HelloController extends Controller
         $text = 'Hello Cruel World';
         cache()->forever('opentelemetry', 'opentelemetry');
         Log::info('Log info');
+        cache()->get('opentelemetry.io', 'php');
+        cache()->get('opentelemetry', 'php');
+        cache()->forget('opentelemetry');
         $users = DB::connection('sqlite_testing')->select('select 1');
 
         return view('hello_index', ['text' => $text]);
