@@ -96,6 +96,7 @@ class LaravelInstrumentation
                     //self::registerWatchers(self::$application, new ExceptionWatcher());
                     self::registerWatchers(self::$application, new CacheWatcher());
                     self::registerWatchers(self::$application, new LogWatcher());
+                    self::registerWatchers(self::$application, new QueryWatcher($instrumentation));
                     self::$watchersInstalled = true;
                 }
             },
