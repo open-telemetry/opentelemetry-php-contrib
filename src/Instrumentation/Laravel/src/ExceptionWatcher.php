@@ -10,6 +10,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
+use Throwable;
 
 class ExceptionWatcher extends Watcher
 {
@@ -23,6 +24,11 @@ class ExceptionWatcher extends Watcher
      */
     public function recordException(MessageLogged $log): void
     {
+        if (! isset($log->context['exception']) ||
+        ! $log->context['exception'] instanceof Throwable) {
+            return;
+        }
+
         $exception = $log->context['exception'];
 
         $attributes = [

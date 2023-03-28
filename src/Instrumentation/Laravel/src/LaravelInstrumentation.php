@@ -93,7 +93,7 @@ class LaravelInstrumentation
             pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 if (!self::$watchersInstalled) {
                     self::registerWatchers(self::$application, new ClientRequestWatcher($instrumentation));
-                    //self::registerWatchers(self::$application, new ExceptionWatcher());
+                    self::registerWatchers(self::$application, new ExceptionWatcher());
                     self::registerWatchers(self::$application, new CacheWatcher());
                     self::registerWatchers(self::$application, new LogWatcher());
                     self::registerWatchers(self::$application, new QueryWatcher($instrumentation));
