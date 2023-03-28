@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class HelloController extends Controller
 {
@@ -15,6 +16,7 @@ class HelloController extends Controller
     {
         $text = 'Hello Cruel World';
         cache()->forever('opentelemetry', 'opentelemetry');
+        Log::info('Log info');
 
         return view('hello_index', ['text' => $text]);
     }
