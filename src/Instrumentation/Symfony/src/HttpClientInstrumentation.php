@@ -110,6 +110,9 @@ final class HttpClientInstrumentation
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
                 }
+
+                //As Response are lazy we end span after response is received,
+                //it's added in on_progress callback, see line 63
             },
         );
     }
