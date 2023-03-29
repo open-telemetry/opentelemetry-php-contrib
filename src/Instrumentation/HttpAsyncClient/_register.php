@@ -2,4 +2,11 @@
 
 declare(strict_types=1);
 
-\OpenTelemetry\Contrib\Instrumentation\HttpAsyncClient\HttpAsyncClientInstrumentation::register();
+use OpenTelemetry\Contrib\Instrumentation\HttpAsyncClient\HttpAsyncClientInstrumentation;
+use OpenTelemetry\SDK\Sdk;
+
+if (Sdk::isInstrumentationDisabled('http-async-client') === true) {
+    return;
+}
+
+HttpAsyncClientInstrumentation::register();
