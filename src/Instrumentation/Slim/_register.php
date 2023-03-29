@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
-assert(extension_loaded('otel_instrumentation'));
+use OpenTelemetry\Contrib\Instrumentation\Slim\SlimInstrumentation;
 
-\OpenTelemetry\Contrib\Instrumentation\Slim\SlimInstrumentation::register();
+if (extension_loaded('otel_instrumentation') === false) {
+    trigger_error('The otel_instrumentation extension must be loaded in order to autoload the OpenTelemetry Slim Framework auto-instrumentation', E_USER_WARNING);
+
+    return;
+}
+
+SlimInstrumentation::register();
