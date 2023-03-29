@@ -1,0 +1,24 @@
+{
+  "name": "open-telemetry/opentelemetry",
+  "type": "metapackage",
+  "description": "OpenTelemetry metapackage",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "logging", "metrics"],
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "require": {
+    "open-telemetry/api": "^1",
+    "open-telemetry/context": "^1",
+    "open-telemetry/sdk": "^1",
+    "open-telemetry/exporter-otlp": "^1",
+    "open-telemetry/exporter-zipkin": "^1",
+    "symfony/http-client": "^6",
+    "nyholm/psr7": "^1.5"
+  },
+  "authors": [
+    {
+      "name": "opentelemetry-php contributors",
+      "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
+    }
+  ]
+}
