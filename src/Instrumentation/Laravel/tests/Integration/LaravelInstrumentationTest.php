@@ -64,7 +64,7 @@ class LaravelInstrumentationTest extends TestCase
         $response = Http::get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
         $span = $this->storage->offsetGet(1);
-        $this->assertSame('http GET https://opentelemetry.io/', $span->getName());
+        $this->assertSame('HTTP GET', $span->getName());
     }
     public function test_cache_log_db(): void
     {
