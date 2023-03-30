@@ -5,7 +5,7 @@ declare(strict_types=1);
 use OpenTelemetry\Contrib\Instrumentation\Symfony\SymfonyInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
-if (Sdk::isInstrumentationDisabled(SymfonyInstrumentation::NAME) === true) {
+if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(SymfonyInstrumentation::NAME) === true) {
     return;
 }
 
