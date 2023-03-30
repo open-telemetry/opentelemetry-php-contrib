@@ -31,7 +31,6 @@ class LaravelInstrumentation
         $watcher->register($app);
     }
 
-
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');
