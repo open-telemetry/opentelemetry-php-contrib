@@ -23,6 +23,8 @@ use Throwable;
 class Psr18Instrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
+    public const NAME = 'psr18';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr18', schemaUrl: TraceAttributes::SCHEMA_URL);

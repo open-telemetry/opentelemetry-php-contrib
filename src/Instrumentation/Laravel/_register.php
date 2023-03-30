@@ -5,7 +5,7 @@ declare(strict_types=1);
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
-if (Sdk::isInstrumentationDisabled('laravel') === true) {
+if (Sdk::isInstrumentationDisabled(LaravelInstrumentation::NAME) === true) {
     return;
 }
 

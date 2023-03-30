@@ -18,6 +18,8 @@ use Throwable;
 
 class WordpressInstrumentation
 {
+    public const NAME = 'wordpress';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.wordpress');

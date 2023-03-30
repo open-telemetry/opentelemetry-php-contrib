@@ -5,7 +5,7 @@ declare(strict_types=1);
 use OpenTelemetry\Contrib\Instrumentation\IO\IOInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
-if (Sdk::isInstrumentationDisabled('io') === true) {
+if (Sdk::isInstrumentationDisabled(IOInstrumentation::NAME) === true) {
     return;
 }
 

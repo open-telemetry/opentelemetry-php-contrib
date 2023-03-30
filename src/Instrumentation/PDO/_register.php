@@ -5,7 +5,7 @@ declare(strict_types=1);
 use OpenTelemetry\Contrib\Instrumentation\PDO\PDOInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
-if (Sdk::isInstrumentationDisabled('pdo') === true) {
+if (Sdk::isInstrumentationDisabled(PDOInstrumentation::NAME) === true) {
     return;
 }
 

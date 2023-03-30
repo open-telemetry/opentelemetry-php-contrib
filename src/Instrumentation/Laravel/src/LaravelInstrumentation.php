@@ -20,6 +20,8 @@ use Throwable;
 
 class LaravelInstrumentation
 {
+    public const NAME = 'laravel';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');

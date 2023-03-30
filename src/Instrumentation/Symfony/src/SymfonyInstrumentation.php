@@ -20,6 +20,8 @@ use Throwable;
 
 final class SymfonyInstrumentation
 {
+    public const NAME = 'symfony';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');

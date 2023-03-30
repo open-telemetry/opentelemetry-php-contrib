@@ -5,7 +5,7 @@ declare(strict_types=1);
 use OpenTelemetry\Contrib\Instrumentation\Slim\SlimInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
-if (Sdk::isInstrumentationDisabled('slim') === true) {
+if (Sdk::isInstrumentationDisabled(SlimInstrumentation::NAME) === true) {
     return;
 }
 
