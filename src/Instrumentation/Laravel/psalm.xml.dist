@@ -8,6 +8,10 @@
     <projectFiles>
         <ignoreFiles>
 	    <directory name="vendor"/>
+            <directory name="tests/app"/>
+            <directory name="tests/bootstrap"/>	    
+            <directory name="tests/routes"/>
+            <directory name="tests/storage"/>
         </ignoreFiles>
 	<directory name="src"/>
         <directory name="tests"/>

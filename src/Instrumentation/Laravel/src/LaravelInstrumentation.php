@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\ServiceProvider;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
@@ -20,6 +22,14 @@ use Throwable;
 
 class LaravelInstrumentation
 {
+    private static $watchersInstalled = false;
+    private static $application;
+
+    public static function registerWatchers(Application $app, Watcher $watcher)
+    {
+        $watcher->register($app);
+    }
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');
@@ -76,6 +86,30 @@ class LaravelInstrumentation
 
                 $span->end();
             }
+        );
+        hook(
+            ServiceProvider::class,
+            'boot',
+            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                if (!self::$watchersInstalled) {
+                    self::registerWatchers(self::$application, new ClientRequestWatcher($instrumentation));
+                    self::registerWatchers(self::$application, new ExceptionWatcher());
+                    self::registerWatchers(self::$application, new CacheWatcher());
+                    self::registerWatchers(self::$application, new LogWatcher());
+                    self::registerWatchers(self::$application, new QueryWatcher($instrumentation));
+                    self::$watchersInstalled = true;
+                }
+            },
+            post: null
+        );
+        hook(
+            ServiceProvider::class,
+            '__construct',
+            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                self::$watchersInstalled = false;
+                self::$application = $params[0];
+            },
+            post: null
         );
     }
 }

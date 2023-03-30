@@ -14,6 +14,8 @@
     "open-telemetry/api": "^1"
   },
   "require-dev": {
+    "laravel/sanctum": "*",
+    "nunomaduro/collision": "*",
     "friendsofphp/php-cs-fixer": "^3",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
@@ -22,7 +24,11 @@
     "psalm/plugin-phpunit": "^0.16",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^4.0"
+    "vimeo/psalm": "^4.0",
+    "spatie/laravel-ignition": "*",
+    "laravel/sail": "*",
+    "laravel/tinker": "*",
+    "guzzlehttp/guzzle": "*"
   },
   "autoload": {
     "psr-4": {
@@ -34,6 +40,7 @@
   },
   "autoload-dev": {
     "psr-4": {
+      "App\\": "tests/app/",
       "OpenTelemetry\\Tests\\Instrumentation\\Laravel\\": "tests/"
     }
   },
