@@ -10,7 +10,7 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "open-telemetry/opentelemetry": "0.0.15",
+        "open-telemetry/api": "^1",
         "php-http/discovery": "^1.14",
         "php-http/message": "^1.12"
     },
@@ -68,7 +68,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
-            "symfony/runtime": true
+            "symfony/runtime": true,
+            "php-http/discovery": false
         }
     }
 }
