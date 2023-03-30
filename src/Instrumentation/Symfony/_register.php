@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use OpenTelemetry\Contrib\Instrumentation\Symfony\HttpClientInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\SymfonyInstrumentation;
 
 if (extension_loaded('otel_instrumentation') === false) {
@@ -11,3 +12,4 @@ if (extension_loaded('otel_instrumentation') === false) {
 }
 
 SymfonyInstrumentation::register();
+HttpClientInstrumentation::register();
