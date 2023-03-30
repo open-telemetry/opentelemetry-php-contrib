@@ -32,9 +32,9 @@ class ExceptionWatcher extends Watcher
         $exception = $log->context['exception'];
 
         $attributes = [
-            'code.namespace' => get_class($exception),
-            'code.filepath' => $exception->getFile(),
-            'code.lineno' => $exception->getLine(),
+            TraceAttributes::CODE_NAMESPACE => get_class($exception),
+            TraceAttributes::CODE_FILEPATH => $exception->getFile(),
+            TraceAttributes::CODE_LINENO => $exception->getLine(),
         ];
         $scope = Context::storage()->scope();
         if (!$scope) {
