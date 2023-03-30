@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
-use ArrayObject;
-use OpenTelemetry\API\Common\Instrumentation\Configurator;
-use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
-use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
-use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -24,31 +17,8 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-class SymfonyInstrumentationTest extends TestCase
+class SymfonyInstrumentationTest extends AbstractTest
 {
-    private ScopeInterface $scope;
-    private ArrayObject $storage;
-    private TracerProvider $tracerProvider;
-
-    public function setUp(): void
-    {
-        $this->storage = new ArrayObject();
-        $this->tracerProvider = new TracerProvider(
-            new SimpleSpanProcessor(
-                new InMemoryExporter($this->storage)
-            )
-        );
-
-        $this->scope = Configurator::create()
-            ->withTracerProvider($this->tracerProvider)
-            ->activate();
-    }
-
-    public function tearDown(): void
-    {
-        $this->scope->detach();
-    }
-
     public function test_http_kernel_handle_exception(): void
     {
         $this->expectException(\RuntimeException::class);
