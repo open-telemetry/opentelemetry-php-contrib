@@ -17,6 +17,9 @@ use RuntimeException;
 use Symfony\Component\OptionsResolver\Options;
 use Throwable;
 
+/** @phan-file-suppress PhanUndeclaredClassInstanceof */
+/** @phan-file-suppress PhanUndeclaredClassReference */
+/** @phan-file-suppress PhanUndeclaredTypeReturnType */
 class ExporterFactory implements Factory\GenericFactoryInterface
 {
     private const ENDPOINT_URL_PARAM = 'endpoint_url';

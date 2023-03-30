@@ -9,6 +9,11 @@ use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
 
+/** @phan-file-suppress PhanUndeclaredInterface */
+/** @phan-file-suppress PhanUndeclaredTypeProperty */
+/** @phan-file-suppress PhanUndeclaredTypeParameter */
+/** @phan-file-suppress PhanUndeclaredClassMethod */
+/** @phan-file-suppress PhanTypeMismatchArgument */
 class TraceableTracerProvider implements TracerProviderInterface
 {
     private TracerProviderInterface $tracerProvider;

@@ -19,6 +19,7 @@ use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
+/** @phan-file-suppress PhanUndeclaredClassReference */
 return static function (ContainerConfigurator $containerConfigurator): void {
     /**
      * @codeCoverageIgnoreStart
