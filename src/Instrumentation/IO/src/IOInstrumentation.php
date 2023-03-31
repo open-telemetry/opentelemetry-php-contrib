@@ -15,6 +15,8 @@ use Throwable;
 
 class IOInstrumentation
 {
+    public const NAME = 'io';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.io');

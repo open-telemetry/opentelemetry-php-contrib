@@ -16,6 +16,8 @@ use Throwable;
 
 class PDOInstrumentation
 {
+    public const NAME = 'pdo';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.pdo');

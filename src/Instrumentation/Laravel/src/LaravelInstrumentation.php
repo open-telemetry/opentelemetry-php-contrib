@@ -22,6 +22,7 @@ use Throwable;
 
 class LaravelInstrumentation
 {
+    public const NAME = 'laravel';
     private static $watchersInstalled = false;
     private static $application;
 

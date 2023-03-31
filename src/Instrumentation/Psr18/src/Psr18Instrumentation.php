@@ -23,6 +23,8 @@ use Throwable;
 class Psr18Instrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
+    public const NAME = 'psr18';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr18', schemaUrl: TraceAttributes::SCHEMA_URL);
@@ -41,6 +43,7 @@ class Psr18Instrumentation
                 $propagator = Instrumentation\Globals::propagator();
                 $parentContext = Context::getCurrent();
 
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $spanBuilder = $instrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
@@ -98,6 +101,7 @@ class Psr18Instrumentation
 
                     foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                         if ($response->hasHeader($header)) {
+                            /** @psalm-suppress ArgumentTypeCoercion */
                             $span->setAttribute(sprintf('http.response.header.%s', strtr(strtolower($header), ['-' => '_'])), $response->getHeader($header));
                         }
                     }

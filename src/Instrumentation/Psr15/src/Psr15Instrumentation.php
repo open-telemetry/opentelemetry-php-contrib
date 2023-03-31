@@ -24,6 +24,8 @@ use Throwable;
  */
 class Psr15Instrumentation
 {
+    public const NAME = 'psr15';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr15');

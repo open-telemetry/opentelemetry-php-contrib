@@ -24,6 +24,8 @@ use Throwable;
 
 class SlimInstrumentation
 {
+    public const NAME = 'slim';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim');
