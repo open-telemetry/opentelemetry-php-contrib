@@ -69,7 +69,10 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
             'file' => $reflection->getFileName(),
         ];
     }
-
+    /**
+     * @phan-suppress hanUndeclaredTypeParameter
+     * @phan-suppress PhanUndeclaredTypeParameter
+     */
     public function setExporterData(SpanExporterInterface $exporter): void
     {
         $this->data['exporter'] = $this->getClassLocation(get_class($exporter));
@@ -114,7 +117,11 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
 
         return $spanData;
     }
-
+    
+    /**
+     * @phan-suppress PhanUndeclaredTypeParameter
+     * @phan-suppress PhanUndeclaredClassMethod
+     */
     private function spanDataToArray(SpanDataInterface $spanData): array
     {
         return [

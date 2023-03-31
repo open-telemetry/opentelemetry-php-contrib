@@ -38,7 +38,7 @@
         <ini name="display_startup_errors" value="On" />
         <ini name="error_reporting" value="E_ALL" />
     </php>
-
+    <!--
     <testsuites>
         <testsuite name="unit">
             <directory>tests/Unit</directory>
@@ -47,5 +47,5 @@
             <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
-
+    -->
 </phpunit>

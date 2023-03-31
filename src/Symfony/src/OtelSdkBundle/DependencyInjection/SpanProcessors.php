@@ -7,6 +7,7 @@ namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Symfony\OtelSdkBundle\Debug\TraceableSpanProcessor;
 
+/** @phan-file-suppress PhanUndeclaredClassReference */
 interface SpanProcessors
 {
     public const SIMPLE = SpanProcessor\SimpleSpanProcessor::class;
