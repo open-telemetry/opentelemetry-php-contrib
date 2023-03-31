@@ -36,10 +36,10 @@ class Psr15Instrumentation
             'process',
             pre: static function (MiddlewareInterface $middleware, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = $instrumentation->tracer()->spanBuilder(sprintf('%s::%s', $class, $function))
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
                     ->startSpan();
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
@@ -77,10 +77,10 @@ class Psr15Instrumentation
                     : sprintf('HTTP %s', $request?->getMethod() ?? 'unknown')
                 )
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
                 $parent = Context::getCurrent();
                 if (!$root && $request) {
                     //create http root span

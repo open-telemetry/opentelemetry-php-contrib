@@ -37,10 +37,10 @@ class SlimInstrumentation
                 $builder = $instrumentation->tracer()
                     ->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
                     $parent = Globals::propagator()->extract($request->getHeaders());
@@ -123,10 +123,10 @@ class SlimInstrumentation
                 $callable = $params[0];
                 $name = CallableFormatter::format($callable);
                 $builder = $instrumentation->tracer()->spanBuilder($name)
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
