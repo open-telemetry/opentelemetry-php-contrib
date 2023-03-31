@@ -11,6 +11,10 @@ use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
 use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
 
+/** @phan-file-suppress PhanUndeclaredInterface */
+/** @phan-file-suppress PhanUndeclaredTypeProperty */
+/** @phan-file-suppress PhanUndeclaredTypeParameter */
+/** @phan-file-suppress PhanUndeclaredClassMethod */
 class TraceableSpanProcessor implements SpanProcessorInterface
 {
     private SpanProcessorInterface $spanProcessor;

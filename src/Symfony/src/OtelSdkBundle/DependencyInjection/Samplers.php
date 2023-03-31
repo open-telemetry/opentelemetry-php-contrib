@@ -6,6 +6,7 @@ namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
 use OpenTelemetry\SDK\Trace\Sampler;
 
+/** @phan-file-suppress PhanUndeclaredClassReference */
 interface Samplers
 {
     public const ALWAYS_ON = Sampler\AlwaysOnSampler::class;

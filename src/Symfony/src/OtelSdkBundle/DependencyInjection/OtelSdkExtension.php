@@ -24,6 +24,8 @@ use Throwable;
 /**
  * @codeCoverageIgnore
  */
+
+/** @phan-file-suppress PhanUndeclaredClassReference */
 class OtelSdkExtension extends Extension implements LoggerAwareInterface
 {
     public const SDK_CONFIG_FILE = __DIR__ . '/../Resources/config/sdk.php';

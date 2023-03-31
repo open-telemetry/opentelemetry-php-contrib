@@ -6,6 +6,7 @@ namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
 use OpenTelemetry\Contrib;
 
+/** @phan-file-suppress PhanUndeclaredClassReference */
 interface SpanExporters
 {
     public const JAEGER = Contrib\Jaeger\Exporter::class;
