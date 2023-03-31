@@ -61,9 +61,9 @@ class IOInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
             ->spanBuilder($name)
-            ->setAttribute('code.function', $function)
-            ->setAttribute('code.filepath', $filename)
-            ->setAttribute('code.lineno', $lineno);
+            ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+            ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
     }
     private static function end(?Throwable $exception): void
     {
