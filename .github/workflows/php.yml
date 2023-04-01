@@ -69,7 +69,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, grpc, otel_instrumentation-open-telemetry/opentelemetry-php-instrumentation@main
+        extensions: ast, grpc, opentelemetry
 
     - name: Validate composer.json and composer.lock
       run: composer validate
