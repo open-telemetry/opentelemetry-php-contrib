@@ -9,7 +9,7 @@
   "minimum-stability": "dev",
   "require": {
     "php": "^8.2",
-    "ext-otel_instrumentation": "*",
+    "ext-opentelemetry": "*",
     "open-telemetry/api": "^1"
   },
   "require-dev": {

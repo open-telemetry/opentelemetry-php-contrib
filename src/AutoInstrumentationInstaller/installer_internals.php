@@ -161,7 +161,7 @@ function is_otel_module_exists():bool {
   $result_code = null;
   $cmd = "php -m";
   exec($cmd, $output, $result_code);
-  if(!in_array("otel_instrumentation", $output)) {
+  if(!in_array("opentelemetry", $output)) {
     return false;
   }
   return true;
@@ -188,9 +188,9 @@ function update_ini_file(array $output) {
 
   $extension_in_ini = "";
   if (PHP_OS_FAMILY === "Windows") {
-    $extension_in_ini = "extension=php_otel_instrumentation.dll";
+    $extension_in_ini = "extension=php_opentelemetry.dll";
   } else {
-    $extension_in_ini = "extension=otel_instrumentation.so";
+    $extension_in_ini = "extension=opentelemetry.so";
   }
   $extension_exists = false;
   if ($ini_file = fopen($ini_file_path, "r")) {
@@ -213,9 +213,9 @@ function check_postconditions(array $output):bool {
 {
     $extension_file = "";
     if (PHP_OS_FAMILY === "Windows") {
-      $extension_file = "\php_otel_instrumentation.dll";
+      $extension_file = "\php_opentelemetry.dll";
     } else {
-      $extension_file = "/otel_instrumentation.so";
+      $extension_file = "/opentelemetry.so";
     }
     if (count($output) == 0) {
       return false;
@@ -228,13 +228,13 @@ function check_postconditions(array $output):bool {
       $extension_dirs = explode(" ", $extension_dir_entry);
       // TODO does not work with relative paths
       if (!file_exists($extension_dirs[0] . $extension_file)) {
-        colorLog("\nERROR : otel_instrumentation has not been installed correcly", 'e');
+        colorLog("\nERROR : opentelemetry has not been installed correcly", 'e');
         return false;
       }
     }
   }
   if (!is_otel_module_exists()) {
-    colorLog("\nERROR : otel_instrumentation extension has not been added to ini file", 'e');
+    colorLog("\nERROR : opentelemetry extension has not been added to ini file", 'e');
     false;
   }
   return true;

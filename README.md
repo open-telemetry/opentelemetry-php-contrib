@@ -23,7 +23,7 @@ Refer to the documentation for the individual components on how to install them
 ## Usage/Examples   
 
 ### Auto-instrumentation
-Auto-instrumentation requires the [otel_instrumentation](https://github.com/open-telemetry/opentelemetry-php-instrumentation) PHP extension, and
+Auto-instrumentation requires the [opentelemetry](https://github.com/open-telemetry/opentelemetry-php-instrumentation) PHP extension, and
 the installation of one or more packages from [src/Instrumentation](./src/Instrumentation)
 
 ### AWS
