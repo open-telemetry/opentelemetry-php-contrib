@@ -9,8 +9,8 @@ if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(HttpAsyncClientIn
     return;
 }
 
-if (extension_loaded('otel_instrumentation') === false) {
-    trigger_error('The otel_instrumentation extension must be loaded in order to autoload the OpenTelemetry HTTPlug async auto-instrumentation', E_USER_WARNING);
+if (extension_loaded('opentelemetry') === false) {
+    trigger_error('The opentelemetry extension must be loaded in order to autoload the OpenTelemetry HTTPlug async auto-instrumentation', E_USER_WARNING);
 
     return;
 }

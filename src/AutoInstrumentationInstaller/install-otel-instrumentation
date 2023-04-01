@@ -19,5 +19,5 @@ if ($mode == "basic") {
 }
 unlink("pickle.phar");
 if (check_postconditions(get_php_info_output())) {
-  colorLog("\notel_instrumentation extension has been successfully installed", 's');
+  colorLog("\nopentelemetry extension has been successfully installed", 's');
 }

@@ -10,7 +10,7 @@
   "require": {
     "php": "^8.0",
     "laravel/framework": "*",
-    "ext-otel_instrumentation": "*",
+    "ext-opentelemetry": "*",
     "open-telemetry/api": "^1"
   },
   "require-dev": {
