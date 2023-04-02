@@ -8,7 +8,9 @@ This is a metapackage which provides:
 - an HTTP factory (nyholm/psr7)
 - an HTTP client (symfony/http-client)
 
-This metapackage is useful to try out OpenTelemetry for PHP, but for production use we recommend requiring the packages/versions
+This meta-package is useful to try out OpenTelemetry for PHP, but for production use we recommend requiring the packages/versions
 you need directly in your composer.json file.
+
+The version of this meta-package does not align with any particular OpenTelemetry package versions.
 
 This is a read-only repository, please file issues and PRs at https://github.com/open-telemetry/opentelemetry-php
