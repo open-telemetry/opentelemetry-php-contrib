@@ -53,14 +53,6 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/PDO'
             php-version: 8.1
-          - project: 'Symfony'
-            php-version: 7.4
-          - project: 'Symfony'
-            php-version: 8.0
-          - project: 'Symfony'
-            php-version: 8.1
-          - project: 'Symfony'
-            php-version: 8.2
     steps:
     - uses: actions/checkout@v3
 
