@@ -14,6 +14,9 @@
     "symfony/http-kernel": "*",
     "symfony/http-client-contracts": "*"
   },
+  "suggest": {
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client."
+  },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
     "phan/phan": "^5.0",
@@ -24,7 +27,8 @@
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0",
-    "symfony/http-client": "^5.4||^6.0"
+    "symfony/http-client": "^5.4||^6.0",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "*"
   },
   "autoload": {
     "psr-4": {
@@ -37,6 +41,11 @@
   "autoload-dev": {
     "psr-4": {
       "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false
     }
   }
 }

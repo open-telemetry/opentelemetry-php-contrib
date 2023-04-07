@@ -49,7 +49,7 @@ final class SymfonyInstrumentation
 
                 $parent = Context::getCurrent();
                 if ($request) {
-                    $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
+                    $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
                     $span = $builder
                         ->setParent($parent)
                         ->setAttribute(TraceAttributes::HTTP_URL, $request->getUri())
@@ -94,19 +94,29 @@ final class SymfonyInstrumentation
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 
-                if ($response) {
-                    if ($response->getStatusCode() >= Response::HTTP_BAD_REQUEST) {
-                        $span->setStatus(StatusCode::STATUS_ERROR);
-                    }
-                    $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
-                    $contentLength = $response->headers->get('Content-Length');
-                    /** @psalm-suppress PossiblyFalseArgument */
-                    if (null === $contentLength && is_string($response->getContent())) {
-                        $contentLength = \strlen($response->getContent());
-                    }
+                if (null === $response) {
+                    $span->end();
 
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $contentLength);
+                    return;
+                }
+
+                if ($response->getStatusCode() >= Response::HTTP_BAD_REQUEST) {
+                    $span->setStatus(StatusCode::STATUS_ERROR);
+                }
+                $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
+                $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
+                $contentLength = $response->headers->get('Content-Length');
+                /** @psalm-suppress PossiblyFalseArgument */
+                if (null === $contentLength && is_string($response->getContent())) {
+                    $contentLength = \strlen($response->getContent());
+                }
+
+                $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $contentLength);
+
+                // Propagate traceresponse header to response, if TraceResponsePropagator is present
+                if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
+                    $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
+                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                 }
 
                 $span->end();
