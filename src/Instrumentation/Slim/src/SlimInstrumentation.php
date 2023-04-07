@@ -11,6 +11,7 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
@@ -61,7 +62,7 @@ class SlimInstrumentation
 
                 return [$request];
             },
-            post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) {
+            post: static function (App $app, array $params, ?ResponseInterface &$response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -79,6 +80,17 @@ class SlimInstrumentation
                     $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->getHeaderLine('Content-Length'));
+
+                    // Propagate traceresponse header to response, if TraceResponsePropagator is present
+                    if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
+                        $carrier = [];
+                        $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
+                        $prop->inject($carrier, ArrayAccessGetterSetter::getInstance(), $scope->context());
+
+                        foreach ($carrier as $name => $value) {
+                            $response = $response->withHeader($name, $value);
+                        }
+                    }
                 }
 
                 $span->end();

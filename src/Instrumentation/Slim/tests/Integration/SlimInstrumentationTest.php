@@ -10,7 +10,7 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\SDK\Trace\ImmutableSpan;
+use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -67,10 +67,13 @@ class SlimInstrumentationTest extends TestCase
             $this->createMock(ResponseInterface::class),
             $routingMiddleware
         );
-        $app->handle($request->withAttribute(RouteContext::ROUTE, $route));
+        $response = $app->handle($request->withAttribute(RouteContext::ROUTE, $route));
+
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
         $this->assertSame($expected, $span->getName());
+
+        $this->assertTrue($response->hasHeader(TraceResponsePropagator::TRACERESPONSE), 'traceresponse header is added');
     }
 
     /**
@@ -125,14 +128,19 @@ class SlimInstrumentationTest extends TestCase
             $routingMiddleware
         );
 
+        $response = null;
+
         try {
-            $app->handle($request);
+            $response = $app->handle($request);
         } catch (\Exception $e) {
             $this->assertSame('routing failed', $e->getMessage());
         }
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
         $this->assertSame('HTTP GET', $span->getName(), 'span name was not updated because routing failed');
+
+        /** @psalm-suppress PossiblyNullReference */
+        $this->assertTrue($response->hasHeader(TraceResponsePropagator::TRACERESPONSE), 'traceresponse header is added');
     }
 
     public function createMockStrategy(): InvocationStrategyInterface

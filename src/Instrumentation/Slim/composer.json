@@ -15,6 +15,9 @@
     "open-telemetry/api": "^1.0",
     "slim/slim": "^4"
   },
+  "suggest": {
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client."
+  },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
     "mockery/mockery": "^1.5",
@@ -27,7 +30,10 @@
     "psalm/plugin-phpunit": "^0.16",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^4.0"
+    "vimeo/psalm": "^4.0",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "*",
+    "symfony/http-client": "^6.0",
+    "guzzlehttp/promises": "^1.5"
   },
   "autoload": {
     "psr-4": {
@@ -40,6 +46,11 @@
   "autoload-dev": {
     "psr-4": {
       "OpenTelemetry\\Tests\\Instrumentation\\Slim\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
     }
   }
 }
