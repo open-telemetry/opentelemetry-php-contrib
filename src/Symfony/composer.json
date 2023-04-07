@@ -10,7 +10,11 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "open-telemetry/opentelemetry": "0.0.15",
+        "open-telemetry/api": "^1",
+        "open-telemetry/context": "^1",
+        "open-telemetry/exporter-newrelic": "^1",
+        "open-telemetry/exporter-otlp": "^1",
+        "open-telemetry/exporter-zipkin": "^1",
         "php-http/discovery": "^1.14",
         "php-http/message": "^1.12"
     },
@@ -49,7 +53,8 @@
         "symfony/polyfill-php80": "^1.16",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
-        "vimeo/psalm": "^4.0"
+        "vimeo/psalm": "^4.0",
+        "open-telemetry/sdk": "^1"
     },
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",
@@ -68,7 +73,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
-            "symfony/runtime": true
+            "symfony/runtime": true,
+            "php-http/discovery": false
         }
     }
 }

@@ -10,7 +10,7 @@
   "prefer-stable": true,
   "require": {
     "php": "^8.0",
-    "ext-otel_instrumentation": "*",
+    "ext-opentelemetry": "*",
     "ext-reflection": "*",
     "open-telemetry/api": "^1.0",
     "slim/slim": "^4"

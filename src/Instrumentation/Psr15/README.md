@@ -33,3 +33,14 @@ $tracerProvider->shutdown();
 ```bash
 $ composer require open-telemetry/opentelemetry-auto-psr15
 ```
+
+## Configuration
+
+Parts of this auto-instrumentation library can be configured, more options are available throught the
+[General SDK Configuration](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md#general-sdk-configuration):
+
+| Name                                | Default value | Values                  | Example | Description                                                                     |
+|-------------------------------------|---------------|-------------------------|---------|---------------------------------------------------------------------------------|
+| OTEL_PHP_DISABLED_INSTRUMENTATIONS  | []            | Instrumentation name(s) | psr15   | Disable one or more installed auto-instrumentations, names are comma seperated. |
+
+Configurations can be provided as environment variables, or via `php.ini` (or a file included by `php.ini`)

@@ -20,6 +20,8 @@ use Throwable;
 
 class HttpAsyncClientInstrumentation
 {
+    public const NAME = 'http-async-client';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.http-async-client', schemaUrl: TraceAttributes::SCHEMA_URL);

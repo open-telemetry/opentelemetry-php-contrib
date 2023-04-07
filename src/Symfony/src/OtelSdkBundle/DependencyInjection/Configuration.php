@@ -16,6 +16,8 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 /**
  * @codeCoverageIgnore
  */
+
+/** @phan-file-suppress PhanUndeclaredClassReference */
 class Configuration implements ConfigurationInterface
 {
     // PUBLIC CONSTANTS

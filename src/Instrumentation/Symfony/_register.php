@@ -2,6 +2,19 @@
 
 declare(strict_types=1);
 
-assert(extension_loaded('otel_instrumentation'));
+use OpenTelemetry\Contrib\Instrumentation\Symfony\HttpClientInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Symfony\SymfonyInstrumentation;
+use OpenTelemetry\SDK\Sdk;
 
-\OpenTelemetry\Contrib\Instrumentation\Symfony\SymfonyInstrumentation::register();
+if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(SymfonyInstrumentation::NAME) === true) {
+    return;
+}
+
+if (extension_loaded('opentelemetry') === false) {
+    trigger_error('The opentelemetry extension must be loaded in order to autoload the OpenTelemetry Laravel auto-instrumentation', E_USER_WARNING);
+
+    return;
+}
+
+SymfonyInstrumentation::register();
+HttpClientInstrumentation::register();

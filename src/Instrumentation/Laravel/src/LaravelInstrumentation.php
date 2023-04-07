@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\ServiceProvider;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
@@ -20,6 +22,15 @@ use Throwable;
 
 class LaravelInstrumentation
 {
+    public const NAME = 'laravel';
+    private static $watchersInstalled = false;
+    private static $application;
+
+    public static function registerWatchers(Application $app, Watcher $watcher)
+    {
+        $watcher->register($app);
+    }
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');
@@ -32,10 +43,10 @@ class LaravelInstrumentation
                 $builder = $instrumentation->tracer()
                     ->spanBuilder(sprintf('HTTP %s', $request?->method() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute('code.function', $function)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $filename)
-                    ->setAttribute('code.lineno', $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
@@ -76,6 +87,30 @@ class LaravelInstrumentation
 
                 $span->end();
             }
+        );
+        hook(
+            ServiceProvider::class,
+            'boot',
+            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                if (!self::$watchersInstalled) {
+                    self::registerWatchers(self::$application, new ClientRequestWatcher($instrumentation));
+                    self::registerWatchers(self::$application, new ExceptionWatcher());
+                    self::registerWatchers(self::$application, new CacheWatcher());
+                    self::registerWatchers(self::$application, new LogWatcher());
+                    self::registerWatchers(self::$application, new QueryWatcher($instrumentation));
+                    self::$watchersInstalled = true;
+                }
+            },
+            post: null
+        );
+        hook(
+            ServiceProvider::class,
+            '__construct',
+            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                self::$watchersInstalled = false;
+                self::$application = $params[0];
+            },
+            post: null
         );
     }
 }
