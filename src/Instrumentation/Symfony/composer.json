@@ -24,7 +24,9 @@
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0",
-    "symfony/http-client": "^5.4||^6.0"
+    "symfony/http-client": "^5.4||^6.0",
+    "guzzlehttp/promises": "^1.5@dev",
+    "nyholm/psr7": "^1.5@dev"
   },
   "autoload": {
     "psr-4": {
@@ -37,6 +39,11 @@
   "autoload-dev": {
     "psr-4": {
       "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
     }
   }
 }
