@@ -7,7 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\ServiceProvider;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
