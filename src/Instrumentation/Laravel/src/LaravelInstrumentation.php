@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Foundation\Http\Kernel;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
@@ -55,7 +54,7 @@ class LaravelInstrumentation
 
                 return [$request];
             },
-            post: static function (Kernel $kernel, array $params, Response|RedirectResponse|null $response, ?Throwable $exception) {
+            post: static function (Kernel $kernel, array $params, ?Response $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
