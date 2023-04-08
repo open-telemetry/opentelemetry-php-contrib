@@ -7,7 +7,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\ServiceProvider;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
@@ -18,6 +17,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class LaravelInstrumentation
