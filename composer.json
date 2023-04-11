@@ -19,7 +19,8 @@
       "OpenTelemetry\\Contrib\\Symfony\\": "src/Symfony/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Psr15\\": "src/Instrumentation/Psr15/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Slim\\": "src/Instrumentation/Slim/src",
-      "OpenTelemetry\\Contrib\\Instrumentation\\Wordpress\\": "src/Instrumentation/Wordpress/src"
+      "OpenTelemetry\\Contrib\\Instrumentation\\Wordpress\\": "src/Instrumentation/Wordpress/src",
+      "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/Propagation/TraceResponse/src"
     }
   },
   "config": {

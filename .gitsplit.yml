@@ -34,6 +34,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-swoole.git"
   - prefix: "src/AutoInstrumentationInstaller"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-instrumentation-installer.git"
+  - prefix: "src/Propagation/TraceResponse"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-traceresponse.git"
 
 # List of references to split (defined as regexp)
 origins:
