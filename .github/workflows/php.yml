@@ -26,6 +26,7 @@ jobs:
           'Instrumentation/PDO',
           'Instrumentation/Symfony',
           'Instrumentation/Laravel',
+          'Propagation/TraceResponse',
           'Symfony'
         ]
         exclude:
