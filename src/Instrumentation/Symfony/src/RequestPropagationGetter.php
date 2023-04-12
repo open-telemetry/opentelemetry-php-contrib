@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * @internal
  */
-final class HeadersPropagator implements PropagationGetterInterface
+final class RequestPropagationGetter implements PropagationGetterInterface
 {
     public static function instance(): self
     {
