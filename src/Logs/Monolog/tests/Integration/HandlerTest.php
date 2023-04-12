@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Integration;
 
 use ArrayObject;
+use Monolog\Level;
 use Monolog\Logger;
 use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
@@ -23,6 +24,7 @@ class HandlerTest extends TestCase
 {
     private ArrayObject $storage;
     private Logger $logger;
+
     public function setUp(): void
     {
         $this->storage = new ArrayObject();
@@ -31,7 +33,7 @@ class HandlerTest extends TestCase
             new SimpleLogsProcessor($exporter),
             new InstrumentationScopeFactory(Attributes::factory()),
         );
-        $handler = new Handler($loggerProvider);
+        $handler = new Handler(loggerProvider: $loggerProvider, level: Level::Warning);
         $this->logger = new Logger('test', [$handler]);
     }
 
@@ -51,6 +53,7 @@ class HandlerTest extends TestCase
 
     public function test_log_debug_is_not_handled(): void
     {
+        //handler is configured with warning level, so debug should be ignored
         $this->assertCount(0, $this->storage);
         $this->logger->debug('debug message');
         $this->assertCount(0, $this->storage);

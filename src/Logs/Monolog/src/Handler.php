@@ -16,7 +16,10 @@ class Handler extends AbstractHandler
     private API\LoggerInterface $logger;
     private NormalizerFormatter $normalizer;
 
-    public function __construct(API\LoggerProviderInterface $loggerProvider = null, Level $level = Level::Warning, bool $bubble = true)
+    /**
+     * @psalm-suppress ArgumentTypeCoercion
+     */
+    public function __construct(API\LoggerProviderInterface $loggerProvider = null, int|string|Level $level = Level::Debug, bool $bubble = true)
     {
         parent::__construct($level, $bubble);
         $this->normalizer = new NormalizerFormatter();
