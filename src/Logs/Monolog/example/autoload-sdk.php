@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 use Monolog\Level;
 use Monolog\Logger;
-use OpenTelemetry\API\Logs\Bridge;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 
 putenv('OTEL_PHP_AUTOLOAD_ENABLED=true');

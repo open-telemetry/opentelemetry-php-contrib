@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 use Monolog\Level;
 use Monolog\Logger;
-use OpenTelemetry\API\Logs\Bridge;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Export\Stream\StreamTransportFactory;
