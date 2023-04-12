@@ -26,6 +26,7 @@ jobs:
           'Instrumentation/PDO',
           'Instrumentation/Symfony',
           'Instrumentation/Laravel',
+          'Logs/Monolog',
           'Propagation/TraceResponse',
           'Symfony'
         ]
@@ -62,6 +63,10 @@ jobs:
             php-version: 8.1
           - project: 'Symfony'
             php-version: 8.2
+          - project: 'Logs/Monolog'
+            php-version: 7.4
+          - project: 'Logs/Monolog'
+            php-version: 8.0
     steps:
     - uses: actions/checkout@v3
 
