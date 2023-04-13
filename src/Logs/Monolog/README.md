@@ -14,7 +14,7 @@ Usually logs are exported to a `receiver` via the `otlp` protocol in the `protob
 
 This requires:
 
-- the protobuf extension (or the `google/protobuf` package if performance is not an important consideration)
+- a `protobuf` implementation; either the protobuf extension or the `google/protobuf` package
 - the `open-telemetry/exporter-otlp` package
 - the `open-telemetry/transport-grpc` package, if using gRPC transport
 - a PSR-7 and PSR-18 implementation, if using HTTP transport
