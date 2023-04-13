@@ -9,7 +9,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "monolog/monolog": "^2|^3",
+    "monolog/monolog": "^1.1|^2|^3",
     "open-telemetry/api": ">=1.0.0beta6 <2"
   },
   "autoload": {

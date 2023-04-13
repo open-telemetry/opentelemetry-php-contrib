@@ -15,7 +15,6 @@ use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\Processor\SimpleLogsProcessor;
 use OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LogLevel;
 
 /**
  * @coversNothing
@@ -33,28 +32,31 @@ class HandlerTest extends TestCase
             new SimpleLogsProcessor($exporter),
             new InstrumentationScopeFactory(Attributes::factory()),
         );
-        $handler = new Handler($loggerProvider, LogLevel::WARNING);
-        $this->logger = new Logger('test', [$handler]);
+        $handler = new Handler($loggerProvider, 200);
+        $this->logger = new Logger('test');
+        $this->logger->pushHandler($handler);
     }
 
-    public function test_log_error(): void
+    public function test_log_info(): void
     {
         $this->assertCount(0, $this->storage);
-        $this->logger->error('foo');
+        /** @psalm-suppress UndefinedDocblockClass */
+        $this->logger->info('foo');
         $this->assertCount(1, $this->storage);
         /** @var ReadWriteLogRecord $record */
         $record = $this->storage->offsetGet(0);
         $this->assertInstanceOf(LogRecord::class, $record);
-        $this->assertSame('ERROR', $record->getSeverityText());
-        $this->assertSame(17, $record->getSeverityNumber());
+        $this->assertSame('INFO', $record->getSeverityText());
+        $this->assertSame(9, $record->getSeverityNumber());
         $this->assertGreaterThan(0, $record->getTimestamp());
         $this->assertSame('monolog', $record->getInstrumentationScope()->getName());
     }
 
     public function test_log_debug_is_not_handled(): void
     {
-        //handler is configured with warning level, so debug should be ignored
+        //handler is configured with info level, so debug should be ignored
         $this->assertCount(0, $this->storage);
+        /** @psalm-suppress UndefinedDocblockClass */
         $this->logger->debug('debug message');
         $this->assertCount(0, $this->storage);
     }

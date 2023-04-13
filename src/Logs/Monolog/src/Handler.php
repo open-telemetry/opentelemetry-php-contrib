@@ -11,6 +11,9 @@ class Handler extends AbstractProcessingHandler
 {
     private API\LoggerInterface $logger;
 
+    /**
+     * @psalm-suppress InvalidArgument
+     */
     public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true)
     {
         parent::__construct($level, $bubble);

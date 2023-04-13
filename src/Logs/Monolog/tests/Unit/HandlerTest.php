@@ -41,13 +41,15 @@ class HandlerTest extends TestCase
         $limits->method('getAttributeFactory')->willReturn($attributeFactory);
         $sharedState->method('getResource')->willReturn($resource);
         $sharedState->method('getLogRecordLimits')->willReturn($limits);
-        $handler = new Handler($this->provider, 'error', true);
+        $handler = new Handler($this->provider, 100, true);
         $processor = function ($record) {
             $record['extra'] = ['extra' => 'baz'];
 
             return $record;
         };
-        $monolog = new \Monolog\Logger('test', [$handler], [$processor]);
+        $monolog = new \Monolog\Logger('test');
+        $monolog->pushHandler($handler);
+        $monolog->pushProcessor($processor);
 
         $this->logger
             ->expects($this->once())
@@ -55,8 +57,8 @@ class HandlerTest extends TestCase
             ->with($this->callback(
                 function (\OpenTelemetry\API\Logs\LogRecord $logRecord) use ($scope, $sharedState) {
                     $readable = new ReadableLogRecord($scope, $sharedState, $logRecord, false);
-                    $this->assertSame('ERROR', $readable->getSeverityText());
-                    $this->assertSame(17, $readable->getSeverityNumber());
+                    $this->assertSame('INFO', $readable->getSeverityText());
+                    $this->assertSame(9, $readable->getSeverityNumber());
                     $this->assertGreaterThan(0, $readable->getTimestamp());
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
@@ -69,6 +71,7 @@ class HandlerTest extends TestCase
                 }
             ));
 
-        $monolog->error('message', ['foo' => 'bar', 'exception' => new \Exception('kaboom', 500)]);
+        /** @psalm-suppress UndefinedDocblockClass */
+        $monolog->info('message', ['foo' => 'bar', 'exception' => new \Exception('kaboom', 500)]);
     }
 }
