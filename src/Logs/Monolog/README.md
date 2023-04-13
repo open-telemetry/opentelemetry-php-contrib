@@ -49,11 +49,10 @@ $handler = new \OpenTelemetry\Contrib\Logs\Monolog\Handler(
 
 ### Automatic configuration
 
-If you do not provide a `LoggerProvider` to the handler, it will use the globally configured one. That may be a no-op
-implementation, if a global LoggerProvider has not been configured.
+If you use [OpenTelemetry SDK autoloading](https://opentelemetry.io/docs/instrumentation/php/sdk/#autoloading), you can retrieve the global logger
+provider. That may be a no-op implementation if there was any misconfiguration.
 
-See [./example/autoload-sdk.php](autoload-sdk example) and https://opentelemetry.io/docs/instrumentation/php/sdk/#autoloading for
-details on autoloading an OpenTelemetry SDK.
+See [./example/autoload-sdk.php](autoload-sdk example) for how to use autoloading with the OpenTelemetry SDK.
 
 ## Create a Logger
 
