@@ -11,6 +11,7 @@ declare(strict_types=1);
 use Monolog\Level;
 use Monolog\Logger;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
+use Psr\Log\LogLevel;
 
 putenv('OTEL_PHP_AUTOLOAD_ENABLED=true');
 putenv('OTEL_METRICS_EXPORTER=none');
@@ -22,12 +23,13 @@ putenv('OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318');
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $handler = new Handler(
-    level: Level::Info,
-    bubble: true,
+    OpenTelemetry\API\Common\Instrumentation\Globals::loggerProvider(),
+    LogLevel::INFO, //or `Logger::INFO`, or `Level::Info` depending on monolog version
+    true,
 );
 $logger = new Logger(
-    name: 'example',
-    handlers: [$handler],
+    'example',
+    [$handler],
 );
 
 $logger->info('hello, otel');

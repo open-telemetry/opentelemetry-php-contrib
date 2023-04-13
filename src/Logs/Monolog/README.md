@@ -1,6 +1,6 @@
 # OpenTelemetry Monolog handler
 
-A monolog v3 handler for OpenTelemetry. See See https://opentelemetry.io/docs/instrumentation/php/logging for further documentation.
+A monolog handler for OpenTelemetry. See See https://opentelemetry.io/docs/instrumentation/php/logging for further documentation.
 
 ## Requirements
 
@@ -41,9 +41,9 @@ Set up an SDK LoggerProvider and pass it to the handler:
 ```php
 $loggerProvider = new \OpenTelemetry\SDK\Logs\LoggerProvider(/* params */);
 $handler = new \OpenTelemetry\Contrib\Logs\Monolog\Handler(
-    loggerProvider: $loggerProvider,
-    level: \Monolog\Level::Debug,
-    bubble: true,
+    $loggerProvider,
+    'info',
+    true,
 );
 ```
 
@@ -61,8 +61,8 @@ Finally, add the handler to a Monolog logger:
 
 ```php
 $logger = new \Monolog\Logger(
-    name: 'name',
-    handlers: [$handler],
+    'name',
+    [$handler],
 );
 $logger->info('hello world');
 ```

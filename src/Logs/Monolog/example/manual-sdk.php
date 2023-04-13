@@ -7,7 +7,6 @@ declare(strict_types=1);
  * Logs are send to console.
  */
 
-use Monolog\Level;
 use Monolog\Logger;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -17,21 +16,21 @@ use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Logs\Exporter\ConsoleExporter;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\Processor\BatchLogsProcessor;
+use Psr\Log\LogLevel;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $loggerProvider = new LoggerProvider(
     new BatchLogsProcessor(
         new ConsoleExporter((new StreamTransportFactory())->create('php://stdout', 'text')),
-        clock: ClockFactory::getDefault()
+        ClockFactory::getDefault()
     ),
     new InstrumentationScopeFactory(Attributes::factory()),
 );
 
 $handler = new Handler(
-    loggerProvider: $loggerProvider,
-    level: Level::Error,
-    bubble: true,
+    $loggerProvider,
+    LogLevel::ERROR,
 );
 $logger = new Logger('example', [$handler]);
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Integration;
 
 use ArrayObject;
-use Monolog\Level;
 use Monolog\Logger;
 use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
@@ -16,6 +15,7 @@ use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\Processor\SimpleLogsProcessor;
 use OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
 
 /**
  * @coversNothing
@@ -33,7 +33,7 @@ class HandlerTest extends TestCase
             new SimpleLogsProcessor($exporter),
             new InstrumentationScopeFactory(Attributes::factory()),
         );
-        $handler = new Handler(loggerProvider: $loggerProvider, level: Level::Warning);
+        $handler = new Handler($loggerProvider, LogLevel::WARNING);
         $this->logger = new Logger('test', [$handler]);
     }
 
@@ -45,7 +45,7 @@ class HandlerTest extends TestCase
         /** @var ReadWriteLogRecord $record */
         $record = $this->storage->offsetGet(0);
         $this->assertInstanceOf(LogRecord::class, $record);
-        $this->assertSame('error', $record->getSeverityText());
+        $this->assertSame('ERROR', $record->getSeverityText());
         $this->assertSame(17, $record->getSeverityNumber());
         $this->assertGreaterThan(0, $record->getTimestamp());
         $this->assertSame('monolog', $record->getInstrumentationScope()->getName());

@@ -9,9 +9,8 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=8.1",
-    "monolog/monolog": "^3",
-    "open-telemetry/api": "^1"
+    "monolog/monolog": "^2|^3",
+    "open-telemetry/api": ">=1.0.0beta6 <2"
   },
   "autoload": {
     "psr-4": {
@@ -20,11 +19,11 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "google/protobuf": "^3",
+    "google/protobuf": ">=3.5.0",
     "guzzlehttp/guzzle": "^7.4",
     "nyholm/psr7": "^1.6",
-    "open-telemetry/exporter-otlp": "^1",
-    "open-telemetry/sdk": "^1",
+    "open-telemetry/exporter-otlp": ">=1.0.0beta6",
+    "open-telemetry/sdk": ">=1.0.0beta7",
     "phan/phan": "^5.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
