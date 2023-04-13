@@ -43,7 +43,7 @@ class HandlerTest extends TestCase
         $sharedState->method('getLogRecordLimits')->willReturn($limits);
         $handler = new Handler($this->provider, 100, true);
         $processor = function ($record) {
-            $record['extra'] = ['extra' => 'baz'];
+            $record['extra'] = ['extra' => 'baz', 'foo' => 'no']; //foo from extra should not clobber foo from context
 
             return $record;
         };
