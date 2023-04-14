@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Logs\Monolog;
 
 use Monolog\Formatter\FormatterInterface;
-use Monolog\Formatter\LineFormatter;
+use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use OpenTelemetry\API\Logs as API;
 
@@ -24,7 +24,7 @@ class Handler extends AbstractProcessingHandler
 
     protected function getDefaultFormatter(): FormatterInterface
     {
-        return new LineFormatter('%message%');
+        return new NormalizerFormatter('Uu');
     }
 
     /**
@@ -33,14 +33,21 @@ class Handler extends AbstractProcessingHandler
      */
     protected function write($record): void
     {
+        if ($record['formatted']) {
+            $record = $record['formatted'];
+        }
         $logRecord = (new API\LogRecord())
-            ->setTimestamp((int) ($record['datetime']->format('Uu') * 1000))
+            ->setTimestamp((int) ($record['datetime'] * 1000))
             ->setSeverityNumber(API\Map\Psr3::severityNumber($record['level_name']))
             ->setSeverityText($record['level_name'])
             ->setBody($record['message'])
-            ->setAttributes($record['context'] + $record['extra'])
             ->setAttribute('channel', $record['channel'])
         ;
+        foreach (['context', 'extra'] as $key) {
+            if (isset($record[$key]) && \count($record[$key]) > 0) {
+                $logRecord->setAttribute($key, $record[$key]);
+            }
+        }
         $this->logger->logRecord($logRecord);
     }
 }

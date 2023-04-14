@@ -44,7 +44,7 @@ class HandlerTest extends TestCase
         $sharedState->method('getLogRecordLimits')->willReturn($limits);
         $handler = new Handler($this->provider, 100, true);
         $processor = function ($record) {
-            $record['extra'] = ['extra' => 'baz', 'foo' => 'no']; //foo from extra should not clobber foo from context
+            $record['extra'] = ['foo' => 'bar', 'baz' => 'bat'];
 
             return $record;
         };
@@ -63,11 +63,16 @@ class HandlerTest extends TestCase
                     $this->assertGreaterThan(0, $readable->getTimestamp());
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
-                    $this->assertCount(4, $attributes);
-                    $this->assertSame('bar', $attributes->get('foo'));
-                    $this->assertSame('baz', $attributes->get('extra'));
+                    $this->assertCount(3, $attributes);
+                    $this->assertEquals(['channel','context','extra'], array_keys($attributes->toArray()));
+                    $this->assertEquals([
+                        'foo' => 'bar',
+                        'baz' => 'bat',
+                    ], $attributes->get('extra'));
+                    $this->assertSame('bar', $attributes->get('context')['foo']);
                     $this->assertSame('test', $attributes->get('channel'));
-                    $this->assertNotNull($attributes->get('exception'));
+                    $this->assertSame('bar', $attributes->get('context')['foo']);
+                    $this->assertNotNull($attributes->get('context')['exception']);
 
                     return true;
                 }
