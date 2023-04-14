@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Logs\Monolog;
 
+use Monolog\Formatter\FormatterInterface;
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use OpenTelemetry\API\Logs as API;
 
@@ -20,6 +22,11 @@ class Handler extends AbstractProcessingHandler
         $this->logger = $loggerProvider->getLogger('monolog');
     }
 
+    protected function getDefaultFormatter(): FormatterInterface
+    {
+        return new LineFormatter('%message%');
+    }
+
     /**
      * @phan-suppress PhanTypeMismatchArgument
      * @psalm-suppress InvalidOperand
@@ -32,6 +39,7 @@ class Handler extends AbstractProcessingHandler
             ->setSeverityText($record['level_name'])
             ->setBody($record['message'])
             ->setAttributes($record['context'] + $record['extra'])
+            ->setAttribute('channel', $record['channel'])
         ;
         $this->logger->logRecord($logRecord);
     }

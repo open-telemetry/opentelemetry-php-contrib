@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Logs\LoggerProviderInterface;
+use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeInterface;
@@ -55,16 +56,17 @@ class HandlerTest extends TestCase
             ->expects($this->once())
             ->method('logRecord')
             ->with($this->callback(
-                function (\OpenTelemetry\API\Logs\LogRecord $logRecord) use ($scope, $sharedState) {
+                function (LogRecord $logRecord) use ($scope, $sharedState) {
                     $readable = new ReadableLogRecord($scope, $sharedState, $logRecord, false);
                     $this->assertSame('INFO', $readable->getSeverityText());
                     $this->assertSame(9, $readable->getSeverityNumber());
                     $this->assertGreaterThan(0, $readable->getTimestamp());
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
-                    $this->assertCount(3, $attributes);
+                    $this->assertCount(4, $attributes);
                     $this->assertSame('bar', $attributes->get('foo'));
                     $this->assertSame('baz', $attributes->get('extra'));
+                    $this->assertSame('test', $attributes->get('channel'));
                     $this->assertNotNull($attributes->get('exception'));
 
                     return true;
