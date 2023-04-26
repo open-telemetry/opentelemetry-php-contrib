@@ -27,9 +27,6 @@ class SlimInstrumentation
 {
     public const NAME = 'slim';
 
-    /**
-     * @suppress PhanPluginInconsistentReturnFunction
-     */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim');
@@ -65,6 +62,7 @@ class SlimInstrumentation
 
                 return [$request];
             },
+            /** @suppress PhanPluginInconsistentReturnFunction */
             post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
