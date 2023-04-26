@@ -62,7 +62,7 @@ class SlimInstrumentation
 
                 return [$request];
             },
-            post: static function (App $app, array $params, ?ResponseInterface &$response, ?Throwable $exception) {
+            post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -90,6 +90,10 @@ class SlimInstrumentation
                         foreach ($carrier as $name => $value) {
                             $response = $response->withHeader($name, $value);
                         }
+
+                        $span->end();
+
+                        return $response;
                     }
                 }
 
