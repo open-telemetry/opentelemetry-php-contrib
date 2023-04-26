@@ -1,0 +1,39 @@
+{
+  "name": "open-telemetry/opentelemetry-logger-monolog",
+  "description": "OpenTelemetry Monolog handler.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "logs", "monolog", "handler"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "monolog/monolog": "^1.1|^2|^3",
+    "open-telemetry/api": ">=1.0.0beta7 <2"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Logs\\Monolog\\": "src/"
+    }
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "google/protobuf": ">=3.5.0",
+    "guzzlehttp/guzzle": "^7.4",
+    "nyholm/psr7": "^1.6",
+    "open-telemetry/exporter-otlp": ">=1.0.0beta6",
+    "open-telemetry/sdk": ">=1.0.0beta7",
+    "phan/phan": "^5.0",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.16",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^4.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false
+    }
+  }
+}
