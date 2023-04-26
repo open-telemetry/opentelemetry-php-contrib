@@ -27,6 +27,9 @@ class SlimInstrumentation
 {
     public const NAME = 'slim';
 
+    /**
+     * @suppress PhanPluginInconsistentReturnFunction
+     */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim');
