@@ -24,7 +24,7 @@ class Handler extends AbstractProcessingHandler
 
     protected function getDefaultFormatter(): FormatterInterface
     {
-        return new NormalizerFormatter('Uu');
+        return new NormalizerFormatter();
     }
 
     /**
@@ -33,21 +33,19 @@ class Handler extends AbstractProcessingHandler
      */
     protected function write($record): void
     {
-        if ($record['formatted']) {
-            $record = $record['formatted'];
-        }
+        $formatted = $record['formatted'] ?? [];
         $logRecord = (new API\LogRecord())
-            ->setTimestamp((int) ($record['datetime'] * 1000))
+            ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
             ->setSeverityNumber(API\Map\Psr3::severityNumber($record['level_name']))
             ->setSeverityText($record['level_name'])
-            ->setBody($record['message'])
+            ->setBody($formatted['message'] ?? $record['message'])
             ->setAttribute('channel', $record['channel'])
         ;
         foreach (['context', 'extra'] as $key) {
-            if (isset($record[$key]) && \count($record[$key]) > 0) {
-                $logRecord->setAttribute($key, $record[$key]);
+            if (isset($formatted[$key]) && \count($formatted[$key]) > 0) {
+                $logRecord->setAttribute($key, $formatted[$key]);
             }
         }
-        $this->logger->logRecord($logRecord);
+        $this->logger->emit($logRecord);
     }
 }

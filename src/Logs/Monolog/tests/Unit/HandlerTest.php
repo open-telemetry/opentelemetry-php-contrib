@@ -54,10 +54,10 @@ class HandlerTest extends TestCase
 
         $this->logger
             ->expects($this->once())
-            ->method('logRecord')
+            ->method('emit')
             ->with($this->callback(
                 function (LogRecord $logRecord) use ($scope, $sharedState) {
-                    $readable = new ReadableLogRecord($scope, $sharedState, $logRecord, false);
+                    $readable = new ReadableLogRecord($scope, $sharedState, $logRecord);
                     $this->assertSame('INFO', $readable->getSeverityText());
                     $this->assertSame(9, $readable->getSeverityNumber());
                     $this->assertGreaterThan(0, $readable->getTimestamp());
