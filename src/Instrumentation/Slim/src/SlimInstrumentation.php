@@ -66,7 +66,7 @@ class SlimInstrumentation
             post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
-                    return;
+                    return $response;
                 }
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
@@ -99,6 +99,8 @@ class SlimInstrumentation
                 }
 
                 $span->end();
+
+                return $response;
             }
         );
 
