@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Logs\Monolog;
 
+use function count;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use OpenTelemetry\API\Logs as API;
-use function count;
 
 class Handler extends AbstractProcessingHandler
 {
