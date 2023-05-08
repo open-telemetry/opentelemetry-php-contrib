@@ -336,7 +336,7 @@ function make_basic_setup($dependencies, $core_packages, $auto_packages) {
     foreach ($auto_packages as $package) {
       execute_command(make_composer_require_command(
         $package,
-        " -n",
+        " >0 -n",
         ""), " 2>&1");
     }
   }
