@@ -25,7 +25,6 @@ use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SemConv\ResourceAttributes;
-use OpenTelemetry\SemConv\ResourceAttributeValues;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Throwable;
@@ -95,8 +94,8 @@ class Detector implements ResourceDetectorInterface
         }
 
         $basicEcsResource = ResourceInfo::create(Attributes::create([
-            ResourceAttributes::CLOUD_PROVIDER => ResourceAttributeValues::CLOUD_PROVIDER_AWS,
-            ResourceAttributes::CLOUD_PLATFORM => ResourceAttributeValues::CLOUD_PLATFORM_AWS_ECS,
+            ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
+            ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
         ]));
 
         $metadataV4Resource = $this->getMetadataEndpointV4Resource();
