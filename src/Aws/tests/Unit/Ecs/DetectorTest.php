@@ -65,8 +65,8 @@ class DetectorTest extends TestCase
                 [
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributeValues::CLOUD_PROVIDER_AWS,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributeValues::CLOUD_PLATFORM_AWS_ECS,
+                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
                 ]
             )
         ), $detector->getResource());
