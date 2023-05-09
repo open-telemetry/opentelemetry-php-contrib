@@ -43,6 +43,9 @@ class Detector implements ResourceDetectorInterface
 
     private const CONTAINER_ID_LENGTH = 64;
 
+    private const CLOUD_PROVIDER = 'aws';
+    private const CLOUD_PLATFORM = 'aws_ecs';
+
     private DataProvider $processData;
     private ClientInterface $client;
     private RequestFactoryInterface $requestFactory;
@@ -94,8 +97,8 @@ class Detector implements ResourceDetectorInterface
         }
 
         $basicEcsResource = ResourceInfo::create(Attributes::create([
-            ResourceAttributes::CLOUD_PROVIDER => 'aws',
-            ResourceAttributes::CLOUD_PLATFORM => 'aws_ecs',
+            ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+            ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
         ]));
 
         $metadataV4Resource = $this->getMetadataEndpointV4Resource();
