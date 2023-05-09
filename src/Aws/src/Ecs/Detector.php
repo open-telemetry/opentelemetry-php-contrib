@@ -94,8 +94,8 @@ class Detector implements ResourceDetectorInterface
         }
 
         $basicEcsResource = ResourceInfo::create(Attributes::create([
-            ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-            ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+            ResourceAttributes::CLOUD_PROVIDER => 'aws',
+            ResourceAttributes::CLOUD_PLATFORM => 'aws_ecs',
         ]));
 
         $metadataV4Resource = $this->getMetadataEndpointV4Resource();
