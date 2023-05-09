@@ -196,7 +196,7 @@ function update_ini_file(array $output) {
   if ($ini_file = fopen($ini_file_path, "r")) {
     while(!feof($ini_file)) {
         $entry = fgets($ini_file);
-        if (str_starts_with($entry, $extension_in_ini)) {
+        if ($entry !== false && str_starts_with($entry, $extension_in_ini)) {
           $extension_exists = true;
         }
     }
