@@ -36,6 +36,9 @@ class DetectorTest extends TestCase
     private const ECS_ENV_VAR_V3_KEY = 'ECS_CONTAINER_METADATA_URI';
     private const ECS_ENV_VAR_V4_VAL = 'ecs_metadata_v4_uri';
     private const ECS_ENV_VAR_V3_VAL = 'ecs_metadata_v3_uri';
+    
+    private const CLOUD_PROVIDER     = 'aws';
+    private const CLOUD_PLATFORM     = 'aws_ecs';
 
     public function setUp(): void
     {
@@ -65,8 +68,8 @@ class DetectorTest extends TestCase
                 [
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             )
         ), $detector->getResource());
@@ -98,8 +101,8 @@ class DetectorTest extends TestCase
                 [
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             )
         ), $detector->getResource());
@@ -150,8 +153,8 @@ class DetectorTest extends TestCase
             Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             )
         ), $detector->getResource());
@@ -187,8 +190,8 @@ class DetectorTest extends TestCase
                 Attributes::create(
                     [
                         ResourceAttributes::CONTAINER_NAME => self::HOST_NAME,
-                        ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                        ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                        ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                        ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                         ]
                 )
             ), $detector->getResource());
@@ -220,8 +223,8 @@ class DetectorTest extends TestCase
             Attributes::create(
                 [
                     ResourceAttributes::CONTAINER_ID => self::EXTRACTED_CONTAINER_ID,
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             )
         ), $detector->getResource());
@@ -252,8 +255,8 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             Attributes::create(
                 [
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             )
         ), $detector->getResource());
@@ -285,8 +288,8 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             Attributes::create(
                 [
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             )
         ), $detector->getResource());
@@ -318,8 +321,8 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             Attributes::create(
                 [
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                     ResourceAttributes::AWS_ECS_CONTAINER_ARN => 'arn:aws:ecs:us-west-2:111122223333:container/0206b271-b33f-47ab-86c6-a0ba208a70a9',
                     ResourceAttributes::AWS_ECS_CLUSTER_ARN => 'arn:aws:ecs:us-west-2:111122223333:cluster/default',
                     ResourceAttributes::AWS_ECS_LAUNCHTYPE => 'ec2',
@@ -361,8 +364,8 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             Attributes::create(
                 [
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                     ResourceAttributes::AWS_ECS_CONTAINER_ARN => 'arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1',
                     ResourceAttributes::AWS_ECS_CLUSTER_ARN => 'arn:aws:ecs:us-west-2:111122223333:cluster/default',
                     ResourceAttributes::AWS_ECS_LAUNCHTYPE => 'fargate',
@@ -404,8 +407,8 @@ class DetectorTest extends TestCase
         $this->assertEquals(ResourceInfo::create(
             Attributes::create(
                 [
-                    ResourceAttributes::CLOUD_PROVIDER => ResourceAttributes::CLOUD_PROVIDER,
-                    ResourceAttributes::CLOUD_PLATFORM => ResourceAttributes::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                     ResourceAttributes::AWS_ECS_CONTAINER_ARN => 'arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1',
                     ResourceAttributes::AWS_ECS_CLUSTER_ARN => 'arn:aws:ecs:us-west-2:111122223333:cluster/default',
                     ResourceAttributes::AWS_ECS_LAUNCHTYPE => 'fargate',
