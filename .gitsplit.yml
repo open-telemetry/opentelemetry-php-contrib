@@ -39,7 +39,7 @@ splits:
   - prefix: "src/Propagation/TraceResponse"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-traceresponse.git"
   - prefix: "src/ResourceDetectors/Container"
-    targer: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-detector-container.git"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-detector-container.git"
 # List of references to split (defined as regexp)
 origins:
   - ^main$
