@@ -1,0 +1,42 @@
+{
+  "name": "open-telemetry/detector-container",
+  "description": "OpenTelemetry container resource detector",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "detector", "container", "docker"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^7.0|^8.0",
+    "open-telemetry/sdk": ">= 1.0.0beta10"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Resource\\Detector\\Container\\": "src/"
+    },
+    "files": [
+      "_register.php"
+    ]
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "mikey179/vfsstream": "^1.6.11",
+    "phan/phan": "^5.0",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.16",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^4.0",
+    "symfony/http-client": "^5.4|^6.0",
+    "guzzlehttp/promises": "^1.5",
+    "php-http/message-factory": "^1.0",
+    "nyholm/psr7": "^1.5"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
+  }
+}

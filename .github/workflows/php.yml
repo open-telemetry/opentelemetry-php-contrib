@@ -28,6 +28,7 @@ jobs:
           'Instrumentation/Laravel',
           'Logs/Monolog',
           'Propagation/TraceResponse',
+          'ResourceDetectors/Container',
           'Symfony'
         ]
         exclude:
