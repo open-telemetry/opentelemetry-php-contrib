@@ -10,14 +10,14 @@
   "prefer-stable": true,
   "require": {
     "php": "^7.0|^8.0",
-    "open-telemetry/sdk": "dev-main"
+    "open-telemetry/sdk": ">= 1.0.0beta10"
   },
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Resource\\Detector\\Container\\": "src/"
     },
     "files": [
-      "./"
+      "_register.php"
     ]
   },
   "require-dev": {
