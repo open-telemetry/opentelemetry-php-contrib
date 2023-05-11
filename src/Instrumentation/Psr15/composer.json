@@ -11,7 +11,8 @@
   "require": {
     "php": "^8.0",
     "ext-opentelemetry": "*",
-    "open-telemetry/api": "^1.0",
+    "open-telemetry/api": "^1",
+    "open-telemetry/sem-conv": "^1",
     "psr/http-server-middleware": "^1"
   },
   "autoload": {
