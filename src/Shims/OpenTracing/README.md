@@ -7,10 +7,10 @@ on how to migrate to OpenTelemetry: https://opentelemetry.io/docs/migration/open
 
 ## API + SDK
 
-This package depends on the OpenTelemetry API, but a configured [OpenTelemetry SDK](https://opentelemetry.io/docs/instrumentation/php/sdk/)
+This package depends on the OpenTelemetry API, but an  [OpenTelemetry SDK](https://opentelemetry.io/docs/instrumentation/php/sdk/)
 and an exporter should also be provided to enable exporting spans.
 
-You usually need to supply a PSR-7 and PSR-18 implementation, since most exporters use HTTP transport telemetry data (gRPC is the exception).
+You usually need to supply a PSR-7 and PSR-18 implementation, since most exporters use HTTP to transport telemetry data (gRPC is the exception).
 
 ## OTLP Exporter
 
@@ -30,7 +30,7 @@ be exported to a zipkin instance directly, or to any other service which support
 
 # Setup
 
-To use this package, you need to create an OpenTelemetry `tracer provider`, and provide it to the shim tracer:
+To use this package, you need to create an OpenTelemetry `tracer provider`, which is the only parameter used by the shim tracer:
 
 ```php
 $tracerProvider = new OpenTelemetry\SDK\Trace\TracerProvider(/*params*/);
@@ -39,10 +39,11 @@ $tracer = new OpenTelemetry\Contrib\Shim\OpenTracing\Tracer($tracerProvider);
 ```
 
 There are a number of ways to set up a tracer provider, please see the [official documentation](https://opentelemetry.io/docs/instrumentation/php/sdk/)
-or the [examples](./example).
+or the [examples](./examples).
 
 # Notes
 
-- OpenTelemetry does not support setting span kind after span creation, so adding a `span.kind` tag will not affect the span kind. An attribute
+- OpenTelemetry does not support setting span kind after span creation, so adding a `span.kind` tag will not set the span's kind. An attribute
 will still be emitted, though.
 - `Span::log([/*$fields*/])` will use an `event` field as the log name, otherwise `log`.
+- errors may be logged via `Span::log`, using the key `exception`. A `Throwable` should be the field's value, but a string is allowable and will be converted to an exception
