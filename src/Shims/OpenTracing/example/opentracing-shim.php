@@ -11,10 +11,9 @@ require __DIR__ . '/../vendor/autoload.php';
 
 /**
  * Example of using opentracing-shim to use the OpenTracing API to export traces via OpenTelemetry.
- *
  */
 
-putenv('OTEL_TRACES_EXPORTER=console');
+//putenv('OTEL_TRACES_EXPORTER=console'); //uncomment to display spans on console
 putenv('OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318');
 putenv('OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf');
 $tracerProvider = (new TracerProviderFactory())->create();
