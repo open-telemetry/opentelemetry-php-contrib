@@ -108,7 +108,9 @@ class Detector implements ResourceDetectorInterface
             ResourceAttributes::CONTAINER_ID => $this->getContainerId(),
         ]));
 
-        return ResourceInfoFactory::merge($basicEcsResource, $hostNameAndContainerIdResource, $metadataV4Resource);
+        return $basicEcsResource
+            ->merge($hostNameAndContainerIdResource)
+            ->merge($metadataV4Resource);
     }
 
     /**
@@ -220,6 +222,6 @@ class Detector implements ResourceDetectorInterface
             ResourceAttributes::AWS_ECS_TASK_REVISION => $taskRevision,
         ]));
 
-        return ResourceInfoFactory::merge($ecsResource, $logResource);
+        return $ecsResource->merge($logResource);
     }
 }
