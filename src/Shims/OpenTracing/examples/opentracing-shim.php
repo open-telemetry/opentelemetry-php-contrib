@@ -10,10 +10,10 @@ use OpenTracing as API;
 require __DIR__ . '/../vendor/autoload.php';
 
 /**
- * Example of using opentracing-shim to use the OpenTracing API to export traces via OpenTelemetry.
+ * Example of using opentracing-shim to emit OpenTelemetry traces via the OpenTracing API.
  */
 
-//putenv('OTEL_TRACES_EXPORTER=console'); //uncomment to display spans on console
+//putenv('OTEL_TRACES_EXPORTER=console'); //uncomment to display spans to console
 putenv('OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318');
 putenv('OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf');
 $tracerProvider = (new TracerProviderFactory())->create();
@@ -24,7 +24,7 @@ API\GlobalTracer::set($tracer);
 //ensure pending traces are sent on shutdown
 ShutdownHandler::register([$tracerProvider, 'shutdown']);
 
-//example distributed trace headers
+//mock request headers, containing w3c distributed trace headers
 $headers = [
     'foo' => 'bar',
     'traceparent' => '00-ff000000000000000000000000000041-ff00000000000041-01',
@@ -33,15 +33,15 @@ $headers = [
 
 $parent = $tracer->extract(API\Formats\TEXT_MAP, $headers);
 
-$scope = $tracer->startActiveSpan('shim-demo', ['child_of' => $parent, 'tags' => ['_foo' => '_bar']]);
+$scope = $tracer->startActiveSpan('shim-demo', ['child_of' => $parent, 'tags' => ['foo' => 'bar']]);
 $span = $scope->getSpan();
 $span->overwriteOperationName('shim-demo-updated');
 $span->addBaggageItem('shim', 'baggage-1');
 $span->setTag('attr_one', 'foo');
 $span->setTag('attr_two', false);
 $span->setTag(API\Tags\SPAN_KIND, 'server');
-$span->log(['foo' => 'bar', 'baz' => 'bat']);
-$span->log(['foo' => 'bar']);
+$span->log(['event' => 'something', 'foo' => 'bar', 'baz' => 'bat']);
+$span->log(['event' => 'something.else', 'exception' => new \RuntimeException('uh-oh', 500)]);
 
 //get the active span
 $active = $tracer->getActiveSpan();
@@ -55,12 +55,12 @@ $child_one = $tracer->startSpan('child-1');
 //child span with explicit parent (another span which is not the active span)
 $child_two = $tracer->startSpan('child-2', ['child_of' => $child_one]);
 
-//generate outbound trace context for span
+//generate outbound trace context from a span
 $carrier = [];
 $tracer->inject($child_two->getContext(), API\Formats\TEXT_MAP, $carrier);
 //var_dump($carrier);
 
-//generate outbound trace context for active span
+//generate outbound trace context from active span
 $carrier = [];
 $tracer->inject($tracer->getActiveSpan()->getContext(), API\Formats\HTTP_HEADERS, $carrier);
 //var_dump($carrier);

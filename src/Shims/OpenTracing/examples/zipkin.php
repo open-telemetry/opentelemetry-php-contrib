@@ -10,8 +10,8 @@ use OpenTracing as API;
 require __DIR__ . '/../vendor/autoload.php';
 
 /**
- * Example of using opentracing-shim to use the OpenTracing API to export traces via OpenTelemetry.
- *
+ * Example of using opentracing-shim to use OpenTracing to export traces via OpenTelemetry.
+ * Note that this example uses environment variables to configure a TracerProvider via a factory.
  */
 
 putenv('OTEL_TRACES_EXPORTER=zipkin');
