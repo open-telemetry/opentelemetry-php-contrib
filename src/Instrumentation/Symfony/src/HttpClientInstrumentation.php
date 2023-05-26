@@ -33,7 +33,6 @@ final class HttpClientInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
-                $requestOptions = $params[2];
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
@@ -52,6 +51,8 @@ final class HttpClientInstrumentation
                 $span = $builder
                     ->setParent($parent)
                     ->startSpan();
+
+                $requestOptions = $params[2] ?? [];
 
                 if (!isset($requestOptions['headers'])) {
                     $requestOptions['headers'] = [];
