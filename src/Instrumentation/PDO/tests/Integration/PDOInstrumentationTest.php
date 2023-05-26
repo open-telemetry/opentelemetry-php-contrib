@@ -7,7 +7,6 @@ namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Integration;
 use ArrayObject;
 use OpenTelemetry\API\Common\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -66,7 +65,7 @@ class PDOInstrumentationTest extends TestCase
     {
         // @var ImmutableSpan $span
         $this->assertCount(0, $this->storage);
-        $pdo =  self::createDB();
+        $pdo =  $this->createDB();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('PDO::__construct', $span->getName());
@@ -75,14 +74,14 @@ class PDOInstrumentationTest extends TestCase
     public function test_statement_execution(): void
     {
         // @var ImmutableSpan $span
-        $db =  self::createDB();
-        $statement = self::fillDB();
+        $db =  $this->createDB();
+        $statement = $this->fillDB();
 
         $db->exec($statement);
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::exec', $span->getName());
 
-        $this->assertSame($db->inTransaction(), false);
+        $this->assertFalse($db->inTransaction());
         $this->assertCount(2, $this->storage);
 
         $sth = $db->prepare('SELECT * FROM `technology`');
@@ -106,31 +105,31 @@ class PDOInstrumentationTest extends TestCase
     }
     public function test_transaction(): void
     {
-        $db =  self::createDB();
+        $db =  $this->createDB();
         $result = $db->beginTransaction();
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::beginTransaction', $span->getName());
         $this->assertCount(2, $this->storage);
-        $this->assertSame($result, true);
-        $statement = self::fillDB();
+        $this->assertTrue($result);
+        $statement = $this->fillDB();
         $db->exec($statement);
         $result = $db->commit();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('PDO::commit', $span->getName());
         $this->assertCount(4, $this->storage);
-        $this->assertSame($result, true);
+        $this->assertTrue($result);
         $result = $db->beginTransaction();
-        $this->assertSame($result, true);
-        $this->assertSame($db->inTransaction(), true);
+        $this->assertTrue($result);
+        $this->assertTrue($db->inTransaction());
         $db->exec("INSERT INTO technology(`name`, `date`) VALUES('Java', '1995-05-23');");
         $result = $db->rollback();
         $span = $this->storage->offsetGet(6);
         $this->assertSame('PDO::rollBack', $span->getName());
         $this->assertCount(7, $this->storage);
-        $this->assertSame($result, true);
-        $this->assertSame($db->inTransaction(), false);
+        $this->assertTrue($result);
+        $this->assertFalse($db->inTransaction());
         $sth = $db->prepare('SELECT * FROM `technology`');
         $sth->execute();
-        $this->assertSame(count($sth->fetchAll()), 2);
+        $this->assertSame(expected: 2, actual: count($sth->fetchAll()));
     }
 }
