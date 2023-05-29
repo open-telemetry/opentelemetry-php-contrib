@@ -124,8 +124,8 @@ class LaravelInstrumentation
     private static function httpTarget(Request $request): string
     {
         $query = $request->getQueryString();
-        $question = $request->getBaseUrl().$request->getPathInfo() === '/' ? '/?' : '?';
+        $question = $request->getBaseUrl() . $request->getPathInfo() === '/' ? '/?' : '?';
 
-        return $query ? $request->path().$question.$query : $request->path();
+        return $query ? $request->path() . $question . $query : $request->path();
     }
 }
