@@ -23,24 +23,13 @@ class Psr3Instrumentation
                 return $params;
             }
 
-            if ($function === 'log') {
-                $level = $params[0] ?? '';
-                $message = $params[1] ?? '';
-                $context = $params[2] ?? [];
+            $ctxIdx = $function === 'log' ? 2 : 1;
 
-                $context['traceId'] = $span->getTraceId();
-                $context['spanId'] = $span->getSpanId();
+            $params[$ctxIdx] ??= [];
+            $params[$ctxIdx]['traceId'] = $span->getTraceId();
+            $params[$ctxIdx]['spanId'] = $span->getSpanId();
 
-                return [$level, $message, $context];
-            } else {
-                $message = $params[0] ?? '';
-                $context = $params[1] ?? [];
-
-                $context['traceId'] = $span->getTraceId();
-                $context['spanId'] = $span->getSpanId();
-
-                return [$message, $context];
-            }
+            return $params;
         };
 
         \OpenTelemetry\Instrumentation\hook(class: LoggerInterface::class, function: 'emergency', pre: $pre);
