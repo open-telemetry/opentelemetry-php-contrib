@@ -52,10 +52,17 @@ class LaravelInstrumentation
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::HTTP_URL, $request->url())
+                        ->setAttribute(TraceAttributes::HTTP_URL, $request->fullUrl())
                         ->setAttribute(TraceAttributes::HTTP_METHOD, $request->method())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->headers->get('Content-Length'))
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->get('Content-Length'))
                         ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getScheme())
+                        ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
+                        ->setAttribute(TraceAttributes::HTTP_CLIENT_IP, $request->ip())
+                        ->setAttribute(TraceAttributes::HTTP_TARGET, self::httpTarget($request))
+                        ->setAttribute(TraceAttributes::NET_HOST_NAME, $request->host())
+                        ->setAttribute(TraceAttributes::NET_HOST_PORT, $request->getPort())
+                        ->setAttribute(TraceAttributes::NET_PEER_PORT, $request->server('REMOTE_PORT'))
+                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->userAgent())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {
@@ -112,5 +119,13 @@ class LaravelInstrumentation
             },
             post: null
         );
+    }
+
+    private static function httpTarget(Request $request): string
+    {
+        $query = $request->getQueryString();
+        $question = $request->getBaseUrl() . $request->getPathInfo() === '/' ? '/?' : '?';
+
+        return $query ? $request->path() . $question . $query : $request->path();
     }
 }
