@@ -54,7 +54,7 @@ class LaravelInstrumentation
                         ->setParent($parent)
                         ->setAttribute(TraceAttributes::HTTP_URL, $request->fullUrl())
                         ->setAttribute(TraceAttributes::HTTP_METHOD, $request->method())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->get('Content-Length'))
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
                         ->setAttribute(TraceAttributes::HTTP_CLIENT_IP, $request->ip())
