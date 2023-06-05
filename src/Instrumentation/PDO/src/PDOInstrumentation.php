@@ -30,8 +30,9 @@ class PDOInstrumentation
                 $builder = self::makeBuilder($instrumentation, 'PDO::__construct', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 if ($class === \PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $params[0] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_USER, $params[1] ?? 'unknown');
+                    $builder
+                        ->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $params[0] ?? 'unknown')
+                        ->setAttribute(TraceAttributes::DB_USER, $params[1] ?? 'unknown');
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -43,8 +44,13 @@ class PDOInstrumentation
                     return;
                 }
                 $span = Span::fromContext($scope->context());
-                $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
-                $span->setAttribute(TraceAttributes::DB_SYSTEM, $dbSystem);
+
+                try {
+                    $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, $dbSystem);
+                } catch (\Error $e) {
+                    //do nothing
+                }
                 self::end($exception);
             }
         );

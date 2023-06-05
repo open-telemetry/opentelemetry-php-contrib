@@ -72,6 +72,13 @@ class PDOInstrumentationTest extends TestCase
         $this->assertSame('PDO::__construct', $span->getName());
     }
 
+    public function test_constructor_exception(): void
+    {
+        $this->expectException(\PDOException::class);
+        $this->expectExceptionMessage('could not find driver');
+        new \PDO('unknown:foo');
+    }
+
     public function test_statement_execution(): void
     {
         // @var ImmutableSpan $span
