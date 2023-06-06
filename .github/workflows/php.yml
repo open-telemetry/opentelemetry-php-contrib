@@ -29,6 +29,7 @@ jobs:
           'Logs/Monolog',
           'Propagation/TraceResponse',
           'ResourceDetectors/Container',
+          'Shims/OpenTracing',
           'Symfony'
         ]
         exclude:
