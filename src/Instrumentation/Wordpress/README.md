@@ -5,6 +5,8 @@
 **Preferred and simplest way to install auto-instrumentation (c extension plus instrumentation libraries) is to use [opentelemetry-instrumentation-installer](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller).**
 **The same process can be done manually by installing [c extension](https://github.com/open-telemetry/opentelemetry-php-instrumentation#installation) plus all needed instrumentation libraries like [Wordpress](#Installation-via-composer)**
 
+## [Example using Docker](../../../examples/instrumentation/Wordpress/README.md)
+
 ## Requirements
 
 * OpenTelemetry extension
@@ -13,7 +15,7 @@
 * OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
 
 ## Overview
-OpenTelemetry depends on composer, unlike Wordpress. I developed this against [johnpbloch/wordpress-core](https://github.com/johnpbloch/wordpress-core-installer), but it should also work with other installation methods.
+OpenTelemetry depends on composer, unlike Wordpress. I developed this against [johnpbloch/wordpress-core](https://github.com/johnpbloch/wordpress-core-installer), but it should also work with other installation methods. This repo contains an example adding instrumentation to the official Wordpress Docker image [here](../../../examples/instrumentation/Wordpress/README.md).
 
 ### apache
 
