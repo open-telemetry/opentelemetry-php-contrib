@@ -7,7 +7,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
-use Illuminate\Support\ServiceProvider;
 use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Common\Instrumentation\Globals;
 use OpenTelemetry\API\Trace\Span;
@@ -23,8 +22,6 @@ use Throwable;
 class LaravelInstrumentation
 {
     public const NAME = 'laravel';
-    private static $watchersInstalled = false;
-    private static $application;
 
     public static function registerWatchers(Application $app, Watcher $watcher)
     {
@@ -96,26 +93,17 @@ class LaravelInstrumentation
             }
         );
         hook(
-            ServiceProvider::class,
-            'boot',
-            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                if (!self::$watchersInstalled) {
-                    self::registerWatchers(self::$application, new ClientRequestWatcher($instrumentation));
-                    self::registerWatchers(self::$application, new ExceptionWatcher());
-                    self::registerWatchers(self::$application, new CacheWatcher());
-                    self::registerWatchers(self::$application, new LogWatcher());
-                    self::registerWatchers(self::$application, new QueryWatcher($instrumentation));
-                    self::$watchersInstalled = true;
-                }
-            },
-            post: null
-        );
-        hook(
-            ServiceProvider::class,
+            Kernel::class,
             '__construct',
-            pre: static function (ServiceProvider $provider, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                self::$watchersInstalled = false;
-                self::$application = $params[0];
+            pre: static function (Kernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                $app = $params[0];
+                $app->booted(static function (Application $app) use ($instrumentation) {
+                    self::registerWatchers($app, new ClientRequestWatcher($instrumentation));
+                    self::registerWatchers($app, new ExceptionWatcher());
+                    self::registerWatchers($app, new CacheWatcher());
+                    self::registerWatchers($app, new LogWatcher());
+                    self::registerWatchers($app, new QueryWatcher($instrumentation));
+                });
             },
             post: null
         );
