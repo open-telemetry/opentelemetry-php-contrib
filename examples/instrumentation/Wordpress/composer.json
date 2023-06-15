@@ -7,7 +7,6 @@
         "open-telemetry/opentelemetry-auto-wordpress": "^0.0.5",
         "open-telemetry/sdk": "^1.0@beta",
         "open-telemetry/exporter-otlp": "^1.0@beta",
-        "google/protobuf": "^4.0@RC",
         "php-http/guzzle7-adapter": "^1.0"
     },
     "config": {
