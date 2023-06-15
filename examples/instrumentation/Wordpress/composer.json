@@ -1,0 +1,17 @@
+{
+    "name": "opentelemetry/wordpress-example",
+    "description": "An example of autoinstrumentation of wordpress with the official wordpress docker image",
+    "type": "project",
+    "minimum-stability": "beta",
+    "require": {
+        "open-telemetry/opentelemetry-auto-wordpress": "^0.0.5",
+        "open-telemetry/sdk": "^1.0@beta",
+        "open-telemetry/exporter-otlp": "^1.0@beta",
+        "php-http/guzzle7-adapter": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

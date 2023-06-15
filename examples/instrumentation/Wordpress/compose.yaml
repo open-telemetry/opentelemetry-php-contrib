@@ -1,0 +1,57 @@
+# modified from https://github.com/docker/awesome-compose/blob/master/wordpress-mysql/compose.yaml
+
+services:
+  db:
+    image: mariadb:10.6.4-focal
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=somewordpress
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress
+    expose:
+      - 3306
+      - 33060
+
+  wordpress:
+    build:
+      context: .
+      dockerfile: autoinstrumented-wordpress.dockerfile
+
+    ports:
+      - 8080:80
+    restart: always
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+
+      # OTel auto instrumentation config
+      # https://opentelemetry.io/docs/instrumentation/php/automatic/#installation
+      - OTEL_PHP_AUTOLOAD_ENABLED=true
+      - OTEL_SERVICE_NAME=my-wordpress-installation
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=otlp
+
+  # OpenTelemetry collector. Make sure you set USERID and GOOGLE_APPLICATION_CREDENTIALS
+  # environment variables for your container to authenticate correctly
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.79.0
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+  
+  jaeger:
+    image: jaegertracing/all-in-one:1.46
+    ports:
+      - 16686:16686
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+volumes:
+  db_data:
