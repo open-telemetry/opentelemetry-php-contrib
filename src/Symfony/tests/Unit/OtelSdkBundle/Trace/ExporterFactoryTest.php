@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Symfony\Unit\OtelSdkBundle\Trace;
 
 use OpenTelemetry\Contrib;
+use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
 use OpenTelemetry\SDK\Common\Future\FutureInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -19,6 +21,8 @@ use stdClass;
 
 class ExporterFactoryTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testBuildAllOptions()
     {
         $factory = new ExporterFactory(TestExporter::class);
@@ -97,27 +101,11 @@ class ExporterFactoryTest extends TestCase
         $factory = new ExporterFactory(Contrib\Zipkin\Exporter::class);
 
         $exporter = $factory->build([
-            'name' => 'foo',
-            'endpoint_url' => 'http://localhost:1234/path',
+            'transport' => $this->prophesize(TransportInterface::class)->reveal(),
         ]);
 
         $this->assertInstanceOf(
             Contrib\Zipkin\Exporter::class,
-            $exporter
-        );
-    }
-
-    public function testBuildJaeger()
-    {
-        $factory = new ExporterFactory(Contrib\Jaeger\Exporter::class);
-
-        $exporter = $factory->build([
-            'name' => 'foo',
-            'endpoint_url' => 'http://localhost:1234/path',
-        ]);
-
-        $this->assertInstanceOf(
-            Contrib\Jaeger\Exporter::class,
             $exporter
         );
     }
@@ -127,9 +115,8 @@ class ExporterFactoryTest extends TestCase
         $factory = new ExporterFactory(Contrib\Newrelic\Exporter::class);
 
         $exporter = $factory->build([
-            'name' => 'foo',
             'endpoint_url' => 'http://localhost:1234/path',
-            'license_key' => 'gadouzdSD',
+            'transport' => $this->prophesize(TransportInterface::class)->reveal(),
         ]);
 
         $this->assertInstanceOf(
@@ -138,44 +125,18 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildOtlpGrpc()
-    {
-        $factory = new ExporterFactory(Contrib\OtlpGrpc\Exporter::class);
-
-        $exporter = $factory->build([
-            'endpoint_url' => 'http://localhost:1234/path',
-        ]);
-
-        $this->assertInstanceOf(
-            Contrib\OtlpGrpc\Exporter::class,
-            $exporter
-        );
-    }
-
     public function testBuildOtlpHttp()
     {
-        $factory = new ExporterFactory(Contrib\OtlpHttp\Exporter::class);
-
-        $exporter = $factory->build([ ]);
-
-        $this->assertInstanceOf(
-            Contrib\OtlpHttp\Exporter::class,
-            $exporter
-        );
-    }
-
-    public function testBuildZipkinToNewrelic()
-    {
-        $factory = new ExporterFactory(Contrib\ZipkinToNewrelic\Exporter::class);
+        $factory = new ExporterFactory(Contrib\Otlp\SpanExporter::class);
+        $transport = $this->prophesize(TransportInterface::class);
+        $transport->contentType()->willReturn('application/json');
 
         $exporter = $factory->build([
-            'name' => 'foo',
-            'endpoint_url' => 'http://localhost:1234/path',
-            'license_key' => 'gadouzdSD',
+            'transport' => $transport->reveal(),
         ]);
 
         $this->assertInstanceOf(
-            Contrib\ZipkinToNewrelic\Exporter::class,
+            Contrib\Otlp\SpanExporter::class,
             $exporter
         );
     }

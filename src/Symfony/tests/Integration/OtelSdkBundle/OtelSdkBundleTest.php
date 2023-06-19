@@ -7,20 +7,32 @@ namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle;
 use Exception;
 use OpenTelemetry\API;
 use OpenTelemetry\Contrib;
+use OpenTelemetry\Contrib\Zipkin\Exporter;
 use OpenTelemetry\SDK;
+use OpenTelemetry\SDK\Common\Export\Http\PsrTransport;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\StreamInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Yaml\Parser;
+use Throwable;
 
 class OtelSdkBundleTest extends TestCase
 {
+    use ProphecyTrait;
+
     private const ROOT = 'otel_sdk';
     private const CUSTOM_SAMPLER_ID = 'my_custom_sampler';
     private const CUSTOM_EXPORTER_ID = 'my_custom_exporter';
@@ -162,6 +174,52 @@ class OtelSdkBundleTest extends TestCase
         );
     }
 
+    private function buildExporterDouble(): array
+    {
+        $response = $this->prophesize(ResponseInterface::class);
+        $response->getStatusCode()->willReturn(200);
+
+        $client = $this->prophesize(ClientInterface::class);
+        $stream = $this->prophesize(StreamInterface::class);
+        $request = $this->prophesize(RequestInterface::class);
+        $response = $this->prophesize(ResponseInterface::class);
+
+        $request->withBody(Argument::cetera())->willReturn($request);
+        $request->withHeader(Argument::cetera())->willReturn($request);
+        $client->sendRequest($request)->willReturn($response);
+
+        $requestFactory = $this->prophesize(RequestFactoryInterface::class);
+        $requestFactory->createRequest(Argument::cetera())->willReturn($request);
+
+        $streamFactory = $this->prophesize(StreamFactoryInterface::class);
+        $streamFactory->createStream(Argument::cetera())->willReturn($stream);
+
+        // send without retries
+        $response->getStatusCode()->willReturn(200);
+        $response->getBody()->willReturn($stream);
+        $response->getHeaderLine('Content-Encoding')->willReturn('');
+        $stream->__toString()->willReturn('{}');
+
+        $transport = new PsrTransport(
+            $client->reveal(),
+            $requestFactory->reveal(),
+            $streamFactory->reveal(),
+            'http://test.url',
+            'application/json',
+            [],
+            [],
+            10,
+            3
+        );
+        $exporter = new Exporter($transport);
+
+        return [
+            'exporter' => $exporter,
+            'clientProphecy' => $client,
+            'requestProphecy' => $request,
+        ];
+    }
+
     /**
      * @depends testExporterWithSimpleConfig
      * @throws Exception
@@ -171,13 +229,13 @@ class OtelSdkBundleTest extends TestCase
     {
         $this->loadTestData('simple');
 
-        $this->registerHttpClientMock()->expects($this->once())
-            ->method('sendRequest');
+        [
+            'exporter' => $exporter,
+            'clientProphecy' => $client,
+            'requestProphecy' => $request,
+        ] = $this->buildExporterDouble();
 
-        $exporter = $this->container->getDefinition(self::DEFAULT_SPAN_EXPORTER_ID);
-        $options = $exporter->getArgument(0);
-        $options['client'] = $this->createReference(self::HTTP_CLIENT_MOCK_ID);
-        $exporter->setArgument(0, $options);
+        $this->container->set(self::DEFAULT_SPAN_EXPORTER_ID, $exporter);
 
         $this->getTracerProvider()
             ->getTracer('foo')
@@ -186,6 +244,8 @@ class OtelSdkBundleTest extends TestCase
             ->end();
 
         $this->getTracerProvider()->forceFlush();
+
+        $client->sendRequest($request)->shouldHaveBeenCalledTimes(1);
     }
 
     /**
@@ -209,21 +269,23 @@ class OtelSdkBundleTest extends TestCase
             ])
         );
 
-        $this->registerHttpClientMock()->expects($this->never())
-            ->method('sendRequest');
+        [
+            'exporter' => $exporter,
+            'clientProphecy' => $client,
+            'requestProphecy' => $request,
+        ] = $this->buildExporterDouble();
 
-        $exporter = $this->container->getDefinition(self::DEFAULT_SPAN_EXPORTER_ID);
-        $options = $exporter->getArgument(0);
-        $options['client'] = $this->createReference(self::HTTP_CLIENT_MOCK_ID);
-        $exporter->setArgument(0, $options);
+        $exporter = $this->container->set(self::DEFAULT_SPAN_EXPORTER_ID, $exporter);
 
         $this->getTracerProvider()
-            ->getTracer('foo')
-            ->spanBuilder('bar')
-            ->startSpan()
-            ->end();
+        ->getTracer('foo')
+        ->spanBuilder('bar')
+        ->startSpan()
+        ->end();
 
         $this->getTracerProvider()->forceFlush();
+
+        $client->sendRequest(Argument::cetera())->shouldNotHaveBeenCalled();
     }
 
     /**
@@ -251,18 +313,6 @@ class OtelSdkBundleTest extends TestCase
     private function getTracerProviderId(): string
     {
         return ServiceHelper::classToId(SDK\Trace\TracerProvider::class);
-    }
-
-    /**
-     * @return MockObject|ClientInterface
-     * @psalm-suppress MismatchingDocblockReturnType
-     */
-    private function registerHttpClientMock(): ClientInterface
-    {
-        $mock = $this->createMock(ClientInterface::class);
-        $this->container->set(self::HTTP_CLIENT_MOCK_ID, $mock);
-
-        return $mock;
     }
 
     /**

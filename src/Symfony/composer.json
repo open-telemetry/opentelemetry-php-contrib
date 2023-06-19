@@ -30,10 +30,11 @@
         }
     },
     "require-dev": {
+        "ext-grpc": "*",
         "composer/xdebug-handler": "^2.0",
         "dg/bypass-finals": "^1.3",
-        "ext-grpc": "*",
         "friendsofphp/php-cs-fixer": "^3.0",
+        "google/protobuf": "^3.23",
         "guzzlehttp/guzzle": "^7.3",
         "guzzlehttp/psr7": "^2.0@RC",
         "kriswallsmith/buzz": "^1.2",
@@ -41,7 +42,9 @@
         "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.4",
         "open-telemetry/dev-tools": "dev-main",
+        "open-telemetry/sdk": "^1",
         "phan/phan": "^4.1 || ^5",
+        "phpspec/prophecy-phpunit": "^2.0",
         "phpstan/phpstan": "^1.4",
         "phpstan/phpstan-phpunit": "^1.0",
         "phpstan/phpstan-symfony": "^1.1",
@@ -54,8 +57,7 @@
         "symfony/polyfill-php80": "^1.16",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
-        "vimeo/psalm": "^4.0",
-        "open-telemetry/sdk": "^1"
+        "vimeo/psalm": "^4.0"
     },
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",

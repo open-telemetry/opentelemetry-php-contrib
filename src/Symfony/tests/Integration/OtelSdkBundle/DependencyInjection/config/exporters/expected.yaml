@@ -11,24 +11,16 @@ trace:
       url: http://zipkinhost:1234/path
       options: [ ]
     exporter2:
-      type: jaeger
-      url: https://foo:bar@jaegerhost:1234/path/to/endpoint
-      processor: default
-      options:
-        name: foo
-    exporter3:
       type: newrelic
       processor: simple
       url: http://newrelichost:1234/path
-      options:
-        license_key: abcde
-    exporter4:
+      options: [ ]
+    exporter3:
       type: custom
       processor: default
-      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporter
-      options:
-        log_file: /tmp/otel/exporter.log
-    exporter5:
+      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporterFactory
+      options: [ ]
+    exporter4:
       type: custom
       processor: batch
       id: "@my_custom_exporter"

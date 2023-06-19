@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\Test\Unit\OtelSdkBundle\DataCollector;
 
-use OpenTelemetry\Contrib\Jaeger\Exporter as JaegerExporter;
-use OpenTelemetry\Contrib\OtlpHttp\Exporter as OtlpHttpExporter;
+use OpenTelemetry\Contrib\Otlp\SpanExporter;
 use OpenTelemetry\Contrib\Zipkin\Exporter as ZipkinExporter;
+use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\RandomIdGenerator;
@@ -19,10 +19,13 @@ use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\TracerSharedState;
 use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\Component\VarDumper\Cloner\Data;
 
 class OtelDataCollectorTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testReset(): void
     {
         $dataCollector = new OtelDataCollector();
@@ -113,19 +116,22 @@ class OtelDataCollectorTest extends TestCase
 
     public function exporterDataProvider(): iterable
     {
-        yield 'Jaeger exporter' => [JaegerExporter::fromConnectionString('http://endpoint:1000', 'name'), [
-                'class' => 'Jaeger/Exporter',
-                'file' => (new \ReflectionClass(JaegerExporter::class))->getFileName(),
-            ],
-        ];
-        yield 'Zipkin exporter' => [ZipkinExporter::fromConnectionString('http://endpoint:1000', 'name'), [
-                'class' => 'Zipkin/Exporter',
+        $transport = $this->prophesize(TransportInterface::class);
+        $transport->contentType()->willReturn('application/json');
+        $transport = $transport->reveal();
+
+        yield 'Zipkin exporter' => [
+            new ZipkinExporter($transport),
+            [
+                'class' => 'exporter-zipkin/Exporter',
                 'file' => (new \ReflectionClass(ZipkinExporter::class))->getFileName(),
             ],
         ];
-        yield 'OtlpHttp exporter' => [OtlpHttpExporter::fromConnectionString('http://endpoint:1000', 'name'), [
-                'class' => 'OtlpHttp/Exporter',
-                'file' => (new \ReflectionClass(OtlpHttpExporter::class))->getFileName(),
+        yield 'OtlpHttp exporter' => [
+            new SpanExporter($transport),
+            [
+                'class' => 'exporter-otlp/SpanExporter',
+                'file' => (new \ReflectionClass(SpanExporter::class))->getFileName(),
             ],
         ];
     }
