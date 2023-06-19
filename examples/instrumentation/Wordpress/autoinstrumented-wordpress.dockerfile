@@ -1,6 +1,6 @@
 # Pull in dependencies with composer
 FROM composer:2.5 as build
-COPY composer.json composer.lock ./
+COPY composer.json ./
 RUN composer install --ignore-platform-reqs
 
 FROM wordpress:6.2
