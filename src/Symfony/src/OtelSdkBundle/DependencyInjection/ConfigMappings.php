@@ -28,7 +28,6 @@ interface ConfigMappings
     ];
     public const SPAN_EXPORTER_FACTORIES = [
         Configuration::ZIPKIN_EXPORTER_FACTORY => SpanExporterFactories::ZIPKIN,
-        Configuration::NEWRELIC_EXPORTER_FACTORY => SpanExporterFactories::NEWRELIC,
         Configuration::OTLP_EXPORTER_FACTORY => SpanExporterFactories::OTLP,
     ];
 }

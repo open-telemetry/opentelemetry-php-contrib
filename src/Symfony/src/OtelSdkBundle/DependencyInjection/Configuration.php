@@ -97,11 +97,9 @@ class Configuration implements ConfigurationInterface
 
     // Declare Exporter Factories
     public const ZIPKIN_EXPORTER_FACTORY = 'zipkin';
-    public const NEWRELIC_EXPORTER_FACTORY = 'newrelic';
     public const OTLP_EXPORTER_FACTORY = 'otlp';
     public const EXPORTER_FACTORY_VALUES = [
         self::ZIPKIN_EXPORTER_FACTORY,
-        self::NEWRELIC_EXPORTER_FACTORY,
         self::OTLP_EXPORTER_FACTORY,
     ];
 
