@@ -11,7 +11,8 @@ help: ## Show this help
 	@echo "example: PROJECT=Aws PHP_VERSION=8.1 make <command>"
 	@printf "\033[33m%s:\033[0m\n" 'Available commands'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-all: update style validate phan psalm phpstan test ## Everything
+all-checks: style validate phan psalm phpstan test ## All checks + tests
+all: update all-checks ## Everything
 build: ## Build image
 	$(DOCKER_COMPOSE) build --build-arg PHP_VERSION php
 install: ## Install dependencies
