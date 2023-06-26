@@ -10,7 +10,7 @@
   "prefer-stable": true,
   "require": {
     "monolog/monolog": "^1.1|^2|^3",
-    "open-telemetry/api": ">=1.0.0beta7 <2"
+    "open-telemetry/api": "^1.0.0beta10"
   },
   "autoload": {
     "psr-4": {

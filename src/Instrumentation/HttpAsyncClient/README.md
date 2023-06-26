@@ -23,7 +23,7 @@ If you are not using SDK autoloading, you will need to create and register a `Tr
 require_once 'vendor/autoload.php';
 
 $tracerProvider = /*create tracer provider*/;
-$scope = \OpenTelemetry\API\Common\Instrumentation\Configurator::create()
+$scope = \OpenTelemetry\API\Instrumentation\Configurator::create()
     ->withTracerProvider($tracerProvider)
     ->activate();
 

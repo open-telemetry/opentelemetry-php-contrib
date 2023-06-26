@@ -29,7 +29,7 @@ See https://github.com/open-telemetry/opentelemetry-php#sdk-autoloading
 require_once 'vendor/autoload.php';
 
 $tracerProvider = /*create tracer provider*/;
-$scope = \OpenTelemetry\API\Common\Instrumentation\Configurator::create()
+$scope = \OpenTelemetry\API\Instrumentation\Configurator::create()
     ->withTracerProvider($tracerProvider)
     ->activate();
 

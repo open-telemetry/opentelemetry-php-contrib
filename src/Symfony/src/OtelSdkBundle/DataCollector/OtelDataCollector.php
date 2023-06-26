@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\DataCollector;
 
-use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
-use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
+use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
+use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Symfony\Component\HttpFoundation\Request;

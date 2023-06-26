@@ -30,7 +30,7 @@ function getFuncName(fullFuncName) {
 }
 
 function genUseStatements(names) {
-   var code = '  use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation\n';
+   var code = '  use OpenTelemetry\API\Instrumentation\CachedInstrumentation\n';
    code += '  use OpenTelemetry\API\Trace\Span\n';
    code += '  use OpenTelemetry\API\Trace\SpanBuilderInterface\n';
    code += '  use OpenTelemetry\API\Trace\StatusCode\n';

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
-use OpenTelemetry\API\Common\Instrumentation;
+use OpenTelemetry\API\Instrumentation;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
