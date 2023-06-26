@@ -107,31 +107,7 @@ you need to configure at least one Trace Exporter, which can talk to an appropri
 
 #### 2.3.1. Configuring a Trace Exporter
 
-Assuming you installed Jaeger as described above, your configuration would look this (using a DSN):
-
-````yaml
-otel_sdk:
-    resource:
-        attributes:
-            service.name: "OtelBundle Demo app"
-    trace:
-      exporters: jaeger+http://localhost:9412/api/v2/spans
-````
-
-or this (using `type` and endpoint `url`:
-
-````yaml
-otel_sdk:
-    resource:
-        attributes:
-            service.name: "OtelBundle Demo app"
-    trace:
-      exporters: 
-        - type: jaeger
-          url: http://localhost:9412/api/v2/spans
-````
-
-If you have multiple Exporters/Collectors, you can just add them like this (using DSN):
+Assuming you installed Jaeger as described above, your configuration would look this:
 
 ````yaml
 otel_sdk:
@@ -140,8 +116,23 @@ otel_sdk:
             service.name: "OtelBundle Demo app"
     trace:
       exporters:
-        - jaeger+http://localhost:9412/api/v2/spans
-        - zipkin+http://localhost:9411/api/v2/spans
+        - type: zipkin
+          url: http://localhost:9412/api/v2/spans
+````
+
+If you have multiple Exporters/Collectors, you can just add them like this:
+
+````yaml
+otel_sdk:
+    resource:
+        attributes:
+            service.name: "OtelBundle Demo app"
+    trace:
+      exporters:
+        - type: zipkin
+          url: http://localhost:9412/api/v2/spans
+        - type: otlp
+          url: http://localhost:9411/api/v2/spans
 ````
 
 Or equivalent to the `type` and endpoint `url` example above.

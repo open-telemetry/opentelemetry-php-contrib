@@ -264,7 +264,12 @@ class OtelSdkBundleTest extends TestCase
                 ],
                 'trace' => [
                     'sampler' => 'always_off',
-                    'exporters' => ['zipkin+http://zipkinhost:1234/path'],
+                    'exporters' => [
+                        [
+                            'type' => 'zipkin',
+                            'url' => 'http://zipkinhost:1234/path',
+                        ],
+                    ],
                 ],
             ])
         );

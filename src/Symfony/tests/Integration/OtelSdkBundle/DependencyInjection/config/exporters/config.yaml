@@ -6,7 +6,9 @@ resource:
 trace:
   exporters:
     # dsn example
-    exporter1: zipkin+http://zipkinhost:1234/path
+    exporter1:
+      type: zipkin
+      url: http://zipkinhost:1234/path
     # parameter example
     exporter2:
       type: otlp
