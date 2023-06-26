@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\DependencyInjection;
 
 use Exception;
-use OpenTelemetry\Contrib\Newrelic\SpanExporterFactory as NewrelicSpanExporterFactory;
+use OpenTelemetry\Contrib\Otlp\SpanExporterFactory as OtlpExporterFactory;
 use OpenTelemetry\Contrib\Zipkin\SpanExporterFactory as ZipkinSpanExporterFactory;
 use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -328,7 +328,7 @@ class OtelSdkExtensionTest extends TestCase
                         break;
 
                     case 'open_telemetry.sdk.trace.span_processor.simple.exporter2':
-                        $expectClass = NewrelicSpanExporterFactory::class;
+                        $expectClass = OtlpExporterFactory::class;
                         break;
 
                     case 'open_telemetry.sdk.trace.span_processor.default.exporter3':

@@ -21,10 +21,8 @@ interface ConfigMappings
     public const SPAN_EXPORTERS = [
         Configuration::JAEGER_EXPORTER => SpanExporters::JAEGER,
         Configuration::ZIPKIN_EXPORTER => SpanExporters::ZIPKIN,
-        Configuration::NEWRELIC_EXPORTER => SpanExporters::NEWRELIC,
         Configuration::OTLP_HTTP_EXPORTER => SpanExporters::OTLP_HTTP,
         Configuration::OTLP_GRPC_EXPORTER => SpanExporters::OTLP_GRPC,
-        Configuration::ZIPKIN_TO_NEWRELIC_EXPORTER => SpanExporters::ZIPKIN_TO_NEWRELIC,
     ];
     public const SPAN_EXPORTER_FACTORIES = [
         Configuration::ZIPKIN_EXPORTER_FACTORY => SpanExporterFactories::ZIPKIN,

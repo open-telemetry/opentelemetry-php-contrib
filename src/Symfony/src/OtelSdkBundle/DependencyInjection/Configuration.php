@@ -90,10 +90,8 @@ class Configuration implements ConfigurationInterface
     public const ENV_TYPE = 'env';
     public const JAEGER_EXPORTER = 'jaeger';
     public const ZIPKIN_EXPORTER = 'zipkin';
-    public const NEWRELIC_EXPORTER = 'newrelic';
     public const OTLP_HTTP_EXPORTER = 'otlphttp';
     public const OTLP_GRPC_EXPORTER = 'otlpgrpc';
-    public const ZIPKIN_TO_NEWRELIC_EXPORTER = 'zipkintonewrelic';
 
     // Declare Exporter Factories
     public const ZIPKIN_EXPORTER_FACTORY = 'zipkin';

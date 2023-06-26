@@ -11,9 +11,9 @@ trace:
       url: http://zipkinhost:1234/path
       options: [ ]
     exporter2:
-      type: newrelic
+      type: otlp
       processor: simple
-      url: http://newrelichost:1234/path
+      url: http://otlphttphost:1234/path
       options: [ ]
     exporter3:
       type: custom

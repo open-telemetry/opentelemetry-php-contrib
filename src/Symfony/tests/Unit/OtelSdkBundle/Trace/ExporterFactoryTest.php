@@ -110,21 +110,6 @@ class ExporterFactoryTest extends TestCase
         );
     }
 
-    public function testBuildNewrelic()
-    {
-        $factory = new ExporterFactory(Contrib\Newrelic\Exporter::class);
-
-        $exporter = $factory->build([
-            'endpoint_url' => 'http://localhost:1234/path',
-            'transport' => $this->prophesize(TransportInterface::class)->reveal(),
-        ]);
-
-        $this->assertInstanceOf(
-            Contrib\Newrelic\Exporter::class,
-            $exporter
-        );
-    }
-
     public function testBuildOtlpHttp()
     {
         $factory = new ExporterFactory(Contrib\Otlp\SpanExporter::class);
