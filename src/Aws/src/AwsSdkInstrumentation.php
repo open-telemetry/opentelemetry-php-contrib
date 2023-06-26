@@ -6,8 +6,8 @@ namespace OpenTelemetry\Aws;
 
 use Aws\Middleware;
 use Aws\ResultInterface;
-use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
-use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
+use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
+use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;

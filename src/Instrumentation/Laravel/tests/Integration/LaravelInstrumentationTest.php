@@ -8,7 +8,7 @@ use ArrayObject;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
-use OpenTelemetry\API\Common\Instrumentation\Configurator;
+use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;

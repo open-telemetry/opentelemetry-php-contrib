@@ -23,7 +23,7 @@ putenv('OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318');
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $handler = new Handler(
-    OpenTelemetry\API\Common\Instrumentation\Globals::loggerProvider(),
+    OpenTelemetry\API\Globals::loggerProvider(),
     LogLevel::INFO, //or `Logger::INFO`, or `Level::Info` depending on monolog version
     true,
 );

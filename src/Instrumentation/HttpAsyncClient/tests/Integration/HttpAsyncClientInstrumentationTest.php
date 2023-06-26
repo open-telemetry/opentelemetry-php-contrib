@@ -10,7 +10,7 @@ use Http\Promise\FulfilledPromise;
 use Http\Promise\Promise;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
-use OpenTelemetry\API\Common\Instrumentation\Configurator;
+use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
