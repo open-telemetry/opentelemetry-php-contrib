@@ -53,6 +53,7 @@ class QueryWatcher extends Watcher
         ];
 
         $attributes[TraceAttributes::DB_STATEMENT] = $query->sql;
+        /** @psalm-suppress PossiblyInvalidArgument */
         $span->setAttributes($attributes);
         $span->end($nowInNs);
     }

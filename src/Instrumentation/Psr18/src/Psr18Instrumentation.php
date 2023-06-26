@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Psr18;
 
 use function get_cfg_var;
-use OpenTelemetry\API\Common\Instrumentation;
-use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -40,7 +40,7 @@ class Psr18Instrumentation
                     return null;
                 }
 
-                $propagator = Instrumentation\Globals::propagator();
+                $propagator = Globals::propagator();
                 $parentContext = Context::getCurrent();
 
                 /** @psalm-suppress ArgumentTypeCoercion */
@@ -52,7 +52,7 @@ class Psr18Instrumentation
                     ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
                     ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
                     ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
-                    ->setAttribute(TraceAttributes::HTTP_USER_AGENT, $request->getHeaderLine('User-Agent'))
+                    ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
                     ->setAttribute(TraceAttributes::NET_PEER_NAME, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::NET_PEER_PORT, $request->getUri()->getPort())

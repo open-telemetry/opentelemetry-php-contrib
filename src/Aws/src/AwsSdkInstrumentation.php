@@ -6,8 +6,8 @@ namespace OpenTelemetry\Aws;
 
 use Aws\Middleware;
 use Aws\ResultInterface;
-use OpenTelemetry\API\Common\Instrumentation\InstrumentationInterface;
-use OpenTelemetry\API\Common\Instrumentation\InstrumentationTrait;
+use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
+use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
@@ -98,6 +98,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
                 $propagator->inject($carrier);
 
+                /** @psalm-suppress PossiblyInvalidArgument  */
                 $this->span->setAttributes([
                     'rpc.method' => $cmd->getName(),
                     'rpc.service' => $this->clientName,
@@ -106,6 +107,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                     ]);
             });
 
+            /** @psalm-suppress PossiblyInvalidArgument */
             $end_middleware = Middleware::mapResult(function (ResultInterface $result) {
                 $this->span->setAttributes([
                     'http.status_code' => $result['@metadata']['statusCode'], //@phan-suppress-current-line PhanTypeMismatchDimFetch
