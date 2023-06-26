@@ -119,11 +119,11 @@ class LaravelInstrumentation
 
     private static function httpHostName(Request $request): string
     {
-        if (method_exists($request, 'getHost')) {
-            return $request->getHost();
-        }
         if (method_exists($request, 'host')) {
             return $request->host();
+        }
+        if (method_exists($request, 'getHost')) {
+            return $request->getHost();
         }
         return null;
     }
