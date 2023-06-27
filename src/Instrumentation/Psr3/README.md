@@ -5,16 +5,18 @@
 
 ## Requirements
 
-* OpenTelemetry extension
-* OpenTelemetry SDK an exporter (required to actually export traces)
-* A psr-3 logger
-* (optional) OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
+- OpenTelemetry extension
+- OpenTelemetry SDK an exporter (required to actually export traces)
+- A psr-3 logger
+- (optional) OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
 
 ## Overview
 
-Auto-instrumentation hooks are registered via composer, which will:
+Auto-instrumentation hooks are registered via composer, and automatically inject trace id and span id into log message context of any psr3 logger.
 
-* automatically inject traceId and spanId for each log record
+### Using SDK autoloading
+
+See https://github.com/open-telemetry/opentelemetry-php#sdk-autoloading
 
 ## Manual configuration
 
@@ -29,8 +31,19 @@ $scope = \OpenTelemetry\API\Common\Instrumentation\Configurator::create()
     ->withTracerProvider($tracerProvider)
     ->activate();
 
-$client->sendRequest($request);
+// Create root span
+$root = $tracerProvider->getTracer('psr3-demo')->spanBuilder('root')->startSpan();
+$rootScope = $root->activate();
 
+$log = new \Monolog\Logger('OpenTelemetry'); // Install with `composer require monolog/monolog`
+$log->pushHandler(new \Monolog\Handler\ErrorLogHandler());
+
+// add records to the log
+$log->info('Hi OpenTelemetry.');
+// Output: [{0000-00-00T00:00:00.000000+00:00}] OpenTelemetry.INFO: Hi OpenTelemetry. {"traceId":"0d60f3595515bade972d58f40ed1d3ca","spanId":"7e267228e3de7d98"} []
+
+$rootScope->detach();
+$root->end();
 $scope->detach();
 $tracerProvider->shutdown();
 ```
