@@ -20,6 +20,7 @@ jobs:
           'Context/Swoole',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
+          'Instrumentation/Psr3',
           'Instrumentation/Psr15',
           'Instrumentation/Psr18',
           'Instrumentation/IO',
@@ -36,6 +37,8 @@ jobs:
           - project: 'Instrumentation/HttpAsyncClient'
             php-version: 7.4
           - project: 'Instrumentation/Slim'
+            php-version: 7.4
+          - project: 'Instrumentation/Psr3'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'
             php-version: 7.4
@@ -128,3 +131,4 @@ jobs:
     - name: Code Coverage
       working-directory: src/${{ matrix.project }}
       run: bash <(curl -s https://codecov.io/bash) -F ${{ matrix.php-version }}
+
