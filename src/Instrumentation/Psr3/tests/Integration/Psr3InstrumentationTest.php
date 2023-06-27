@@ -57,11 +57,13 @@ class Psr3InstrumentationTest extends TestCase
             ->with(
                 $level,
                 $msg,
-                [
-                    ...$context,
-                    'traceId' => $this->span->getContext()->getTraceId(),
-                    'spanId' => $this->span->getContext()->getSpanId(),
-                ]
+                array_replace_recursive(
+                    $context,
+                    [
+                        'traceId' => $this->span->getContext()->getTraceId(),
+                        'spanId' => $this->span->getContext()->getSpanId(),
+                    ],
+                ),
             );
 
         $this->logger->log($level, $msg, $context);
@@ -77,11 +79,13 @@ class Psr3InstrumentationTest extends TestCase
             ->method($method)
             ->with(
                 $msg,
-                [
-                    ...$context,
-                    'traceId' => $this->span->getContext()->getTraceId(),
-                    'spanId' => $this->span->getContext()->getSpanId(),
-                ]
+                array_replace_recursive(
+                    $context,
+                    [
+                        'traceId' => $this->span->getContext()->getTraceId(),
+                        'spanId' => $this->span->getContext()->getSpanId(),
+                    ],
+                ),
             );
 
         $this->logger->{$method}($msg, $context);
