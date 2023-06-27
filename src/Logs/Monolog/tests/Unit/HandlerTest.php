@@ -63,16 +63,10 @@ class HandlerTest extends TestCase
                     $this->assertGreaterThan(0, $readable->getTimestamp());
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
-                    $this->assertCount(3, $attributes);
-                    $this->assertEquals(['channel','context','extra'], array_keys($attributes->toArray()));
-                    $this->assertEquals([
-                        'foo' => 'bar',
-                        'baz' => 'bat',
-                    ], $attributes->get('extra'));
-                    $this->assertSame('bar', $attributes->get('context')['foo']);
-                    $this->assertSame('test', $attributes->get('channel'));
-                    $this->assertSame('bar', $attributes->get('context')['foo']);
-                    $this->assertNotNull($attributes->get('context')['exception']);
+                    $this->assertGreaterThan(3, count($attributes));
+                    $this->assertSame('bar', $attributes->get('foo'));
+                    $this->assertNotNull($attributes->get('exception.message'));
+                    $this->assertNotNull($attributes->get('exception.stacktrace'));
 
                     return true;
                 }

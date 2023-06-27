@@ -65,3 +65,11 @@ $logger = new \Monolog\Logger(
 );
 $logger->info('hello world');
 ```
+
+### Monolog context + extra
+
+Monolog's `context` and `extra` fields will be added as attributes to the log (with `context` taking precedence if the same key appears
+in both).
+
+Array values in context/extra [must be homogeneous](https://opentelemetry.io/docs/specs/otel/common/#attribute); if mixed values
+are found, the key will be dropped.
