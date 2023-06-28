@@ -321,18 +321,22 @@ class OtelSdkExtensionTest extends TestCase
                 switch ($reference) {
                     default:
                         $expectClass = null;
+
                         break;
 
                     case 'open_telemetry.sdk.trace.span_processor.default.exporter1':
                         $expectClass = ZipkinSpanExporterFactory::class;
+
                         break;
 
                     case 'open_telemetry.sdk.trace.span_processor.simple.exporter2':
                         $expectClass = OtlpExporterFactory::class;
+
                         break;
 
                     case 'open_telemetry.sdk.trace.span_processor.default.exporter3':
                         $expectClass = MockSpanExporterFactory::class;
+
                         break;
                 }
 

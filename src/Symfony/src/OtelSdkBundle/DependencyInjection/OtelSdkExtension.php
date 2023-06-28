@@ -288,7 +288,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
                     $this->createValidatedReference(
                         $this->registerExporterFactoryDefinition($exporterKey, $config)
                     ),
-                    'create'
+                    'create',
                 ]
             );
 
@@ -349,6 +349,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
         try {
             if ($resolvedInstance = Registry::spanExporterFactory($config[Conf::TYPE_NODE])) {
                 unset($resolvedInstance);
+
                 return true;
             }
         } catch (RuntimeException) {

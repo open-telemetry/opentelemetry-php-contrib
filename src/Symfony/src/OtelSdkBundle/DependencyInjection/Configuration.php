@@ -446,6 +446,7 @@ class Configuration implements ConfigurationInterface
             }
             if (isset($config[self::TYPE_NODE])) {
                 self::validateTypedExporterConfig($config);
+
                 return $config;
             }
 
