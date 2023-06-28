@@ -27,6 +27,7 @@ jobs:
           'Instrumentation/PDO',
           'Instrumentation/Symfony',
           'Instrumentation/Laravel',
+          'Instrumentation/MongoDB',
           'Logs/Monolog',
           'Propagation/TraceResponse',
           'ResourceDetectors/Container',
