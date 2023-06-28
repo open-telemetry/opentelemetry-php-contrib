@@ -33,6 +33,10 @@ final class RequestListener implements EventSubscriberInterface
     private const REQUEST_ATTRIBUTE_SPAN = '__otel_contrib_internal_span';
     private const REQUEST_ATTRIBUTE_SCOPE = '__otel_contrib_internal_scope';
     private const REQUEST_ATTRIBUTE_EXCEPTION = '__otel_contrib_internal_exception';
+    private const TRACE_ATTRIBUTE_HTTP_HOST = 'http.host';
+    private const TRACE_ATTRIBUTE_HTTP_USER_AGENT = 'http.user_agent';
+    private const TRACE_ATTRIBUTE_NET_PEER_IP = 'net.peer.ip';
+    private const TRACE_ATTRIBUTE_NET_HOST_IP = 'net.host.ip';
 
     private TracerInterface $tracer;
     private TextMapPropagatorInterface $propagator;
@@ -231,19 +235,19 @@ final class RequestListener implements EventSubscriberInterface
         return [
             TraceAttributes::HTTP_METHOD => $request->getMethod(),
             TraceAttributes::HTTP_TARGET => $request->getRequestUri(),
-            TraceAttributes::HTTP_HOST => $request->getHttpHost(),
+            self::TRACE_ATTRIBUTE_HTTP_HOST => $request->getHttpHost(),
             TraceAttributes::HTTP_SCHEME => $request->getScheme(),
             TraceAttributes::HTTP_FLAVOR => ($protocolVersion = $request->getProtocolVersion()) !== null
                 ? strtr($protocolVersion, ['HTTP/' => ''])
                 : null,
-            TraceAttributes::HTTP_USER_AGENT => $request->headers->get('User-Agent'),
+            self::TRACE_ATTRIBUTE_HTTP_USER_AGENT => $request->headers->get('User-Agent'),
             TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH => $request->headers->get('Content-Length'),
             TraceAttributes::HTTP_CLIENT_IP => $request->getClientIp(),
 
-            TraceAttributes::NET_PEER_IP => $request->server->get('REMOTE_ADDR'),
+            self::TRACE_ATTRIBUTE_NET_PEER_IP => $request->server->get('REMOTE_ADDR'),
             TraceAttributes::NET_PEER_PORT => $request->server->get('REMOTE_PORT'),
             TraceAttributes::NET_PEER_NAME => $request->server->get('REMOTE_HOST'),
-            TraceAttributes::NET_HOST_IP => $request->server->get('SERVER_ADDR'),
+            self::TRACE_ATTRIBUTE_NET_HOST_IP => $request->server->get('SERVER_ADDR'),
             TraceAttributes::NET_HOST_PORT => $request->server->get('SERVER_PORT'),
             TraceAttributes::NET_HOST_NAME => $request->server->get('SERVER_NAME'),
         ];

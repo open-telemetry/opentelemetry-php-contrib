@@ -19,7 +19,6 @@ interface ConfigMappings
         Configuration::MULTI_PROCESSOR => SpanProcessors::MULTI,
     ];
     public const SPAN_EXPORTERS = [
-        Configuration::JAEGER_EXPORTER => SpanExporters::JAEGER,
         Configuration::ZIPKIN_EXPORTER => SpanExporters::ZIPKIN,
         Configuration::OTLP_HTTP_EXPORTER => SpanExporters::OTLP_HTTP,
         Configuration::OTLP_GRPC_EXPORTER => SpanExporters::OTLP_GRPC,

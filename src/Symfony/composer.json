@@ -36,6 +36,7 @@
         "google/protobuf": "^3.23",
         "guzzlehttp/guzzle": "^7.3",
         "guzzlehttp/psr7": "^2.0@RC",
+        "jangregor/phpstan-prophecy": "^1.0",
         "kriswallsmith/buzz": "^1.2",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3",
         "mikey179/vfsstream": "^1.6",

@@ -88,7 +88,6 @@ class Configuration implements ConfigurationInterface
     public const OPTIONS_NODE = 'options';
     public const NAME_KEY = 'name';
     public const ENV_TYPE = 'env';
-    public const JAEGER_EXPORTER = 'jaeger';
     public const ZIPKIN_EXPORTER = 'zipkin';
     public const OTLP_HTTP_EXPORTER = 'otlphttp';
     public const OTLP_GRPC_EXPORTER = 'otlpgrpc';
@@ -486,7 +485,7 @@ class Configuration implements ConfigurationInterface
         if ($config[self::TYPE_NODE] === self::CUSTOM_TYPE) {
             self::validateCustomExporterConfig($config);
         }
-        // exporter is set via eg.  - [type: jaeger, url: scheme://host:123/path]
+        // exporter is set via eg.  - [type: zipkin, url: scheme://host:123/path]
         if (isset($config[self::URL_NODE])) {
             //return $config;
         }

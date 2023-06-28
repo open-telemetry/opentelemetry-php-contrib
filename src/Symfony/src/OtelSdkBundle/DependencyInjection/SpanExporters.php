@@ -9,12 +9,10 @@ use OpenTelemetry\Contrib;
 /** @phan-file-suppress PhanUndeclaredClassReference */
 interface SpanExporters
 {
-    public const JAEGER = Contrib\Jaeger\Exporter::class;
     public const ZIPKIN = Contrib\Zipkin\Exporter::class;
     public const OTLP_HTTP = Contrib\OtlpHttp\Exporter::class;
     public const OTLP_GRPC = Contrib\OtlpGrpc\Exporter::class;
     public const SPAN_EXPORTERS = [
-        self::JAEGER,
         self::ZIPKIN,
         self::OTLP_HTTP,
         self::OTLP_GRPC,

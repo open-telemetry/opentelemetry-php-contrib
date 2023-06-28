@@ -24,7 +24,6 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Yaml\Parser;
 
 class OtelSdkBundleTest extends TestCase
@@ -37,7 +36,6 @@ class OtelSdkBundleTest extends TestCase
     private const CUSTOM_PROCESSOR_ID = 'my_span_processor';
     private const DEFAULT_SPAN_PROCESSOR_ID = 'open_telemetry.sdk.trace.span_processor.default.0';
     private const DEFAULT_SPAN_EXPORTER_ID = 'open_telemetry.sdk.trace.span_exporter.0';
-    private const HTTP_CLIENT_MOCK_ID = 'http_client_mock';
 
     private static ?Parser $parser = null;
 
@@ -289,15 +287,6 @@ class OtelSdkBundleTest extends TestCase
         $this->getTracerProvider()->forceFlush();
 
         $client->sendRequest(Argument::cetera())->shouldNotHaveBeenCalled();
-    }
-
-    /**
-     * @param string $id
-     * @return Reference
-     */
-    private function createReference(string $id)
-    {
-        return new Reference($id);
     }
 
     /**

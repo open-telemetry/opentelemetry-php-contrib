@@ -114,11 +114,14 @@ class OtelDataCollectorTest extends TestCase
         $this->assertEquals('test', $dataCollector->getData()['spans']['root']['data']['name']);
     }
 
+    /**
+     * @psalm-suppress ArgumentTypeCoercion
+     */
     public function exporterDataProvider(): iterable
     {
-        $transport = $this->prophesize(TransportInterface::class);
-        $transport->contentType()->willReturn('application/json');
-        $transport = $transport->reveal();
+        $transportProphecy = $this->prophesize(TransportInterface::class);
+        $transportProphecy->contentType()->willReturn('application/json');
+        $transport = $transportProphecy->reveal();
 
         yield 'Zipkin exporter' => [
             new ZipkinExporter($transport),

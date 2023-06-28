@@ -346,12 +346,15 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      */
     private function isExporterFactoryConfiguration(array $config): bool
     {
-        try {
-            if ($resolvedInstance = Registry::spanExporterFactory($config[Conf::TYPE_NODE])) {
-                unset($resolvedInstance);
+        if (!isset($config[Conf::TYPE_NODE])) {
+            throw new RuntimeException('Exporter type is not defined.');
+        }
 
-                return true;
-            }
+        try {
+            $resolvedInstance = Registry::spanExporterFactory($config[Conf::TYPE_NODE]);
+            unset($resolvedInstance);
+
+            return true;
         } catch (RuntimeException $e) {
         }
 
@@ -394,7 +397,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
     }
 
     /**
-     * @param string $exporterClass
+     * @param string $exporterFactoryClass
      * @return Definition
      */
     private function createExporterFactoryDefinition(string $exporterFactoryClass): Definition
@@ -410,10 +413,16 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      */
     private function resolveExporterFactoryClass(array $config): string
     {
+        if (!isset($config[Conf::TYPE_NODE])) {
+            throw new RuntimeException('Exporter type is not defined.');
+        }
+
         try {
-            if ($resolvedInstance = Registry::spanExporterFactory($config[Conf::TYPE_NODE])) {
-                return $resolvedInstance::class;
-            }
+            $resolvedInstance = Registry::spanExporterFactory($config[Conf::TYPE_NODE]);
+            $class = get_class($resolvedInstance);
+            unset($resolvedInstance);
+
+            return $class;
         } catch (RuntimeException $e) {
         }
         if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTER_FACTORY_VALUES, true)) {

@@ -172,9 +172,9 @@ class TestExporter implements SpanExporterInterface
     {
     }
 
-    public function export(iterable $spans, ?CancellationInterface $cancellation = null): FutureInterface
+    public function export(iterable $batch, ?CancellationInterface $cancellation = null): FutureInterface
     {
-        return new CompletedFuture(1);
+        return new CompletedFuture(true);
     }
 
     public function shutdown(?CancellationInterface $cancellation = null): bool
