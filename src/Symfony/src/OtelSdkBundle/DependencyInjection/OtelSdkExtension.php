@@ -352,7 +352,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
 
                 return true;
             }
-        } catch (RuntimeException) {
+        } catch (RuntimeException $e) {
         }
 
         if ($config[Conf::TYPE_NODE] === Conf::CUSTOM_TYPE && isset($config[Conf::CLASS_NODE])) {
@@ -414,7 +414,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
             if ($resolvedInstance = Registry::spanExporterFactory($config[Conf::TYPE_NODE])) {
                 return $resolvedInstance::class;
             }
-        } catch (RuntimeException) {
+        } catch (RuntimeException $e) {
         }
         if (in_array($config[Conf::TYPE_NODE], Conf::EXPORTER_FACTORY_VALUES, true)) {
             return ConfigMappings::SPAN_EXPORTER_FACTORIES[
