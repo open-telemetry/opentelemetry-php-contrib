@@ -8,8 +8,6 @@ use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 class LoggingBench
 {
     private array $loggers = [];
-    private ArrayObject $storage;
-
     public function setUp(array $params): void
     {
         $provider = new \OpenTelemetry\SDK\Logs\NoopLoggerProvider();
