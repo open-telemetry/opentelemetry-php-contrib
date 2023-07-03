@@ -1,14 +1,9 @@
 <?php
 
+declare(strict_types=1);
 
 use Monolog\Logger;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
-use OpenTelemetry\SDK\Common\Attribute\Attributes;
-use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
-use OpenTelemetry\SDK\Common\Time\ClockFactory;
-use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter;
-use OpenTelemetry\SDK\Logs\LoggerProvider;
-use OpenTelemetry\SDK\Logs\Processor\BatchLogsProcessor;
 
 class LoggingBench
 {
