@@ -140,7 +140,7 @@ class Propagator implements TextMapPropagatorInterface
         $spanContext = SpanContext::createFromRemoteParent(
             $parsedTraceId,
             $parsedSpanId,
-            self::IS_SAMPLED === $sampledFlag ? API\SpanContextInterface::TRACE_FLAG_SAMPLED : API\SpanContextInterface::TRACE_FLAG_DEFAULT
+            self::IS_SAMPLED === $sampledFlag ? API\TraceFlags::SAMPLED : API\TraceFlags::DEFAULT
         );
 
         if ($spanContext->isValid()) {
