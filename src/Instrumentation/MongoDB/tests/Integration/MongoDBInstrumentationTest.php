@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\MongoDB\tests\Integration;
 
 use ArrayObject;
-use MongoDB\Driver\Exception\ConnectionException;
-use MongoDB\Driver\Exception\ServerException;
 use MongoDB\Driver\Manager;
 use MongoDB\Operation\FindOne;
 use OpenTelemetry\API\Instrumentation\Configurator;
@@ -51,14 +49,11 @@ class MongoDBInstrumentationTest extends TestCase
 
     public function test_mongodb_find_one(): void
     {
-        $manager = new Manager();
+        $manager = new Manager('mongodb://127.0.0.1:27017');
 
         $find = new FindOne(self::DATABASE_NAME, self::COLLECTION_NAME, ['a' => 'b']);
 
-        try {
-            $find->execute($manager->selectServer());
-        } catch (ServerException|ConnectionException $e) {
-        }
+        $find->execute($manager->selectServer());
 
         $this->assertCount(1, $this->storage);
         $this->span = $this->storage->offsetGet(0);
