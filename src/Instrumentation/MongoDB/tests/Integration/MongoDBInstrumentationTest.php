@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\MongoDB\tests\Integration;
 
 use ArrayObject;
+use MongoDB\Driver\Exception\ConnectionException;
 use MongoDB\Driver\Exception\ServerException;
 use MongoDB\Driver\Manager;
 use MongoDB\Operation\FindOne;
@@ -56,7 +57,7 @@ class MongoDBInstrumentationTest extends TestCase
 
         try {
             $find->execute($manager->selectServer());
-        } catch (ServerException $e) {
+        } catch (ServerException|ConnectionException $e) {
         }
 
         $this->assertCount(1, $this->storage);
