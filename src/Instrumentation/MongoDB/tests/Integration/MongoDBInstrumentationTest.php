@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\MongoDB\tests\Integration;
 
 use ArrayObject;
-use MongoDB\Driver\Exception\CommandException;
+use MongoDB\Driver\Exception\ServerException;
 use MongoDB\Driver\Manager;
 use MongoDB\Operation\FindOne;
 use OpenTelemetry\API\Instrumentation\Configurator;
@@ -19,7 +19,7 @@ use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
 use PHPUnit\Framework\TestCase;
 
-class IOInstrumentationTest extends TestCase
+class MongoDBInstrumentationTest extends TestCase
 {
     private const DATABASE_NAME = 'db';
     private const COLLECTION_NAME = 'coll';
@@ -56,7 +56,7 @@ class IOInstrumentationTest extends TestCase
 
         try {
             $find->execute($manager->selectServer());
-        } catch (CommandException $e) {
+        } catch (ServerException $e) {
         }
 
         $this->assertCount(1, $this->storage);
