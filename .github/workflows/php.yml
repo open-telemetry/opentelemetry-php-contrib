@@ -130,12 +130,7 @@ jobs:
       if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
       with:
         mongodb-version: 6.0
-
-    - name: Wait for MongoDB
-      uses: iFaxity/wait-on-action@v1.1.0
-      if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
-      with:
-        resource: tcp://localhost:27017
+        mongodb-replica-set: otel-php
 
     - name: Run PHPUnit (integration tests)
       working-directory: src/${{ matrix.project }}
