@@ -132,7 +132,7 @@ jobs:
         mongodb-version: 6.0
 
     - name: Wait for MongoDB
-      uses: iFaxity/wait-on-action@1.1.0
+      uses: iFaxity/wait-on-action@v1.1.0
       if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
       with:
         resource: tcp://localhost:27017
