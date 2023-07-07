@@ -8,14 +8,14 @@ if (!isset($argc)) {
 }
 
 check_preconditions();
-$mode = check_args($argc, $argv);
+[$mode, $stability] = check_args($argc, $argv);
 
 $opentelemetry_auto_packages = get_auto_packages();
 
 if ($mode == "basic") {
-  make_basic_setup($dependencies, $opentelemetry_core_packages, $opentelemetry_auto_packages);
+  make_basic_setup($dependencies, $opentelemetry_core_packages, $opentelemetry_auto_packages, $stability);
 } else {
-  make_advanced_setup($opentelemetry_core_packages, $opentelemetry_auto_packages);
+  make_advanced_setup($opentelemetry_core_packages, $opentelemetry_auto_packages, $stability);
 }
 unlink("pickle.phar");
 if (check_postconditions(get_php_info_output())) {

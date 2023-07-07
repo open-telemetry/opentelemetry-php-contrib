@@ -1,13 +1,13 @@
-#!/usr/bin/env php
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 
 // This simple CLI script installs and setup
-// everything what's needed for auto-instrumentation.
+// everything that's needed for auto-instrumentation.
 
-// default http async implementation
+// default http implementation
 // in basic mode
 $dependencies = array(
-  "php-http/guzzle7-adapter"
+  "guzzlehttp/guzzle",
 );
 
 // core packages are always installed
@@ -15,8 +15,8 @@ $dependencies = array(
 // however there is no way at the moment
 // to distinguish core packages from others
 $opentelemetry_core_packages = array(
-  "open-telemetry/sdk", 
   "open-telemetry/api",
+  "open-telemetry/sdk",
   "open-telemetry/exporter-otlp",
   "open-telemetry/exporter-zipkin",
 );
@@ -50,25 +50,32 @@ function colorLog($str, $type = 'i'){
 }
 
 function usage() {
-  colorLog ("install.php is a script that will help you", 'e');
+  colorLog ("install-otel-instrumentation is a script that will help you", 'e');
   colorLog ("install and setup auto-instrumentation for your project.", 'e');
-  colorLog ("It works in two modes basic and advanced.", 'e');
+  colorLog ("It works in two modes, basic and advanced.", 'e');
   colorLog ("In basic mode it will install everything using some defaults and latest", 'e');
-  colorLog ("development versions. Advanced will ask you to choose needed packages and versions.\n", 'e');
+  colorLog ("versions. Advanced will ask you to choose needed packages and versions.\n", 'e');
+  colorLog ("You may also choose core package stability (default: beta)\n", 'e');
 
-  colorLog ("usage : php install.php [basic | advanced]\n", 'e');
+  colorLog ("usage : install-otel-instrumentation [basic|advanced] [beta|rc|stable]\n", 'e');
 }
 
-function check_args($argc, $argv):string {
-  if ($argc != 2) {
+function check_args($argc, $argv):array {
+  if ($argc < 2) {
     usage();
     exit(-1);
   }
-  if ($argv[1] != "basic" && $argv[1] != "advanced") {
+  $mode = $argv[1];
+  $stability = $argv[2] ?? 'beta';
+  if (!in_array($mode, ['basic', 'advanced'])) {
     usage();
     exit(-1);
   }
-  return $argv[1];
+  if (!in_array($stability, ['beta', 'rc', 'stable'])) {
+      usage();
+      exit(-1);
+  }
+  return [$mode, $stability];
 }
 
 function get_auto_packages(): array {
@@ -84,15 +91,19 @@ function get_auto_packages(): array {
   $results = $json->{"results"};
   $opentelemetry_auto_packages = array();
   foreach ($results as $package) {
-    array_push($opentelemetry_auto_packages, $package->name);
+      if ($package->name === 'open-telemetry/opentelemetry-instrumentation-installer') {
+          //do not install self
+          continue;
+      }
+      array_push($opentelemetry_auto_packages, $package->name);
   }
   return $opentelemetry_auto_packages;
 }
 
-function get_php_async_client_impl(): array {
-  $http_async_client_providers = "https://packagist.org/providers/php-http/async-client-implementation.json";
+function get_php_http_client_impl(): array {
+  $http_client_providers = "https://packagist.org/providers/psr/http-client-implementation.json";
   $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, $http_async_client_providers);
+  curl_setopt($ch, CURLOPT_URL, $http_client_providers);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -140,7 +151,7 @@ function check_preconditions() {
       exit(-1);
     }
   } else {
-    if (!command_exists("gcc --version") || !command_exists("clang --version")) {
+    if (!command_exists("gcc --version") && !command_exists("clang --version")) {
       colorLog("c compiler is not installed or not available", 'e');
       exit(-1);
     }
@@ -172,39 +183,8 @@ function get_php_info_output():array
   $output = array();
   $result_code = null;
   $cmd = "php -i";
-  $ini_file_path = "";
   exec($cmd, $output, $result_code);
   return $output;
-}
-
-function update_ini_file(array $output) {
-  foreach($output as $entry) {
-    if (!str_starts_with($entry, "Loaded Configuration File => ")) {
-      continue;
-    }
-    $ini_file_path = substr($entry, strlen("Loaded Configuration File => "));
-    break;
-  }
-
-  $extension_in_ini = "";
-  if (PHP_OS_FAMILY === "Windows") {
-    $extension_in_ini = "extension=php_opentelemetry.dll";
-  } else {
-    $extension_in_ini = "extension=opentelemetry.so";
-  }
-  $extension_exists = false;
-  if ($ini_file = fopen($ini_file_path, "r")) {
-    while(!feof($ini_file)) {
-        $entry = fgets($ini_file);
-        if ($entry !== false && str_starts_with($entry, $extension_in_ini)) {
-          $extension_exists = true;
-        }
-    }
-    fclose($ini_file);
-  }
-  if (!$extension_exists) {
-    file_put_contents($ini_file_path, $extension_in_ini, FILE_APPEND);
-  }
 }
 
 // PHP otel extension is installed
@@ -292,54 +272,79 @@ function execute_command(string $cmd, string $options) {
 }
 
 function make_composer_require_command($package_name, $version, $options) {
-  return "composer require " . $package_name . $version . " " . $options;
+  return "composer require {$package_name}{$version} {$options}";
 }
 
-function make_pickle_install($repo, $version, $options) {
-  return "php pickle.phar install --source " . $repo . $version . " " . $options;
+function make_pickle_install($package, $options) {
+  return "php pickle.phar install {$package} {$options}";
 }
 
 function make_composer_config_command($param, $options) {
-  return "composer config " . $param . " " . $options;
+  return "composer config {$param} {$options}";
 }
 
 function make_composer_show_command($package_name) {
-  return "composer show -a " . $package_name . " -n";
+  return "composer show -a {$package_name} -n";
 }
 
-function make_basic_setup($dependencies, $core_packages, $auto_packages) {
-  execute_command(make_pickle_install(
-    "https://github.com/open-telemetry/opentelemetry-php-instrumentation.git",
-    "#main", " -n"), " 2>&1");
-  update_ini_file(get_php_info_output());
+function get_ini_scan_dir():string {
+    return trim(shell_exec('php-config --ini-dir'));
+}
 
-  execute_command(make_composer_config_command(
-    "minimum-stability dev",
-    ""), " 2>&1");
+function create_ini_file(string $ini_dir) {
+    $filename = $ini_dir . DIRECTORY_SEPARATOR . 'opentelemetry.ini';
+    if (file_exists($filename)) {
+        colorLog("{$filename} already exists");
+        return;
+    }
+    if (PHP_OS_FAMILY === "Windows") {
+        $content = "extension=php_opentelemetry.dll";
+    } else {
+        $content = "extension=opentelemetry";
+    }
+    $result = file_put_contents($filename, $content);
+    if ($result === false) {
+        colorLog("error creating {$filename}", 'e');
+    } else {
+        colorLog("created .ini file: {$filename}");
+    }
+}
+
+function make_basic_setup($dependencies, $core_packages, $auto_packages, $stability) {
+  execute_command(make_pickle_install(
+    "opentelemetry",
+    " -n"), " 2>&1");
+
+  create_ini_file(get_ini_scan_dir());
 
   execute_command(make_composer_config_command(
     "--no-plugins allow-plugins.php-http/discovery false",
     ""), " 2>&1");
 
+    execute_command(make_composer_config_command(
+        "minimum-stability dev",
+        ""), " 2>&1");
+
     foreach ($dependencies as $dep) {
       execute_command(make_composer_require_command(
         $dep, 
         "", 
-        "--with-all-dependencies -n"), " 2>&1");
+        "--with-all-dependencies --no-interaction --no-update"), " 2>&1");
     }
     foreach ($core_packages as $package) {
       execute_command(make_composer_require_command(
         $package,
-        " ^1.0 -n",
-        ""), " 2>&1");
+        " @{$stability}",
+        "--no-interaction --no-update"), " 2>&1");
     }
     foreach ($auto_packages as $package) {
       execute_command(make_composer_require_command(
         $package,
-        " -n",
-        ""), " 2>&1");
+        "",
+        "--no-interaction --no-update"), " 2>&1");
     }
-  }
+    execute_command('composer update --no-interaction', ' 2>&1');
+}
 
 function choose_http_async_impl_provider($providers):int {
   $message = "Choose provider (1-" . count($providers) . "): ";
@@ -370,8 +375,8 @@ function ask_for($message):bool {
       $val = "Yes";
       break;
     }
-  } while ($val != "Yes" && $val != "No" && $val != "Y" && $val != "N");
-  if ($val == "Yes" || $val == "Y") {
+  } while (!in_array(strtolower($val), ['yes', 'y', 'no', 'n']));
+  if (in_array(strtolower($val), ['yes', 'y'])) {
     return true;
   }
   return false;
@@ -389,29 +394,30 @@ function make_advanced_setup($core_packages, $auto_packages) {
   // (which for Unix like systems also means from source but via PECL not github)
   // For this reason, version from main is always installed
   execute_command(make_pickle_install(
-    "https://github.com/open-telemetry/opentelemetry-php-instrumentation.git",
-    "#main", " -n"), " 2>&1");
-  $message = "Do you want add extension to php.ini file [Y]es/No: ";
+    "opentelemetry",
+    " -n"), " 2>&1");
+  $message = "Do you want create a .ini file to enable extension [Y]es/No: ";
   if (ask_for($message)) {
-    update_ini_file(get_php_info_output());
+    create_ini_file(get_ini_scan_dir());
   }
 
-  $providers = get_php_async_client_impl();
-  colorLog("\nChoose http client async provider:\n", 'e');
+  $providers = get_php_http_client_impl();
+  colorLog("\nChoose http client provider:\n", 'e');
   $provider_index = choose_http_async_impl_provider($providers);
-  execute_command(make_composer_config_command(
-    "minimum-stability dev",
-    ""), " 2>&1");
 
   execute_command(make_composer_config_command(
     "--no-plugins allow-plugins.php-http/discovery false",
     ""), " 2>&1");
 
+  execute_command(make_composer_config_command(
+    "minimum-stability dev",
+    ""), " 2>&1");
+
   execute_command(make_composer_require_command(
     $providers[$provider_index]->name,
     "",
-    "--with-all-dependencies -n"), " 2>&1");
-    foreach ($core_packages as $package) {
+    "--with-all-dependencies --no-interaction --no-update"), " 2>&1");
+  foreach ($core_packages as $package) {
       $output = array();
       $result_code = null;
       $cmd = make_composer_show_command($package);
@@ -422,9 +428,9 @@ function make_advanced_setup($core_packages, $auto_packages) {
       execute_command(make_composer_require_command(
         $package,
         ":" . $versions[$version_index],
-        "--with-all-dependencies -n"), " 2>&1");
+        "--with-all-dependencies --no-interaction --no-update"), " 2>&1");
   }
-    foreach ($auto_packages as $package) {
+  foreach ($auto_packages as $package) {
       if(!install_package($package)) {
         continue;
       }
@@ -438,8 +444,8 @@ function make_advanced_setup($core_packages, $auto_packages) {
       execute_command(make_composer_require_command(
         $package,
         ":" . $versions[$version_index],
-        "--with-all-dependencies -n"), " 2>&1");
+        "--with-all-dependencies --no-interaction --no-update"), " 2>&1");
   }
-
+  execute_command('composer update --no-interaction', ' 2>&1');
 }
 
