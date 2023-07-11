@@ -27,6 +27,7 @@ jobs:
           'Instrumentation/PDO',
           'Instrumentation/Symfony',
           'Instrumentation/Laravel',
+          'Instrumentation/MongoDB',
           'Logs/Monolog',
           'Propagation/TraceResponse',
           'ResourceDetectors/Container',
@@ -115,6 +116,13 @@ jobs:
     - name: Run PHPUnit (unit tests)
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover --testsuite unit
+
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.8.0
+      if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
+      with:
+        mongodb-version: 6.0
+        mongodb-replica-set: otel-php
 
     - name: Run PHPUnit (integration tests)
       working-directory: src/${{ matrix.project }}

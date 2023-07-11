@@ -1,0 +1,46 @@
+{
+  "name": "open-telemetry/opentelemetry-auto-mongodb",
+  "description": "OpenTelemetry auto-instrumentation for MongoDB",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "mongodb", "mongo", "instrumentation"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=7.4",
+    "ext-mongodb": "*",
+    "ext-json": "*",
+    "mongodb/mongodb": "^1.15",
+    "open-telemetry/api": "^1.0.0beta10",
+    "open-telemetry/sem-conv": "^1"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "phan/phan": "^5.0",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.16",
+    "open-telemetry/sdk": "^1.0",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\MongoDB\\": "src/"
+    },
+    "files": [
+      "_register.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\MongoDB\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false
+    }
+  }
+}
