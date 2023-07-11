@@ -34,7 +34,7 @@ return $config->setRules([
     'phpdoc_scalar' => true,
     'phpdoc_types' => true,
     'short_scalar_cast' => true,
-    'single_blank_line_before_namespace' => true,
+    'blank_lines_before_namespace' => true,
     'single_quote' => true,
     'trailing_comma_in_multiline' => true,
     ])
