@@ -9,5 +9,8 @@ parameters:
     paths:
         - src
         - tests
-        # - examples  # TODO: Remove this once examples are updated
+    ignoreErrors:
+        -
+            message: '#Parameter \#2 \$array of function implode expects#' #ignoring HeadersPropagator error report for php7.4+8.0
+            reportUnmatched: false
 
