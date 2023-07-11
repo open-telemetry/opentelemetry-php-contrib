@@ -23,6 +23,7 @@ class HandlerTest extends TestCase
      * @var LoggerInterface&PHPUnit\Framework\MockObject\MockObject $logger
      */
     private LoggerInterface $logger;
+    /** @var LoggerProviderInterface&\PHPUnit\Framework\MockObject\MockObject $provider */
     private LoggerProviderInterface $provider;
 
     public function setUp(): void
@@ -34,6 +35,10 @@ class HandlerTest extends TestCase
 
     public function test_handle_record(): void
     {
+        $channelName = 'test';
+        $this->provider->expects($this->once())
+            ->method('getLogger')
+            ->with($this->equalTo($channelName)); //logger name comes from monolog channel
         $scope = $this->createMock(InstrumentationScopeInterface::class);
         $sharedState = $this->createMock(LoggerSharedState::class);
         $resource = $this->createMock(ResourceInfo::class);
@@ -48,7 +53,7 @@ class HandlerTest extends TestCase
 
             return $record;
         };
-        $monolog = new \Monolog\Logger('test');
+        $monolog = new \Monolog\Logger($channelName);
         $monolog->pushHandler($handler);
         $monolog->pushProcessor($processor);
 
@@ -63,10 +68,16 @@ class HandlerTest extends TestCase
                     $this->assertGreaterThan(0, $readable->getTimestamp());
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
-                    $this->assertGreaterThan(3, count($attributes));
-                    $this->assertSame('bar', $attributes->get('foo'));
-                    $this->assertNotNull($attributes->get('exception.message'));
-                    $this->assertNotNull($attributes->get('exception.stacktrace'));
+                    $this->assertCount(2, $attributes);
+                    $this->assertEquals(['extra', 'context'], array_keys($attributes->toArray()));
+                    $this->assertEquals([
+                        'foo' => 'bar',
+                        'baz' => 'bat',
+                    ], $attributes->get('extra'));
+                    $this->assertSame('bar', $attributes->get('context')['foo']);
+                    $this->assertSame('bar', $attributes->get('context')['foo']);
+                    $this->assertNotNull($attributes->get('context')['exception']);
+                    $this->assertNotNull($attributes->get('context')['exception']['message']);
 
                     return true;
                 }

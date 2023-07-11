@@ -55,36 +55,10 @@ class Handler extends AbstractProcessingHandler
         $attributes = [];
         foreach (['extra', 'context'] as $key) {
             if (isset($formatted[$key]) && count($formatted[$key]) > 0) {
-                foreach ($formatted[$key] as $k => $v) {
-                    if ($mapped = self::mapToSemConv($k, $v, $record[$key][$k])) {
-                        $attributes += $mapped;
-                    } else {
-                        $attributes[$k] = $v;
-                    }
-                }
+                $logRecord->setAttribute($key, $formatted[$key]);
             }
         }
         $logRecord->setAttributes($attributes);
         $this->getLogger($record['channel'])->emit($logRecord);
-    }
-
-    /**
-     * @see https://github.com/open-telemetry/semantic-conventions/blob/main/specification/logs/semantic_conventions/exceptions.md
-     * @todo use SemConv, when generated for logs
-     */
-    protected static function mapToSemConv($key, $formatted, $original)
-    {
-        switch ($key) {
-            case 'exception':
-                /** @var \Throwable $original */
-                return [
-                    'exception.type' => $formatted['class'] ?? null,
-                    'exception.message' => $formatted['message'] ?? null,
-                    'exception.stacktrace' => $original->getTraceAsString(),
-                ];
-            default:
-        }
-
-        return null;
     }
 }
