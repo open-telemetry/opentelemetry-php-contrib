@@ -6,4 +6,6 @@ trace:
   sampler: always_on
   span:
     processors: simple
-  exporters: zipkin+http://zipkinhost:1234/path
+  exporters:
+    - type: zipkin
+      url: http://zipkinhost:1234/path

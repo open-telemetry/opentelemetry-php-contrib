@@ -12,7 +12,9 @@ use OpenTelemetry\API\Logs as API;
 
 class Handler extends AbstractProcessingHandler
 {
-    private API\LoggerInterface $logger;
+    /** @var API\LoggerInterface[] */
+    private array $loggers = [];
+    private API\LoggerProviderInterface $loggerProvider;
 
     /**
      * @psalm-suppress InvalidArgument
@@ -20,7 +22,16 @@ class Handler extends AbstractProcessingHandler
     public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true)
     {
         parent::__construct($level, $bubble);
-        $this->logger = $loggerProvider->getLogger('monolog');
+        $this->loggerProvider = $loggerProvider;
+    }
+
+    protected function getLogger(string $channel): API\LoggerInterface
+    {
+        if (!array_key_exists($channel, $this->loggers)) {
+            $this->loggers[$channel] = $this->loggerProvider->getLogger($channel);
+        }
+
+        return $this->loggers[$channel];
     }
 
     protected function getDefaultFormatter(): FormatterInterface
@@ -40,13 +51,12 @@ class Handler extends AbstractProcessingHandler
             ->setSeverityNumber(API\Map\Psr3::severityNumber($record['level_name']))
             ->setSeverityText($record['level_name'])
             ->setBody($formatted['message'])
-            ->setAttribute('channel', $record['channel'])
         ;
         foreach (['context', 'extra'] as $key) {
             if (isset($formatted[$key]) && count($formatted[$key]) > 0) {
                 $logRecord->setAttribute($key, $formatted[$key]);
             }
         }
-        $this->logger->emit($logRecord);
+        $this->getLogger($record['channel'])->emit($logRecord);
     }
 }

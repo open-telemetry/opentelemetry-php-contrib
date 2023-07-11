@@ -37,7 +37,11 @@ class ExporterFactory implements Factory\GenericFactoryInterface
             $res = $this->doBuild($options);
             if (!$res instanceof SpanExporterInterface) {
                 throw new RuntimeException(
-                    sprintf('Built object is not an instance of %s', SpanExporterInterface::class)
+                    sprintf(
+                        'Built object (%s) is not an instance of %s',
+                        get_class($res),
+                        SpanExporterInterface::class
+                    )
                 );
             }
 

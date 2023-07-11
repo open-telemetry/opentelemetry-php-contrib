@@ -98,6 +98,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
                 $propagator->inject($carrier);
 
+                /** @psalm-suppress PossiblyInvalidArgument */
                 $this->span->setAttributes([
                     'rpc.method' => $cmd->getName(),
                     'rpc.service' => $this->clientName,
@@ -106,6 +107,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                     ]);
             });
 
+            /** @psalm-suppress PossiblyInvalidArgument */
             $end_middleware = Middleware::mapResult(function (ResultInterface $result) {
                 $this->span->setAttributes([
                     'http.status_code' => $result['@metadata']['statusCode'], //@phan-suppress-current-line PhanTypeMismatchDimFetch

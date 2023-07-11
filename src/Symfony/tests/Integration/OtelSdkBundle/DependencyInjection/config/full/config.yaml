@@ -56,25 +56,20 @@ trace:
 
   exporters:
     # dsn example
-    exporter1: zipkin+http://zipkinhost:1234/path
-    # dsn key example
-    exporter2:
-      dsn: jaeger+https://foo:bar@jaegerhost:1234/path/to/endpoint?name=foo
+    exporter1:
+      type: zipkin
+      url: http://zipkinhost:1234/path
     # parameter example
-    exporter3:
-      type: newrelic
+    exporter2:
+      type: otlp
       processor: simple
-      url: http://newrelichost:1234/path
-      options:
-        license_key: abcde
+      url: http://otlphttphost:1234/path
     # custom exporter referenced via class
-    exporter4:
+    exporter3:
       type: custom
       processor: processor4
-      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporter
-      options:
-        log_file: /tmp/otel/exporter.log
-    exporter5:
+      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporterFactory
+    exporter4:
       type: custom
       processor: processor5
       id: "@my_custom_exporter"

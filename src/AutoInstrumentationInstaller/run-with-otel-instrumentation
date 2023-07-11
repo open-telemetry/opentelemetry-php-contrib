@@ -8,7 +8,6 @@
 $otel_traces_exporters = array(
   "otlp",
   "zipkin",
-  "newrelic",
   "none"
 );
 

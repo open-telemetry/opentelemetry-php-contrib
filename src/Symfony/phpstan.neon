@@ -1,0 +1,13 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/jangregor/phpstan-prophecy/extension.neon
+
+parameters:
+    tmpDir: var/cache/phpstan
+    level: 5
+    paths:
+        - src
+        - tests
+        # - examples  # TODO: Remove this once examples are updated
+

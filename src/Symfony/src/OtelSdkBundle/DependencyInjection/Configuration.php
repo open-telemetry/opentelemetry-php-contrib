@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
 
-use OpenTelemetry\SDK\Trace\SpanExporterInterface;
+use OpenTelemetry\SDK\Trace\SpanExporter\SpanExporterFactoryInterface;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsnParser;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -88,19 +88,16 @@ class Configuration implements ConfigurationInterface
     public const OPTIONS_NODE = 'options';
     public const NAME_KEY = 'name';
     public const ENV_TYPE = 'env';
-    public const JAEGER_EXPORTER = 'jaeger';
     public const ZIPKIN_EXPORTER = 'zipkin';
-    public const NEWRELIC_EXPORTER = 'newrelic';
     public const OTLP_HTTP_EXPORTER = 'otlphttp';
     public const OTLP_GRPC_EXPORTER = 'otlpgrpc';
-    public const ZIPKIN_TO_NEWRELIC_EXPORTER = 'zipkintonewrelic';
-    public const EXPORTERS_NODE_VALUES = [
-        self::JAEGER_EXPORTER,
-        self::ZIPKIN_EXPORTER,
-        self::NEWRELIC_EXPORTER,
-        self::OTLP_HTTP_EXPORTER,
-        self::OTLP_GRPC_EXPORTER,
-        self::ZIPKIN_TO_NEWRELIC_EXPORTER,
+
+    // Declare Exporter Factories
+    public const ZIPKIN_EXPORTER_FACTORY = 'zipkin';
+    public const OTLP_EXPORTER_FACTORY = 'otlp';
+    public const EXPORTER_FACTORY_VALUES = [
+        self::ZIPKIN_EXPORTER_FACTORY,
+        self::OTLP_EXPORTER_FACTORY,
     ];
 
     // PRIVATE CONSTANTS
@@ -448,7 +445,7 @@ class Configuration implements ConfigurationInterface
             }
             if (isset($config[self::TYPE_NODE])) {
                 self::validateTypedExporterConfig($config);
-                
+
                 return $config;
             }
 
@@ -488,7 +485,7 @@ class Configuration implements ConfigurationInterface
         if ($config[self::TYPE_NODE] === self::CUSTOM_TYPE) {
             self::validateCustomExporterConfig($config);
         }
-        // exporter is set via eg.  - [type: jaeger, url: scheme://host:123/path]
+        // exporter is set via eg.  - [type: zipkin, url: scheme://host:123/path]
         if (isset($config[self::URL_NODE])) {
             //return $config;
         }
@@ -496,22 +493,22 @@ class Configuration implements ConfigurationInterface
 
     private static function validateCustomExporterConfig(array $config)
     {
-        // custom exporters need class or id provided.
+        // custom exporter factories need class or id provided.
         self::validateCustomService(
             $config,
             self::EXPORTER_HR
         );
 
         if (isset($config[self::CLASS_NODE])) {
-            // custom exporters classes need to be a valid FQCN
+            // custom exporter factory classes need to be valid FQCNs
             self::validateCustomClass(
                 $config[self::CLASS_NODE],
                 self::EXPORTER_HR
             );
-            // custom span exporters need to implement OpenTelemetry\SDK\Trace\SpanExporterInterface
+            // custom span exporter factories need to implement OpenTelemetry\SDK\Trace\SpanExporterFactoryInterface
             self::validateCustomClassImplements(
                 $config[self::CLASS_NODE],
-                SpanExporterInterface::class,
+                SpanExporterFactoryInterface::class,
                 self::EXPORTER_HR
             );
         }
@@ -558,9 +555,10 @@ class Configuration implements ConfigurationInterface
         if (!self::classImplemets($fqcn, $interface)) {
             throw new ConfigurationException(
                 sprintf(
-                    'Custom %s class need to implement %s',
+                    'Custom %s class "%s" needs to implement %s',
                     $type,
-                    SpanExporterInterface::class
+                    $fqcn,
+                    $interface
                 )
             );
         }

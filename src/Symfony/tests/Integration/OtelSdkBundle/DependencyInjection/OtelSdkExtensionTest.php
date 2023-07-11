@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\DependencyInjection;
 
 use Exception;
+use OpenTelemetry\Contrib\Otlp\SpanExporterFactory as OtlpExporterFactory;
+use OpenTelemetry\Contrib\Zipkin\SpanExporterFactory as ZipkinSpanExporterFactory;
 use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
@@ -13,10 +15,10 @@ use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Samplers;
 use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\SpanProcessors;
-use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock;
+use OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporterFactory as MockSpanExporterFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -234,20 +236,16 @@ class OtelSdkExtensionTest extends TestCase
             $processors[0]
         );
         $this->assertIsReferenceForClass(
-            SpanProcessors::DEFAULT,
+            SpanProcessors::SIMPLE,
             $processors[1]
         );
         $this->assertIsReferenceForClass(
-            SpanProcessors::SIMPLE,
+            Mock\SpanProcessor::class,
             $processors[2]
         );
         $this->assertIsReferenceForClass(
             Mock\SpanProcessor::class,
             $processors[3]
-        );
-        $this->assertIsReferenceForClass(
-            Mock\SpanProcessor::class,
-            $processors[4]
         );
 
         // Assert clock is set as argument for batch processors
@@ -291,10 +289,6 @@ class OtelSdkExtensionTest extends TestCase
             SpanProcessors::TRACEABLE,
             $processors[3]
         );
-        $this->assertIsReferenceForClass(
-            SpanProcessors::TRACEABLE,
-            $processors[4]
-        );
     }
 
     /**
@@ -317,19 +311,42 @@ class OtelSdkExtensionTest extends TestCase
         $exporters = [];
         $processorReferences = $this->getDefinitionByClass(SDK\Trace\TracerProvider::class)
             ->getArgument(0);
-        foreach ($processorReferences as $reference) {
+        foreach ($processorReferences as $index => $reference) {
             $processor = $this->container->getDefinition((string) $reference);
             $exporterRef = $processor->getArgument(0);
             $this->assertIsReference($exporterRef);
             $exporter = $exporters[(string) $exporterRef] = $this->getContainer()->getDefinition((string) $exporterRef);
 
             if ((string) $exporterRef !== self::CUSTOM_EXPORTER_ID) {
+                switch ($reference) {
+                    default:
+                        $expectClass = null;
+
+                        break;
+
+                    case 'open_telemetry.sdk.trace.span_processor.default.exporter1':
+                        $expectClass = ZipkinSpanExporterFactory::class;
+
+                        break;
+
+                    case 'open_telemetry.sdk.trace.span_processor.simple.exporter2':
+                        $expectClass = OtlpExporterFactory::class;
+
+                        break;
+
+                    case 'open_telemetry.sdk.trace.span_processor.default.exporter3':
+                        $expectClass = MockSpanExporterFactory::class;
+
+                        break;
+                }
+
                 $this->assertIsReference(
                     $exporter->getFactory()[0],
                 );
                 $this->assertIsReferenceForClass(
-                    ExporterFactory::class,
-                    $exporter->getFactory()[0]
+                    $expectClass,
+                    $exporter->getFactory()[0],
+                    'processor index ' . $index . ' reference ' . $reference
                 );
             }
         }
@@ -337,44 +354,6 @@ class OtelSdkExtensionTest extends TestCase
         $this->assertEquals(
             $exporterIds,
             array_keys($exporters)
-        );
-
-        $this->assertEquals(
-            [
-                'url' => 'http://zipkinhost:1234/path',
-                'service_name' => 'foo',
-            ],
-            $exporters['open_telemetry.sdk.trace.span_exporter.exporter1']
-                ->getArgument(0)
-        );
-
-        $this->assertEquals(
-            [
-                'name' => 'foo',
-                'url' => 'https://foo:bar@jaegerhost:1234/path/to/endpoint',
-                'service_name' => 'foo',
-            ],
-            $exporters['open_telemetry.sdk.trace.span_exporter.exporter2']
-                ->getArgument(0)
-        );
-
-        $this->assertEquals(
-            [
-                'license_key' => 'abcde',
-                'url' => 'http://newrelichost:1234/path',
-                'service_name' => 'foo',
-            ],
-            $exporters['open_telemetry.sdk.trace.span_exporter.exporter3']
-                ->getArgument(0)
-        );
-
-        $this->assertEquals(
-            [
-                'log_file' => '/tmp/otel/exporter.log',
-                'service_name' => 'foo',
-            ],
-            $exporters['open_telemetry.sdk.trace.span_exporter.exporter4']
-                ->getArgument(0)
         );
     }
 
@@ -403,11 +382,12 @@ class OtelSdkExtensionTest extends TestCase
         );
     }
 
-    private function assertIsReferenceForClass(string $class, Reference $reference): void
+    private function assertIsReferenceForClass(string $class, Reference $reference, string $message = ''): void
     {
         $this->assertSame(
             $class,
-            $this->getClassFromReference($reference)
+            $this->getClassFromReference($reference),
+            $message
         );
     }
 

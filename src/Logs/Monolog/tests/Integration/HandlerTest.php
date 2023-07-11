@@ -49,7 +49,7 @@ class HandlerTest extends TestCase
         $this->assertSame('INFO', $record->getSeverityText());
         $this->assertSame(9, $record->getSeverityNumber());
         $this->assertGreaterThan(0, $record->getTimestamp());
-        $this->assertSame('monolog', $record->getInstrumentationScope()->getName());
+        $this->assertSame('test', $record->getInstrumentationScope()->getName(), 'scope name is set from logger name');
     }
 
     public function test_log_debug_is_not_handled(): void
