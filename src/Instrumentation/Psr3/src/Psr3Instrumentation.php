@@ -87,6 +87,9 @@ class Psr3Instrumentation
         return $val !== 'false';
     }
 
+    /**
+     * @psalm-suppress InvalidArrayOffset
+     */
     private static function getEnvValue(string $name, string $default)
     {
         $val = getenv($name);
