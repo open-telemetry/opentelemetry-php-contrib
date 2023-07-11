@@ -52,13 +52,11 @@ class Handler extends AbstractProcessingHandler
             ->setSeverityText($record['level_name'])
             ->setBody($formatted['message'])
         ;
-        $attributes = [];
-        foreach (['extra', 'context'] as $key) {
+        foreach (['context', 'extra'] as $key) {
             if (isset($formatted[$key]) && count($formatted[$key]) > 0) {
                 $logRecord->setAttribute($key, $formatted[$key]);
             }
         }
-        $logRecord->setAttributes($attributes);
         $this->getLogger($record['channel'])->emit($logRecord);
     }
 }

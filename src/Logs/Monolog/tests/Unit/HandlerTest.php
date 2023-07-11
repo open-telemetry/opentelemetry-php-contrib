@@ -69,7 +69,7 @@ class HandlerTest extends TestCase
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
                     $this->assertCount(2, $attributes);
-                    $this->assertEquals(['extra', 'context'], array_keys($attributes->toArray()));
+                    $this->assertEquals(['context', 'extra'], array_keys($attributes->toArray()));
                     $this->assertEquals([
                         'foo' => 'bar',
                         'baz' => 'bat',
