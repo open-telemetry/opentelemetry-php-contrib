@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Psr3;
 
-use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Logs as API;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
@@ -45,8 +45,8 @@ class Psr3Instrumentation
 
                     break;
                 case self::MODE_OTLP:
-                    static $logger;
-                    $logger ??= Globals::loggerProvider()->getLogger(self::NAME);
+                    static $instrumentation;
+                    $instrumentation ??= new CachedInstrumentation('psr3');
                     $level = $params[0];
                     $body = $params[1];
                     $context = $params[2] ?? [];
@@ -54,7 +54,7 @@ class Psr3Instrumentation
                     $record = (new API\LogRecord($body))
                         ->setSeverityNumber(API\Map\Psr3::severityNumber($level))
                         ->setAttributes(Formatter::format($context));
-                    $logger->emit($record);
+                    $instrumentation->logger()->emit($record);
 
                     break;
             }
