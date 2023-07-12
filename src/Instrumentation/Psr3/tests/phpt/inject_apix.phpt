@@ -1,5 +1,5 @@
 --TEST--
-Test inject context to monolog logger
+Test inject context to symfony logger
 --FILE--
 
 <?php
@@ -14,18 +14,18 @@ putenv('OTEL_PHP_PSR3_MODE=inject');
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-$logger = new \Monolog\Logger('test', [new \Monolog\Handler\StreamHandler(STDOUT)]);
+$logger = new \Apix\Log\Logger\Stream(STDOUT);
 
 $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->startSpan();
 $scope = $span->activate();
 
 $input = require(__DIR__ . '/input.php');
 
-$logger->info($input['message_with_interpolation'], $input['context']);
+$logger->warning($input['message_with_interpolation'], $input['context']);
 
 $scope->detach();
 $span->end();
 ?>
 
 --EXPECTF--
-%s test.INFO: hello world%a"traceId":"%s","spanId":"%s"%a
+[%s] WARNING hello world traceId=%s spanId=%s

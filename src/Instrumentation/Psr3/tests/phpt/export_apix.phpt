@@ -1,8 +1,9 @@
 --TEST--
-Test generating OTLP from symfony logger
+Test generating OTLP from apix logger
 --FILE--
 
 <?php
+use Cake\Log\Log;
 use OpenTelemetry\API\Globals;
 
 putenv('OTEL_PHP_AUTOLOAD_ENABLED=true');
@@ -11,25 +12,24 @@ putenv('OTEL_TRACES_EXPORTER=none');
 putenv('OTEL_METRICS_EXPORTER=none');
 putenv('OTEL_PHP_DETECTORS=none');
 putenv('OTEL_PHP_PSR3_MODE=export');
-putenv('OTEL_PHP_PSR3_OBSERVE_ALL_METHODS=false');
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-$logger = new \Symfony\Component\Console\Logger\ConsoleLogger(new Symfony\Component\Console\Output\StreamOutput(fopen('php://stdout', 'w')));
+$logger = new \Apix\Log\Logger\Stream(STDOUT);
 
 $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->startSpan();
 $scope = $span->activate();
 
 $input = require(__DIR__ . '/input.php');
 
-$logger->warning($input['message'], $input['context']);
+$logger->info($input['message'], $input['context']);
 
 $scope->detach();
 $span->end();
 ?>
 
 --EXPECTF--
-[warning] hello world
+[%s] INFO hello world
 
 {
     "resource": {
@@ -72,7 +72,13 @@ $span->end();
                                 "code": 0,
                                 "file": "%s",
                                 "line": %d,
-                                "trace": %a,
+                                "trace": [
+                                    {
+                                        "file": "%s",
+                                        "line": %d,
+                                        "function": "%s"
+                                    }
+                                ],
                                 "previous": []
                             }
                         }

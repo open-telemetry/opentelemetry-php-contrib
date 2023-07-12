@@ -14,7 +14,7 @@ putenv('OTEL_PHP_PSR3_MODE=inject');
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-$logger = new \Symfony\Component\Console\Logger\ConsoleLogger(new Symfony\Component\Console\Output\StreamOutput(fopen('php://stdout', 'w')));
+$logger = new \Symfony\Component\Console\Logger\ConsoleLogger(new Symfony\Component\Console\Output\StreamOutput(STDOUT));
 
 $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->startSpan();
 $scope = $span->activate();

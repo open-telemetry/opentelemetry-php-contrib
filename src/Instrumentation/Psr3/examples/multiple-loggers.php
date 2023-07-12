@@ -20,13 +20,16 @@ require __DIR__ . '/../vendor/autoload.php';
  * - inject traceId/spanId into context (if mode=`inject`)
  */
 
-$logger = new \Monolog\Logger('test', [new \Monolog\Handler\StreamHandler(STDOUT)]);
+$symfony = new \Symfony\Component\Console\Logger\ConsoleLogger(new Symfony\Component\Console\Output\StreamOutput(STDOUT));
+$monolog = new \Monolog\Logger('test', [new \Monolog\Handler\StreamHandler(STDOUT)]);
+$yii = new \Yiisoft\Log\Logger([new \Yiisoft\Log\StreamTarget(STDOUT)]);
 
 $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->startSpan();
 $scope = $span->activate();
 
-$logger->warning('hello world', ['foo' => 'bar', 'exception' => new \Exception('kaboom', 500, new \RuntimeException('kablam'))]);
-$logger->error('hello, OpenTelemetry');
+$symfony->warning('hello symfony');
+$monolog->warning('hello monolog');
+$yii->warning('hello yii');
 
 $scope->detach();
 $span->end();

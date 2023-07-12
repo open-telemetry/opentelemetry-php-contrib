@@ -10,6 +10,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerTrait;
 
 class Psr3Instrumentation
 {
@@ -20,6 +21,7 @@ class Psr3Instrumentation
         self::MODE_EXPORT,
     ];
     public const DEFAULT_MODE = self::MODE_INJECT;
+    private static array $cache = [];
 
     /** @psalm-suppress ArgumentTypeCoercion */
     public const NAME = 'psr3';
@@ -29,6 +31,16 @@ class Psr3Instrumentation
     {
         self::$mode = self::getMode();
         $pre = static function (LoggerInterface $object, array $params, string $class, string $function): array {
+            $id = spl_object_id($object);
+            if (!array_key_exists($id, self::$cache)) {
+                $traits = self::class_uses_deep($object);
+                self::$cache[$id] = in_array(LoggerTrait::class, $traits);
+            }
+            if (self::$cache[$id] === true && $function !== 'log') {
+                //LoggerTrait proxies all log-level-specific methods to `log`, which leads to double-processing
+                //Not all psr-3 loggers use AbstractLogger, so we check for the trait directly
+                return $params;
+            }
             switch (self::$mode) {
                 case self::MODE_INJECT:
                     $context = Context::getCurrent();
@@ -47,9 +59,15 @@ class Psr3Instrumentation
                 case self::MODE_EXPORT:
                     static $instrumentation;
                     $instrumentation ??= new CachedInstrumentation('psr3');
-                    $level = $params[0];
-                    $body = $params[1];
-                    $context = $params[2] ?? [];
+                    if ($function === 'log') {
+                        $level = $params[0];
+                        $body = $params[1] ?? '';
+                        $context = $params[2] ?? [];
+                    } else {
+                        $level = $function;
+                        $body = $params[0] ?? '';
+                        $context = $params[1] ?? [];
+                    }
 
                     $record = (new API\LogRecord($body))
                         ->setSeverityNumber(API\Map\Psr3::severityNumber($level))
@@ -62,11 +80,8 @@ class Psr3Instrumentation
             return $params;
         };
 
-        hook(class: LoggerInterface::class, function: 'log', pre: $pre);
-        if (self::shouldObserveSeverityMethods()) {
-            foreach (['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'] as $f) {
-                hook(class: LoggerInterface::class, function: $f, pre: $pre);
-            }
+        foreach (['log', 'emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'] as $f) {
+            hook(class: LoggerInterface::class, function: $f, pre: $pre);
         }
     }
 
@@ -76,15 +91,8 @@ class Psr3Instrumentation
         if (in_array($val, self::MODES)) {
             return $val;
         }
-        //unknown mode, use default
+
         return self::DEFAULT_MODE;
-    }
-
-    private static function shouldObserveSeverityMethods(): bool
-    {
-        $val = self::getEnvValue('OTEL_PHP_PSR3_OBSERVE_ALL_METHODS', 'true');
-
-        return $val !== 'false';
     }
 
     /**
@@ -98,5 +106,32 @@ class Psr3Instrumentation
         }
 
         return $val ?: $default;
+    }
+
+    /**
+     * @see https://www.php.net/manual/en/function.class-uses.php#112671
+     */
+    private static function class_uses_deep($class, $autoload = false)
+    {
+        $traits = [];
+
+        // Get traits of all parent classes
+        do {
+            $traits = array_merge(class_uses($class, $autoload), $traits);
+        } while ($class = get_parent_class($class));
+
+        // Get traits of all parent traits
+        $traitsToSearch = $traits;
+        while (!empty($traitsToSearch)) {
+            $newTraits = class_uses(array_pop($traitsToSearch), $autoload);
+            $traits = array_merge($newTraits, $traits);
+            $traitsToSearch = array_merge($newTraits, $traitsToSearch);
+        };
+
+        foreach ($traits as $trait => $same) {
+            $traits = array_merge(class_uses($trait, $autoload), $traits);
+        }
+
+        return array_unique($traits);
     }
 }

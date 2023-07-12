@@ -11,7 +11,6 @@ putenv('OTEL_TRACES_EXPORTER=none');
 putenv('OTEL_METRICS_EXPORTER=none');
 putenv('OTEL_PHP_DETECTORS=none');
 putenv('OTEL_PHP_PSR3_MODE=export');
-putenv('OTEL_PHP_PSR3_OBSERVE_ALL_METHODS=true');
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
@@ -45,16 +44,42 @@ $span->end();
                 {
                     "timestamp": null,
                     "observed_timestamp": %d,
-                    "severity_number": 0,
+                    "severity_number": %d,
                     "severity_text": null,
-                    "body": {
-                        "foo": "bar",
-                        "exception": {}
-                    },
+                    "body": "hello world",
                     "trace_id": "%s",
                     "span_id": "%s",
                     "trace_flags": 1,
-                    "attributes": [],
+                    "attributes": {
+                        "foo": "bar",
+                        "exception": {
+                            "message": "kaboom",
+                            "code": 500,
+                            "file": "%s",
+                            "line": %d,
+                            "trace": [
+                                {
+                                    "file": "%s",
+                                    "line": %d,
+                                    "function": "%s"
+                                }
+                            ],
+                            "previous": {
+                                "message": "kablam",
+                                "code": 0,
+                                "file": "%s",
+                                "line": %d,
+                                "trace": [
+                                    {
+                                        "file": "%s",
+                                        "line": %d,
+                                        "function": "%s"
+                                    }
+                                ],
+                                "previous": []
+                            }
+                        }
+                    },
                     "dropped_attributes_count": 0
                 }
             ]
