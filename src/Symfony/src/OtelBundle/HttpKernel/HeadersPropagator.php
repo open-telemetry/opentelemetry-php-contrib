@@ -31,7 +31,6 @@ final class HeadersPropagator implements PropagationGetterInterface
     {
         /** @psalm-suppress InvalidArgument */
         return count($carrier->headers->all($key)) > 1
-            /** @phpstan-ignore-next-line */
             ? implode(',', $carrier->headers->all($key))
             : $carrier->headers->get($key);
     }

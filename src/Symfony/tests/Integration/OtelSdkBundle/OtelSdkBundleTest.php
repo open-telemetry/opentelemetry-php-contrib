@@ -276,7 +276,7 @@ class OtelSdkBundleTest extends TestCase
             'requestProphecy' => $request,
         ] = $this->buildExporterDouble();
 
-        $exporter = $this->container->set(self::DEFAULT_SPAN_EXPORTER_ID, $exporter);
+        $this->container->set(self::DEFAULT_SPAN_EXPORTER_ID, $exporter);
 
         $this->getTracerProvider()
         ->getTracer('foo')
