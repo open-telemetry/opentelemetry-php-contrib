@@ -38,13 +38,13 @@ $logger = /* create logger */
 $logger->info('traceId={traceId} spanId={spanId}');
 ```
 
-#### `otlp`
+#### `export`
 The logged output will be processed and emitted by the logger as normal, but the output will also be encoded using
 the [OpenTelemetry log model](https://opentelemetry.io/docs/specs/otel/logs/data-model/) and can be
 exported to an OpenTelemetry-compatible backend.
 
 ```php
-putenv('OTEL_PHP_PSR3_MODE=otlp');
+putenv('OTEL_PHP_PSR3_MODE=export');
 putenv('OTEL_PHP_AUTOLOAD_ENABLED=true');
 putenv('OTEL_LOGS_EXPORTER=console');
 require 'vendor/autoload.php';
@@ -78,7 +78,7 @@ Parts of this auto-instrumentation library can be configured, more options are a
 | Name                               | Default value | Values                  | Example | Description                                                                     |
 | ---------------------------------- |---------------| ----------------------- |---------|---------------------------------------------------------------------------------|
 | OTEL_PHP_DISABLED_INSTRUMENTATIONS | []            | Instrumentation name(s) | psr3    | Disable one or more installed auto-instrumentations, names are comma seperated. |
-| OTEL_PHP_PSR3_MODE                 | inject        | inject, export          | inject  | Change the behaviour of the package                                             |
+| OTEL_PHP_PSR3_MODE                 | inject        | inject, export          | export  | Change the behaviour of the package                                             |
 | OTEL_PHP_PSR3_OBSERVE_ALL_METHODS  | true          | true, false             | false   | Whether to observe only `log` method, or all methods (`info`, `error`, etc)     |
 
 Configurations can be provided as environment variables, or via `php.ini` (or a file included by `php.ini`)

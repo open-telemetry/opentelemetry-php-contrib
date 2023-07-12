@@ -14,10 +14,10 @@ use Psr\Log\LoggerInterface;
 class Psr3Instrumentation
 {
     public const MODE_INJECT = 'inject';
-    public const MODE_OTLP = 'otlp';
+    public const MODE_EXPORT = 'export';
     private const MODES = [
         self::MODE_INJECT,
-        self::MODE_OTLP,
+        self::MODE_EXPORT,
     ];
     public const DEFAULT_MODE = self::MODE_INJECT;
 
@@ -44,7 +44,7 @@ class Psr3Instrumentation
                     $params[$ctxIdx]['spanId'] = $span->getSpanId();
 
                     break;
-                case self::MODE_OTLP:
+                case self::MODE_EXPORT:
                     static $instrumentation;
                     $instrumentation ??= new CachedInstrumentation('psr3');
                     $level = $params[0];

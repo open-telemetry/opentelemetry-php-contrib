@@ -11,7 +11,7 @@ putenv('OTEL_LOGS_EXPORTER=console');
 putenv('OTEL_TRACES_EXPORTER=none');
 putenv('OTEL_METRICS_EXPORTER=none');
 putenv('OTEL_PHP_DETECTORS=none');
-putenv('OTEL_PHP_PSR3_MODE=otlp');
+putenv('OTEL_PHP_PSR3_MODE=export');
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 

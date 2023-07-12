@@ -10,13 +10,13 @@ putenv('OTEL_TRACES_EXPORTER=none');
 putenv('OTEL_METRICS_EXPORTER=none');
 putenv('OTEL_PHP_PSR3_OBSERVE_ALL_METHODS=true');
 putenv('OTEL_PHP_PSR3_MODE=inject');
-//putenv('OTEL_PHP_PSR3_MODE=otlp');
+//putenv('OTEL_PHP_PSR3_MODE=export');
 
 require __DIR__ . '/../vendor/autoload.php';
 
 /**
  * Example of using the opentelemetry extension with symfony to:
- * - send logs in OTLP format (if mode=`otlp`)
+ * - export logs in OTLP format (if mode=`export`)
  * - inject traceId/spanId into context (if mode=`inject`)
  */
 
