@@ -20,11 +20,9 @@ See https://github.com/open-telemetry/opentelemetry-php#sdk-autoloading
 
 ## Mode
 
-To work with different PSR-3 implementations, and your requirements, there are a couple of settings to be aware of:
+The package can operate in two modes, controlled by the environment variable `OTEL_PHP_PSR3_MODE`:
 
-### OTEL_PHP_PSR3_MODE
-
-#### `inject`
+### `inject`
 Inject `traceId` and `spanId` of the active trace span into the context of each logged message. Depending on the PSR-3 implementation,
 the values may be written to the log output, or may be available for interpolation into the log message.
 
@@ -38,7 +36,7 @@ $logger = /* create logger */
 $logger->info('traceId={traceId} spanId={spanId}');
 ```
 
-#### `export`
+### `export`
 The logged output will be processed and emitted by the logger as normal, but the output will also be encoded using
 the [OpenTelemetry log model](https://opentelemetry.io/docs/specs/otel/logs/data-model/) and can be
 exported to an OpenTelemetry-compatible backend.
