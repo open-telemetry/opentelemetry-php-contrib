@@ -31,12 +31,12 @@
     ]
   },
   "require-dev": {
-    "apix/log": "dev-master",
-    "cakephp/console": "^4",
-    "cakephp/log": "^4",
-    "monolog/monolog": "^3",
-    "symfony/console": "^6",
-    "yiisoft/log": "^2",
+    "apix/log": "*",
+    "cakephp/console": "*",
+    "cakephp/log": "*",
+    "monolog/monolog": "*",
+    "symfony/console": "*",
+    "yiisoft/log": "*",
     "friendsofphp/php-cs-fixer": "^3",
     "phan/phan": "^5.0",
     "phpstan/phpstan": "^1.1",
