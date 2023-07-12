@@ -53,17 +53,6 @@ $logger = /* create logger */
 $logger->info('Hello, OTEL');
 ```
 
-### OTEL_PHP_PSR3_OBSERVE_ALL_METHODS
-
-Depending on the PSR-3 implementation, you might need to turn this setting on or off by setting it to `true` (default) or `false`.
-If the PSR-3 implementation proxies all severity-level methods (`error`, `warning`, `info`, etc) through a central `log` function,
-then leave this setting off.
-Examples of implementations this is not required for: symfony, cake.
-
-If the PSR-3 implementation does *not* proxy through the `log` method, then you should turn this setting on.
-
-Warning: having this feature on for loggers that do not require it might lead to doubling-up of log output (eg: symfony).
-
 ## Installation via composer
 
 ```bash
@@ -79,6 +68,5 @@ Parts of this auto-instrumentation library can be configured, more options are a
 | ---------------------------------- |---------------| ----------------------- |---------|---------------------------------------------------------------------------------|
 | OTEL_PHP_DISABLED_INSTRUMENTATIONS | []            | Instrumentation name(s) | psr3    | Disable one or more installed auto-instrumentations, names are comma seperated. |
 | OTEL_PHP_PSR3_MODE                 | inject        | inject, export          | export  | Change the behaviour of the package                                             |
-| OTEL_PHP_PSR3_OBSERVE_ALL_METHODS  | true          | true, false             | false   | Whether to observe only `log` method, or all methods (`info`, `error`, etc)     |
 
 Configurations can be provided as environment variables, or via `php.ini` (or a file included by `php.ini`)
