@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Wordpress;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
@@ -79,10 +80,12 @@ class WordpressInstrumentation
             pre: static function () use ($instrumentation) {
                 $factory = new Psr17Factory();
                 $request = (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
+                $parent = Globals::propagator()->extract($request->getHeaders());
 
                 $span = $instrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
+                    ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
                     ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
