@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelSdkBundle\Debug;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelSdkBundle\Debug;
 
 use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Debug\TraceableTracerProvider;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\RandomIdGenerator;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOnSampler;
@@ -13,8 +15,6 @@ use OpenTelemetry\SDK\Trace\SpanLimitsBuilder;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
-use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
-use OpenTelemetry\Symfony\OtelSdkBundle\Debug\TraceableTracerProvider;
 use PHPUnit\Framework\TestCase;
 
 class TraceableTracerProviderTest extends TestCase

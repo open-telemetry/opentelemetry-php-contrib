@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\Trace;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Trace;
 
 use Http\Discovery\HttpClientDiscovery;
 use Http\Discovery\Psr17FactoryDiscovery;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Factory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
-use OpenTelemetry\Symfony\OtelSdkBundle\Factory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;

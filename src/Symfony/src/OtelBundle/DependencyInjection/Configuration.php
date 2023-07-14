@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelBundle\DependencyInjection;
+namespace OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection;
 
 use function class_exists;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;

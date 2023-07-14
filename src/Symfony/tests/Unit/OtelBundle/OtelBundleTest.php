@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelBundle;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelBundle;
 
 use function dirname;
 use function file_get_contents;
 use function json_decode;
-use OpenTelemetry\Symfony\OtelBundle\OtelBundle;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\OtelBundle;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 /**
- * @covers \OpenTelemetry\Symfony\OtelBundle\OtelBundle
+ * @covers \OpenTelemetry\Contrib\Symfony\OtelBundle\OtelBundle
  */
 final class OtelBundleTest extends TestCase
 {

@@ -6,7 +6,7 @@ trace:
   sampler:
     root:
       type: custom
-      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\Sampler
+      class: OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock\Sampler
       options:
         foo: bar
     remote:

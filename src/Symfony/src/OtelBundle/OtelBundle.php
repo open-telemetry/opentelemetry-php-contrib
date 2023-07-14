@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelBundle;
+namespace OpenTelemetry\Contrib\Symfony\OtelBundle;
 
 use function class_exists;
 use Composer\InstalledVersions;
@@ -12,7 +12,7 @@ use OpenTelemetry\API\Trace\NoopTracerProvider;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
-use OpenTelemetry\Symfony\OtelBundle\DependencyInjection\Compiler\SetAliasIfNotDefinedCompilerPass;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection\Compiler\SetAliasIfNotDefinedCompilerPass;
 use OutOfBoundsException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;

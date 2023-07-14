@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelBundle\DependencyInjection;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelBundle\DependencyInjection;
 
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionConfigurationTestCase;
-use OpenTelemetry\Symfony\OtelBundle\DependencyInjection\Configuration;
-use OpenTelemetry\Symfony\OtelBundle\DependencyInjection\OtelExtension;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection\Configuration;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection\OtelExtension;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 
 /**
- * @covers \OpenTelemetry\Symfony\OtelBundle\DependencyInjection\Configuration
+ * @covers \OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection\Configuration
  */
 final class ConfigurationTest extends AbstractExtensionConfigurationTestCase
 {

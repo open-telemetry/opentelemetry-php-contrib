@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Resources;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Resources;
 
 use Exception;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

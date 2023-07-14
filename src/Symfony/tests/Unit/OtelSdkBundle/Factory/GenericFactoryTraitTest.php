@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Unit\OtelSdkBundle\Factory;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Unit\OtelSdkBundle\Factory;
 
 use DG\BypassFinals;
 use InvalidArgumentException;
-use OpenTelemetry\Symfony\OtelSdkBundle\Factory\GenericFactoryInterface;
-use OpenTelemetry\Symfony\OtelSdkBundle\Factory\GenericFactoryTrait;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Factory\GenericFactoryInterface;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Factory\GenericFactoryTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use stdClass;

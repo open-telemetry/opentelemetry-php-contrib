@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Unit\OtelSdkBundle\Util;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Unit\OtelSdkBundle\Util;
 
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use stdClass;

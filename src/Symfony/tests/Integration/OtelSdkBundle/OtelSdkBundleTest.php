@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle;
 
 use Exception;
 use OpenTelemetry\API;
 use OpenTelemetry\Contrib;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\OtelSdkBundle;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Contrib\Zipkin\Exporter;
 use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Export\Http\PsrTransport;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
-use OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;

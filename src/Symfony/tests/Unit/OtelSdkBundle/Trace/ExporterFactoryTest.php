@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Unit\OtelSdkBundle\Trace;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Unit\OtelSdkBundle\Trace;
 
 use OpenTelemetry\Contrib;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
 use OpenTelemetry\SDK\Common\Future\FutureInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
-use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Http\Client\ClientInterface;

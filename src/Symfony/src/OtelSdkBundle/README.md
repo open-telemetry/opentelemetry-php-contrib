@@ -77,7 +77,7 @@ If you have symfony/flex installed in your project, the bundle should be automat
 
 return [
     // ...
-    OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle::class => ['all' => true],
+    OpenTelemetry\Contrib\Symfony\OtelSdkBundle\OtelSdkBundle::class => ['all' => true],
     // ...
 ];
 ````

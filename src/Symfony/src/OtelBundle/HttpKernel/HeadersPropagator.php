@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelBundle\HttpKernel;
+namespace OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel;
 
 use function count;
 use function implode;
