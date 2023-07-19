@@ -1,7 +1,3 @@
 # OpenTelemetry Symfony bundle
 
-## Installation
-
-```shell
-composer require open-telemetry/contrib-symfony-instrumentation-bundle
-```
+Installation and configuration instructions can be found in the [OtelSdkBundle subdirectory's README.md](src/OtelSdkBundle/README.md).
