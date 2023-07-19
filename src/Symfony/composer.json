@@ -1,5 +1,5 @@
 {
-    "name": "open-telemetry/contrib-symfony-instrumentation-bundle",
+    "name": "open-telemetry/contrib-sdk-bundle",
     "description": "OpenTelemetry Symfony integration",
     "type": "library",
     "license": "Apache-2.0",
