@@ -48,8 +48,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 self::end($exception);
@@ -72,8 +73,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -99,8 +101,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -126,8 +129,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -150,8 +154,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -174,8 +179,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -198,8 +204,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -222,8 +229,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $statement->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -246,8 +254,9 @@ class PDOInstrumentation
                 try {
                     $dbSystem = $statement->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
-                } catch (\Error $e) {
-                    //do nothing
+                } catch (\PDOException $e) {
+                    // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql');
                 }
 
                 Context::storage()->attach($span->storeInContext($parent));
