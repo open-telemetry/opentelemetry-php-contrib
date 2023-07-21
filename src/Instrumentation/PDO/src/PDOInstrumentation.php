@@ -47,10 +47,11 @@ class PDOInstrumentation
 
                 try {
                     $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
-                    $span->setAttribute(TraceAttributes::DB_SYSTEM, $dbSystem);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
                 } catch (\Error $e) {
                     //do nothing
                 }
+
                 self::end($exception);
             }
         );
@@ -67,6 +68,14 @@ class PDOInstrumentation
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -86,6 +95,14 @@ class PDOInstrumentation
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -105,6 +122,14 @@ class PDOInstrumentation
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -121,6 +146,14 @@ class PDOInstrumentation
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -137,6 +170,14 @@ class PDOInstrumentation
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -153,6 +194,14 @@ class PDOInstrumentation
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -169,6 +218,14 @@ class PDOInstrumentation
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $statement->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
@@ -185,6 +242,14 @@ class PDOInstrumentation
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                try {
+                    $dbSystem = $statement->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $span->setAttribute(TraceAttributes::DB_SYSTEM, self::mapDriverNameToAttribute($dbSystem));
+                } catch (\Error $e) {
+                    //do nothing
+                }
+
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
@@ -203,7 +268,6 @@ class PDOInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
                     ->spanBuilder($name)
-                    ->setAttribute(TraceAttributes::DB_SYSTEM, 'other_sql')
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
