@@ -224,4 +224,30 @@ class PDOInstrumentation
 
         $span->end();
     }
+
+    /**
+     * Mapping to known values
+     *
+     * @link https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md#notes-and-well-known-identifiers-for-dbsystem
+     * @param string|null $driverName
+     * @return string
+     */
+    private static function mapDriverNameToAttribute(?string $driverName): string {
+        switch ($driverName) {
+            case 'mysql':
+                return 'mysql';
+            case 'pgsql':
+                return 'postgresql';
+            case 'sqlite':
+                return $driverName;
+            case 'sqlsrv':
+                return 'mssql';
+            case 'oci':
+                return 'oracle';
+            case 'ibm':
+                return 'db2';
+            default:
+                return 'other_sql';
+        }
+    }
 }
