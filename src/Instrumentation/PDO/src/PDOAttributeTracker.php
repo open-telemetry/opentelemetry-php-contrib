@@ -71,7 +71,7 @@ final class PDOAttributeTracker
     {
         $key = spl_object_id($pdo);
 
-        return array_key_exists($key, $this->pdoToAttributesMap) ? $this->pdoToAttributesMap[$key] : [];
+        return $this->pdoToAttributesMap[$key] ?? [];
     }
 
     /**
