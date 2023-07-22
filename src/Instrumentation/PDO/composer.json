@@ -9,6 +9,7 @@
   "minimum-stability": "dev",
   "require": {
     "php": "^8.2",
+    "ext-pdo": "*",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0.0beta10",
     "open-telemetry/sem-conv": "^1"
