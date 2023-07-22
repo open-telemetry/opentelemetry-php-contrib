@@ -64,9 +64,7 @@ final class PDOAttributeTracker
             $attributes[TraceAttributes::DB_SYSTEM] = 'other_sql';
         }
 
-        $this->pdoToAttributesMap[spl_object_id($pdo)] = $attributes;
-
-        return $this->pdoToAttributesMap[spl_object_id($pdo)];
+        return $this->pdoToAttributesMap[spl_object_id($pdo)] = $attributes;
     }
 
     public function trackedAttributesForPdo(\PDO $pdo)
