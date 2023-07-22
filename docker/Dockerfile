@@ -13,7 +13,7 @@ RUN chmod +x /usr/local/bin/install-php-extensions \
         pcntl \
         intl \
         @composer \
-        open-telemetry/opentelemetry-php-instrumentation@main \
+        opentelemetry-beta \
      \
     # strip debug symbols from extensions to reduce size
     && find /usr/local/lib/php/extensions -name "*.so" -exec strip --strip-debug {} \;
