@@ -24,10 +24,7 @@ final class PDOAttributeTracker
 
     public function removeMapping(\PDOStatement $statement)
     {
-        $key = spl_object_id($statement);
-        if (array_key_exists($key, $this->statementMapToPdoMap)) {
-            unset($this->statementMapToPdoMap[$key]);
-        }
+        unset($this->statementMapToPdoMap[spl_object_id($statement)]);
     }
 
     /**
