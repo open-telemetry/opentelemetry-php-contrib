@@ -86,7 +86,7 @@ final class PDOAttributeTracker
         return match ($driverName) {
             'mysql' => 'mysql',
             'pgsql' => 'postgresql',
-            'sqlite' => $driverName,
+            'sqlite' => 'sqlite',
             'sqlsrv' => 'mssql',
             'oci' => 'oracle',
             'ibm' => 'db2',
