@@ -86,21 +86,14 @@ final class PDOAttributeTracker
      */
     private static function mapDriverNameToAttribute(?string $driverName): string
     {
-        switch ($driverName) {
-            case 'mysql':
-                return 'mysql';
-            case 'pgsql':
-                return 'postgresql';
-            case 'sqlite':
-                return $driverName;
-            case 'sqlsrv':
-                return 'mssql';
-            case 'oci':
-                return 'oracle';
-            case 'ibm':
-                return 'db2';
-            default:
-                return 'other_sql';
-        }
+        return match ($driverName) {
+            'mysql' => 'mysql',
+            'pgsql' => 'postgresql',
+            'sqlite' => $driverName,
+            'sqlsrv' => 'mssql',
+            'oci' => 'oracle',
+            'ibm' => 'db2',
+            default => 'other_sql',
+        };
     }
 }
