@@ -8,23 +8,26 @@ use OpenTelemetry\SemConv\TraceAttributes;
 
 final class PDOAttributeTracker
 {
-    private $pdoToAttributesMap;
-    private $statementMapToPdoMap;
+    /**
+     * @var \WeakMap<\PDO, iterable<non-empty-string, bool|int|float|string|array|null>>
+     */
+    private \WeakMap $pdoToAttributesMap;
+    /**
+     * @var \WeakMap<\PDOStatement, int>
+     */
+    private \WeakMap $statementMapToPdoMap;
 
     public function __construct()
     {
-        $this->pdoToAttributesMap = [];
-        $this->statementMapToPdoMap = [];
+        /** @psalm-suppress PropertyTypeCoercion */
+        $this->pdoToAttributesMap = new \WeakMap();
+        /** @psalm-suppress PropertyTypeCoercion */
+        $this->statementMapToPdoMap = new \WeakMap();
     }
 
     public function trackStatementToPdoMapping(\PDOStatement $statement, \PDO $pdo)
     {
-        $this->statementMapToPdoMap[spl_object_id($statement)] = spl_object_id($pdo);
-    }
-
-    public function removeMapping(\PDOStatement $statement)
-    {
-        unset($this->statementMapToPdoMap[spl_object_id($statement)]);
+        $this->statementMapToPdoMap[$statement] = spl_object_id($pdo);
     }
 
     /**
@@ -35,17 +38,19 @@ final class PDOAttributeTracker
      */
     public function trackedAttributesForStatement(\PDOStatement $statement): iterable
     {
-        $statementKey = spl_object_id($statement);
-        if (!array_key_exists($statementKey, $this->statementMapToPdoMap)) {
+        if (!$this->statementMapToPdoMap->offsetExists($statement)) {
             return [];
         }
 
-        $pdoKey = $this->statementMapToPdoMap[$statementKey];
-        if (!array_key_exists($pdoKey, $this->pdoToAttributesMap)) {
-            return [];
+        $pdoKey = $this->statementMapToPdoMap[$statement];
+
+        foreach ($this->pdoToAttributesMap as $pdo => $attributes) {
+            if (spl_object_id($pdo) === $pdoKey) {
+                return $attributes;
+            }
         }
 
-        return $this->pdoToAttributesMap[$pdoKey];
+        return [];
     }
 
     /**
@@ -64,14 +69,12 @@ final class PDOAttributeTracker
             $attributes[TraceAttributes::DB_SYSTEM] = 'other_sql';
         }
 
-        return $this->pdoToAttributesMap[spl_object_id($pdo)] = $attributes;
+        return $this->pdoToAttributesMap[$pdo] = $attributes;
     }
 
     public function trackedAttributesForPdo(\PDO $pdo)
     {
-        $key = spl_object_id($pdo);
-
-        return $this->pdoToAttributesMap[$key] ?? [];
+        return $this->pdoToAttributesMap[$pdo] ?? [];
     }
 
     /**
