@@ -13,7 +13,7 @@ final class PDOAttributeTracker
      */
     private \WeakMap $pdoToAttributesMap;
     /**
-     * @var \WeakMap<\PDOStatement, int>
+     * @var \WeakMap<\PDOStatement, \WeakReference<\PDO>>
      */
     private \WeakMap $statementMapToPdoMap;
 
@@ -27,7 +27,7 @@ final class PDOAttributeTracker
 
     public function trackStatementToPdoMapping(\PDOStatement $statement, \PDO $pdo)
     {
-        $this->statementMapToPdoMap[$statement] = spl_object_id($pdo);
+        $this->statementMapToPdoMap[$statement] = \WeakReference::create($pdo);
     }
 
     /**
@@ -42,15 +42,12 @@ final class PDOAttributeTracker
             return [];
         }
 
-        $pdoKey = $this->statementMapToPdoMap[$statement];
-
-        foreach ($this->pdoToAttributesMap as $pdo => $attributes) {
-            if (spl_object_id($pdo) === $pdoKey) {
-                return $attributes;
-            }
+        $pdo = ($this->statementMapToPdoMap[$statement] ?? null)?->get();
+        if ($pdo === null) {
+            return [];
         }
 
-        return [];
+        return $this->pdoToAttributesMap[$pdo] ?? [];
     }
 
     /**
