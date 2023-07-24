@@ -7,9 +7,11 @@ namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Integration;
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\SemConv\TraceAttributes;
 use PHPUnit\Framework\TestCase;
 
 class PDOInstrumentationTest extends TestCase
@@ -67,8 +69,10 @@ class PDOInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $pdo =  self::createDB();
         $this->assertCount(1, $this->storage);
+        /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertSame('PDO::__construct', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
     }
 
     public function test_constructor_exception(): void
@@ -87,56 +91,69 @@ class PDOInstrumentationTest extends TestCase
         $db->exec($statement);
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::exec', $span->getName());
-
-        $this->assertSame($db->inTransaction(), false);
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertFalse($db->inTransaction());
         $this->assertCount(2, $this->storage);
 
         $sth = $db->prepare('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(2);
         $this->assertSame('PDO::prepare', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(3, $this->storage);
+
         $sth->execute();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('PDOStatement::execute', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(4, $this->storage);
 
         $result = $sth->fetchAll();
         $span = $this->storage->offsetGet(4);
         $this->assertSame('PDOStatement::fetchAll', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(5, $this->storage);
 
         $db->query('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(5);
         $this->assertSame('PDO::query', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(6, $this->storage);
     }
+
     public function test_transaction(): void
     {
         $db =  self::createDB();
         $result = $db->beginTransaction();
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::beginTransaction', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(2, $this->storage);
         $this->assertSame($result, true);
+
         $statement = self::fillDB();
         $db->exec($statement);
         $result = $db->commit();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('PDO::commit', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(4, $this->storage);
-        $this->assertSame($result, true);
+        $this->assertTrue($result);
+
         $result = $db->beginTransaction();
-        $this->assertSame($result, true);
-        $this->assertSame($db->inTransaction(), true);
+        $this->assertTrue($result);
+        $this->assertTrue($db->inTransaction());
+
         $db->exec("INSERT INTO technology(`name`, `date`) VALUES('Java', '1995-05-23');");
         $result = $db->rollback();
         $span = $this->storage->offsetGet(6);
         $this->assertSame('PDO::rollBack', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(7, $this->storage);
-        $this->assertSame($result, true);
-        $this->assertSame($db->inTransaction(), false);
+        $this->assertTrue($result);
+        $this->assertFalse($db->inTransaction());
+
         $sth = $db->prepare('SELECT * FROM `technology`');
         $sth->execute();
-        $this->assertSame(count($sth->fetchAll()), 2);
+        $this->assertSame(2, count($sth->fetchAll()));
     }
 }
