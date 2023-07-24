@@ -38,9 +38,6 @@ final class PDOAttributeTracker
      */
     public function trackedAttributesForStatement(\PDOStatement $statement): iterable
     {
-        if (!$this->statementMapToPdoMap->offsetExists($statement)) {
-            return [];
-        }
 
         $pdo = ($this->statementMapToPdoMap[$statement] ?? null)?->get();
         if ($pdo === null) {
