@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelSdkBundle\Debug;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelSdkBundle\Debug;
 
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Debug\TraceableSpanProcessor;
 use OpenTelemetry\SDK\Common\Time\ClockInterface;
 use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
 use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
@@ -12,8 +14,6 @@ use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
-use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
-use OpenTelemetry\Symfony\OtelSdkBundle\Debug\TraceableSpanProcessor;
 use PHPUnit\Framework\TestCase;
 
 class TraceableSpanProcessorTest extends TestCase

@@ -77,7 +77,7 @@ If you have symfony/flex installed in your project, the bundle should be automat
 
 return [
     // ...
-    OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle::class => ['all' => true],
+    OpenTelemetry\Contrib\Symfony\OtelSdkBundle\OtelSdkBundle::class => ['all' => true],
     // ...
 ];
 ````
@@ -143,14 +143,14 @@ The bundle comes with advanced configuration for (almost) all user facing parts 
 [OpenTelemetry php SDK](https://github.com/open-telemetry/opentelemetry-php-contrib), which will be documented here, soon.
 For now, please refer to the configurations the bundle is tested against:
 
-- [minimal](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/minimal/config.yaml)
-- [simple](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/simple/config.yaml)
-- [resource](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/resource/config.yaml)
-- [samplers](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/sampler/config.yaml)
-- [span](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/span/config.yaml)
-- [exporters](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/exporters/config.yaml)
-- [full](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/full/config.yaml)
-- [disabled](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/disabled/config.yaml)
+- [minimal](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/minimal/config.yaml)
+- [simple](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/simple/config.yaml)
+- [resource](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/resource/config.yaml)
+- [samplers](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/sampler/config.yaml)
+- [span](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/span/config.yaml)
+- [exporters](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/exporters/config.yaml)
+- [full](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/full/config.yaml)
+- [disabled](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/disabled/config.yaml)
 
 ## 3. Usage
 

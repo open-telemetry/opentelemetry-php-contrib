@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\DataCollector;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DataCollector;
 
 use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Instrumentation\InstrumentationTrait;

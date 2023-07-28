@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Unit\OtelSdkBundle\Util;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Unit\OtelSdkBundle\Util;
 
 use InvalidArgumentException;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ExporterDsn;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ExporterDsn;
 use PHPUnit\Framework\TestCase;
 
 class ExporterDsnTest extends TestCase

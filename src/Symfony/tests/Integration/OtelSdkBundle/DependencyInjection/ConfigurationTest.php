@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\DependencyInjection;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\DependencyInjection;
 
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Configuration;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\ConfigurationException;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Configuration;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\ConfigurationException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\NodeInterface;
 use Symfony\Component\Yaml\Parser;

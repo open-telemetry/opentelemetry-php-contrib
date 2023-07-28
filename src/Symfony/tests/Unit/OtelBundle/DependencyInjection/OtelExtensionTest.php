@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelBundle\DependencyInjection;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelBundle\DependencyInjection;
 
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
 use OpenTelemetry\API\Metrics\Noop\NoopMeterProvider;
 use OpenTelemetry\API\Trace\NoopTracerProvider;
 use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
-use OpenTelemetry\Symfony\OtelBundle\Console\ConsoleListener;
-use OpenTelemetry\Symfony\OtelBundle\DependencyInjection\OtelExtension;
-use OpenTelemetry\Symfony\OtelBundle\HttpKernel\RequestListener;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\Console\ConsoleListener;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection\OtelExtension;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel\RequestListener;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * @covers \OpenTelemetry\Symfony\OtelBundle\DependencyInjection\OtelExtension
+ * @covers \OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection\OtelExtension
  */
 final class OtelExtensionTest extends AbstractExtensionTestCase
 {

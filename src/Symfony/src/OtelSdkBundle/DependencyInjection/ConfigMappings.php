@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection;
 
 interface ConfigMappings
 {

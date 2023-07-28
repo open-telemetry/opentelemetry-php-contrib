@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Unit\OtelSdkBundle;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Unit\OtelSdkBundle;
 
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
-use OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\OtelSdkBundle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock;
 
 class InvalidSpanExporter
 {

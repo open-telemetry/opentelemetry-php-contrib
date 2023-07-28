@@ -2,9 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Resources;
 
 use OpenTelemetry\API;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Ids;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ConfigHelper;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServiceHelper;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
 use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Time\SystemClock;
@@ -12,11 +17,6 @@ use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Ids;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 /** @phan-file-suppress PhanUndeclaredClassReference */

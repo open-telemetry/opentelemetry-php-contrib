@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\Debug;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Debug;
 
 use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
 use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
 use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
-use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
 
 /** @phan-file-suppress PhanUndeclaredInterface */
 /** @phan-file-suppress PhanUndeclaredTypeProperty */

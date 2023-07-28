@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelBundle\HttpKernel;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelBundle\HttpKernel;
 
-use OpenTelemetry\Symfony\OtelBundle\HttpKernel\HeadersPropagator;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel\HeadersPropagator;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @covers \OpenTelemetry\Symfony\OtelBundle\HttpKernel\HeadersPropagator
+ * @covers \OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel\HeadersPropagator
  */
 final class HeadersPropagatorTest extends TestCase
 {

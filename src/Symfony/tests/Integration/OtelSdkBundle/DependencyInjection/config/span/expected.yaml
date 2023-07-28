@@ -25,7 +25,7 @@ trace:
         options: []
       processor4:
         type: custom
-        class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanProcessor
+        class: OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock\SpanProcessor
         options:
           foo: bar
       processor5:

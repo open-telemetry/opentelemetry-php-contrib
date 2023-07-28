@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection;
 
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Configuration as Conf;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Trace\ExporterFactory;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Registry;
 use OpenTelemetry\SDK\Trace;
-use OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection\Configuration as Conf;
-use OpenTelemetry\Symfony\OtelSdkBundle\Trace\ExporterFactory;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\Factory;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Factory;
 
 use InvalidArgumentException;
 use ReflectionClass;

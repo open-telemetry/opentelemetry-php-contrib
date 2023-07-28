@@ -1,5 +1,5 @@
 {
-    "name": "open-telemetry/contrib-symfony-instrumentation-bundle",
+    "name": "open-telemetry/symfony-sdk-bundle",
     "description": "OpenTelemetry Symfony integration",
     "type": "library",
     "license": "Apache-2.0",
@@ -20,12 +20,12 @@
     },
     "autoload": {
         "psr-4": {
-            "OpenTelemetry\\Symfony\\": "src"
+            "OpenTelemetry\\Contrib\\Symfony\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "OpenTelemetry\\Tests\\Symfony\\": "tests"
+            "OpenTelemetry\\Tests\\Contrib\\Symfony\\": "tests"
         }
     },
     "require-dev": {

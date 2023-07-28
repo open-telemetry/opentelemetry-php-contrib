@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\Resources;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Resources;
 
-use OpenTelemetry\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
-use OpenTelemetry\Symfony\OtelSdkBundle\Debug\TraceableSpanProcessor;
-use OpenTelemetry\Symfony\OtelSdkBundle\Debug\TraceableTracerProvider;
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ConfigHelper;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Debug\TraceableSpanProcessor;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Debug\TraceableTracerProvider;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ConfigHelper;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $container) {

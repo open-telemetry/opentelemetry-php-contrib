@@ -18,7 +18,7 @@ trace:
     exporter3:
       type: custom
       processor: default
-      class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\SpanExporterFactory
+      class: OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock\SpanExporterFactory
     exporter4:
       type: custom
       processor: batch

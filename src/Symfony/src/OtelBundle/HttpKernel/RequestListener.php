@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelBundle\HttpKernel;
+namespace OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel;
 
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -13,8 +13,8 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\OtelBundle;
 use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\Symfony\OtelBundle\OtelBundle;
 use function sprintf;
 use function strtolower;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
