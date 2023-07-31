@@ -1,5 +1,5 @@
 --TEST--
-Test generating OTLP from cake logger
+Test generating OTLP from yii logger
 --FILE--
 
 <?php
@@ -15,7 +15,11 @@ putenv('OTEL_PHP_PSR3_MODE=export');
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-$logger = new \Yiisoft\Log\Logger([new \Yiisoft\Log\StreamTarget(STDOUT)]);
+//set flush intervals to 1 (immediate flush), because Globals usage in _register.php causes yii's shutdown handler to run before otel's (which changes the
+//output order.
+$logger = (new \Yiisoft\Log\Logger([
+    (new \Yiisoft\Log\StreamTarget(STDOUT))->setExportInterval(1)
+]))->setFlushInterval(1);
 
 $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->startSpan();
 $scope = $span->activate();

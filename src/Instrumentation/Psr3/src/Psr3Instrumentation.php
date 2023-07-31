@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Psr3;
 
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Logs as API;
 use OpenTelemetry\API\Trace\Span;
@@ -14,6 +15,7 @@ use Psr\Log\LoggerTrait;
 
 class Psr3Instrumentation
 {
+    const OTEL_PHP_PSR3_MODE = 'OTEL_PHP_PSR3_MODE';
     public const MODE_INJECT = 'inject';
     public const MODE_EXPORT = 'export';
     private const MODES = [
@@ -87,31 +89,21 @@ class Psr3Instrumentation
 
     private static function getMode(): string
     {
-        $val = self::getEnvValue('OTEL_PHP_PSR3_MODE', self::DEFAULT_MODE);
-        if (in_array($val, self::MODES)) {
-            return $val;
+        $resolver = Globals::configurationResolver();
+        if ($resolver->has(self::OTEL_PHP_PSR3_MODE)) {
+            $val = $resolver->getString(self::OTEL_PHP_PSR3_MODE);
+            if ($val && in_array($val, self::MODES)) {
+                return $val;
+            }
         }
 
         return self::DEFAULT_MODE;
     }
 
     /**
-     * @psalm-suppress InvalidArrayOffset
-     */
-    private static function getEnvValue(string $name, string $default)
-    {
-        $val = getenv($name);
-        if ($val === false && array_key_exists($name, $_ENV)) {
-            $val = $_ENV[$name];
-        }
-
-        return $val ?: $default;
-    }
-
-    /**
      * @see https://www.php.net/manual/en/function.class-uses.php#112671
      */
-    private static function class_uses_deep($class, $autoload = false)
+    private static function class_uses_deep(object $class, bool $autoload = false): array
     {
         $traits = [];
 

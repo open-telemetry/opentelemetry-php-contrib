@@ -17,7 +17,9 @@ require dirname(__DIR__, 2) . '/vendor/autoload.php';
 $apix = new \Apix\Log\Logger\Stream(STDOUT);
 $symfony = new \Symfony\Component\Console\Logger\ConsoleLogger(new Symfony\Component\Console\Output\StreamOutput(STDOUT));
 $monolog = new \Monolog\Logger('test', [new \Monolog\Handler\StreamHandler(STDOUT)]);
-$yii = new \Yiisoft\Log\Logger([new \Yiisoft\Log\StreamTarget(STDOUT)]);
+$yii = $logger = (new \Yiisoft\Log\Logger([
+           (new \Yiisoft\Log\StreamTarget(STDOUT))->setExportInterval(1)
+       ]))->setFlushInterval(1);
 
 $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->startSpan();
 $scope = $span->activate();
@@ -35,7 +37,6 @@ $span->end();
 [%s] WARNING hello apix
 [warning] hello symfony
 [%s] test.WARNING: hello monolog [] []
-
 %s [warning][application] hello yii
 
 Message context:
