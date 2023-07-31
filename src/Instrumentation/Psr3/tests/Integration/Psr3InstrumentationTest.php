@@ -73,7 +73,7 @@ class Psr3InstrumentationTest extends TestCase
     /**
      * @dataProvider levelProvider
      */
-    public function Xtest_level(string $msg, string $method, array $context = []): void
+    public function test_level(string $msg, string $method, array $context = []): void
     {
         $this->logger
             ->expects($this->once())
