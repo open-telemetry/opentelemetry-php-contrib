@@ -1,51 +1,54 @@
 # OpenTelemetry PSR-3 auto-instrumentation
 
-**Preferred and simplest way to install auto-instrumentation (c extension plus instrumentation libraries) is to use [opentelemetry-instrumentation-installer](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller).**
-**The same process can be done manually by installing [c extension](https://github.com/open-telemetry/opentelemetry-php-instrumentation#installation) plus all needed instrumentation libraries like [PSR-3](#installation-via-composer)**
-
 ## Requirements
 
-- OpenTelemetry extension
-- OpenTelemetry SDK an exporter (required to actually export traces)
+- [OpenTelemetry extension](https://opentelemetry.io/docs/instrumentation/php/automatic/#installation)
+- OpenTelemetry SDK and exporter (required to actually export signal data)
 - A psr-3 logger
-- (optional) OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
+- OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
 
 ## Overview
 
-Auto-instrumentation hooks are registered via composer, and automatically inject trace id and span id into log message context of any psr3 logger.
+Auto-instrumentation hooks are registered via composer, and depending on the mode, will:
+
+* automatically inject trace id and span id into log message context of any psr3 logger; or
+* transform the message into the OpenTelemetry LogRecord format, for export to an OpenTelemetry logging-compatible backend
 
 ### Using SDK autoloading
 
 See https://github.com/open-telemetry/opentelemetry-php#sdk-autoloading
 
-## Manual configuration
+## Mode
 
-If you are not using SDK autoloading, you will need to create and register a `TracerProvider` early in your application's lifecycle:
+The package can operate in two modes, controlled by the environment variable `OTEL_PHP_PSR3_MODE`:
+
+### `inject`
+Inject `traceId` and `spanId` of the active trace span into the context of each logged message. Depending on the PSR-3 implementation,
+the values may be written to the log output, or may be available for interpolation into the log message.
+
+For example:
 
 ```php
-<?php
-require_once 'vendor/autoload.php';
+putenv('OTEL_PHP_PSR3_MODE=inject');
+require 'vendor/autoload.php';
 
-$tracerProvider = /*create tracer provider*/;
-$scope = \OpenTelemetry\API\Instrumentation\Configurator::create()
-    ->withTracerProvider($tracerProvider)
-    ->activate();
+$logger = /* create logger */
+$logger->info('traceId={traceId} spanId={spanId}');
+```
 
-// Create root span
-$root = $tracerProvider->getTracer('psr3-demo')->spanBuilder('root')->startSpan();
-$rootScope = $root->activate();
+### `export`
+The logged output will be processed and emitted by the logger as normal, but the output will also be encoded using
+the [OpenTelemetry log model](https://opentelemetry.io/docs/specs/otel/logs/data-model/) and can be
+exported to an OpenTelemetry-compatible backend.
 
-$log = new \Monolog\Logger('OpenTelemetry'); // Install with `composer require monolog/monolog`
-$log->pushHandler(new \Monolog\Handler\ErrorLogHandler());
+```php
+putenv('OTEL_PHP_PSR3_MODE=export');
+putenv('OTEL_PHP_AUTOLOAD_ENABLED=true');
+putenv('OTEL_LOGS_EXPORTER=console');
+require 'vendor/autoload.php';
 
-// add records to the log
-$log->info('Hi OpenTelemetry.');
-// Output: [{0000-00-00T00:00:00.000000+00:00}] OpenTelemetry.INFO: Hi OpenTelemetry. {"traceId":"0d60f3595515bade972d58f40ed1d3ca","spanId":"7e267228e3de7d98"} []
-
-$rootScope->detach();
-$root->end();
-$scope->detach();
-$tracerProvider->shutdown();
+$logger = /* create logger */
+$logger->info('Hello, OTEL');
 ```
 
 ## Installation via composer
@@ -56,11 +59,12 @@ composer require open-telemetry/opentelemetry-auto-psr3
 
 ## Configuration
 
-Parts of this auto-instrumentation library can be configured, more options are available throught the
+Parts of this auto-instrumentation library can be configured, more options are available through the
 [General SDK Configuration](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md#general-sdk-configuration):
 
 | Name                               | Default value | Values                  | Example | Description                                                                     |
-| ---------------------------------- | ------------- | ----------------------- | ------- | ------------------------------------------------------------------------------- |
+| ---------------------------------- |---------------| ----------------------- |---------|---------------------------------------------------------------------------------|
 | OTEL_PHP_DISABLED_INSTRUMENTATIONS | []            | Instrumentation name(s) | psr3    | Disable one or more installed auto-instrumentations, names are comma seperated. |
+| OTEL_PHP_PSR3_MODE                 | inject        | inject, export          | export  | Change the behaviour of the package                                             |
 
 Configurations can be provided as environment variables, or via `php.ini` (or a file included by `php.ini`)
