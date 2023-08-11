@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Http\Kernel;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -93,19 +93,15 @@ class LaravelInstrumentation
             }
         );
         hook(
-            Kernel::class,
+            Application::class,
             '__construct',
-            pre: static function (Kernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $app = $params[0];
-                $app->booted(static function (Application $app) use ($instrumentation) {
-                    self::registerWatchers($app, new ClientRequestWatcher($instrumentation));
-                    self::registerWatchers($app, new ExceptionWatcher());
-                    self::registerWatchers($app, new CacheWatcher());
-                    self::registerWatchers($app, new LogWatcher());
-                    self::registerWatchers($app, new QueryWatcher($instrumentation));
-                });
-            },
-            post: null
+            post: static function (Application $application, array $params, mixed $returnValue, ?Throwable $exception) use ($instrumentation) {
+                self::registerWatchers($application, new ClientRequestWatcher($instrumentation));
+                self::registerWatchers($application, new ExceptionWatcher());
+                self::registerWatchers($application, new CacheWatcher());
+                self::registerWatchers($application, new LogWatcher());
+                self::registerWatchers($application, new QueryWatcher($instrumentation));
+            }
         );
     }
 
