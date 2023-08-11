@@ -102,7 +102,7 @@ class LaravelInstrumentation
                 self::registerWatchers($application, new CommandWatcher());
                 self::registerWatchers($application, new LogWatcher());
                 self::registerWatchers($application, new QueryWatcher($instrumentation));
-            }
+            },
         );
     }
 
