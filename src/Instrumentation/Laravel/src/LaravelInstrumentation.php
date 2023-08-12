@@ -126,6 +126,6 @@ class LaravelInstrumentation
             return $request->getHost();
         }
 
-        return null;
+        return '';
     }
 }
