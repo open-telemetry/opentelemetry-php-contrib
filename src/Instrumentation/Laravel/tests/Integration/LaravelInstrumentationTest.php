@@ -44,6 +44,8 @@ class LaravelInstrumentationTest extends TestCase
         $this->scope = Configurator::create()
             ->withTracerProvider($this->tracerProvider)
             ->activate();
+
+        Http::fake();
     }
 
     public function tearDown(): void
