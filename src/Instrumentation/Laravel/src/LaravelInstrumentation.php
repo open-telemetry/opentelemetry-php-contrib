@@ -125,6 +125,7 @@ class LaravelInstrumentation
         if (method_exists($request, 'getHost')) {
             return $request->getHost();
         }
+
         return null;
     }
 }
