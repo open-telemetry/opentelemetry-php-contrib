@@ -20,7 +20,6 @@
     "laravel/sail": "*",
     "laravel/sanctum": "*",
     "laravel/tinker": "*",
-    "mockery/mockery": "2.0.x-dev",
     "nunomaduro/collision": "*",
     "open-telemetry/sdk": "^1.0",
     "phan/phan": "^5.0",
