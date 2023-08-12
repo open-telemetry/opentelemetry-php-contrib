@@ -9,7 +9,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
-use OpenTelemetry\API\Common\Log\LoggerHolder;
+use OpenTelemetry\API\LoggerHolder;
 use OpenTelemetry\Aws\Ecs\DataProvider;
 use OpenTelemetry\Aws\Ecs\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;

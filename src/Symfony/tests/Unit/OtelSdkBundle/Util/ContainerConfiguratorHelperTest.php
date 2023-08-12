@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Unit\OtelSdkBundle\Util;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Unit\OtelSdkBundle\Util;
 
-use OpenTelemetry\Symfony\OtelSdkBundle\Util\ContainerConfiguratorHelper;
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ContainerConfiguratorHelper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;

@@ -6,7 +6,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
-use OpenTelemetry\Symfony\OtelBundle\HttpKernel\RequestListener;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel\RequestListener;
 
 return function (ContainerConfigurator $configurator): void {
     $configurator->services()->set(RequestListener::class)

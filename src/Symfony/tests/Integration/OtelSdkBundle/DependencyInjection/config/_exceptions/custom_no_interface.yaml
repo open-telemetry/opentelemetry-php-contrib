@@ -6,6 +6,6 @@ trace:
     exporters:
       - type: custom
         # Class does not implement SpanExporterInterface
-        class: OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock\InvalidSpanExporter
+        class: OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock\InvalidSpanExporter
         options:
           foo: bar

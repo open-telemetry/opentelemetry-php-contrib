@@ -77,7 +77,7 @@ If you have symfony/flex installed in your project, the bundle should be automat
 
 return [
     // ...
-    OpenTelemetry\Symfony\OtelSdkBundle\OtelSdkBundle::class => ['all' => true],
+    OpenTelemetry\Contrib\Symfony\OtelSdkBundle\OtelSdkBundle::class => ['all' => true],
     // ...
 ];
 ````
@@ -107,31 +107,7 @@ you need to configure at least one Trace Exporter, which can talk to an appropri
 
 #### 2.3.1. Configuring a Trace Exporter
 
-Assuming you installed Jaeger as described above, your configuration would look this (using a DSN):
-
-````yaml
-otel_sdk:
-    resource:
-        attributes:
-            service.name: "OtelBundle Demo app"
-    trace:
-      exporters: jaeger+http://localhost:9412/api/v2/spans
-````
-
-or this (using `type` and endpoint `url`:
-
-````yaml
-otel_sdk:
-    resource:
-        attributes:
-            service.name: "OtelBundle Demo app"
-    trace:
-      exporters: 
-        - type: jaeger
-          url: http://localhost:9412/api/v2/spans
-````
-
-If you have multiple Exporters/Collectors, you can just add them like this (using DSN):
+Assuming you installed Jaeger as described above, your configuration would look this:
 
 ````yaml
 otel_sdk:
@@ -140,8 +116,23 @@ otel_sdk:
             service.name: "OtelBundle Demo app"
     trace:
       exporters:
-        - jaeger+http://localhost:9412/api/v2/spans
-        - zipkin+http://localhost:9411/api/v2/spans
+        - type: zipkin
+          url: http://localhost:9412/api/v2/spans
+````
+
+If you have multiple Exporters/Collectors, you can just add them like this:
+
+````yaml
+otel_sdk:
+    resource:
+        attributes:
+            service.name: "OtelBundle Demo app"
+    trace:
+      exporters:
+        - type: zipkin
+          url: http://localhost:9412/api/v2/spans
+        - type: otlp
+          url: http://localhost:9411/api/v2/spans
 ````
 
 Or equivalent to the `type` and endpoint `url` example above.
@@ -152,14 +143,14 @@ The bundle comes with advanced configuration for (almost) all user facing parts 
 [OpenTelemetry php SDK](https://github.com/open-telemetry/opentelemetry-php-contrib), which will be documented here, soon.
 For now, please refer to the configurations the bundle is tested against:
 
-- [minimal](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/minimal/config.yaml)
-- [simple](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/simple/config.yaml)
-- [resource](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/resource/config.yaml)
-- [samplers](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/sampler/config.yaml)
-- [span](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/span/config.yaml)
-- [exporters](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/exporters/config.yaml)
-- [full](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/full/config.yaml)
-- [disabled](/tests/Integration/Symfony/OtelSdkBundle/DependencyInjection/config/disabled/config.yaml)
+- [minimal](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/minimal/config.yaml)
+- [simple](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/simple/config.yaml)
+- [resource](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/resource/config.yaml)
+- [samplers](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/sampler/config.yaml)
+- [span](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/span/config.yaml)
+- [exporters](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/exporters/config.yaml)
+- [full](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/full/config.yaml)
+- [disabled](../../tests/Integration/OtelSdkBundle/DependencyInjection/config/disabled/config.yaml)
 
 ## 3. Usage
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\DependencyInjection;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection;
 
+use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Debug\TraceableSpanProcessor;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
-use OpenTelemetry\Symfony\OtelSdkBundle\Debug\TraceableSpanProcessor;
 
 /** @phan-file-suppress PhanUndeclaredClassReference */
 interface SpanProcessors

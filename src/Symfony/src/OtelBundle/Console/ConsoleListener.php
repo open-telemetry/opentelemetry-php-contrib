@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelBundle\Console;
+namespace OpenTelemetry\Contrib\Symfony\OtelBundle\Console;
 
 use function get_class;
 use OpenTelemetry\API\Trace\AbstractSpan as Span;
@@ -10,8 +10,8 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\OtelBundle;
 use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\Symfony\OtelBundle\OtelBundle;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;

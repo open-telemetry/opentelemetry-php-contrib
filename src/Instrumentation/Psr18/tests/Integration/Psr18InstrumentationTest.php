@@ -7,7 +7,7 @@ namespace OpenTelemetry\Contrib\Psr18\tests\Integration;
 use ArrayObject;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
-use OpenTelemetry\API\Common\Instrumentation\Configurator;
+use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;

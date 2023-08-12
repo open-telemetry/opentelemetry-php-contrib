@@ -20,12 +20,14 @@ jobs:
           'Context/Swoole',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
+          'Instrumentation/Psr3',
           'Instrumentation/Psr15',
           'Instrumentation/Psr18',
           'Instrumentation/IO',
           'Instrumentation/PDO',
           'Instrumentation/Symfony',
           'Instrumentation/Laravel',
+          'Instrumentation/MongoDB',
           'Logs/Monolog',
           'Propagation/TraceResponse',
           'ResourceDetectors/Container',
@@ -36,6 +38,8 @@ jobs:
           - project: 'Instrumentation/HttpAsyncClient'
             php-version: 7.4
           - project: 'Instrumentation/Slim'
+            php-version: 7.4
+          - project: 'Instrumentation/Psr3'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'
             php-version: 7.4
@@ -57,14 +61,6 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/PDO'
             php-version: 8.1
-          - project: 'Symfony'
-            php-version: 7.4
-          - project: 'Symfony'
-            php-version: 8.0
-          - project: 'Symfony'
-            php-version: 8.1
-          - project: 'Symfony'
-            php-version: 8.2
     steps:
     - uses: actions/checkout@v3
 
@@ -121,6 +117,13 @@ jobs:
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover --testsuite unit
 
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.8.0
+      if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
+      with:
+        mongodb-version: 6.0
+        mongodb-replica-set: otel-php
+
     - name: Run PHPUnit (integration tests)
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/phpunit --testsuite integration
@@ -128,3 +131,4 @@ jobs:
     - name: Code Coverage
       working-directory: src/${{ matrix.project }}
       run: bash <(curl -s https://codecov.io/bash) -F ${{ matrix.php-version }}
+

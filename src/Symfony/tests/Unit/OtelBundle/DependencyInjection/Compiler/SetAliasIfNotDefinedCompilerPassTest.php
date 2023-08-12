@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelBundle\DependencyInjection\Compiler;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelBundle\DependencyInjection\Compiler;
 
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractCompilerPassTestCase;
-use OpenTelemetry\Symfony\OtelBundle\DependencyInjection\Compiler\SetAliasIfNotDefinedCompilerPass;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection\Compiler\SetAliasIfNotDefinedCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class SetAliasIfNotDefinedCompilerPassTest extends AbstractCompilerPassTestCase

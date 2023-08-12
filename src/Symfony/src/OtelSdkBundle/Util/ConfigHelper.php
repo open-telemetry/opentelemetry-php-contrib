@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelSdkBundle\Util;
+namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util;
 
 use Symfony\Component\DependencyInjection\Reference;
 

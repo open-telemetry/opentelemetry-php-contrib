@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\OtelBundle\DependencyInjection;
+namespace OpenTelemetry\Contrib\Symfony\OtelBundle\DependencyInjection;
 
 use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
-use OpenTelemetry\Symfony\OtelBundle\HttpKernel\RequestListener;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel\RequestListener;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

@@ -14,6 +14,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.4 || ^8.0",
+        "open-telemetry/api": "^1.0.0beta10",
         "open-telemetry/sdk": "^1.0",
         "aws/aws-sdk-php": "^3.232"
     },

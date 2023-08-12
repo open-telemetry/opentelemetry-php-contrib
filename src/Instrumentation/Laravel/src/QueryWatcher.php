@@ -7,7 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
-use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -53,6 +53,7 @@ class QueryWatcher extends Watcher
         ];
 
         $attributes[TraceAttributes::DB_STATEMENT] = $query->sql;
+        /** @psalm-suppress PossiblyInvalidArgument */
         $span->setAttributes($attributes);
         $span->end($nowInNs);
     }

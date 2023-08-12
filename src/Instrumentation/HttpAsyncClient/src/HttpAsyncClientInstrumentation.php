@@ -6,8 +6,8 @@ namespace OpenTelemetry\Contrib\Instrumentation\HttpAsyncClient;
 
 use Http\Client\HttpAsyncClient;
 use Http\Promise\Promise;
-use OpenTelemetry\API\Common\Instrumentation;
-use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -37,7 +37,7 @@ class HttpAsyncClientInstrumentation
                     return null;
                 }
 
-                $propagator = Instrumentation\Globals::propagator();
+                $propagator = Globals::propagator();
                 $parentContext = Context::getCurrent();
 
                 /** @psalm-suppress ArgumentTypeCoercion */

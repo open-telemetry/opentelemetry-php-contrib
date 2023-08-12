@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Symfony\Integration\OtelSdkBundle\Mock;
+namespace OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock;
 
 use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
@@ -25,9 +25,9 @@ class SpanExporter implements SpanExporterInterface
         return new self($name, $args);
     }
 
-    public function export(iterable $spans, ?CancellationInterface $cancellation = null): FutureInterface
+    public function export(iterable $batch, ?CancellationInterface $cancellation = null): FutureInterface
     {
-        return new CompletedFuture(1);
+        return new CompletedFuture(true);
     }
 
     public function shutdown(?CancellationInterface $cancellation = null): bool

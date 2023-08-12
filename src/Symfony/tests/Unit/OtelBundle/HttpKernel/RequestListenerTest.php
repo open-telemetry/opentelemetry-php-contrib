@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Symfony\Test\Unit\OtelBundle\HttpKernel;
+namespace OpenTelemetry\Contrib\Symfony\Test\Unit\OtelBundle\HttpKernel;
 
 use Exception;
 use OpenTelemetry\API\Trace\NoopTracerProvider;
@@ -11,10 +11,10 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
+use OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel\RequestListener;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\Symfony\OtelBundle\HttpKernel\RequestListener;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +27,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Throwable;
 
 /**
- * @covers \OpenTelemetry\Symfony\OtelBundle\HttpKernel\RequestListener
+ * @covers \OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel\RequestListener
  */
 final class RequestListenerTest extends TestCase
 {
