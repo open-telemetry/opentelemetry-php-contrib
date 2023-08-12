@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
+use Illuminate\Console\Command;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -32,9 +34,9 @@ class LaravelInstrumentation
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');
         hook(
-            Kernel::class,
+            HttpKernel::class,
             'handle',
-            pre: static function (Kernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (HttpKernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation->tracer()
@@ -69,7 +71,7 @@ class LaravelInstrumentation
 
                 return [$request];
             },
-            post: static function (Kernel $kernel, array $params, ?Response $response, ?Throwable $exception) {
+            post: static function (HttpKernel $kernel, array $params, ?Response $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -92,6 +94,43 @@ class LaravelInstrumentation
                 $span->end();
             }
         );
+
+        hook(
+            ConsoleKernel::class,
+            'call',
+            pre: static function (ConsoleKernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = $instrumentation->tracer()
+                    ->spanBuilder(sprintf('Console %s', $params[0] ?? 'unknown'))
+                    ->setSpanKind(SpanKind::KIND_PRODUCER)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                $parent = Context::getCurrent();
+                $span = $builder->startSpan();
+                Context::storage()->attach($span->storeInContext($parent));
+
+                return $params;
+            },
+            post: static function (ConsoleKernel $kernel, array $params, ?int $exitCode, ?Throwable $exception) {
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+                if ($exception) {
+                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                } else if ($exitCode !== Command::SUCCESS) {
+                    $span->setStatus(StatusCode::STATUS_ERROR);
+                }
+
+                $span->end();
+            }
+        );
+
         hook(
             Application::class,
             '__construct',
