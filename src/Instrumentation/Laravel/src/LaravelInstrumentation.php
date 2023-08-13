@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 use OpenTelemetry\API\Globals;
@@ -16,10 +16,10 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
+use function OpenTelemetry\Instrumentation\hook;
 
 class LaravelInstrumentation
 {
@@ -123,7 +123,7 @@ class LaravelInstrumentation
                 if ($exception) {
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-                } else if ($exitCode !== Command::SUCCESS) {
+                } elseif ($exitCode !== Command::SUCCESS) {
                     $span->setStatus(StatusCode::STATUS_ERROR);
                 }
 
