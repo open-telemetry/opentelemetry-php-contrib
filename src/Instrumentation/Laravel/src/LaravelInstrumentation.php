@@ -56,7 +56,7 @@ class LaravelInstrumentation
                         ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
                         ->setAttribute(TraceAttributes::HTTP_CLIENT_IP, $request->ip())
                         ->setAttribute(TraceAttributes::HTTP_TARGET, self::httpTarget($request))
-                        ->setAttribute(TraceAttributes::NET_HOST_NAME, $request->host())
+                        ->setAttribute(TraceAttributes::NET_HOST_NAME, self::httpHostName($request))
                         ->setAttribute(TraceAttributes::NET_HOST_PORT, $request->getPort())
                         ->setAttribute(TraceAttributes::NET_PEER_PORT, $request->server('REMOTE_PORT'))
                         ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->userAgent())
@@ -115,5 +115,17 @@ class LaravelInstrumentation
         $question = $request->getBaseUrl() . $request->getPathInfo() === '/' ? '/?' : '?';
 
         return $query ? $request->path() . $question . $query : $request->path();
+    }
+
+    private static function httpHostName(Request $request): string
+    {
+        if (method_exists($request, 'host')) {
+            return $request->host();
+        }
+        if (method_exists($request, 'getHost')) {
+            return $request->getHost();
+        }
+
+        return '';
     }
 }
