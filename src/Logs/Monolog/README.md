@@ -1,6 +1,6 @@
 # OpenTelemetry Monolog handler
 
-A monolog handler for OpenTelemetry. See See https://opentelemetry.io/docs/instrumentation/php/logging for further documentation.
+A monolog handler for OpenTelemetry. See https://opentelemetry.io/docs/instrumentation/php/manual/#logs for further documentation.
 
 ## Requirements
 
@@ -52,9 +52,9 @@ $handler = new \OpenTelemetry\Contrib\Logs\Monolog\Handler(
 If you use [OpenTelemetry SDK autoloading](https://opentelemetry.io/docs/instrumentation/php/sdk/#autoloading), you can retrieve the global logger
 provider. That may be a no-op implementation if there was any misconfiguration.
 
-See [./example/autoload-sdk.php](autoload-sdk example) for how to use autoloading with the OpenTelemetry SDK.
+See [autoload-sdk example](./example/autoload-sdk.php) for how to use autoloading with the OpenTelemetry SDK.
 
-## Create a Logger
+### Create a Logger
 
 Finally, add the handler to a Monolog logger:
 
