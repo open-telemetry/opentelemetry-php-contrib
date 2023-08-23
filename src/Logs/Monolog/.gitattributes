@@ -5,7 +5,10 @@
 
 /.gitattributes export-ignore
 /.gitignore export-ignore
+/.phan export-ignore
+/example export-ignore
 /.php-cs-fixer.php export-ignore
+/phpbench.json.dist export-ignore
 /phpstan.neon.dist export-ignore
 /phpunit.xml.dist export-ignore
 /psalm.xml.dist export-ignore
