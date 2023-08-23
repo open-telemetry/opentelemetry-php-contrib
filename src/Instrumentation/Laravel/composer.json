@@ -9,8 +9,9 @@
   "minimum-stability": "dev",
   "require": {
     "php": "^8.0",
-    "laravel/framework": ">=6.0",
+    "ext-json": "*",
     "ext-opentelemetry": "*",
+    "laravel/framework": ">=6.0",
     "open-telemetry/api": "^1.0.0beta10",
     "open-telemetry/sem-conv": "^1"
   },
