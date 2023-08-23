@@ -1,0 +1,12 @@
+* text=auto
+
+*.md diff=markdown
+*.php diff=php
+
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/DEVELOPMENT.md export-ignore
+/Dockerfile export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/tests export-ignore
