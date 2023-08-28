@@ -62,6 +62,9 @@ class ConsoleInstrumentation
             'execute',
             pre: static function (Command $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return $params;
+                }
                 $span = Span::fromContext($scope->context());
                 $span->addEvent('command starting', [
                     'command' => $command->getName(),
