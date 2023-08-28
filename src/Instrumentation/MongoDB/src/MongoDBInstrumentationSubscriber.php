@@ -9,7 +9,7 @@ use MongoDB\Driver\Monitoring\CommandFailedEvent;
 use MongoDB\Driver\Monitoring\CommandStartedEvent;
 use MongoDB\Driver\Monitoring\CommandSubscriber;
 use MongoDB\Driver\Monitoring\CommandSucceededEvent;
-use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
