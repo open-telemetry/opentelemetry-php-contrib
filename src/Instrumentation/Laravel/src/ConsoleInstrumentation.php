@@ -60,7 +60,7 @@ class ConsoleInstrumentation
         hook(
             Command::class,
             'execute',
-            pre: static function (Command $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (Command $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return $params;
