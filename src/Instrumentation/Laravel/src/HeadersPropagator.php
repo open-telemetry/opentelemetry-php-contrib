@@ -24,6 +24,7 @@ class HeadersPropagator implements PropagationGetterInterface
     public function keys($carrier): array
     {
         assert($carrier instanceof Request);
+
         /** @psalm-suppress InvalidReturnStatement */
         return $carrier->headers->keys();
     }
