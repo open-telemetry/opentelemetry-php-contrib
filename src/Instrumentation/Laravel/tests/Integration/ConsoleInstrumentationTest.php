@@ -7,7 +7,6 @@ namespace OpenTelemetry\Tests\Instrumentation\Laravel\Integration;
 use ArrayObject;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Foundation\Testing\WithConsoleEvents;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -18,8 +17,6 @@ use OpenTelemetry\Tests\Instrumentation\Laravel\TestCase;
 
 class ConsoleInstrumentationTest extends TestCase
 {
-    use WithConsoleEvents;
-
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
