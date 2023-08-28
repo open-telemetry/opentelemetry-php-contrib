@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Laravel\Integration;
 
 use ArrayObject;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\WithConsoleEvents;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
@@ -15,7 +16,7 @@ use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\Tests\Instrumentation\Laravel\TestCase;
 
-class CommandWatcherTest extends TestCase
+class ConsoleInstrumentationTest extends TestCase
 {
     use WithConsoleEvents;
 
@@ -47,18 +48,24 @@ class CommandWatcherTest extends TestCase
     public function test_command_tracing(): void
     {
         $this->assertCount(0, $this->storage);
-        $exitCode = $this->withoutMockingConsoleOutput()->artisan('about');
+
+        /** @var Kernel $kernel */
+        $kernel = $this->app[Kernel::class];
+        $exitCode = $kernel->handle(
+            new \Symfony\Component\Console\Input\ArrayInput(['optimize:clear']),
+            new \Symfony\Component\Console\Output\NullOutput(),
+        );
+
         $this->assertEquals(Command::SUCCESS, $exitCode);
         $this->assertCount(1, $this->storage);
 
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
-        $this->assertSame('Console about', $span->getName());
-        $this->assertCount(1, $span->getEvents());
+        $this->assertSame('Artisan handler', $span->getName());
+        $this->assertCount(14, $span->getEvents());
         $event = $span->getEvents()[0];
         $this->assertSame([
-            'command' => 'about',
-            'exit-code' => 0,
+            'command' => 'optimize:clear',
         ], $event->getAttributes()->toArray());
     }
 }
