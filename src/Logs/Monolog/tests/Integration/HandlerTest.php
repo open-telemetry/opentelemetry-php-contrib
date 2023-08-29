@@ -12,7 +12,7 @@ use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
 use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
-use OpenTelemetry\SDK\Logs\Processor\SimpleLogsProcessor;
+use OpenTelemetry\SDK\Logs\Processor\SimpleLogRecordProcessor;
 use OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +29,7 @@ class HandlerTest extends TestCase
         $this->storage = new ArrayObject();
         $exporter = new InMemoryExporter($this->storage);
         $loggerProvider = new LoggerProvider(
-            new SimpleLogsProcessor($exporter),
+            new SimpleLogRecordProcessor($exporter),
             new InstrumentationScopeFactory(Attributes::factory()),
         );
         $handler = new Handler($loggerProvider, 200);

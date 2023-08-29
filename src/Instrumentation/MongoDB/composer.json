@@ -12,7 +12,7 @@
     "ext-mongodb": "*",
     "ext-json": "*",
     "mongodb/mongodb": "^1.15",
-    "open-telemetry/api": "^1.0.0beta10",
+    "open-telemetry/api": "^1.0.0beta12",
     "open-telemetry/sem-conv": "^1"
   },
   "require-dev": {

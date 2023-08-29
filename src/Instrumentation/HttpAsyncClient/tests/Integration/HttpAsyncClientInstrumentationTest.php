@@ -64,6 +64,7 @@ class HttpAsyncClientInstrumentationTest extends TestCase
         $this->client->sendAsyncRequest($request);
         $this->client->sendAsyncRequest($request);
         $this->assertCount(0, $this->storage, 'no spans exporter since promises are not resolved yet');
+
         //resolve promises
         try {
             $p2->wait();

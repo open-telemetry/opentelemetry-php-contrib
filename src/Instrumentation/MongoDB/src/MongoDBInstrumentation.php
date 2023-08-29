@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\MongoDB;
 
 use function MongoDB\Driver\Monitoring\addSubscriber;
-use OpenTelemetry\API\Common\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 
 final class MongoDBInstrumentation
 {

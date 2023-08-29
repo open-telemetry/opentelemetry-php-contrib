@@ -7,6 +7,7 @@ namespace OpenTelemetry\Tests\Aws\Unit\Xray;
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\API\Trace\SpanContextValidator;
+use OpenTelemetry\API\Trace\TraceFlags;
 use OpenTelemetry\API\Trace\TraceState;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\Context\Context;
@@ -45,7 +46,7 @@ class PropagatorTest extends TestCase
             $carrier,
             null,
             $this->withSpanContext(
-                SpanContext::create(self::TRACE_ID, self::SPAN_ID, SpanContextInterface::TRACE_FLAG_SAMPLED),
+                SpanContext::create(self::TRACE_ID, self::SPAN_ID, TraceFlags::SAMPLED),
                 Context::getCurrent()
             )
         );
@@ -67,7 +68,7 @@ class PropagatorTest extends TestCase
             $carrier,
             null,
             $this->withSpanContext(
-                SpanContext::create(self::TRACE_ID, self::SPAN_ID, SpanContextInterface::TRACE_FLAG_DEFAULT),
+                SpanContext::create(self::TRACE_ID, self::SPAN_ID),
                 Context::getCurrent()
             )
         );
@@ -89,7 +90,7 @@ class PropagatorTest extends TestCase
             $carrier,
             null,
             $this->withSpanContext(
-                SpanContext::create(self::TRACE_ID, self::SPAN_ID, SpanContextInterface::TRACE_FLAG_SAMPLED, new TraceState('vendor1=opaqueValue1')),
+                SpanContext::create(self::TRACE_ID, self::SPAN_ID, TraceFlags::SAMPLED, new TraceState('vendor1=opaqueValue1')),
                 Context::getCurrent()
             )
         );
@@ -111,7 +112,7 @@ class PropagatorTest extends TestCase
             $carrier,
             null,
             $this->withSpanContext(
-                SpanContext::create(SpanContextValidator::INVALID_TRACE, SpanContextValidator::INVALID_SPAN, SpanContextInterface::TRACE_FLAG_SAMPLED, new TraceState('vendor1=opaqueValue1')),
+                SpanContext::create(SpanContextValidator::INVALID_TRACE, SpanContextValidator::INVALID_SPAN, TraceFlags::SAMPLED, new TraceState('vendor1=opaqueValue1')),
                 Context::getCurrent()
             )
         );

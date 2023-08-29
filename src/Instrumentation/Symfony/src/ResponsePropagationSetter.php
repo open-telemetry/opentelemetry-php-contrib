@@ -24,6 +24,7 @@ final class ResponsePropagationSetter implements PropagationSetterInterface
     public function keys($carrier): array
     {
         assert($carrier instanceof Response);
+
         /** @psalm-suppress InvalidReturnStatement */
         return $carrier->headers->keys();
     }
