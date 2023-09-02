@@ -6,6 +6,12 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Contracts\Foundation\Application;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\CacheWatcher;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ClientRequestWatcher;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ExceptionWatcher;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\LogWatcher;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\QueryWatcher;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use function OpenTelemetry\Instrumentation\hook;
 use Throwable;
 
