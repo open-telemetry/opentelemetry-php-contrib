@@ -54,15 +54,12 @@ class ConsoleInstrumentationTest extends TestCase
         );
 
         $this->assertEquals(Command::SUCCESS, $exitCode);
-        $this->assertCount(1, $this->storage);
+        $this->assertCount(8, $this->storage);
 
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertSame('Artisan handler', $span->getName());
-        $this->assertCount(14, $span->getEvents());
-        $event = $span->getEvents()[0];
-        $this->assertSame([
-            'command' => 'optimize:clear',
-        ], $event->getAttributes()->toArray());
+        $span = $this->storage->offsetGet(1);
+        $this->assertSame('Command optimize:clear', $span->getName());
     }
 }

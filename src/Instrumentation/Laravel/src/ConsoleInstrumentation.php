@@ -60,15 +60,18 @@ class ConsoleInstrumentation
         hook(
             Command::class,
             'execute',
-            pre: static function (Command $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                $scope = Context::storage()->scope();
-                if (!$scope) {
-                    return $params;
-                }
-                $span = Span::fromContext($scope->context());
-                $span->addEvent('command starting', [
-                    'command' => $command->getName(),
-                ]);
+            pre: static function (Command $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = $instrumentation->tracer()
+                    ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                $parent = Context::getCurrent();
+
+                $span = $builder->startSpan();
+                Context::storage()->attach($span->storeInContext($parent));
 
                 return $params;
             },
@@ -77,9 +80,9 @@ class ConsoleInstrumentation
                 if (!$scope) {
                     return;
                 }
+                $scope->detach();
                 $span = Span::fromContext($scope->context());
                 $span->addEvent('command finished', [
-                    'command' => $command->getName(),
                     'exit-code' => $exitCode,
                 ]);
 
