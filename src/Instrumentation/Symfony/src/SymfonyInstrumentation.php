@@ -11,6 +11,7 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,7 +41,7 @@ final class SymfonyInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                    ->spanBuilder(\sprintf('HTTP %s', $request?->getMethod() ?? 'unknown method'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -79,6 +80,14 @@ final class SymfonyInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
+                if ($params[1] === HttpKernelInterface::MAIN_REQUEST) {
+                    $span->updateName(\sprintf(
+                        'HTTP %s %s',
+                        $request?->getMethod() ?? 'unknown method',
+                        $request?->attributes->get('_route', 'unknown route')
+                    ));
+                }
+
                 if (null !== $request) {
                     $routeName = $request->attributes->get('_route', '');
 
