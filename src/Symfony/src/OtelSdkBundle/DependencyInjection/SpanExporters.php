@@ -10,12 +10,10 @@ use OpenTelemetry\Contrib;
 interface SpanExporters
 {
     public const ZIPKIN = Contrib\Zipkin\Exporter::class;
-    public const OTLP_HTTP = Contrib\OtlpHttp\Exporter::class;
-    public const OTLP_GRPC = Contrib\OtlpGrpc\Exporter::class;
+    public const OTLP = Contrib\Otlp\SpanExporter::class;
     public const SPAN_EXPORTERS = [
         self::ZIPKIN,
-        self::OTLP_HTTP,
-        self::OTLP_GRPC,
+        self::OTLP,
     ];
     public const NAMESPACE = 'OpenTelemetry\SDK\Trace\SpanExporter';
 }

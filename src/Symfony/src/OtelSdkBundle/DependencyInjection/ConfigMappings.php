@@ -20,8 +20,8 @@ interface ConfigMappings
     ];
     public const SPAN_EXPORTERS = [
         Configuration::ZIPKIN_EXPORTER => SpanExporters::ZIPKIN,
-        Configuration::OTLP_HTTP_EXPORTER => SpanExporters::OTLP_HTTP,
-        Configuration::OTLP_GRPC_EXPORTER => SpanExporters::OTLP_GRPC,
+        Configuration::OTLP_HTTP_EXPORTER => SpanExporters::OTLP,
+        Configuration::OTLP_GRPC_EXPORTER => SpanExporters::OTLP,
     ];
     public const SPAN_EXPORTER_FACTORIES = [
         Configuration::ZIPKIN_EXPORTER_FACTORY => SpanExporterFactories::ZIPKIN,
