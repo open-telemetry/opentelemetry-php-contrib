@@ -25,15 +25,65 @@ class ContainerTest extends TestCase
         $this->detector = new Container($root->url());
     }
 
-    public function test_valid_v1(): void
+    /**
+     * cgroup (v1) should take precedence over mountinfo (v2)
+     * @dataProvider cgroupMountinfoProvider
+     */
+    public function test_with_cgroup_and_mountinfo(string $cgroup, string $mountinfo, string $expected): void
     {
-        $valid = 'a8493b8a4f6f23b65c5db50be86619ca4da078da040aa3d5ccff26fe50de205d';
-        $this->cgroup->setContent($valid);
+        $cgroup && $this->cgroup->setContent($cgroup);
+        $mountinfo && $this->mountinfo->setContent($mountinfo);
+        $resource = $this->detector->getResource();
+
+        $this->assertSame($expected, $resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
+    }
+
+    public static function cgroupMountinfoProvider(): array
+    {
+        return [
+            'k8s' => [
+                file_get_contents(__DIR__ . '/fixtures/v1.cgroup.k8s.txt'),
+                file_get_contents(__DIR__ . '/fixtures/v2.mountinfo.k8s.txt'),
+                '78ea929aa43e7b71f7c36583d82038d92a76800bf5da9b8850e8bd7b514bc075',
+            ],
+            'docker with invalid cgroup' => [
+                'no-container-ids-here',
+                file_get_contents(__DIR__ . '/fixtures/v2.mountinfo.docker.txt'),
+                'a8493b8a4f6f23b65c5db50be86619ca4da078da040aa3d5ccff26fe50de205d',
+            ],
+            'podman' => [
+                'no-container-ids-here',
+                file_get_contents(__DIR__ . '/fixtures/v2.mountinfo.podman.txt'),
+                '2a33efc76e519c137fe6093179653788bed6162d4a15e5131c8e835c968afbe6',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider cgroupProvider
+     */
+    public function test_valid_v1(string $data, string $expected): void
+    {
+        $this->cgroup->setContent($data);
         $resource = $this->detector->getResource();
 
         $this->assertSame(ResourceAttributes::SCHEMA_URL, $resource->getSchemaUrl());
         $this->assertIsString($resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
-        $this->assertSame($valid, $resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
+        $this->assertSame($expected, $resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
+    }
+
+    public static function cgroupProvider(): array
+    {
+        return [
+            'docker' => [
+                file_get_contents(__DIR__ . '/fixtures/v1.cgroup.docker.txt'),
+                '7be92808767a667f35c8505cbf40d14e931ef6db5b0210329cf193b15ba9d605',
+            ],
+            'k8s' => [
+                file_get_contents(__DIR__ . '/fixtures/v1.cgroup.k8s.txt'),
+                '78ea929aa43e7b71f7c36583d82038d92a76800bf5da9b8850e8bd7b514bc075',
+            ],
+        ];
     }
 
     public function test_invalid_v1(): void
@@ -44,21 +94,30 @@ class ContainerTest extends TestCase
         $this->assertEmpty($resource->getAttributes());
     }
 
-    public function test_valid_v2(): void
+    /**
+     * @dataProvider mountinfoProvider
+     */
+    public function test_valid_v2(string $data, string $expected): void
     {
-        $expected = 'a8493b8a4f6f23b65c5db50be86619ca4da078da040aa3d5ccff26fe50de205d';
-        $data = <<< EOS
-1366 1365 0:30 / /sys/fs/cgroup ro,nosuid,nodev,noexec,relatime - cgroup2 cgroup rw
-1408 1362 0:107 / /dev/mqueue rw,nosuid,nodev,noexec,relatime - mqueue mqueue rw
-1579 1362 0:112 / /dev/shm rw,nosuid,nodev,noexec,relatime - tmpfs shm rw,size=65536k,inode64
-1581 1359 259:2 /var/lib/docker/containers/a8493b8a4f6f23b65c5db50be86619ca4da078da040aa3d5ccff26fe50de205d/hostname /etc/hostname rw,relatime - ext4 /dev/nvme0n1p2 rw,errors=remount-ro
-1583 1359 259:3 /brett/docker/otel/opentelemetry-php /usr/src/myapp rw,relatime - ext4 /dev/nvme0n1p3 rw
-EOS;
         $this->mountinfo->withContent($data);
         $resource = $this->detector->getResource();
 
         $this->assertCount(1, $resource->getAttributes());
         $this->assertSame($expected, $resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
+    }
+
+    public static function mountinfoProvider(): array
+    {
+        return [
+            'docker' => [
+                file_get_contents(__DIR__ . '/fixtures/v2.mountinfo.docker.txt'),
+                'a8493b8a4f6f23b65c5db50be86619ca4da078da040aa3d5ccff26fe50de205d',
+            ],
+            'podman' => [
+                file_get_contents(__DIR__ . '/fixtures/v2.mountinfo.podman.txt'),
+                '2a33efc76e519c137fe6093179653788bed6162d4a15e5131c8e835c968afbe6',
+            ],
+        ];
     }
 
     public function test_invalid_v2(): void

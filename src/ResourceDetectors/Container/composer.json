@@ -10,7 +10,7 @@
   "prefer-stable": true,
   "require": {
     "php": "^7.0|^8.0",
-    "open-telemetry/sdk": ">= 1.0.0beta10"
+    "open-telemetry/sdk": ">= 1.0.0RC1 <= 2"
   },
   "autoload": {
     "psr-4": {

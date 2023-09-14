@@ -1,0 +1,5 @@
+1366 1365 0:30 / /sys/fs/cgroup ro,nosuid,nodev,noexec,relatime - cgroup2 cgroup rw
+1408 1362 0:107 / /dev/mqueue rw,nosuid,nodev,noexec,relatime - mqueue mqueue rw
+1579 1362 0:112 / /dev/shm rw,nosuid,nodev,noexec,relatime - tmpfs shm rw,size=65536k,inode64
+1581 1359 259:2 /var/lib/docker/containers/a8493b8a4f6f23b65c5db50be86619ca4da078da040aa3d5ccff26fe50de205d/hostname /etc/hostname rw,relatime - ext4 /dev/nvme0n1p2 rw,errors=remount-ro
+1583 1359 259:3 /brett/docker/otel/opentelemetry-php /usr/src/myapp rw,relatime - ext4 /dev/nvme0n1p3 rw
