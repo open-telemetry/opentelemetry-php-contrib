@@ -1,6 +1,7 @@
 # OpenTelemetry Container Detector
 
 This package provides an OpenTelemetry `ResourceDetector` which will detect docker container id at runtime, using either V1 (cgroup) or V2 (mountinfo).
+It should work with docker, kubernetes, and podman containers.
 
 ## Requirements
 

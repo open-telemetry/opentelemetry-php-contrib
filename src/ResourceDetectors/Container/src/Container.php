@@ -11,11 +11,13 @@ use OpenTelemetry\SemConv\ResourceAttributes;
 
 /**
  * @see https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/resource/semantic_conventions/container.md
+ * @see https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/v1.29.0/instrumentation/resources/library/src/main/java/io/opentelemetry/instrumentation/resources/ContainerResource.java
  */
 final class Container implements ResourceDetectorInterface
 {
     private string $dir;
-    private const CONTAINER_ID_LENGTH = 64;
+    private const CONTAINER_ID_REGEX = '/^[0-9a-f]{64}$/';
+    private const V1_CONTAINER_ID_REGEX = '/\.?[0-9a-f]{64}\-?/';
     private const CGROUP_V1 = 'cgroup';
     private const CGROUP_V2 = 'mountinfo';
     private const HOSTNAME = 'hostname';
@@ -38,9 +40,14 @@ final class Container implements ResourceDetectorInterface
 
     private function getContainerId(): ?string
     {
-        return $this->getContainerIdV2() ?? $this->getContainerIdV1();
+        return $this->getContainerIdV1() ?? $this->getContainerIdV2();
     }
 
+    /**
+     * Each line of cgroup file looks like "14:name=systemd:/docker/.../... A hex string is expected
+     * inside the last section separated by '/' Each segment of the '/' can contain metadata separated
+     * by either '.' (at beginning) or '-' (at end)
+     */
     private function getContainerIdV1(): ?string
     {
         if (!file_exists(sprintf('%s/%s', $this->dir, self::CGROUP_V1))) {
@@ -50,11 +57,20 @@ final class Container implements ResourceDetectorInterface
         if (!$data) {
             return null;
         }
-        $lines = explode('\n', $data);
+        $lines = explode(PHP_EOL, $data);
         foreach ($lines as $line) {
-            if (strlen($line) >= self::CONTAINER_ID_LENGTH) {
-                //if string is longer than CONTAINER_ID_LENGTH, return the last CONTAINER_ID_LENGTH chars
-                return substr($line, strlen($line) - self::CONTAINER_ID_LENGTH);
+            if (strpos($line, '/') === false) {
+                continue;
+            }
+            $parts = explode('/', $line);
+            $section = end($parts);
+            $colon = strrpos($section, ':');
+            if ($colon !== false) {
+                return substr($section, $colon);
+            }
+            $matches = [];
+            if (preg_match(self::V1_CONTAINER_ID_REGEX, $section, $matches) === 1) {
+                return $matches[0];
             }
         }
 
@@ -75,7 +91,7 @@ final class Container implements ResourceDetectorInterface
             if (strpos($line, self::HOSTNAME) !== false) {
                 $parts = explode('/', $line);
                 foreach ($parts as $part) {
-                    if (strlen($part) === self::CONTAINER_ID_LENGTH) {
+                    if (preg_match(self::CONTAINER_ID_REGEX, $part) === 1) {
                         return $part;
                     }
                 }
