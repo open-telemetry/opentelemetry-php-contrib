@@ -8,5 +8,8 @@ use OpenTelemetry\SDK\Sdk;
 if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(MongoDBInstrumentation::NAME) === true) {
     return;
 }
+if (!extension_loaded('mongodb')) {
+    return;
+}
 
 MongoDBInstrumentation::register();
