@@ -31,6 +31,7 @@ class ConsoleInstrumentation
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -42,6 +43,7 @@ class ConsoleInstrumentation
                 if (!$scope) {
                     return;
                 }
+
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
@@ -68,8 +70,8 @@ class ConsoleInstrumentation
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
-                $parent = Context::getCurrent();
 
+                $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
 
@@ -80,6 +82,7 @@ class ConsoleInstrumentation
                 if (!$scope) {
                     return;
                 }
+
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 $span->addEvent('command finished', [
@@ -90,6 +93,8 @@ class ConsoleInstrumentation
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
+
+                $span->end();
             }
         );
     }
