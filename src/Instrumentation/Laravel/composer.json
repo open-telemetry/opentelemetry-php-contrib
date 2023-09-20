@@ -9,27 +9,28 @@
   "minimum-stability": "dev",
   "require": {
     "php": "^8.0",
-    "laravel/framework": ">=6.0",
+    "ext-json": "*",
     "ext-opentelemetry": "*",
+    "laravel/framework": ">=6.0",
     "open-telemetry/api": "^1.0.0beta10",
     "open-telemetry/sem-conv": "^1"
   },
   "require-dev": {
-    "laravel/sanctum": "*",
-    "nunomaduro/collision": "*",
     "friendsofphp/php-cs-fixer": "^3",
+    "guzzlehttp/guzzle": "*",
+    "laravel/sail": "*",
+    "laravel/sanctum": "*",
+    "laravel/tinker": "*",
+    "nunomaduro/collision": "*",
+    "open-telemetry/sdk": "^1.0",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.16",
-    "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^4.0",
+    "psalm/plugin-phpunit": "^0.16",
     "spatie/laravel-ignition": "*",
-    "laravel/sail": "*",
-    "laravel/tinker": "*",
-    "guzzlehttp/guzzle": "*"
+    "vimeo/psalm": "^4.0"
   },
   "autoload": {
     "psr-4": {
@@ -46,6 +47,7 @@
     }
   },
   "config": {
+    "sort-packages": true,
     "allow-plugins": {
       "php-http/discovery": false
     }

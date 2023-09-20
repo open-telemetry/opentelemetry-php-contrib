@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Instrumentation\Laravel\tests\Integration;
+namespace OpenTelemetry\Tests\Instrumentation\Laravel\Integration;
 
 use ArrayObject;
 use Illuminate\Foundation\Http\Kernel;
@@ -44,6 +44,8 @@ class LaravelInstrumentationTest extends TestCase
         $this->scope = Configurator::create()
             ->withTracerProvider($this->tracerProvider)
             ->activate();
+
+        Http::fake();
     }
 
     public function tearDown(): void
