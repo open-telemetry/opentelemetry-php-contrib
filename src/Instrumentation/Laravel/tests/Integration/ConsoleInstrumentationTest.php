@@ -54,12 +54,22 @@ class ConsoleInstrumentationTest extends TestCase
         );
 
         $this->assertEquals(Command::SUCCESS, $exitCode);
-        $this->assertCount(8, $this->storage);
+
+        /**
+         * The storage appends spans as they are marked as ended. eg: `$span->end()`.
+         * So in this test, `optimize:clear` calls additional commands which complete first
+         * and thus appear in the stack ahead of it.
+         *
+         * @see \Illuminate\Foundation\Console\OptimizeClearCommand::handle() for the additional commands/spans.
+         */
+        $count = 8;
+        $this->assertCount($count, $this->storage);
 
         /** @var ImmutableSpan $span */
-        $span = $this->storage->offsetGet(0);
+        $span = $this->storage->offsetGet(--$count);
         $this->assertSame('Artisan handler', $span->getName());
-        $span = $this->storage->offsetGet(1);
+
+        $span = $this->storage->offsetGet(--$count);
         $this->assertSame('Command optimize:clear', $span->getName());
     }
 }
