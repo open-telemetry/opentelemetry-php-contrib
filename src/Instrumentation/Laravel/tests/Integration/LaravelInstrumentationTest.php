@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
 use ArrayObject;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +48,7 @@ class LaravelInstrumentationTest extends TestCase
 
     public function test_request_response(): void
     {
-        $this->app['router']->get('/', fn () => null);
+        $this->router()->get('/', fn () => null);
 
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/');
@@ -63,7 +64,7 @@ class LaravelInstrumentationTest extends TestCase
     }
     public function test_cache_log_db(): void
     {
-        $this->app['router']->get('/hello', function () {
+        $this->router()->get('/hello', function () {
             $text = 'Hello Cruel World';
             cache()->forever('opentelemetry', 'opentelemetry');
             Log::info('Log info');
@@ -95,5 +96,11 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame(':memory:', $span->getAttributes()->get('db.name'));
         $this->assertSame('select 1', $span->getAttributes()->get('db.statement'));
         $this->assertSame('sqlite', $span->getAttributes()->get('db.system'));
+    }
+
+    private function router(): Router
+    {
+        /** @psalm-suppress PossiblyNullReference */
+        return $this->app->make(Router::class);
     }
 }

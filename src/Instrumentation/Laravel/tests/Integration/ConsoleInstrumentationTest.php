@@ -45,9 +45,7 @@ class ConsoleInstrumentationTest extends TestCase
     {
         $this->assertCount(0, $this->storage);
 
-        /** @var Kernel $kernel */
-        $kernel = $this->app[Kernel::class];
-        $exitCode = $kernel->handle(
+        $exitCode = $this->kernel()->handle(
             new \Symfony\Component\Console\Input\ArrayInput(['optimize:clear']),
             new \Symfony\Component\Console\Output\NullOutput(),
         );
@@ -70,5 +68,11 @@ class ConsoleInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(--$count);
         $this->assertSame('Command optimize:clear', $span->getName());
+    }
+
+    private function kernel(): Kernel
+    {
+        /** @psalm-suppress PossiblyNullReference */
+        return $this->app->make(Kernel::class);
     }
 }
