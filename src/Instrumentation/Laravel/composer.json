@@ -23,6 +23,7 @@
     "laravel/tinker": "*",
     "nunomaduro/collision": "*",
     "open-telemetry/sdk": "^1.0",
+    "orchestra/testbench": ">=4.0",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^1.1",
