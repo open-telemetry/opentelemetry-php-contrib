@@ -47,6 +47,7 @@
     }
   },
   "config": {
+    "lock": false,
     "sort-packages": true,
     "allow-plugins": {
       "php-http/discovery": false
