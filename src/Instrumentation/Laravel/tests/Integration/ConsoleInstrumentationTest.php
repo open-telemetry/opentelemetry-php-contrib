@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Instrumentation\Laravel\Integration;
+namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
 use ArrayObject;
 use Illuminate\Console\Command;
@@ -13,7 +13,6 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\Tests\Instrumentation\Laravel\TestCase;
 
 class ConsoleInstrumentationTest extends TestCase
 {
