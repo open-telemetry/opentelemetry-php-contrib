@@ -2,27 +2,19 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Instrumentation\Laravel\Integration;
+namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
 use ArrayObject;
-use Illuminate\Foundation\Http\Kernel;
-use Illuminate\Http\Response;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\Tests\Instrumentation\Laravel\TestCase;
-
-class ByPassRouterKernel extends Kernel
-{
-    protected function sendRequestThroughRouter($request)
-    {
-        return new Response();
-    }
-}
 
 class LaravelInstrumentationTest extends TestCase
 {
@@ -56,6 +48,8 @@ class LaravelInstrumentationTest extends TestCase
 
     public function test_request_response(): void
     {
+        $this->router()->get('/', fn () => null);
+
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/');
         $this->assertEquals(200, $response->status());
@@ -70,6 +64,18 @@ class LaravelInstrumentationTest extends TestCase
     }
     public function test_cache_log_db(): void
     {
+        $this->router()->get('/hello', function () {
+            $text = 'Hello Cruel World';
+            cache()->forever('opentelemetry', 'opentelemetry');
+            Log::info('Log info');
+            cache()->get('opentelemetry.io', 'php');
+            cache()->get('opentelemetry', 'php');
+            cache()->forget('opentelemetry');
+            DB::select('select 1');
+
+            return view('welcome', ['text' => $text]);
+        });
+
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
@@ -90,5 +96,11 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame(':memory:', $span->getAttributes()->get('db.name'));
         $this->assertSame('select 1', $span->getAttributes()->get('db.statement'));
         $this->assertSame('sqlite', $span->getAttributes()->get('db.system'));
+    }
+
+    private function router(): Router
+    {
+        /** @psalm-suppress PossiblyNullReference */
+        return $this->app->make(Router::class);
     }
 }

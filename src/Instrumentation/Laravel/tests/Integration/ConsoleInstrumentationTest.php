@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Instrumentation\Laravel\Integration;
+namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
 use ArrayObject;
 use Illuminate\Console\Command;
@@ -13,7 +13,6 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\Tests\Instrumentation\Laravel\TestCase;
 
 class ConsoleInstrumentationTest extends TestCase
 {
@@ -46,9 +45,7 @@ class ConsoleInstrumentationTest extends TestCase
     {
         $this->assertCount(0, $this->storage);
 
-        /** @var Kernel $kernel */
-        $kernel = $this->app[Kernel::class];
-        $exitCode = $kernel->handle(
+        $exitCode = $this->kernel()->handle(
             new \Symfony\Component\Console\Input\ArrayInput(['optimize:clear']),
             new \Symfony\Component\Console\Output\NullOutput(),
         );
@@ -71,5 +68,11 @@ class ConsoleInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(--$count);
         $this->assertSame('Command optimize:clear', $span->getName());
+    }
+
+    private function kernel(): Kernel
+    {
+        /** @psalm-suppress PossiblyNullReference */
+        return $this->app->make(Kernel::class);
     }
 }
