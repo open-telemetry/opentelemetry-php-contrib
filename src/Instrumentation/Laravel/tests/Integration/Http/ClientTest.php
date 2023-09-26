@@ -39,13 +39,12 @@ class ClientTest extends TestCase
     /** @test */
     public function it_records_connection_failures(): void
     {
-        Http::fake(fn (Request $request) => new RejectedPromise(
-            new ConnectException('Failure', $request->toPsrRequest())),
-        );
+        Http::fake(fn (Request $request) => new RejectedPromise(new ConnectException('Failure', $request->toPsrRequest())));
 
         try {
             Http::patch('/fail');
-        } catch (\Exception) {}
+        } catch (\Exception) {
+        }
 
         $span = $this->storage[0];
         self::assertEquals('HTTP PATCH', $span->getName());
