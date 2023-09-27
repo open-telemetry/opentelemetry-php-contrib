@@ -38,3 +38,11 @@ From Symfony subdirectory:
 $ composer install
 $ ./vendor/bin/phpunit tests
 ```
+
+## Configuration
+
+The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
+
+```shell
+OTEL_PHP_DISABLED_INSTRUMENTATIONS=symfony
+```
