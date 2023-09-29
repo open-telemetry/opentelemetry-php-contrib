@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Psr3;
 
-use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs as API;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
@@ -89,7 +89,7 @@ class Psr3Instrumentation
 
     private static function getMode(): string
     {
-        $resolver = Globals::configurationResolver();
+        $resolver = new ConfigurationResolver();
         if ($resolver->has(self::OTEL_PHP_PSR3_MODE)) {
             $val = $resolver->getString(self::OTEL_PHP_PSR3_MODE);
             if ($val && in_array($val, self::MODES)) {
