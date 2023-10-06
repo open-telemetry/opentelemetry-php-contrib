@@ -21,27 +21,30 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
+/**
+ * @covers \OpenTelemetry\Contrib\Instrumentation\HttpAsyncClient\HttpAsyncClientInstrumentation
+ * @covers \OpenTelemetry\Contrib\Instrumentation\HttpAsyncClient\HeadersPropagator
+ */
 class HttpAsyncClientInstrumentationTest extends TestCase
 {
     // @var HttpAsyncClient&MockObject $client
     private $client;
     private ScopeInterface $scope;
     private ArrayObject $storage;
-    private TracerProvider $tracerProvider;
 
     public function setUp(): void
     {
         $this->client = $this->createMock(HttpAsyncClient::class);
 
         $this->storage = new ArrayObject();
-        $this->tracerProvider = new TracerProvider(
+        $tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
                 new InMemoryExporter($this->storage)
             )
         );
 
         $this->scope = Configurator::create()
-            ->withTracerProvider($this->tracerProvider)
+            ->withTracerProvider($tracerProvider)
             ->withPropagator(TraceContextPropagator::getInstance())
             ->activate();
     }
@@ -63,7 +66,7 @@ class HttpAsyncClientInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $this->client->sendAsyncRequest($request);
         $this->client->sendAsyncRequest($request);
-        $this->assertCount(0, $this->storage, 'no spans exporter since promises are not resolved yet');
+        $this->assertCount(0, $this->storage, 'no spans exported since promises are not resolved yet');
 
         //resolve promises
         try {
