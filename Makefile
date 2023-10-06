@@ -25,7 +25,7 @@ test-unit: ## Run unit tests
 test-integration: ## Run integration tests
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testsuite integration  --testdox --colors=always
 test-coverage: ## Run unit tests and generate coverage
-	$(DC_RUN_PHP) env XDEBUG_MODE=coverage vendor/bin/phpunit --testsuite unit --coverage-html=tests/coverage/html
+	$(DC_RUN_PHP) env XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html=tests/coverage/html
 phan: ## Run phan
 	$(DC_RUN_PHP) env XDEBUG_MODE=off env PHAN_DISABLE_XDEBUG_WARN=1 vendor/bin/phan
 psalm: ## Run psalm

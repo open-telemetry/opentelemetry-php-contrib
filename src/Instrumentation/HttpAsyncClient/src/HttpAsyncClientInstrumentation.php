@@ -62,7 +62,6 @@ class HttpAsyncClientInstrumentation
                 foreach ($propagator->fields() as $field) {
                     $request = $request->withoutHeader($field);
                 }
-                //@todo could we use SDK Configuration to retrieve this, and move into a key such as OTEL_PHP_xxx?
                 foreach ((array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []) as $header) {
                     if ($request->hasHeader($header)) {
                         $spanBuilder->setAttribute(
@@ -84,7 +83,6 @@ class HttpAsyncClientInstrumentation
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
-                //@todo do we need the second part of this 'or'?
                 if (!$scope || $scope->context() === Context::getCurrent()) {
                     return;
                 }
