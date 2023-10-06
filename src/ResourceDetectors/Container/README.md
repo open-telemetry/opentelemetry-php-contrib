@@ -1,3 +1,12 @@
+[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-detector-container/releases)
+[![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
+[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/ResourceDetectors/Container)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-detector-container)
+[![Latest Version](http://poser.pugx.org/open-telemetry/detector-container/v/unstable)](https://packagist.org/packages/open-telemetry/detector-container/)
+[![Stable](http://poser.pugx.org/open-telemetry/detector-container/v/stable)](https://packagist.org/packages/open-telemetry/detector-container/)
+
+This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
+
 # OpenTelemetry Container Detector
 
 This package provides an OpenTelemetry `ResourceDetector` which will detect docker container id at runtime, using either V1 (cgroup) or V2 (mountinfo).

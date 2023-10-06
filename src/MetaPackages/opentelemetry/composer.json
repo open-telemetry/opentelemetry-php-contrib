@@ -6,12 +6,13 @@
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
   "license": "Apache-2.0",
+  "minimum-stability": "rc",
   "require": {
-    "open-telemetry/api": "^1-beta",
-    "open-telemetry/context": "^1-beta",
-    "open-telemetry/sdk": "^1-beta",
-    "open-telemetry/exporter-otlp": "^1-beta",
-    "open-telemetry/exporter-zipkin": "^1-beta",
+    "open-telemetry/api": "^1-rc",
+    "open-telemetry/context": "^1-rc",
+    "open-telemetry/sdk": "^1-rc",
+    "open-telemetry/exporter-otlp": "^1-rc",
+    "open-telemetry/exporter-zipkin": "^1-rc",
     "symfony/http-client": "^5|^6",
     "nyholm/psr7": "^1.5"
   },
@@ -20,5 +21,10 @@
       "name": "opentelemetry-php contributors",
       "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
     }
-  ]
+  ],
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false
+    }
+  }
 }

@@ -1,22 +1,22 @@
+[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-auto-psr3/releases)
+[![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
+[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Instrumentation/Psr3)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-auto-psr3)
+[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-auto-psr3/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-psr3/)
+[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-auto-psr3/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-psr3/)
+
+This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
+
 # OpenTelemetry PSR-3 auto-instrumentation
 
-## Requirements
-
-- [OpenTelemetry extension](https://opentelemetry.io/docs/instrumentation/php/automatic/#installation)
-- OpenTelemetry SDK and exporter (required to actually export signal data)
-- A psr-3 logger
-- OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
+Please read https://opentelemetry.io/docs/instrumentation/php/automatic/ for instructions on how to
+install and configure the extension and SDK.
 
 ## Overview
-
 Auto-instrumentation hooks are registered via composer, and depending on the mode, will:
 
 * automatically inject trace id and span id into log message context of any psr3 logger; or
 * transform the message into the OpenTelemetry LogRecord format, for export to an OpenTelemetry logging-compatible backend
-
-### Using SDK autoloading
-
-See https://github.com/open-telemetry/opentelemetry-php#sdk-autoloading
 
 ## Mode
 
@@ -51,20 +51,10 @@ $logger = /* create logger */
 $logger->info('Hello, OTEL');
 ```
 
-## Installation via composer
-
-```bash
-composer require open-telemetry/opentelemetry-auto-psr3
-```
-
 ## Configuration
 
-Parts of this auto-instrumentation library can be configured, more options are available through the
-[General SDK Configuration](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md#general-sdk-configuration):
+The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
 
-| Name                               | Default value | Values                  | Example | Description                                                                     |
-| ---------------------------------- |---------------| ----------------------- |---------|---------------------------------------------------------------------------------|
-| OTEL_PHP_DISABLED_INSTRUMENTATIONS | []            | Instrumentation name(s) | psr3    | Disable one or more installed auto-instrumentations, names are comma seperated. |
-| OTEL_PHP_PSR3_MODE                 | inject        | inject, export          | export  | Change the behaviour of the package                                             |
-
-Configurations can be provided as environment variables, or via `php.ini` (or a file included by `php.ini`)
+```shell
+OTEL_PHP_DISABLED_INSTRUMENTATIONS=psr3
+```
