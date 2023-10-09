@@ -1,0 +1,46 @@
+{
+    "name": "open-telemetry/opentelemetry-auto-codeigniter",
+    "description": "OpenTelemetry auto-instrumentation for CodeIgniter",
+    "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "codeigniter", "instrumentation"],
+    "type": "library",
+    "homepage": "https://opentelemetry.io/docs/php",
+    "readme": "./README.md",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "require": {
+      "php": "^8.0",
+      "ext-opentelemetry": "*",
+      "codeigniter4/framework": ">=4.0",
+      "open-telemetry/api": "^1.0.0beta10",
+      "open-telemetry/sem-conv": "^1"
+    },
+    "require-dev": {
+      "friendsofphp/php-cs-fixer": "^3",
+      "open-telemetry/sdk": "^1.0",
+      "phan/phan": "^5.0",
+      "php-http/mock-client": "*",
+      "phpstan/phpstan": "^1.1",
+      "phpstan/phpstan-phpunit": "^1.0",
+      "psalm/plugin-phpunit": "^0.16",
+      "phpunit/phpunit": "^9.5",
+      "vimeo/psalm": "^4.0"
+    },
+    "autoload": {
+      "psr-4": {
+        "OpenTelemetry\\Contrib\\Instrumentation\\CodeIgniter\\": "src/"
+      },
+      "files": [
+        "_register.php"
+      ]
+    },
+    "autoload-dev": {
+      "psr-4": {
+        "OpenTelemetry\\Tests\\Instrumentation\\CodeIgniter\\": "tests/"
+      }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    }
+}
