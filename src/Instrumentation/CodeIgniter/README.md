@@ -13,14 +13,45 @@
 
 ## Overview
 
-The following features are supported:
-* root span creation (`CodeIgniter\CodeIgniter::handleRequest` hook)
-* context propagation
+Currently only root span creation is supported (`CodeIgniter\CodeIgniter::handleRequest` hook).
+
+To export spans, you will need to create and register a `TracerProvider` early in your application's
+lifecycle. This can be done either manually or using SDK autoloading.
+
+### Using SDK autoloading
+
+See https://github.com/open-telemetry/opentelemetry-php#sdk-autoloading
+
+### Manual setup
+
+```php
+<?php
+require_once 'vendor/autoload.php';
+
+$tracerProvider = /*create tracer provider*/;
+$scope = \OpenTelemetry\API\Instrumentation\Configurator::create()
+    ->withTracerProvider($tracerProvider)
+    ->activate();
+
+//your application runs here
+
+$scope->detach();
+$tracerProvider->shutdown();
+```
 
 ## Installation via composer
 
 ```bash
 $ composer require open-telemetry/opentelemetry-auto-codeigniter
+```
+
+## Installing dependencies and executing tests
+
+From CodeIgniter subdirectory:
+
+```bash
+$ composer install
+$ ./vendor/bin/phpunit tests
 ```
 
 ## Configuration
