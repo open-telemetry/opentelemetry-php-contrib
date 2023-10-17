@@ -28,6 +28,7 @@ jobs:
           'Instrumentation/Symfony',
           'Instrumentation/Laravel',
           'Instrumentation/MongoDB',
+          'Instrumentation/CodeIgniter',
           'Logs/Monolog',
           'Propagation/TraceResponse',
           'ResourceDetectors/Container',
@@ -50,6 +51,8 @@ jobs:
           - project: 'Instrumentation/Symfony'
             php-version: 7.4
           - project: 'Instrumentation/Laravel'
+            php-version: 7.4
+          - project: 'Instrumentation/CodeIgniter'
             php-version: 7.4
           - project: 'Instrumentation/IO'
             php-version: 8.0
