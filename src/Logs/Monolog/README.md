@@ -34,7 +34,7 @@ Logs must be emitted to a receiver/system that understands the OpenTelemetry pro
 ## Installation
 
 ```shell
-composer require open-telemetry/logger-monolog
+composer require open-telemetry/opentelemetry-logger-monolog
 ```
 
 ## Usage
