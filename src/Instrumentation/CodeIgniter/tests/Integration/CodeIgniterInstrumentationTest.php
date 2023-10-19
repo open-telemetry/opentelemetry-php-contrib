@@ -26,13 +26,13 @@ class CodeIgniterInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('HTTP GET', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/index.php/home', $attributes->get(TraceAttributes::HTTP_URL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::HTTP_SCHEME));
+        $this->assertEquals('http://example.com/index.php/home', $attributes->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
         $this->assertEquals('Home.index', $attributes->get(TraceAttributes::HTTP_ROUTE));
-        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_STATUS_CODE));
-        $this->assertEquals('1.1', $attributes->get(TraceAttributes::HTTP_FLAVOR));
-        $this->assertGreaterThan(0, $attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
+        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEquals('1.1', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertGreaterThan(0, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
     }
 
     public function test_exception()
@@ -56,13 +56,13 @@ class CodeIgniterInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('HTTP GET', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/index.php/exception', $attributes->get(TraceAttributes::HTTP_URL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::HTTP_SCHEME));
+        $this->assertEquals('http://example.com/index.php/exception', $attributes->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
         $this->assertEquals('Closure.index', $attributes->get(TraceAttributes::HTTP_ROUTE));
-        $this->assertNull($attributes->get(TraceAttributes::HTTP_STATUS_CODE));
-        $this->assertNull($attributes->get(TraceAttributes::HTTP_FLAVOR));
-        $this->assertNull($attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
+        $this->assertNull($attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertNull($attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertNull($attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
 
         $status = $this->storage[0]->getStatus();
         $this->assertEquals('Error', $status->getCode());

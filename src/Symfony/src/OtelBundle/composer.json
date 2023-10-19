@@ -9,7 +9,7 @@
         "composer-runtime-api": "^2.0",
         "open-telemetry/api": "^0.0.14",
         "open-telemetry/context": "^0.0.14",
-        "open-telemetry/sem-conv": "^0.0.14",
+        "open-telemetry/sem-conv": "^1.22",
         "symfony/config": "^4.4 || ^5.4 || ^6.1",
         "symfony/dependency-injection": "^4.4 || ^5.4 || ^6.1"
     },

@@ -160,8 +160,8 @@ final class RequestListener implements EventSubscriberInterface
         }
 
         $response = $event->getResponse();
-        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->headers->get('Content-Length'));
-        $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
+        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->headers->get('Content-Length'));
+        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
         if ($response->getStatusCode() >= 500 && $response->getStatusCode() < 600) {
             $span->setStatus(StatusCode::STATUS_ERROR);
         }
@@ -233,23 +233,23 @@ final class RequestListener implements EventSubscriberInterface
     private function requestAttributes(Request $request): iterable
     {
         return [
-            TraceAttributes::HTTP_METHOD => $request->getMethod(),
-            TraceAttributes::HTTP_TARGET => $request->getRequestUri(),
+            TraceAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
+            TraceAttributes::URL_PATH => $request->getRequestUri(),
             self::TRACE_ATTRIBUTE_HTTP_HOST => $request->getHttpHost(),
-            TraceAttributes::HTTP_SCHEME => $request->getScheme(),
-            TraceAttributes::HTTP_FLAVOR => ($protocolVersion = $request->getProtocolVersion()) !== null
+            TraceAttributes::URL_SCHEME => $request->getScheme(),
+            TraceAttributes::NETWORK_PROTOCOL_VERSION => ($protocolVersion = $request->getProtocolVersion()) !== null
                 ? strtr($protocolVersion, ['HTTP/' => ''])
                 : null,
             self::TRACE_ATTRIBUTE_HTTP_USER_AGENT => $request->headers->get('User-Agent'),
-            TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH => $request->headers->get('Content-Length'),
-            TraceAttributes::HTTP_CLIENT_IP => $request->getClientIp(),
+            TraceAttributes::HTTP_REQUEST_BODY_SIZE => $request->headers->get('Content-Length'),
+            TraceAttributes::NETWORK_PEER_ADDRESS => $request->getClientIp(),
 
             self::TRACE_ATTRIBUTE_NET_PEER_IP => $request->server->get('REMOTE_ADDR'),
-            TraceAttributes::NET_PEER_PORT => $request->server->get('REMOTE_PORT'),
-            TraceAttributes::NET_PEER_NAME => $request->server->get('REMOTE_HOST'),
+            TraceAttributes::CLIENT_PORT => $request->server->get('REMOTE_PORT'),
+            TraceAttributes::CLIENT_ADDRESS => $request->server->get('REMOTE_HOST'),
             self::TRACE_ATTRIBUTE_NET_HOST_IP => $request->server->get('SERVER_ADDR'),
-            TraceAttributes::NET_HOST_PORT => $request->server->get('SERVER_PORT'),
-            TraceAttributes::NET_HOST_NAME => $request->server->get('SERVER_NAME'),
+            TraceAttributes::SERVER_PORT => $request->server->get('SERVER_PORT'),
+            TraceAttributes::SERVER_ADDRESS => $request->server->get('SERVER_NAME'),
         ];
     }
 

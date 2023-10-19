@@ -49,13 +49,13 @@ class Psr18Instrumentation
                     ->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
-                    ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
-                    ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
+                    ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(TraceAttributes::HTTP_USER_AGENT, $request->getHeaderLine('User-Agent'))
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $request->getUri()->getHost())
-                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $request->getUri()->getPort())
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
@@ -95,9 +95,9 @@ class Psr18Instrumentation
                 $span = Span::fromContext($scope->context());
 
                 if ($response) {
-                    $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->getHeaderLine('Content-Length'));
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
 
                     foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                         if ($response->hasHeader($header)) {

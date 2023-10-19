@@ -80,12 +80,12 @@ class Psr18InstrumentationTest extends TestCase
         $span = $this->storage[0];
 
         $this->assertStringContainsString($method, $span->getName());
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_URL));
-        $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::HTTP_URL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_METHOD));
-        $this->assertSame($method, $span->getAttributes()->get(TraceAttributes::HTTP_METHOD));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_STATUS_CODE));
-        $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_STATUS_CODE));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
+        $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame($method, $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     public function requestProvider(): array

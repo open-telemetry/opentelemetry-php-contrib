@@ -89,10 +89,10 @@ class Psr15Instrumentation
                     $parent = Globals::propagator()->extract($request->getHeaders());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::HTTP_URL, $request->getUri()->__toString())
-                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
-                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme())
+                        ->setAttribute(TraceAttributes::URL_FULL, $request->getUri()->__toString())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
                         ->startSpan();
                     $request = $request->withAttribute(SpanInterface::class, $span);
                 } else {
@@ -117,9 +117,9 @@ class Psr15Instrumentation
                     if ($response->getStatusCode() >= 400) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
-                    $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->getHeaderLine('Content-Length'));
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
                 }
 
                 $span->end();

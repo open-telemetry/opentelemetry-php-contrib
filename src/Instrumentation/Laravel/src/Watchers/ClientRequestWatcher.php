@@ -47,13 +47,13 @@ class ClientRequestWatcher extends Watcher
         $span = $this->instrumentation->tracer()->spanBuilder('HTTP ' . $request->request->method())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
-                TraceAttributes::HTTP_METHOD => $request->request->method(),
-                TraceAttributes::HTTP_URL => $processedUrl,
-                TraceAttributes::HTTP_TARGET => $parsedUrl['path'] ?? '',
+                TraceAttributes::HTTP_REQUEST_METHOD => $request->request->method(),
+                TraceAttributes::URL_FULL => $processedUrl,
+                TraceAttributes::URL_PATH => $parsedUrl['path'] ?? '',
                 TraceAttributes::HTTP_HOST => $parsedUrl['host'] ?? '',
-                TraceAttributes::HTTP_SCHEME => $parsedUrl['scheme'] ?? '',
-                TraceAttributes::NET_PEER_NAME => $parsedUrl['host'] ?? '',
-                TraceAttributes::NET_PEER_PORT => $parsedUrl['port'] ?? '',
+                TraceAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? '',
+                TraceAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? '',
+                TraceAttributes::SERVER_PORT => $parsedUrl['port'] ?? '',
             ])
             ->startSpan();
         $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
@@ -84,8 +84,8 @@ class ClientRequestWatcher extends Watcher
         }
 
         $span->setAttributes([
-            TraceAttributes::HTTP_STATUS_CODE => $request->response->status(),
-            TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH => $request->response->header('Content-Length'),
+            TraceAttributes::HTTP_RESPONSE_STATUS_CODE => $request->response->status(),
+            TraceAttributes::HTTP_RESPONSE_BODY_SIZE => $request->response->header('Content-Length'),
         ]);
 
         $this->maybeRecordError($span, $request->response);

@@ -40,16 +40,16 @@ class HttpInstrumentation
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::HTTP_URL, $request->fullUrl())
-                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request->method())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->header('Content-Length'))
-                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getScheme())
-                        ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
-                        ->setAttribute(TraceAttributes::HTTP_CLIENT_IP, $request->ip())
-                        ->setAttribute(TraceAttributes::HTTP_TARGET, self::httpTarget($request))
-                        ->setAttribute(TraceAttributes::NET_HOST_NAME, self::httpHostName($request))
-                        ->setAttribute(TraceAttributes::NET_HOST_PORT, $request->getPort())
-                        ->setAttribute(TraceAttributes::NET_PEER_PORT, $request->server('REMOTE_PORT'))
+                        ->setAttribute(TraceAttributes::URL_FULL, $request->fullUrl())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->method())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
+                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
+                        ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
+                        ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $request->ip())
+                        ->setAttribute(TraceAttributes::URL_PATH, self::httpTarget($request))
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, self::httpHostName($request))
+                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
+                        ->setAttribute(TraceAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
                         ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->userAgent())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
@@ -75,9 +75,9 @@ class HttpInstrumentation
                     if ($response->getStatusCode() >= 400) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
-                    $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->headers->get('Content-Length'));
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->headers->get('Content-Length'));
                 }
 
                 $span->end();
