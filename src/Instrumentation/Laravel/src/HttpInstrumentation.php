@@ -44,7 +44,7 @@ class HttpInstrumentation
                         ->setAttribute(TraceAttributes::HTTP_METHOD, $request->method())
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getScheme())
-                        ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
+                        ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                         ->setAttribute(TraceAttributes::HTTP_CLIENT_IP, $request->ip())
                         ->setAttribute(TraceAttributes::HTTP_TARGET, self::httpTarget($request))
                         ->setAttribute(TraceAttributes::NET_HOST_NAME, self::httpHostName($request))
@@ -76,7 +76,7 @@ class HttpInstrumentation
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
                     $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $response->headers->get('Content-Length'));
                 }
 

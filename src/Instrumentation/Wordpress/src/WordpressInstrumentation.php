@@ -89,7 +89,7 @@ class WordpressInstrumentation
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
                     ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod())
-                    ->setAttribute(TraceAttributes::HTTP_FLAVOR, $request->getProtocolVersion())
+                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(TraceAttributes::HTTP_USER_AGENT, $request->getHeaderLine('User-Agent'))
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
                     ->setAttribute(TraceAttributes::NET_PEER_NAME, $request->getUri()->getHost())

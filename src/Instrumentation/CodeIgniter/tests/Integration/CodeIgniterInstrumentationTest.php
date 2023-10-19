@@ -31,7 +31,7 @@ class CodeIgniterInstrumentationTest extends AbstractTest
         $this->assertEquals('http', $attributes->get(TraceAttributes::HTTP_SCHEME));
         $this->assertEquals('Home.index', $attributes->get(TraceAttributes::HTTP_ROUTE));
         $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_STATUS_CODE));
-        $this->assertEquals('1.1', $attributes->get(TraceAttributes::HTTP_FLAVOR));
+        $this->assertEquals('1.1', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
         $this->assertGreaterThan(0, $attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
     }
 
@@ -61,7 +61,7 @@ class CodeIgniterInstrumentationTest extends AbstractTest
         $this->assertEquals('http', $attributes->get(TraceAttributes::HTTP_SCHEME));
         $this->assertEquals('Closure.index', $attributes->get(TraceAttributes::HTTP_ROUTE));
         $this->assertNull($attributes->get(TraceAttributes::HTTP_STATUS_CODE));
-        $this->assertNull($attributes->get(TraceAttributes::HTTP_FLAVOR));
+        $this->assertNull($attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
         $this->assertNull($attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
 
         $status = $this->storage[0]->getStatus();

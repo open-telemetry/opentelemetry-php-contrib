@@ -237,7 +237,7 @@ final class RequestListener implements EventSubscriberInterface
             TraceAttributes::HTTP_TARGET => $request->getRequestUri(),
             self::TRACE_ATTRIBUTE_HTTP_HOST => $request->getHttpHost(),
             TraceAttributes::HTTP_SCHEME => $request->getScheme(),
-            TraceAttributes::HTTP_FLAVOR => ($protocolVersion = $request->getProtocolVersion()) !== null
+            TraceAttributes::NETWORK_PROTOCOL_VERSION => ($protocolVersion = $request->getProtocolVersion()) !== null
                 ? strtr($protocolVersion, ['HTTP/' => ''])
                 : null,
             self::TRACE_ATTRIBUTE_HTTP_USER_AGENT => $request->headers->get('User-Agent'),

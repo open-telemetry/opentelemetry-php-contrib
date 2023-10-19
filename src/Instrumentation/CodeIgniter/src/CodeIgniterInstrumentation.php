@@ -98,7 +98,7 @@ class CodeIgniterInstrumentation
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
                     $statusCode = $response->getStatusCode();
                     $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $statusCode);
-                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, CodeIgniterInstrumentation::getResponseLength($response));
 
                     foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {

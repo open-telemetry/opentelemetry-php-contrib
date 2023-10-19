@@ -104,7 +104,7 @@ final class SymfonyInstrumentation
                     $span->setStatus(StatusCode::STATUS_ERROR);
                 }
                 $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $response->getStatusCode());
-                $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
+                $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                 $contentLength = $response->headers->get('Content-Length');
                 /** @psalm-suppress PossiblyFalseArgument */
                 if (null === $contentLength && is_string($response->getContent())) {
