@@ -50,7 +50,6 @@ class ClientRequestWatcher extends Watcher
                 TraceAttributes::HTTP_REQUEST_METHOD => $request->request->method(),
                 TraceAttributes::URL_FULL => $processedUrl,
                 TraceAttributes::URL_PATH => $parsedUrl['path'] ?? '',
-                TraceAttributes::HTTP_HOST => $parsedUrl['host'] ?? '',
                 TraceAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? '',
                 TraceAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? '',
                 TraceAttributes::SERVER_PORT => $parsedUrl['port'] ?? '',
