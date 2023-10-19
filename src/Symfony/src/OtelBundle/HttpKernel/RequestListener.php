@@ -242,7 +242,7 @@ final class RequestListener implements EventSubscriberInterface
                 : null,
             self::TRACE_ATTRIBUTE_HTTP_USER_AGENT => $request->headers->get('User-Agent'),
             TraceAttributes::HTTP_REQUEST_BODY_SIZE => $request->headers->get('Content-Length'),
-            TraceAttributes::NET_SOCK_PEER_ADDR => $request->getClientIp(),
+            TraceAttributes::NETWORK_PEER_ADDRESS => $request->getClientIp(),
 
             self::TRACE_ATTRIBUTE_NET_PEER_IP => $request->server->get('REMOTE_ADDR'),
             TraceAttributes::CLIENT_PORT => $request->server->get('REMOTE_PORT'),

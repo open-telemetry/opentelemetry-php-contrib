@@ -45,7 +45,7 @@ class HttpInstrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                        ->setAttribute(TraceAttributes::NET_SOCK_PEER_ADDR, $request->ip())
+                        ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $request->ip())
                         ->setAttribute(TraceAttributes::URL_PATH, self::httpTarget($request))
                         ->setAttribute(TraceAttributes::SERVER_ADDRESS, self::httpHostName($request))
                         ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
