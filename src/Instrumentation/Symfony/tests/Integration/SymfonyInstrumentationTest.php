@@ -48,7 +48,7 @@ class SymfonyInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('HTTP GET', $this->storage[0]->getName());
+        $this->assertEquals('GET test_route', $this->storage[0]->getName());
         $this->assertEquals('http://:/', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
