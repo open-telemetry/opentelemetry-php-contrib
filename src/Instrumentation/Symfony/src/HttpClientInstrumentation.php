@@ -38,8 +38,8 @@ final class HttpClientInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('HTTP %s', $params[0]))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::HTTP_URL, (string) $params[1])
-                    ->setAttribute(TraceAttributes::HTTP_METHOD, $params[0])
+                    ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
@@ -72,10 +72,10 @@ final class HttpClientInstrumentation
                     $statusCode = $info['http_code'];
 
                     if (0 !== $statusCode && null !== $statusCode && $span->isRecording()) {
-                        $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $statusCode);
+                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
 
                         if ($statusCode >= 400 && $statusCode < 600) {
-                            $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $statusCode);
+                            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
                             $span->setStatus(StatusCode::STATUS_ERROR);
                         }
 
