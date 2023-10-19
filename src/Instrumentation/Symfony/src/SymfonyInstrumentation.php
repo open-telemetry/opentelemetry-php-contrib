@@ -83,7 +83,9 @@ final class SymfonyInstrumentation
                     $routeName = $request->attributes->get('_route', '');
 
                     if ('' !== $routeName) {
-                        $span->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                        $span
+                            ->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
+                            ->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
                     }
                 }
 
