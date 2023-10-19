@@ -49,13 +49,13 @@ class SymfonyInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('HTTP GET', $this->storage[0]->getName());
-        $this->assertEquals('http://:/', $attributes->get(TraceAttributes::HTTP_URL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::HTTP_SCHEME));
+        $this->assertEquals('http://:/', $attributes->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
         $this->assertEquals('test_route', $attributes->get(TraceAttributes::HTTP_ROUTE));
-        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_STATUS_CODE));
-        $this->assertEquals('1.0', $attributes->get(TraceAttributes::HTTP_FLAVOR));
-        $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
+        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEquals('1.0', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
 
         $this->assertArrayHasKey(
             TraceResponsePropagator::TRACERESPONSE,
@@ -74,7 +74,7 @@ class SymfonyInstrumentationTest extends AbstractTest
 
         $response = $kernel->handle(new Request());
         $this->assertCount(1, $this->storage);
-        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
+        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
 
         $this->assertArrayHasKey(
             TraceResponsePropagator::TRACERESPONSE,
@@ -90,7 +90,7 @@ class SymfonyInstrumentationTest extends AbstractTest
 
         $response = $kernel->handle(new Request());
         $this->assertCount(1, $this->storage);
-        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH));
+        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
 
         $this->assertArrayHasKey(
             TraceResponsePropagator::TRACERESPONSE,

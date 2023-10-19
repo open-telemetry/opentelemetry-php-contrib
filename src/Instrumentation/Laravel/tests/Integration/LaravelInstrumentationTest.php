@@ -82,7 +82,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(2, $this->storage);
         $span = $this->storage->offsetGet(1);
         $this->assertSame('HTTP GET', $span->getName());
-        $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::HTTP_URL));
+        $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertCount(5, $span->getEvents());
         $this->assertSame('cache set', $span->getEvents()[0]->getName());
         $this->assertSame('Log info', $span->getEvents()[1]->getName());

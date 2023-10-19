@@ -68,11 +68,11 @@ class CodeIgniterInstrumentation
 
                     /** @psalm-suppress DeprecatedMethod */
                     $spanBuilder = $spanBuilder->setParent($parent)
-                        ->setAttribute(TraceAttributes::HTTP_URL, (string) $request->getUri())
+                        ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
                         /** @phan-suppress-next-line PhanDeprecatedFunction */
-                        ->setAttribute(TraceAttributes::HTTP_METHOD, $request->getMethod(true))
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_CONTENT_LENGTH, $request->getHeaderLine('Content-Length'))
-                        ->setAttribute(TraceAttributes::HTTP_SCHEME, $request->getUri()->getScheme());
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod(true))
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme());
                 }
 
                 $span = $spanBuilder->startSpan();
@@ -97,9 +97,9 @@ class CodeIgniterInstrumentation
                     /** @psalm-suppress DeprecatedMethod */
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
                     $statusCode = $response->getStatusCode();
-                    $span->setAttribute(TraceAttributes::HTTP_STATUS_CODE, $statusCode);
-                    $span->setAttribute(TraceAttributes::HTTP_FLAVOR, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, CodeIgniterInstrumentation::getResponseLength($response));
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, CodeIgniterInstrumentation::getResponseLength($response));
 
                     foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                         if ($response->hasHeader($header)) {

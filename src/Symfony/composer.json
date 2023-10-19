@@ -14,7 +14,7 @@
         "open-telemetry/context": "^1",
         "open-telemetry/exporter-otlp": "^1",
         "open-telemetry/exporter-zipkin": "^1",
-        "open-telemetry/sem-conv": "^1",
+        "open-telemetry/sem-conv": "^1.22",
         "php-http/discovery": "^1.14",
         "php-http/message": "^1.12"
     },
