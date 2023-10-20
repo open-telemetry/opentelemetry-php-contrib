@@ -90,7 +90,7 @@ class WordpressInstrumentation
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                    ->setAttribute(TraceAttributes::HTTP_USER_AGENT, $request->getHeaderLine('User-Agent'))
+                    ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
                     ->setAttribute(TraceAttributes::CLIENT_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::CLIENT_PORT, $request->getUri()->getPort())
