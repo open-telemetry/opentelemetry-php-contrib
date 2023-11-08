@@ -54,7 +54,7 @@ class CodeIgniterInstrumentation
                 $spanBuilder = $instrumentation
                     ->tracer()
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
-                    ->spanBuilder(\sprintf('HTTP %s', $request?->getMethod(true) ?? 'unknown'))
+                    ->spanBuilder(\sprintf('%s', $request?->getMethod(true) ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -69,6 +69,7 @@ class CodeIgniterInstrumentation
                     /** @psalm-suppress DeprecatedMethod */
                     $spanBuilder = $spanBuilder->setParent($parent)
                         ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
+                        ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
                         /** @phan-suppress-next-line PhanDeprecatedFunction */
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod(true))
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
@@ -104,7 +105,7 @@ class CodeIgniterInstrumentation
                     foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                         if ($response->hasHeader($header)) {
                             /** @psalm-suppress ArgumentTypeCoercion */
-                            $span->setAttribute(sprintf('http.response.header.%s', strtr(strtolower($header), ['-' => '_'])), $response->getHeaderLine($header));
+                            $span->setAttribute(sprintf('http.response.header.%s', strtolower($header)), $response->getHeaderLine($header));
                         }
                     }
 

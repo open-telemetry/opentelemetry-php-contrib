@@ -37,7 +37,7 @@ class SlimInstrumentation
                 $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation->tracer()
-                    ->spanBuilder(sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                    ->spanBuilder(sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -52,6 +52,7 @@ class SlimInstrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
+                        ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
                         ->startSpan();
                     $request = $request->withAttribute(SpanInterface::class, $span);
                 } else {
@@ -109,6 +110,7 @@ class SlimInstrumentation
                 if (!$route instanceof RouteInterface) {
                     return;
                 }
+                $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route->getName() ?? $route->getPattern());
                 $span->updateName(sprintf('%s %s', $request->getMethod(), $route->getName() ?? $route->getPattern()));
             }
         );

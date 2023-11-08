@@ -25,7 +25,7 @@ class CodeIgniterInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('HTTP GET', $this->storage[0]->getName());
+        $this->assertEquals('GET', $this->storage[0]->getName());
         $this->assertEquals('http://example.com/index.php/home', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
@@ -55,7 +55,7 @@ class CodeIgniterInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('HTTP GET', $this->storage[0]->getName());
+        $this->assertEquals('GET', $this->storage[0]->getName());
         $this->assertEquals('http://example.com/index.php/exception', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));

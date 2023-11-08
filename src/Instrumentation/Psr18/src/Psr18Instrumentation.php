@@ -46,7 +46,7 @@ class Psr18Instrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $spanBuilder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
+                    ->spanBuilder(sprintf('%s', $request->getMethod()))
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
@@ -69,7 +69,7 @@ class Psr18Instrumentation
                 foreach ((array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []) as $header) {
                     if ($request->hasHeader($header)) {
                         $spanBuilder->setAttribute(
-                            sprintf('http.request.header.%s', strtr(strtolower($header), ['-' => '_'])),
+                            sprintf('http.request.header.%s', strtolower($header)),
                             $request->getHeader($header)
                         );
                     }
@@ -102,7 +102,7 @@ class Psr18Instrumentation
                     foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                         if ($response->hasHeader($header)) {
                             /** @psalm-suppress ArgumentTypeCoercion */
-                            $span->setAttribute(sprintf('http.response.header.%s', strtr(strtolower($header), ['-' => '_'])), $response->getHeader($header));
+                            $span->setAttribute(sprintf('http.response.header.%s', strtolower($header)), $response->getHeader($header));
                         }
                     }
                     if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {

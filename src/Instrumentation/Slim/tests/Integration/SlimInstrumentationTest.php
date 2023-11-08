@@ -131,7 +131,7 @@ class SlimInstrumentationTest extends TestCase
         }
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
-        $this->assertSame('HTTP GET', $span->getName(), 'span name was not updated because routing failed');
+        $this->assertSame('GET', $span->getName(), 'span name was not updated because routing failed');
     }
 
     public function createMockStrategy(): InvocationStrategyInterface

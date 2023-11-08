@@ -55,12 +55,12 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
-        $this->assertSame('HTTP GET', $span->getName());
+        $this->assertSame('GET', $span->getName());
     
         $response = Http::get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
         $span = $this->storage->offsetGet(1);
-        $this->assertSame('HTTP GET', $span->getName());
+        $this->assertSame('GET', $span->getName());
     }
     public function test_cache_log_db(): void
     {
@@ -81,7 +81,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertCount(2, $this->storage);
         $span = $this->storage->offsetGet(1);
-        $this->assertSame('HTTP GET', $span->getName());
+        $this->assertSame('GET', $span->getName());
         $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertCount(5, $span->getEvents());
         $this->assertSame('cache set', $span->getEvents()[0]->getName());
