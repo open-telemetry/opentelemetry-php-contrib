@@ -28,7 +28,7 @@ final class SwooleContextHandler
     {
         $cid = Coroutine::getCid();
         if ($cid !== -1 && !$this->isForked($cid)) {
-            for ($pcid = $cid; ($pcid = Coroutine::getPcid($pcid)) !== -1 && !$this->isForked($pcid);) {
+            for ($pcid = $cid; ($pcid = Coroutine::getPcid($pcid)) !== -1 && Coroutine::exists($pcid) && !$this->isForked($pcid);) {
             }
 
             $this->storage->switch($pcid);
