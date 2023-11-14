@@ -40,7 +40,7 @@ final class SymfonyInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('HTTP %s', $request?->getMethod() ?? 'unknown'))
+                    ->spanBuilder(\sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -56,6 +56,7 @@ final class SymfonyInstrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
+                        ->setAttribute(TraceAttributes::URL_PATH, $request->getPathInfo())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {

@@ -84,7 +84,7 @@ class WordpressInstrumentation
 
                 $span = $instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('HTTP %s', $request->getMethod()))
+                    ->spanBuilder(sprintf('%s', $request->getMethod()))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())

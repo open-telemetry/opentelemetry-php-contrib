@@ -36,7 +36,7 @@ final class HttpClientInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('HTTP %s', $params[0]))
+                    ->spanBuilder(\sprintf('%s', $params[0]))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])

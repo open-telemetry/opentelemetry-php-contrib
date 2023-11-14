@@ -36,6 +36,9 @@ class ClientRequestWatcher extends Watcher
         $app['events']->listen(ResponseReceived::class, [$this, 'recordResponse']);
     }
 
+    /**
+     * @psalm-suppress ArgumentTypeCoercion
+     */
     public function recordRequest(RequestSending $request): void
     {
         $parsedUrl = collect(parse_url($request->request->url()));
@@ -44,7 +47,7 @@ class ClientRequestWatcher extends Watcher
         if ($parsedUrl->has('query')) {
             $processedUrl .= '?' . $parsedUrl->get('query');
         }
-        $span = $this->instrumentation->tracer()->spanBuilder('HTTP ' . $request->request->method())
+        $span = $this->instrumentation->tracer()->spanBuilder($request->request->method())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
                 TraceAttributes::HTTP_REQUEST_METHOD => $request->request->method(),

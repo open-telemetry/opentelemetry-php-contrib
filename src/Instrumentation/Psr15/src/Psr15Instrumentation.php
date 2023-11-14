@@ -76,7 +76,7 @@ class Psr15Instrumentation
                 $builder = $instrumentation->tracer()->spanBuilder(
                     $root
                     ? sprintf('%s::%s', $class, $function)
-                    : sprintf('HTTP %s', $request?->getMethod() ?? 'unknown')
+                    : sprintf('%s', $request?->getMethod() ?? 'unknown')
                 )
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
