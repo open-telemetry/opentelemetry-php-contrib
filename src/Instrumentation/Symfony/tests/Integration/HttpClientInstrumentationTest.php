@@ -48,13 +48,13 @@ final class HttpClientInstrumentationTest extends AbstractTest
             $this->assertNotNull($requestHeaders['HTTP_TRACEPARENT']);
         }
 
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_URL));
-        $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::HTTP_URL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_METHOD));
-        $this->assertSame($method, $span->getAttributes()->get(TraceAttributes::HTTP_METHOD));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_STATUS_CODE));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
+        $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame($method, $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
         $this->assertSame($spanStatus, $span->getStatus()->getCode());
-        $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_STATUS_CODE));
+        $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     public function test_throw_exception(): void
@@ -77,8 +77,8 @@ final class HttpClientInstrumentationTest extends AbstractTest
         /** @var EventInterface $event */
         $event = $span->getEvents()[0];
 
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_URL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_METHOD));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame(InvalidArgumentException::class, $event->getAttributes()->get('exception.type'));
     }

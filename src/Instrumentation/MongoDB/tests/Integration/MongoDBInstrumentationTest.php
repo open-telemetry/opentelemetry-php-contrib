@@ -68,9 +68,9 @@ class MongoDBInstrumentationTest extends TestCase
         self::assertSame('mongodb://127.0.0.1:27017/db', $attributes->get(TraceAttributes::DB_CONNECTION_STRING));
         self::assertSame('find', $attributes->get(TraceAttributes::DB_OPERATION));
         self::assertSame(self::COLLECTION_NAME, $attributes->get(TraceAttributes::DB_MONGODB_COLLECTION));
-        self::assertSame('127.0.0.1', $attributes->get(TraceAttributes::NET_PEER_NAME));
-        self::assertSame(27017, $attributes->get(TraceAttributes::NET_PEER_PORT));
-        self::assertSame('tcp', $attributes->get(TraceAttributes::NET_TRANSPORT));
+        self::assertSame('127.0.0.1', $attributes->get(TraceAttributes::SERVER_ADDRESS));
+        self::assertSame(27017, $attributes->get(TraceAttributes::SERVER_PORT));
+        self::assertSame('tcp', $attributes->get(TraceAttributes::NETWORK_TRANSPORT));
         self::assertTrue($attributes->get(MongoDBTraceAttributes::DB_MONGODB_MASTER));
         self::assertFalse($attributes->get(MongoDBTraceAttributes::DB_MONGODB_READ_ONLY));
         self::assertIsNumeric($attributes->get(MongoDBTraceAttributes::DB_MONGODB_CONNECTION_ID));

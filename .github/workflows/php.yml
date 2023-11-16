@@ -28,6 +28,7 @@ jobs:
           'Instrumentation/Symfony',
           'Instrumentation/Laravel',
           'Instrumentation/MongoDB',
+          'Instrumentation/CodeIgniter',
           'Logs/Monolog',
           'Propagation/TraceResponse',
           'ResourceDetectors/Container',
@@ -50,6 +51,8 @@ jobs:
           - project: 'Instrumentation/Symfony'
             php-version: 7.4
           - project: 'Instrumentation/Laravel'
+            php-version: 7.4
+          - project: 'Instrumentation/CodeIgniter'
             php-version: 7.4
           - project: 'Instrumentation/IO'
             php-version: 8.0
@@ -113,10 +116,6 @@ jobs:
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/phpstan analyse --error-format=github
 
-    - name: Run PHPUnit (unit tests)
-      working-directory: src/${{ matrix.project }}
-      run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover --testsuite unit
-
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.8.0
       if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
@@ -124,9 +123,9 @@ jobs:
         mongodb-version: 6.0
         mongodb-replica-set: otel-php
 
-    - name: Run PHPUnit (integration tests)
+    - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
-      run: vendor/bin/phpunit --testsuite integration
+      run: vendor/bin/phpunit --testsuite integration --testsuite unit --coverage-text --coverage-clover=coverage.clover
 
     - name: Code Coverage
       working-directory: src/${{ matrix.project }}

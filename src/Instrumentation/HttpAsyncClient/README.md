@@ -1,50 +1,29 @@
+[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-auto-http-async/releases)
+[![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
+[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Instrumentation/HttpAsyncClient)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-auto-http-async)
+[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-auto-http-async/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-http-async/)
+[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-auto-http-async/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-http-async/)
+
+This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
+
 # OpenTelemetry HTTPlug async auto-instrumentation
 
-**Preferred and simplest way to install auto-instrumentation (c extension plus instrumentation libraries) is to use [opentelemetry-instrumentation-installer](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/AutoInstrumentationInstaller).**
-**The same process can be done manually by installing [c extension](https://github.com/open-telemetry/opentelemetry-php-instrumentation#installation) plus all needed instrumentation libraries like [HttpAsyncClient](#Installation-via-composer)**
-
-## Requirements
-
-* OpenTelemetry extension
-* OpenTelemetry SDK an exporter (required to actually export traces)
-* An HTTPlug async client
-* (optional) OpenTelemetry [SDK Autoloading](https://github.com/open-telemetry/opentelemetry-php/blob/main/examples/autoload_sdk.php) configured
+Please read https://opentelemetry.io/docs/instrumentation/php/automatic/ for instructions on how to
+install and configure the extension and SDK.
 
 ## Overview
 Auto-instrumentation hooks are registered via composer, which will:
 
-* create spans automatically for each async request that is sent
-
-## Manual configuration
-If you are not using SDK autoloading, you will need to create and register a `TracerProvider` early in your application's lifecycle:
-
-```php
-<?php
-require_once 'vendor/autoload.php';
-
-$tracerProvider = /*create tracer provider*/;
-$scope = \OpenTelemetry\API\Instrumentation\Configurator::create()
-    ->withTracerProvider($tracerProvider)
-    ->activate();
-
-$client->sendAsyncRequest($request);
-
-$scope->detach();
-$tracerProvider->shutdown();
-```
-## Installation via composer
-
-```bash
-$ composer require open-telemetry/opentelemetry-auto-http-async
-```
+* create spans automatically for each async HTTP request that is sent
+* add a `traceparent` header to the request to facilitate distributed tracing
 
 ## Configuration
 
-Parts of this auto-instrumentation library can be configured, more options are available throught the 
-[General SDK Configuration](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md#general-sdk-configuration):
+The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
 
-| Name                                | Default value | Values                  | Example           | Description                                                                     |
-|-------------------------------------|---------------|-------------------------|-------------------|---------------------------------------------------------------------------------|
-| OTEL_PHP_DISABLED_INSTRUMENTATIONS  | []            | Instrumentation name(s) | http-async-client | Disable one or more installed auto-instrumentations, names are comma seperated. |
+```shell
+OTEL_PHP_DISABLED_INSTRUMENTATIONS=http-async-client
+```
 
-Configurations can be provided as environment variables, or via `php.ini` (or a file included by `php.ini`)
+Request headers can be added as span attributes, if the header's name is found in the `php.ini` variable: `otel.instrumentation.http.request_headers`

@@ -14,20 +14,19 @@ class LaravelInstrumentationTest extends TestCase
 {
     public function test_request_response(): void
     {
-        Http::fake();
         $this->router()->get('/', fn () => null);
 
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/');
         $this->assertEquals(200, $response->status());
         $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
-        $this->assertSame('HTTP GET', $span->getName());
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('GET', $span->getName());
     
         $response = Http::get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
-        $span = $this->storage[1];
-        $this->assertSame('HTTP GET', $span->getName());
+        $span = $this->storage->offsetGet(1);
+        $this->assertSame('GET', $span->getName());
     }
     public function test_cache_log_db(): void
     {
@@ -47,9 +46,9 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
         $this->assertCount(2, $this->storage);
-        $span = $this->storage[1];
-        $this->assertSame('HTTP GET', $span->getName());
-        $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::HTTP_URL));
+        $span = $this->storage->offsetGet(1);
+        $this->assertSame('GET', $span->getName());
+        $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertCount(5, $span->getEvents());
         $this->assertSame('cache set', $span->getEvents()[0]->getName());
         $this->assertSame('Log info', $span->getEvents()[1]->getName());
@@ -57,7 +56,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('cache hit', $span->getEvents()[3]->getName());
         $this->assertSame('cache forget', $span->getEvents()[4]->getName());
 
-        $span = $this->storage[0];
+        $span = $this->storage->offsetGet(0);
         $this->assertSame('sql SELECT', $span->getName());
         $this->assertSame('SELECT', $span->getAttributes()->get('db.operation'));
         $this->assertSame(':memory:', $span->getAttributes()->get('db.name'));

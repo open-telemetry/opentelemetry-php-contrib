@@ -12,6 +12,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-aws.git"
   - prefix: "src/Symfony"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sdk-bundle.git"
+  - prefix: "src/Instrumentation/CodeIgniter"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-codeigniter.git"
   - prefix: "src/Instrumentation/HttpAsyncClient"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-http-async.git"
   - prefix: "src/Instrumentation/IO"
