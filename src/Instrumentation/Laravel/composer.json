@@ -19,8 +19,6 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
     "guzzlehttp/guzzle": "*",
-    "laravel/sail": "*",
-    "laravel/sanctum": "*",
     "laravel/tinker": "*",
     "nunomaduro/collision": "*",
     "orchestra/testbench": ">=4.0",
