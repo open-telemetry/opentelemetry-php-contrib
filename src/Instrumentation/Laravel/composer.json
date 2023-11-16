@@ -12,7 +12,8 @@
     "ext-json": "*",
     "ext-opentelemetry": "*",
     "laravel/framework": ">=6.0",
-    "open-telemetry/api": "^1.0.0beta10",
+    "open-telemetry/api": "^1.0",
+    "open-telemetry/sdk": "^1.0",
     "open-telemetry/sem-conv": "^1.22"
   },
   "require-dev": {
@@ -22,7 +23,6 @@
     "laravel/sanctum": "*",
     "laravel/tinker": "*",
     "nunomaduro/collision": "*",
-    "open-telemetry/sdk": "^1.0",
     "orchestra/testbench": ">=4.0",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
