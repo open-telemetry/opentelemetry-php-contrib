@@ -9,7 +9,6 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SemConv\TraceAttributes;
 
 class QueryWatcher extends Watcher
@@ -31,7 +30,7 @@ class QueryWatcher extends Watcher
     /** @psalm-suppress UndefinedThisPropertyFetch */
     public function recordQuery(QueryExecuted $query): void
     {
-        $nowInNs = ClockFactory::getDefault()->now();
+        $nowInNs = (int) (microtime(true) * 1E9);
 
         $operationName = Str::upper(Str::before($query->sql, ' '));
         if (! in_array($operationName, ['SELECT', 'INSERT', 'UPDATE', 'DELETE'])) {
@@ -58,6 +57,6 @@ class QueryWatcher extends Watcher
 
     private function calculateQueryStartTime(int $nowInNs, float $queryTimeMs): int
     {
-        return (int) ($nowInNs - ($queryTimeMs * 1000000));
+        return (int) ($nowInNs - ($queryTimeMs * 1E6));
     }
 }
