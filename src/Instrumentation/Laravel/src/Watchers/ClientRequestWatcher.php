@@ -8,6 +8,8 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Events\ConnectionFailed;
 use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
+use Illuminate\Http\Client\Request;
+use Illuminate\Http\Client\Response;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -17,15 +19,14 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class ClientRequestWatcher extends Watcher
 {
-    private CachedInstrumentation $instrumentation;
     /**
      * @var array<string, SpanInterface>
      */
     protected array $spans = [];
 
-    public function __construct(CachedInstrumentation $instr)
-    {
-        $this->instrumentation = $instr;
+    public function __construct(
+        private CachedInstrumentation $instrumentation,
+    ) {
     }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
@@ -42,7 +43,7 @@ class ClientRequestWatcher extends Watcher
     public function recordRequest(RequestSending $request): void
     {
         $parsedUrl = collect(parse_url($request->request->url()));
-        $processedUrl = $parsedUrl->get('scheme') . '://' . $parsedUrl->get('host') . $parsedUrl->get('path', '');
+        $processedUrl = $parsedUrl->get('scheme', 'http') . '://' . $parsedUrl->get('host') . $parsedUrl->get('path', '');
 
         if ($parsedUrl->has('query')) {
             $processedUrl .= '?' . $parsedUrl->get('query');
@@ -95,12 +96,13 @@ class ClientRequestWatcher extends Watcher
 
         unset($this->spans[$requestHash]);
     }
-    private function createRequestComparisonHash(\Illuminate\Http\Client\Request $request): string
+
+    private function createRequestComparisonHash(Request $request): string
     {
         return sha1($request->method() . '|' . $request->url() . '|' . $request->body());
     }
 
-    private function maybeRecordError(SpanInterface $span, \Illuminate\Http\Client\Response $response): void
+    private function maybeRecordError(SpanInterface $span, Response $response): void
     {
         if ($response->successful()) {
             return;

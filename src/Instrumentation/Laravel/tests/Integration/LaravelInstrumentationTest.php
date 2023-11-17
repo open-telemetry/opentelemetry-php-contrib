@@ -4,48 +4,14 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
-use ArrayObject;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use OpenTelemetry\API\Instrumentation\Configurator;
-use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
-use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
-use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
 
 class LaravelInstrumentationTest extends TestCase
 {
-    private ScopeInterface $scope;
-    private ArrayObject $storage;
-    private TracerProvider $tracerProvider;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->storage = new ArrayObject();
-        $this->tracerProvider = new TracerProvider(
-            new SimpleSpanProcessor(
-                new InMemoryExporter($this->storage)
-            )
-        );
-
-        $this->scope = Configurator::create()
-            ->withTracerProvider($this->tracerProvider)
-            ->activate();
-
-        Http::fake();
-    }
-
-    public function tearDown(): void
-    {
-        $this->scope->detach();
-        parent::tearDown();
-    }
-
     public function test_request_response(): void
     {
         $this->router()->get('/', fn () => null);
@@ -54,12 +20,12 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('GET', '/');
         $this->assertEquals(200, $response->status());
         $this->assertCount(1, $this->storage);
-        $span = $this->storage->offsetGet(0);
+        $span = $this->storage[0];
         $this->assertSame('GET', $span->getName());
     
         $response = Http::get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
-        $span = $this->storage->offsetGet(1);
+        $span = $this->storage[1];
         $this->assertSame('GET', $span->getName());
     }
     public function test_cache_log_db(): void
@@ -80,7 +46,7 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
         $this->assertCount(2, $this->storage);
-        $span = $this->storage->offsetGet(1);
+        $span = $this->storage[1];
         $this->assertSame('GET', $span->getName());
         $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertCount(5, $span->getEvents());
@@ -90,7 +56,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('cache hit', $span->getEvents()[3]->getName());
         $this->assertSame('cache forget', $span->getEvents()[4]->getName());
 
-        $span = $this->storage->offsetGet(0);
+        $span = $this->storage[0];
         $this->assertSame('sql SELECT', $span->getName());
         $this->assertSame('SELECT', $span->getAttributes()->get('db.operation'));
         $this->assertSame(':memory:', $span->getAttributes()->get('db.name'));

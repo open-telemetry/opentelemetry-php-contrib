@@ -14,11 +14,9 @@ use OpenTelemetry\SemConv\TraceAttributes;
 
 class QueryWatcher extends Watcher
 {
-    private CachedInstrumentation $instrumentation;
-
-    public function __construct(CachedInstrumentation $instr)
-    {
-        $this->instrumentation = $instr;
+    public function __construct(
+        private CachedInstrumentation $instrumentation,
+    ) {
     }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
