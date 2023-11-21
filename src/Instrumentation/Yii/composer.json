@@ -6,12 +6,11 @@
     "homepage": "https://opentelemetry.io/docs/php",
     "readme": "./README.md",
     "license": "Apache-2.0",
-    "minimum-stability": "dev",
     "require": {
       "php": "^8.0",
       "ext-opentelemetry": "*",
       "yiisoft/yii2": "^2.0.13",
-      "open-telemetry/api": "^1.0.0beta10",
+      "open-telemetry/api": "^1",
       "open-telemetry/sem-conv": "^1.22"
     },
     "require-dev": {
