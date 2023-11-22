@@ -127,6 +127,7 @@ class YiiInstrumentation
 
                 $span = Span::fromContext($scope->context());
                 $route = YiiInstrumentation::normalizeRouteName(get_class($controller), $action->actionMethod);
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $span->updateName($route);
                 $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
             },
