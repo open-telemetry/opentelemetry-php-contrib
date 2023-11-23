@@ -30,7 +30,8 @@
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0",
     "symfony/http-client": "^5.4||^6.0",
-    "open-telemetry/opentelemetry-propagation-traceresponse": "*"
+    "open-telemetry/opentelemetry-propagation-traceresponse": "*",
+    "open-telemetry/opentelemetry-propagation-server-timing": "*"
   },
   "autoload": {
     "psr-4": {
