@@ -1,7 +1,7 @@
 {
-  "name": "open-telemetry/opentelemetry-propagation-traceresponse",
-  "description": "OpenTelemetry traceresponse propagator.",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "traceresponse"],
+  "name": "open-telemetry/opentelemetry-propagation-server-timing",
+  "description": "OpenTelemetry server-timing propagator.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "server-timing"],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
@@ -15,7 +15,7 @@
   },
   "autoload": {
     "psr-4": {
-      "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/"
+      "OpenTelemetry\\Contrib\\Propagation\\ServerTiming\\": "src/"
     }
   },
   "require-dev": {

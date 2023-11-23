@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Propagation\TraceResponse;
+namespace OpenTelemetry\Contrib\Propagation\ServerTiming;
 
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;

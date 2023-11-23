@@ -1,7 +1,7 @@
 {
-  "name": "open-telemetry/opentelemetry-propagation-traceresponse",
-  "description": "OpenTelemetry traceresponse propagator.",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "traceresponse"],
+  "name": "open-telemetry/opentelemetry-propagation-response",
+  "description": "OpenTelemetry response propagator api",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "response"],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
@@ -10,12 +10,11 @@
   "prefer-stable": true,
   "require": {
     "php": "^7.0|^8.0",
-    "open-telemetry/context": "^1.0",
-    "open-telemetry/opentelemetry-propagation-response": "*"
+    "open-telemetry/context": "^1.0"
   },
   "autoload": {
     "psr-4": {
-      "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/"
+      "OpenTelemetry\\Contrib\\Propagation\\Response\\": "src/"
     }
   },
   "require-dev": {

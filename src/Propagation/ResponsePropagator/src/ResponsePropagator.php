@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Propagation\TraceResponse;
+namespace OpenTelemetry\Contrib\Propagation\Response;
 
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
