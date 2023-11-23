@@ -1,21 +1,22 @@
-[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-propagator-traceresponse/releases)
+[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-propagator-server-timing/releases)
 [![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
-[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Propagation/TraceResponse)
-[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-propagator-traceresponse)
-[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-traceresponse/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-traceresponse/)
-[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-traceresponse/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-traceresponse/)
+[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Propagation/ServerTiming)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-propagator-server-timing)
+[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-traceresponse/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-server-timing/)
+[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-traceresponse/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-server-timing/)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
-# OpenTelemetry TraceResponse Propagator
+# OpenTelemetry ServerTiming Propagator
 
-**Note:** This package is experimental as `traceresponse` is currently an editors' draft.
-
-This package provides a [Trace Context HTTP Response Headers Format](https://w3c.github.io/trace-context/#trace-context-http-response-headers-format)
+This package provides a [Server-Timing](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing)
 propagator to inject the current span context into Response datastructures.
 
 The main goal is to allow client-side technology (Real User Monitoring, HTTP Clients) to record
 the server side context in order to allow referencing it.
+
+Server-Timing response headers are especially useful for this approach, as they are accessible on the client side,
+even for the initial page load.
 
 ## Requirements
 
@@ -45,14 +46,14 @@ $propagationSetter = new class implements OpenTelemetry\Context\Propagation\Prop
         $carrier->headers->set($key, $value);
     }
 };
-$propagator = new TraceResponseProgator();
+$propagator = new ServerTimingPropagator();
 $propagator->inject($response, $propagationSetter, $scope->context());
 ```
 
 ## Installation via composer
 
 ```bash
-$ composer require open-telemetry/opentelemetry-propagation-traceresponse
+$ composer require open-telemetry/opentelemetry-propagation-server-timing
 ```
 
 ## Installing dependencies and executing tests
