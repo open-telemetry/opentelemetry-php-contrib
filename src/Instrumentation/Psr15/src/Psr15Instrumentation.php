@@ -93,6 +93,10 @@ class Psr15Instrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
+                        ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
+                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                         ->startSpan();
                     $request = $request->withAttribute(SpanInterface::class, $span);
                 } else {
