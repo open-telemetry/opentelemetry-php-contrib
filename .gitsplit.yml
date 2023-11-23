@@ -36,6 +36,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-symfony.git"
   - prefix: "src/Instrumentation/Wordpress"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-wordpress.git"
+  - prefix: "src/Instrumentation/Yii"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-yii.git"
   - prefix: "src/Context/Swoole"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-swoole.git"
   - prefix: "src/AutoInstrumentationInstaller"
