@@ -9,7 +9,6 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
-use OpenTelemetry\Contrib\Propagation\Response\ResponsePropagator;
 
 /**
  * Provides a ResponsePropagator for the Trace Context HTTP Response Headers Format
