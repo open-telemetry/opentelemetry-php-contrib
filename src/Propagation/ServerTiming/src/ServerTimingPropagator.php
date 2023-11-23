@@ -9,24 +9,24 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
-use OpenTelemetry\Contrib\Propagation\Response\ResponsePropagator;
 
 /**
- * Provides a ResponsePropagator for the Trace Context HTTP Response Headers Format
+ * Provides a ResponsePropagator for Server-Timings headers
  *
- * @see https://w3c.github.io/trace-context/#trace-context-http-response-headers-format
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
  */
-final class TraceResponsePropagator implements ResponsePropagator
+final class ServerTimingPropagator implements ResponsePropagator
 {
     const IS_SAMPLED = '1';
     const NOT_SAMPLED = '0';
     const SUPPORTED_VERSION = '00';
-    const TRACERESPONSE = 'traceresponse';
+    const SERVER_TIMING = 'server-timing';
+    const TRACEPARENT = 'traceparent';
 
     public function fields(): array
     {
         return [
-            self::TRACERESPONSE,
+            self::SERVER_TIMING,
         ];
     }
 
@@ -45,7 +45,7 @@ final class TraceResponsePropagator implements ResponsePropagator
 
         $samplingFlag = $spanContext->isSampled() ? self::IS_SAMPLED : self::NOT_SAMPLED;
 
-        $header = self::SUPPORTED_VERSION . '-' . $traceId . '-' . $spanId . '-' . $samplingFlag;
-        $setter->set($carrier, self::TRACERESPONSE, $header);
+        $header = sprintf('%s;desc=%s-%s-%s-%s', self::TRACEPARENT, self::SUPPORTED_VERSION, $traceId, $spanId, $samplingFlag);
+        $setter->set($carrier, self::SERVER_TIMING, $header);
     }
 }

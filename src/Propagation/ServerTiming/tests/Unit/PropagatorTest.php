@@ -11,7 +11,7 @@ use OpenTelemetry\API\Trace\TraceFlags;
 use OpenTelemetry\API\Trace\TraceState;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
-use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator as Propagator;
+use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator as Propagator;
 use OpenTelemetry\SDK\Trace\Span;
 use PHPUnit\Framework\TestCase;
 
@@ -24,12 +24,12 @@ class PropagatorTest extends TestCase
 
     /**
      * @test
-     * fields() should return an array of fields with AWS X-Ray Trace ID Header
+     * fields() should return an array of fields that will be set on the carrier
      */
     public function test_fields()
     {
         $propagator = new Propagator();
-        $this->assertSame($propagator->fields(), [Propagator::TRACERESPONSE]);
+        $this->assertSame($propagator->fields(), [Propagator::SERVER_TIMING]);
     }
 
     /**
@@ -50,7 +50,7 @@ class PropagatorTest extends TestCase
         );
 
         $this->assertSame(
-            [Propagator::TRACERESPONSE => self::TRACERESPONSE_HEADER_SAMPLED],
+            [Propagator::SERVER_TIMING => sprintf('%s;desc=%s', Propagator::TRACEPARENT, self::TRACERESPONSE_HEADER_SAMPLED)],
             $carrier
         );
     }
@@ -72,7 +72,7 @@ class PropagatorTest extends TestCase
         );
 
         $this->assertSame(
-            [Propagator::TRACERESPONSE => self::TRACERESPONSE_HEADER_NOT_SAMPLED],
+            [Propagator::SERVER_TIMING => sprintf('%s;desc=%s', Propagator::TRACEPARENT, self::TRACERESPONSE_HEADER_NOT_SAMPLED)],
             $carrier
         );
     }
@@ -94,7 +94,7 @@ class PropagatorTest extends TestCase
         );
 
         $this->assertSame(
-            [Propagator::TRACERESPONSE => self::TRACERESPONSE_HEADER_SAMPLED],
+            [Propagator::SERVER_TIMING => sprintf('%s;desc=%s', Propagator::TRACEPARENT, self::TRACERESPONSE_HEADER_SAMPLED)],
             $carrier
         );
     }

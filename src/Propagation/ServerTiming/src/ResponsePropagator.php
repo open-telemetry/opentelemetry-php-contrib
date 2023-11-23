@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Propagation\Response;
+namespace OpenTelemetry\Contrib\Propagation\ServerTiming;
 
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;

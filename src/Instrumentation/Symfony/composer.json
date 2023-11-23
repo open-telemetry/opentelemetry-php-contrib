@@ -16,7 +16,8 @@
     "symfony/http-client-contracts": "*"
   },
   "suggest": {
-    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client."
+    "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
