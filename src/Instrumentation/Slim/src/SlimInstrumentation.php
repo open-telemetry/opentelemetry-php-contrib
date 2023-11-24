@@ -51,6 +51,9 @@ class SlimInstrumentation
                         ->setAttribute(TraceAttributes::URL_FULL, $request->getUri()->__toString())
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
                         ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
                         ->startSpan();
