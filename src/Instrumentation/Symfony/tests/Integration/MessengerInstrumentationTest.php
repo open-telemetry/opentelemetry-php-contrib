@@ -98,7 +98,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         }
     }
 
-    protected function sendDataProvider(): array
+    public function sendDataProvider(): array
     {
         return [
             [
@@ -113,7 +113,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         ];
     }
 
-    protected function dispatchDataProvider(): array
+    public function dispatchDataProvider(): array
     {
         return [
             [
