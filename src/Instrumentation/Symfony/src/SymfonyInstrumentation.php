@@ -57,6 +57,9 @@ final class SymfonyInstrumentation
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::URL_PATH, $request->getPathInfo())
+                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->headers->get('User-Agent'))
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getHost())
+                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {
@@ -116,6 +119,12 @@ final class SymfonyInstrumentation
                 }
 
                 $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
+
+                // Propagate server-timing header to response, if ServerTimingPropagator is present
+                if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
+                    $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
+                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                }
 
                 // Propagate traceresponse header to response, if TraceResponsePropagator is present
                 if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
