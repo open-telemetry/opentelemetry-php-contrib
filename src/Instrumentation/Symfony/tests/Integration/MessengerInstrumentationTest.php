@@ -10,6 +10,7 @@ use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
+use Symfony\Component\Messenger\Transport\InMemoryTransport as LegacyInmemoryTransport;
 
 final class MessengerInstrumentationTest extends AbstractTest
 {
@@ -17,10 +18,15 @@ final class MessengerInstrumentationTest extends AbstractTest
     {
         return new MessageBus();
     }
-
-    protected function getTransport(): SenderInterface
+    protected function getTransport()
     {
-        return new InMemoryTransport();
+        // Symfony 6+
+        if (class_exists(InMemoryTransport::class)) {
+            return new InMemoryTransport();
+        }
+
+        // Symfony 5+
+        return new LegacyInmemoryTransport();
     }
 
     /**
