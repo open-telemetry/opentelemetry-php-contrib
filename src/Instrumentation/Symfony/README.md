@@ -23,6 +23,10 @@ install and configure the extension and SDK.
 The following features are supported:
 * root span creation (`Symfony\Component\HttpKernel\HttpKernel::handle` hook)
 * context propagation
+* HttpClient client span creation
+* HTTPClient context propagation
+* Message Bus span creation
+* Message Transport span creation
 
 ## Installation via composer
 
