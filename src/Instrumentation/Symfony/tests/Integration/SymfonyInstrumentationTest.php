@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
+use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -62,6 +63,12 @@ class SymfonyInstrumentationTest extends AbstractTest
             $response->headers->all(),
             'traceresponse header is present if TraceResponsePropagator is present'
         );
+
+        $this->assertArrayHasKey(
+            ServerTimingPropagator::SERVER_TIMING,
+            $response->headers->all(),
+            'server-timings header is present if ServerTimingPropagator is present'
+        );
     }
 
     public function test_http_kernel_handle_stream_response(): void
@@ -81,6 +88,12 @@ class SymfonyInstrumentationTest extends AbstractTest
             $response->headers->all(),
             'traceresponse header is present if TraceResponsePropagator is present'
         );
+
+        $this->assertArrayHasKey(
+            ServerTimingPropagator::SERVER_TIMING,
+            $response->headers->all(),
+            'server-timings header is present if ServerTimingPropagator is present'
+        );
     }
 
     public function test_http_kernel_handle_binary_file_response(): void
@@ -96,6 +109,12 @@ class SymfonyInstrumentationTest extends AbstractTest
             TraceResponsePropagator::TRACERESPONSE,
             $response->headers->all(),
             'traceresponse header is present if TraceResponsePropagator is present'
+        );
+
+        $this->assertArrayHasKey(
+            ServerTimingPropagator::SERVER_TIMING,
+            $response->headers->all(),
+            'server-timings header is present if ServerTimingPropagator is present'
         );
     }
 
@@ -115,6 +134,12 @@ class SymfonyInstrumentationTest extends AbstractTest
             $response->headers->all(),
             'traceresponse header is present if TraceResponsePropagator is present'
         );
+
+        $this->assertArrayHasKey(
+            ServerTimingPropagator::SERVER_TIMING,
+            $response->headers->all(),
+            'server-timings header is present if ServerTimingPropagator is present'
+        );
     }
 
     public function test_http_kernel_handle_without_route(): void
@@ -130,6 +155,12 @@ class SymfonyInstrumentationTest extends AbstractTest
             TraceResponsePropagator::TRACERESPONSE,
             $response->headers->all(),
             'traceresponse header is present if TraceResponsePropagator is present'
+        );
+
+        $this->assertArrayHasKey(
+            ServerTimingPropagator::SERVER_TIMING,
+            $response->headers->all(),
+            'server-timings header is present if ServerTimingPropagator is present'
         );
     }
 

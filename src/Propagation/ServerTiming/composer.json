@@ -1,0 +1,39 @@
+{
+  "name": "open-telemetry/opentelemetry-propagation-server-timing",
+  "description": "OpenTelemetry server-timing propagator.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "server-timing"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^7.0|^8.0",
+    "open-telemetry/context": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Propagation\\ServerTiming\\": "src/"
+    }
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "phan/phan": "^5.0",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.16",
+    "open-telemetry/sdk": "^1.0",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^4.0",
+    "symfony/http-client": "^5.4|^6.0",
+    "guzzlehttp/promises": "^1.5",
+    "php-http/message-factory": "^1.0",
+    "nyholm/psr7": "^1.5"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
+  }
+}

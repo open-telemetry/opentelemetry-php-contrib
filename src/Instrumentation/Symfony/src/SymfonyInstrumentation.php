@@ -120,6 +120,12 @@ final class SymfonyInstrumentation
 
                 $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
 
+                // Propagate server-timing header to response, if ServerTimingPropagator is present
+                if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
+                    $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
+                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                }
+
                 // Propagate traceresponse header to response, if TraceResponsePropagator is present
                 if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
                     $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
