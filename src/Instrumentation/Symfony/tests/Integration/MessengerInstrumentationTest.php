@@ -123,7 +123,7 @@ final class MessengerInstrumentationTest extends AbstractTest
                 [
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS => 'Symfony\Component\Messenger\MessageBus',
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-                ]
+                ],
             ],
         ];
     }
