@@ -28,6 +28,10 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
  */
 final class MessengerInstrumentation
 {
+    const ATTRIBUTE_MESSENGER_BUS = 'symfony.messenger.bus';
+    const ATTRIBUTE_MESSENGER_MESSAGE = 'symfony.messenger.message';
+    const ATTRIBUTE_MESSENGER_TRANSPORT = 'symfony.messenger.transport';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_messenger');
@@ -48,16 +52,20 @@ final class MessengerInstrumentation
             ) use ($instrumentation): array {
                 /** @var object|Envelope $message */
                 $message = $params[0];
+                $messageClass = \get_class($message);
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('dispatch %s', \get_class($message)))
+                    ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+
+                    ->setAttribute(self::ATTRIBUTE_MESSENGER_BUS, $class)
+                    ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
                 ;
 
                 $parent = Context::getCurrent();
@@ -109,18 +117,22 @@ final class MessengerInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
-                /** @var Envelope $message */
-                $message = $params[0];
+                /** @var Envelope $envelope */
+                $envelope = $params[0];
+                $messageClass = \get_class($envelope->getMessage());
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('%s::send %s', $class, \get_class($message)))
+                    ->spanBuilder(\sprintf('SEND %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+
+                    ->setAttribute(self::ATTRIBUTE_MESSENGER_TRANSPORT, $class)
+                    ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
                 ;
 
                 $parent = Context::getCurrent();

@@ -42,7 +42,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\": "tests/"
+      "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\": "tests/"
     }
   },
   "config": {
