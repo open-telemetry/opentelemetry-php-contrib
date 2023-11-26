@@ -106,7 +106,7 @@ final class MessengerInstrumentationTest extends AbstractTest
                 'SEND OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                 SpanKind::KIND_INTERNAL,
                 [
-                    MessengerInstrumentation::ATTRIBUTE_MESSENGER_TRANSPORT => class_exists('Symfony\Component\Messenger\Transport\InMemoryTransport') ? 'Symfony\Component\Messenger\Transport\InMemoryTransport': 'Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport',
+                    MessengerInstrumentation::ATTRIBUTE_MESSENGER_TRANSPORT => class_exists('Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport') ? 'Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport' : 'Symfony\Component\Messenger\Transport\InMemoryTransport',
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                 ],
             ],
