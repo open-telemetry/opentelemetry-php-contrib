@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use OpenTelemetry\Contrib\Instrumentation\Symfony\HttpClientInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\SymfonyInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
@@ -17,4 +18,5 @@ if (extension_loaded('opentelemetry') === false) {
 }
 
 SymfonyInstrumentation::register();
+MessengerInstrumentation::register();
 HttpClientInstrumentation::register();
