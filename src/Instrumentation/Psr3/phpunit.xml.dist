@@ -41,6 +41,8 @@
         </testsuite>
         <testsuite name="integration">
             <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="phpt">
             <directory suffix=".phpt">tests/phpt</directory>
         </testsuite>
     </testsuites>
