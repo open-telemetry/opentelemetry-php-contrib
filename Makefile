@@ -19,7 +19,8 @@ install: ## Install dependencies
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer install
 update: ## Update dependencies
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update
-test: test-unit test-integration ## Run unit and integration tests
+test: ## Run all tests
+	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testdox --colors=always
 test-unit: ## Run unit tests
 	$(DC_RUN_PHP) env XDEBUG_MODE=coverage vendor/bin/phpunit --testsuite unit --colors=always --coverage-text --testdox --coverage-clover coverage.clover --coverage-html=tests/coverage/html
 test-integration: ## Run integration tests
