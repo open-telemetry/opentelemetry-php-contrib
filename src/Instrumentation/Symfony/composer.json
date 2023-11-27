@@ -30,6 +30,7 @@
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0",
     "symfony/http-client": "^5.4||^6.0",
+    "symfony/messenger": "^5.4||^6.0",
     "open-telemetry/opentelemetry-propagation-traceresponse": "*",
     "open-telemetry/opentelemetry-propagation-server-timing": "*"
   },
@@ -43,7 +44,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\": "tests/"
+      "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\": "tests/"
     }
   },
   "config": {
