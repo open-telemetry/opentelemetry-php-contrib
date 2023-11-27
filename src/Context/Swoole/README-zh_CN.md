@@ -5,20 +5,20 @@
 [![Latest Version](http://poser.pugx.org/open-telemetry/context-swoole/v/unstable)](https://packagist.org/packages/open-telemetry/context-swoole/)
 [![Stable](http://poser.pugx.org/open-telemetry/context-swoole/v/stable)](https://packagist.org/packages/open-telemetry/context-swoole/)
 
-This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
+This is a read-only subtree split of <https://github.com/open-telemetry/opentelemetry-php-contrib>.
 
 # OpenTelemetry Swoole context
 
 [简体中文](README-zh_CN.md) | [ENGLISH](README.md)
 
-Unlike the PHP-FPM runtime where a single process handles one request at a time, in Swoole, each process handles multiple http requests simultaneously. This library solves the context switching issue when using Opentelemetry in Swoole.
+不同于传统的 php-fpm 运行时单个进程同一时刻只处理一个请求，在 Swoole 中每个进程同时会处理多个 http 请求，这个库解决在 Swoole 中使用 Opentelemetry 的上下文切换问题。
 
 ## Requirement
 
 * php >= 8.0
 * swoole >= 4.5
 
-## Installation
+## 安装
 
 Install the package with composer:
 
@@ -26,11 +26,11 @@ Install the package with composer:
 composer require open-telemetry/context-swoole
 ```
 
-Note: this library needs to be used in conjunction with OpenTelemetry, such as `open-telemetry/opentelemetry`.
+请注意，该库需要与 OpenTelemetry 配合使用，例如 `open-telemetry/opentelemetry`.
 
-## Usage
+## 使用
 
-Quickly start Jaeger based on Docker.
+基于 docker 快速启动 jaeger
 
 ```bash
 docker run -d --name jaeger \
@@ -40,7 +40,7 @@ docker run -d --name jaeger \
   jaegertracing/all-in-one
 ```
 
-Register `TracerProvider` and start Swoole http server:
+注册 `TracerProvider` 并启动 Swoole http server:
 
 ```php
 <?php
@@ -115,10 +115,10 @@ $http->on('request', function ($request, $response) {
 $http->start();
 ```
 
-Use the following command to access the test:
+使用以下命令进行访问测试:
 
 ```bash
 curl -i 127.0.0.1:9501/swoole-context-demo
 ```
 
-find the trace in Jaeger UI: <http://127.0.0.1:16686/> .
+最后打开浏览器访问 jaeger UI: <http://127.0.0.1:16686/> 查询链路信息。

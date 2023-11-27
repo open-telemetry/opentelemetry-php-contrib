@@ -39,6 +39,10 @@ the installation of one or more packages from [src/Instrumentation](./src/Instru
 - The documentation for the Symfony SdkBundle can be found [here](/src/Symfony/README.md).
 - An example Symfony application using the SdkBundle can be found [here](https://github.com/opentelemetry-php/otel-sdk-bundle-example-sf5).
 
+### Swoole
+
+- The documentation for the Swoole context can be found [here](/src/Context/Swoole/README.md).
+
 ## Development
 
 Please, consult the documentation of the main [OpenTelemetry PHP project][opentelemetry-php].
