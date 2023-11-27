@@ -133,7 +133,7 @@ jobs:
 
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
-      run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
+      run: XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
 
     - name: Code Coverage
       working-directory: src/${{ matrix.project }}
