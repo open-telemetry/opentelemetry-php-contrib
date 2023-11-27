@@ -16,7 +16,8 @@
     "symfony/http-client-contracts": "*"
   },
   "suggest": {
-    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client."
+    "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
@@ -29,7 +30,8 @@
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^4.0",
     "symfony/http-client": "^5.4||^6.0",
-    "open-telemetry/opentelemetry-propagation-traceresponse": "*"
+    "open-telemetry/opentelemetry-propagation-traceresponse": "*",
+    "open-telemetry/opentelemetry-propagation-server-timing": "*"
   },
   "autoload": {
     "psr-4": {
