@@ -94,7 +94,7 @@ jobs:
       working-directory: src/${{ matrix.project }}
       run: |
         composer config --no-plugins allow-plugins.php-http/discovery false
-        composer install --prefer-dist --no-progress --no-suggest
+        composer install --prefer-dist --no-progress
 
     - name: Validate Packages composer.json
       working-directory: src/${{ matrix.project }}
@@ -128,7 +128,11 @@ jobs:
 
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
-      run: vendor/bin/phpunit --testsuite integration --testsuite unit --coverage-text --coverage-clover=coverage.clover
+      run: vendor/bin/phpunit
+
+    - name: Run PHPUnit (coverage)
+      working-directory: src/${{ matrix.project }}
+      run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
 
     - name: Code Coverage
       working-directory: src/${{ matrix.project }}
