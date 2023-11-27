@@ -11,14 +11,14 @@ This is a read-only subtree split of https://github.com/open-telemetry/opentelem
 
 [简体中文](README-zh_CN.md) | [ENGLISH](README.md)
 
-Unlike the PHP-FPM runtime where a single process handles one request at a time, in Swoole, each process handles multiple http requests simultaneously. This library solves the context switching issue when using Opentelemetry in Swoole.
+不同于传统的 php-fpm 运行时单个进程同一时刻处理一个请求，在 Swoole 中每个进程同时会处理多个 http 请求， 这个库解决在 Swoole 中使用 Opentelemetry 的上下文问题。
 
-## Requirement
-
+## Requirement:
 * php >= 8.0
-* swoole >= 4.5
+* swoole >= 4.0
+* composer
 
-## Installation
+## 安装
 
 Install the package with composer:
 
@@ -26,11 +26,11 @@ Install the package with composer:
 composer require open-telemetry/context-swoole
 ```
 
-Note: this library needs to be used in conjunction with OpenTelemetry, such as `open-telemetry/opentelemetry`.
+请注意，该库需要与 OpenTelemetry 配合使用，例如 `open-telemetry/opentelemetry`.
 
-## Usage
+## 使用
 
-1.Register `TracerProvider` during the service startup:
+1. 服务启动阶段注册 `TracerProvider`:
 
 ```php
 <?php
@@ -52,7 +52,7 @@ $exporter  = new SpanExporter($transport);
 $spanProcessor = new SimpleSpanProcessor($exporter);
 $tracerProvider = new TracerProvider($spanProcessor);
 
-// Use Swoole context storage
+// 使用 Swoole 上下文存储器
 Context::setStorage(new SwooleContextStorage(new ContextStorage()));
 
 ShutdownHandler::register([$tracerProvider, 'shutdown']);
@@ -63,7 +63,7 @@ Globals::registerInitializer(
 );
 ```
 
-2.Execute the trace generation in the business (for example, in the `onRequest` event callback)
+2. 在业务中(例如 onRequest 等事件回调中)执行链路生成
 
 ```php
 <?php
