@@ -88,6 +88,8 @@ class WordpressInstrumentation
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
+                    ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
+                    ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
