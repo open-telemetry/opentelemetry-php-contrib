@@ -55,7 +55,6 @@ class ExtAmqpInstrumentation
                     // messaging
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'rabbitmq')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, 'publish')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION, 'publish')
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION, $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
