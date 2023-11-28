@@ -7,6 +7,7 @@ namespace OpenTelemetry\Tests\Instrumentation\ExtAmqp\tests\Integration;
 use AMQPQueue;
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
+use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -61,6 +62,7 @@ class ExtAmqpInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $this->assertEquals($routing_key . ' publish', $this->storage[0]->getName());
         $this->assertEquals('rabbitmq', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+        $this->assertEquals(SpanKind::KIND_PRODUCER, $this->storage[0]->getKind());
 
         $connection->disconnect();
     }

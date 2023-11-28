@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\ExtAmqp;
 
 use AMQPExchange;
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use PhpAmqpLib\Channel\AMQPChannel;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -36,6 +38,11 @@ class ExtAmqpInstrumentation
             ) use ($instrumentation): array {
 
                 $routingKey = $params[1];
+                $attributes = $params[3] ?? ['headers' => []];
+                if (!in_array('headers', $attributes)) {
+                    $attributes['headers'] = [];
+                }
+
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder($routingKey. ' publish')
@@ -66,6 +73,11 @@ class ExtAmqpInstrumentation
                     ->startSpan();
 
                 $context = $span->storeInContext($parent);
+
+                $propagator = Globals::propagator();
+                $propagator->inject($attributes['headers'], ArrayAccessGetterSetter::getInstance(), $context);
+                $params[3] = $attributes;
+
                 Context::storage()->attach($context);
 
                 return $params;
