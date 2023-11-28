@@ -22,6 +22,7 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
+          'Instrumentation/ExtAmqp',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
           'Instrumentation/Psr3',
