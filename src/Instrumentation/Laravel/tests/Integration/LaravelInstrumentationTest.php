@@ -66,7 +66,7 @@ class LaravelInstrumentationTest extends TestCase
 
     public function test_low_cardinality_route_span_name(): void
     {
-        $this->router()->get('/hello/{name}', fn () => null);
+        $this->router()->get('/hello/{name}', fn () => null)->name('hello-name');
 
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello/opentelemetry');
@@ -85,6 +85,7 @@ class LaravelInstrumentationTest extends TestCase
         $span = $this->storage[0];
         $this->assertSame('GET', $span->getName());
     }
+
     private function router(): Router
     {
         /** @psalm-suppress PossiblyNullReference */
