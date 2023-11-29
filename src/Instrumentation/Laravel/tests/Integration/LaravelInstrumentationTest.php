@@ -21,8 +21,8 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
-        $this->assertSame('GET', $span->getName());
-    
+        $this->assertSame('GET /', $span->getName());
+
         $response = Http::get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
         $span = $this->storage[1];
@@ -47,7 +47,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertCount(2, $this->storage);
         $span = $this->storage[1];
-        $this->assertSame('GET', $span->getName());
+        $this->assertSame('GET hello', $span->getName());
         $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertCount(5, $span->getEvents());
         $this->assertSame('cache set', $span->getEvents()[0]->getName());
@@ -64,6 +64,17 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('sqlite', $span->getAttributes()->get('db.system'));
     }
 
+    public function test_low_cardinality_route_span_name(): void
+    {
+        $this->router()->get('/hello/{name}', fn () => null);
+
+        $this->assertCount(0, $this->storage);
+        $response = $this->call('GET', '/hello/opentelemetry');
+        $this->assertEquals(200, $response->status());
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame('GET hello/{name}', $span->getName());
+    }
     private function router(): Router
     {
         /** @psalm-suppress PossiblyNullReference */

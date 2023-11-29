@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -78,6 +79,10 @@ class HttpInstrumentation
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->headers->get('Content-Length'));
+                }
+                if(($route = Route::getCurrentRoute()?->uri()) !== null) {
+                    $request = ($params[0] instanceof Request) ? $params[0] : null;
+                    $span->updateName(sprintf('%s %s', $request?->method() ?? 'unknown', $route));
                 }
 
                 $span->end();
