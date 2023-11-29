@@ -82,6 +82,11 @@ class HttpInstrumentation
                 }
                 if(($route = Route::getCurrentRoute()?->uri()) !== null) {
                     $request = ($params[0] instanceof Request) ? $params[0] : null;
+
+                    if (! str_starts_with($route, '/')) {
+                        $route = '/' . $route;
+                    }
+
                     $span->updateName(sprintf('%s %s', $request?->method() ?? 'unknown', $route));
                 }
 
