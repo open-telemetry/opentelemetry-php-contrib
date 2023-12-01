@@ -87,6 +87,7 @@ class HttpInstrumentation
                         $route = '/' . $route;
                     }
 
+                    /** @psalm-suppress ArgumentTypeCoercion */
                     $span->updateName(sprintf('%s %s', $request?->method() ?? 'unknown', $route));
                 }
 
