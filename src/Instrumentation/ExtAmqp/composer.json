@@ -23,9 +23,7 @@
     "psalm/plugin-phpunit": "^0.16",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^4.0",
-    "symfony/http-client": "7.1.x-dev",
-    "nyholm/psr7": "^1.8@dev"
+    "vimeo/psalm": "^4.0"
   },
   "autoload": {
     "psr-4": {
@@ -42,7 +40,7 @@
   },
   "config": {
     "allow-plugins": {
-      "php-http/discovery": true
+      "php-http/discovery": false
     }
   }
 }
