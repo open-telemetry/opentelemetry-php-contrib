@@ -23,7 +23,6 @@ class ExtAmqpInstrumentationTest extends TestCase
      * @var ImmutableSpan[]
      */
     private ArrayObject $storage;
-    private ImmutableSpan $span;
 
     public function setUp(): void
     {
