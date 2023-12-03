@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  RABBIT_HOST: rabbitmq
+
 jobs:
   php:
     runs-on: ubuntu-latest
@@ -132,6 +135,14 @@ jobs:
         mongodb-version: 6.0
         mongodb-replica-set: otel-php
 
+    - name: Start RabbitMQ
+      uses: namoshek/rabbitmq-github-action@v1
+      if: ${{ matrix.project == 'Instrumentation/ExtAmqp' }}
+      with:
+        version: '3'
+        ports: '5672:5672'
+        container-name: 'rabbitmq'
+
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/phpunit
@@ -143,4 +154,3 @@ jobs:
     - name: Code Coverage
       working-directory: src/${{ matrix.project }}
       run: bash <(curl -s https://codecov.io/bash) -F ${{ matrix.php-version }}
-
