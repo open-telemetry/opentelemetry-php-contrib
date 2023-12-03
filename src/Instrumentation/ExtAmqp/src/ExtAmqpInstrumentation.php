@@ -12,7 +12,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
-use PhpAmqpLib\Channel\AMQPChannel;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
@@ -44,7 +43,7 @@ final class ExtAmqpInstrumentation
 
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder($routingKey. ' publish')
+                    ->spanBuilder($routingKey . ' publish')
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     // code
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
@@ -98,9 +97,9 @@ final class ExtAmqpInstrumentation
             },
             post: static function (
                 AMQPExchange $exchange,
-                array        $params,
-                ?bool        $success,
-                ?Throwable   $exception,
+                array $params,
+                ?bool $success,
+                ?Throwable $exception,
             ): void {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
