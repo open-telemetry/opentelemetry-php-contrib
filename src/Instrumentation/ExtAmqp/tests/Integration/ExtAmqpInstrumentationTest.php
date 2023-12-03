@@ -59,9 +59,13 @@ class ExtAmqpInstrumentationTest extends TestCase
             $exchange->publish('test', $routing_key);
 
             $this->assertCount(1, $this->storage);
-            $this->assertEquals($routing_key . ' publish', $this->storage[0]->getName());
-            $this->assertEquals('rabbitmq', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
-            $this->assertEquals(SpanKind::KIND_PRODUCER, $this->storage[0]->getKind());
+
+            /** @var ImmutableSpan $span */
+            $span = $this->storage[0];
+
+            $this->assertEquals($routing_key . ' publish', $span->getName());
+            $this->assertEquals('rabbitmq', $span->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+            $this->assertEquals(SpanKind::KIND_PRODUCER, $span->getKind());
 
             /**
              * Our message should be the first one in the queue
@@ -92,9 +96,13 @@ class ExtAmqpInstrumentationTest extends TestCase
             $exchange->publish('test', $routing_key, AMQP_NOPARAM, []);
 
             $this->assertCount(1, $this->storage);
-            $this->assertEquals($routing_key . ' publish', $this->storage[0]->getName());
-            $this->assertEquals('rabbitmq', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
-            $this->assertEquals(SpanKind::KIND_PRODUCER, $this->storage[0]->getKind());
+
+            /** @var ImmutableSpan $span */
+            $span = $this->storage[0];
+
+            $this->assertEquals($routing_key . ' publish', $span->getName());
+            $this->assertEquals('rabbitmq', $span->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+            $this->assertEquals(SpanKind::KIND_PRODUCER, $span->getKind());
 
             /**
              * Our message should be the first one in the queue
