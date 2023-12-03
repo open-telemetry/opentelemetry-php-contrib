@@ -22,10 +22,6 @@ final class ExtAmqpInstrumentation
 
     public static function register(): void
     {
-        if (!extension_loaded('amqp')) {
-            return;
-        }
-
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.ext_amqp');
 
         hook(

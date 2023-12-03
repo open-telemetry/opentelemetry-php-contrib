@@ -15,4 +15,8 @@ if (extension_loaded('opentelemetry') === false) {
     return;
 }
 
+if (!extension_loaded('amqp')) {
+    return;
+}
+
 ExtAmqpInstrumentation::register();
