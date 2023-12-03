@@ -17,7 +17,7 @@ use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
-class ExtAmqpInstrumentation
+final class ExtAmqpInstrumentation
 {
     public const NAME = 'ext_amqp';
 
@@ -40,12 +40,7 @@ class ExtAmqpInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
-
                 $routingKey = $params[1];
-                $attributes = $params[3] ?? ['headers' => []];
-                if (!in_array('headers', $attributes)) {
-                    $attributes['headers'] = [];
-                }
 
                 $builder = $instrumentation
                     ->tracer()
@@ -77,19 +72,35 @@ class ExtAmqpInstrumentation
 
                 $context = $span->storeInContext($parent);
 
-                $propagator = Globals::propagator();
-                $propagator->inject($attributes['headers'], ArrayAccessGetterSetter::getInstance(), $context);
-                $params[3] = $attributes;
+                /**
+                 * Inject correlation context into message headers. This will only work if the
+                 * method was called with the fourth parameter being supplied, as we can currently not
+                 * expand the parameter list in native code.
+                 *
+                 * @see https://github.com/open-telemetry/opentelemetry-php-instrumentation/issues/68
+                 */
+                if (4 >= sizeof($params) && array_key_exists(3, $params)) {
+                    $attributes = $params[3];
+
+                    if (!array_key_exists('headers', $attributes)) {
+                        $attributes['headers'] = [];
+                    }
+
+                    $propagator = Globals::propagator();
+                    $propagator->inject($attributes['headers'], ArrayAccessGetterSetter::getInstance(), $context);
+
+                    $params[3] = $attributes;
+                }
 
                 Context::storage()->attach($context);
 
                 return $params;
             },
             post: static function (
-                AMQPExchange $channel,
-                array $params,
-                ?bool $response,
-                ?Throwable $exception,
+                AMQPExchange $exchange,
+                array        $params,
+                ?bool        $success,
+                ?Throwable   $exception,
             ): void {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
@@ -97,6 +108,10 @@ class ExtAmqpInstrumentation
                 }
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
+
+                if ($success === false) {
+                    $span->setStatus(StatusCode::STATUS_ERROR);
+                }
 
                 if ($exception !== null) {
                     $span->recordException($exception);

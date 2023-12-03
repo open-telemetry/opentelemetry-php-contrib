@@ -7,6 +7,7 @@ namespace OpenTelemetry\Tests\Instrumentation\ExtAmqp\tests\Integration;
 use AMQPQueue;
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -35,6 +36,7 @@ class ExtAmqpInstrumentationTest extends TestCase
 
         $this->scope = Configurator::create()
             ->withTracerProvider($tracerProvider)
+            ->withPropagator(TraceContextPropagator::getInstance())
             ->activate();
     }
 
@@ -43,9 +45,9 @@ class ExtAmqpInstrumentationTest extends TestCase
         $this->scope->detach();
     }
 
-    public function test_rabbit_basic_publish(): void
+    public function test_rabbit_basic_publish_without_args_works(): void
     {
-        $routing_key = 'my_queue';
+        $routing_key = uniqid('test_queue_', true);
 
         $connection = $this->getRabbitConnection();
         $channel = new \AMQPChannel($connection);
@@ -56,14 +58,57 @@ class ExtAmqpInstrumentationTest extends TestCase
         $queue->setFlags(AMQP_NOPARAM);
         $queue->declareQueue();
 
-        $exchange->publish('test', $routing_key);
+        try {
+            $exchange->publish('test', $routing_key);
 
-        $this->assertCount(1, $this->storage);
-        $this->assertEquals($routing_key . ' publish', $this->storage[0]->getName());
-        $this->assertEquals('rabbitmq', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
-        $this->assertEquals(SpanKind::KIND_PRODUCER, $this->storage[0]->getKind());
+            $this->assertCount(1, $this->storage);
+            $this->assertEquals($routing_key . ' publish', $this->storage[0]->getName());
+            $this->assertEquals('rabbitmq', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+            $this->assertEquals(SpanKind::KIND_PRODUCER, $this->storage[0]->getKind());
 
-        $connection->disconnect();
+            /**
+             * Our message should be the first one in the queue
+             */
+            $envelope = $queue->get();
+
+            self::assertFalse($envelope->hasHeader('traceparent'), 'traceparent header is present');
+        } finally {
+            $queue->purge();
+            $connection->disconnect();
+        }
+    }
+
+    public function test_rabbit_basic_publish(): void
+    {
+        $routing_key = uniqid('test_queue_', true);
+
+        $connection = $this->getRabbitConnection();
+        $channel = new \AMQPChannel($connection);
+        $exchange = new \AMQPExchange($channel);
+
+        $queue = new AMQPQueue($channel);
+        $queue->setName($routing_key);
+        $queue->setFlags(AMQP_NOPARAM);
+        $queue->declareQueue();
+
+        try {
+            $exchange->publish('test', $routing_key, AMQP_NOPARAM, []);
+
+            $this->assertCount(1, $this->storage);
+            $this->assertEquals($routing_key . ' publish', $this->storage[0]->getName());
+            $this->assertEquals('rabbitmq', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+            $this->assertEquals(SpanKind::KIND_PRODUCER, $this->storage[0]->getKind());
+
+            /**
+             * Our message should be the first one in the queue
+             */
+            $envelope = $queue->get();
+
+            self::assertTrue($envelope->hasHeader('traceparent'), 'traceparent header is missing');
+        } finally {
+            $queue->purge();
+            $connection->disconnect();
+        }
     }
 
     public function getRabbitConnection(): \AMQPConnection
