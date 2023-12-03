@@ -84,7 +84,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, grpc, opentelemetry
+        extensions: ast, amqp, grpc, opentelemetry
 
     - name: Validate composer.json and composer.lock
       run: composer validate
