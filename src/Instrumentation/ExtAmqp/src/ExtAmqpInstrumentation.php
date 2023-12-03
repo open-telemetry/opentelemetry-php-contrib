@@ -41,6 +41,7 @@ final class ExtAmqpInstrumentation
             ) use ($instrumentation): array {
                 $routingKey = $params[1];
 
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder($routingKey . ' publish')

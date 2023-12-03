@@ -20,9 +20,6 @@ use PHPUnit\Framework\TestCase;
 class ExtAmqpInstrumentationTest extends TestCase
 {
     private ScopeInterface $scope;
-    /**
-     * @var ImmutableSpan[]
-     */
     private ArrayObject $storage;
 
     public function setUp(): void
