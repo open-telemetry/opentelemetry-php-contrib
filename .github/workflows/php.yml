@@ -135,12 +135,9 @@ jobs:
         mongodb-replica-set: otel-php
 
     - name: Start RabbitMQ
-      uses: namoshek/rabbitmq-github-action@v1
       if: ${{ matrix.project == 'Instrumentation/ExtAmqp' }}
-      with:
-        version: '3'
-        ports: '5672:5672'
-        container-name: 'rabbitmq'
+      run: |
+        docker compose up rabbitmq -d --wait
 
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
