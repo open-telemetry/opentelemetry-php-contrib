@@ -75,7 +75,6 @@ class ExtAmqpInstrumentationTest extends TestCase
      */
     public function test_rabbit_basic_publish(string $messageInteraction): void
     {
-        /** @var $queue AMQPQueue */
         list($connection, $routing_key, $channel, $exchange, $queue) = $this->setUpQueue();
 
         try {
