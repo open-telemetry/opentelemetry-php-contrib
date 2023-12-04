@@ -33,7 +33,7 @@ $channel = new AMQPChannel($connection);
 
 $routing_key = 'task_queue';
 
-$callback_func = function(AMQPEnvelope $message, AMQPQueue $q) use (&$max_jobs) {
+$callback_func = function(AMQPEnvelope $message, AMQPQueue $q) {
     $context = $propagator->extract($message->getHeaders(), ArrayAccessGetterSetter::getInstance());
     $tracer = Globals::tracerProvider()->getTracer('my.org.consumer');
 
