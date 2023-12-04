@@ -2,7 +2,7 @@
 [![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Instrumentation/ExtAmqp)
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-auto-ext-amqp)
-[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-auto-io/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-ext-amqp/)
+[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-auto-ext-amqp/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-ext-amqp/)
 [![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-auto-ext-amqp/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-ext-amqp/)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
