@@ -29,12 +29,12 @@ final class ExtAmqpInstrumentation
             AMQPExchange::class,
             'publish',
             pre: static function (
-                AMQPExchange $channel,
-                array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
+                AMQPExchange $exchange,
+                array        $params,
+                string       $class,
+                string       $function,
+                ?string      $filename,
+                ?int         $lineno,
             ) use ($instrumentation): array {
                 $routingKey = $params[1];
 
@@ -67,10 +67,10 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(TraceAttributes::NET_TRANSPORT, 'tcp')
                     ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, 'tcp')
 
-                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $channel->getConnection()->getHost())
-                    ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $channel->getConnection()->getHost())
-                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $channel->getConnection()->getPort())
-                    ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $channel->getConnection()->getPort())
+                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $exchange->getConnection()->getHost())
+                    ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $exchange->getConnection()->getHost())
+                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $exchange->getConnection()->getPort())
+                    ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $exchange->getConnection()->getPort())
                 ;
 
                 $parent = Context::getCurrent();
