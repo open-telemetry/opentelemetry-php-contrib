@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\ExtAmqp;
 
 use AMQPExchange;
+use AMQPQueue;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -53,11 +54,23 @@ final class ExtAmqpInstrumentation
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION, $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, $routingKey)
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, 'queue')
 
                     ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_ROUTING_KEY, $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $routingKey)
+
+                    // network
+                    ->setAttribute(TraceAttributes::NET_PROTOCOL_NAME, 'amqp')
+                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
+                    ->setAttribute(TraceAttributes::NET_TRANSPORT, 'tcp')
+                    ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, 'tcp')
+
+                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $channel->getConnection()->getHost())
+                    ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $channel->getConnection()->getHost())
+                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $channel->getConnection()->getPort())
+                    ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $channel->getConnection()->getPort())
                 ;
 
                 $parent = Context::getCurrent();
@@ -94,6 +107,97 @@ final class ExtAmqpInstrumentation
             },
             post: static function (
                 AMQPExchange $exchange,
+                array $params,
+                ?bool $success,
+                ?Throwable $exception,
+            ): void {
+                $scope = Context::storage()->scope();
+                if (null === $scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+
+                if ($success === false) {
+                    $span->setStatus(StatusCode::STATUS_ERROR);
+                }
+
+                if ($exception !== null) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR);
+                }
+
+                $span->end();
+            }
+        );
+
+        self::createInteractionWithQueueSpan($instrumentation, AMQPQueue::class, 'ack');
+        self::createInteractionWithQueueSpan($instrumentation, AMQPQueue::class, 'nack');
+        self::createInteractionWithQueueSpan($instrumentation, AMQPQueue::class, 'reject');
+    }
+
+    protected static function createInteractionWithQueueSpan(CachedInstrumentation $instrumentation, $class, string $method)
+    {
+        hook(
+            $class,
+            $method,
+            pre: static function (
+                AMQPQueue $queue,
+                array $params,
+                string $class,
+                string $function,
+                ?string $filename,
+                ?int $lineno,
+            ) use ($instrumentation, $method): array {
+                $queueName = $queue->getName();
+
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $builder = $instrumentation
+                    ->tracer()
+                    ->spanBuilder($queueName . ' ' . $method)
+                    ->setSpanKind(SpanKind::KIND_CLIENT)
+                    // code
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    // messaging
+                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'rabbitmq')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION, $method)
+
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, 'queue')
+
+                    ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_ROUTING_KEY, $queueName)
+                    ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $queueName)
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, $queueName)
+
+                    ->setAttribute(TraceAttributes::MESSAGING_CLIENT_ID, $queue->getConsumerTag())
+
+                    ->setAttribute(TraceAttributes::NET_PROTOCOL_NAME, 'amqp')
+                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
+                    ->setAttribute(TraceAttributes::NET_TRANSPORT, 'tcp')
+                    ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, 'tcp')
+
+                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $queue->getChannel()->getConnection()->getHost())
+                    ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $queue->getChannel()->getConnection()->getHost())
+                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $queue->getChannel()->getConnection()->getPort())
+                    ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $queue->getChannel()->getConnection()->getPort())
+                ;
+
+                $parent = Context::getCurrent();
+
+                $span = $builder
+                    ->setParent($parent)
+                    ->startSpan();
+
+                $context = $span->storeInContext($parent);
+
+                Context::storage()->attach($context);
+
+                return $params;
+            },
+            post: static function (
+                AMQPQueue $queue,
                 array $params,
                 ?bool $success,
                 ?Throwable $exception,
