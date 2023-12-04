@@ -30,11 +30,11 @@ final class ExtAmqpInstrumentation
             'publish',
             pre: static function (
                 AMQPExchange $exchange,
-                array        $params,
-                string       $class,
-                string       $function,
-                ?string      $filename,
-                ?int         $lineno,
+                array $params,
+                string $class,
+                string $function,
+                ?string $filename,
+                ?int $lineno,
             ) use ($instrumentation): array {
                 $routingKey = $params[1];
 
