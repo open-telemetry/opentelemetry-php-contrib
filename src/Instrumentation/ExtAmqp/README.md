@@ -16,6 +16,58 @@ install and configure the extension and SDK.
 Auto-instrumentation hooks are registered via composer, and spans will automatically be created for the
 following methods:
 - `AMQPExchange::publish`
+- `AMQPQueue::ack`
+- `AMQPQueue::nack`
+- `AMQPQueue::reject`
+
+The instrumentation automatically creates a span for each of the above methods and injects the span context into the
+message headers. A consumer *SHOULD* create a span for each message received, extract the span context and can decide
+to assume the context for processing the message or start a new trace and use trace-links to link the producer with
+the consumer.
+
+### Example
+
+```php
+//Create and declare channel
+$channel = new AMQPChannel($connection);
+
+$routing_key = 'task_queue';
+
+$callback_func = function(AMQPEnvelope $message, AMQPQueue $q) use (&$max_jobs) {
+    $context = $propagator->extract($message->getHeaders(), ArrayAccessGetterSetter::getInstance());
+    $tracer = Globals::tracerProvider()->getTracer('my.org.consumer');
+
+    // Start a new span that assumes the context that was injected by the producer
+    $span = $tracer
+        ->spanBuilder('my_queue consume')
+        ->setSpanKind(SpanKind::KIND_CONSUMER)
+        ->setParent($context)
+        ->startSpan();
+
+    sleep(sleep(substr_count($message->getBody(), '.')));
+
+    $q->ack($message->getDeliveryTag());
+
+    $span->end();
+};
+
+try{
+    $queue = new AMQPQueue($channel);
+    $queue->setName($routing_key);
+    $queue->setFlags(AMQP_DURABLE);
+    $queue->declareQueue();
+
+    $queue->consume($callback_func);
+} catch(AMQPQueueException $ex){
+    print_r($ex);
+} catch(Exception $ex){
+    print_r($ex);
+}
+
+$connection->disconnect();
+```
+
+Full Example: https://github.com/rabbitmq/rabbitmq-tutorials/blob/main/php-amqp/worker.php
 
 ## Configuration
 
