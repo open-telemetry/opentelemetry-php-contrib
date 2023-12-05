@@ -58,6 +58,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             $this->assertEquals('amqp', $span->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $span->getKind());
             $this->assertEquals('test_exchange ' . $routing_key, $span->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
+            $this->assertEquals('topic', $span->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_KIND));
 
             /**
              * Our message should be the first one in the queue
@@ -90,6 +91,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             $this->assertEquals('amqp', $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $publishSpan->getKind());
             $this->assertEquals('test_exchange ' . $routing_key, $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
+            $this->assertEquals('topic', $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_KIND));
 
             /**
              * Our message should be the first one in the queue

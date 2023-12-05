@@ -56,7 +56,7 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey))
 
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, 'queue')
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, $exchange->getType() !== '' ? $exchange->getType() : 'unknown')
 
                     ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_ROUTING_KEY, $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $routingKey)
