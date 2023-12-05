@@ -81,9 +81,10 @@ class HttpInstrumentation
                 }
 
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
-                if (($route = $request?->route()?->uri()) !== null) {
+                /** @var \Illuminate\Routing\Route|null $route */
+                if ($route = ($request && ($resolver = $request->getRouteResolver())) ? $resolver() : null) {
                     /** @psalm-suppress ArgumentTypeCoercion */
-                    $span->updateName(sprintf('%s %s', $request?->method() ?? 'unknown', '/' . ltrim($route, '/')));
+                    $span->updateName(sprintf('%s %s', $request?->method() ?? 'unknown', '/' . ltrim($route->uri(), '/')));
                 }
 
                 $span->end();
