@@ -41,7 +41,7 @@ final class ExtAmqpInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder($routingKey . ' publish')
+                    ->spanBuilder(sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey) . ' publish')
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     // code
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
@@ -54,7 +54,7 @@ final class ExtAmqpInstrumentation
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION, $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, sprintf('%s%s', $exchange->getName() . ' ' ?: '', $routingKey))
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey))
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, 'queue')
 

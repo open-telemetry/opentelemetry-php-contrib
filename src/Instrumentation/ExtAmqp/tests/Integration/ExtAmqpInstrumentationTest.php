@@ -54,7 +54,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             /** @var ImmutableSpan $span */
             $span = $this->storage[0];
 
-            $this->assertEquals($routing_key . ' publish', $span->getName());
+            $this->assertEquals('test_exchange ' . $routing_key . ' publish', $span->getName());
             $this->assertEquals('amqp', $span->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $span->getKind());
             $this->assertEquals('test_exchange ' . $routing_key, $span->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
@@ -86,7 +86,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             /** @var ImmutableSpan $publishSpan */
             $publishSpan = $this->storage[0];
 
-            $this->assertEquals($routing_key . ' publish', $publishSpan->getName());
+            $this->assertEquals('test_exchange ' . $routing_key . ' publish', $publishSpan->getName());
             $this->assertEquals('amqp', $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $publishSpan->getKind());
             $this->assertEquals('test_exchange ' . $routing_key, $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
