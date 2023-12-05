@@ -14,6 +14,8 @@ services:
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
       XDEBUG_CONFIG: ${XDEBUG_CONFIG:-''}
       PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-''}
+      RABBIT_HOST: ${RABBIT_HOST:-rabbitmq}
+
   zipkin:
     image: openzipkin/zipkin-slim
     ports:
@@ -32,3 +34,13 @@ services:
     volumes:
       - ./files/collector/otel-collector-config.yml:/etc/otel-collector-config.yml
 
+  rabbitmq:
+    image: rabbitmq:3
+    hostname: rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "5672:5672/tcp"

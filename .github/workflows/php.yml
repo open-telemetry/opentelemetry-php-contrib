@@ -22,6 +22,7 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
+          'Instrumentation/ExtAmqp',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
           'Instrumentation/Psr3',
@@ -72,6 +73,12 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/PDO'
             php-version: 8.1
+          - project: 'Instrumentation/ExtAmqp'
+            php-version: 7.4
+          - project: 'Instrumentation/ExtAmqp'
+            php-version: 8.0
+          - project: 'Instrumentation/ExtAmqp'
+            php-version: 8.1
     steps:
     - uses: actions/checkout@v3
 
@@ -80,7 +87,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, grpc, opentelemetry
+        extensions: ast, amqp, grpc, opentelemetry
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -131,6 +138,11 @@ jobs:
         mongodb-version: 6.0
         mongodb-replica-set: otel-php
 
+    - name: Start RabbitMQ
+      if: ${{ matrix.project == 'Instrumentation/ExtAmqp' }}
+      run: |
+        docker compose up rabbitmq -d --wait
+
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/phpunit
@@ -142,4 +154,3 @@ jobs:
     - name: Code Coverage
       working-directory: src/${{ matrix.project }}
       run: bash <(curl -s https://codecov.io/bash) -F ${{ matrix.php-version }}
-
