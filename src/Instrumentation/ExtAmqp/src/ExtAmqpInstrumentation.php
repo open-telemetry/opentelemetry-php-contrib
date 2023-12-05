@@ -49,7 +49,7 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
                     // messaging
-                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'rabbitmq')
+                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, 'publish')
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION, $routingKey)
@@ -162,7 +162,7 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
                     // messaging
-                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'rabbitmq')
+                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, $method)
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, 'queue')
