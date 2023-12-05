@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Foundation\Console\ServeCommand;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\CacheWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ClientRequestWatcher;
@@ -42,5 +43,25 @@ class LaravelInstrumentation
 
         ConsoleInstrumentation::register($instrumentation);
         HttpInstrumentation::register($instrumentation);
+
+        self::developmentInstrumentation();
+    }
+
+    private static function developmentInstrumentation(): void
+    {
+        // Allow instrumentation when using the local PHP development server.
+        if (class_exists(ServeCommand::class) && property_exists(ServeCommand::class, 'passthroughVariables')) {
+            hook(
+                ServeCommand::class,
+                'handle',
+                pre: static function (ServeCommand $serveCommand, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                    foreach ($_ENV as $key => $value) {
+                        if (str_starts_with($key, 'OTEL_') && !in_array($key, ServeCommand::$passthroughVariables)) {
+                            ServeCommand::$passthroughVariables[] = $key;
+                        }
+                    }
+                },
+            );
+        }
     }
 }
