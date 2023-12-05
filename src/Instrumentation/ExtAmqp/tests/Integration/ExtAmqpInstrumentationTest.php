@@ -57,6 +57,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             $this->assertEquals($routing_key . ' publish', $span->getName());
             $this->assertEquals('amqp', $span->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $span->getKind());
+            $this->assertEquals('test_exchange ' . $routing_key, $span->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
 
             /**
              * Our message should be the first one in the queue
@@ -88,6 +89,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             $this->assertEquals($routing_key . ' publish', $publishSpan->getName());
             $this->assertEquals('amqp', $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $publishSpan->getKind());
+            $this->assertEquals('test_exchange ' . $routing_key, $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
 
             /**
              * Our message should be the first one in the queue
@@ -126,11 +128,16 @@ class ExtAmqpInstrumentationTest extends TestCase
         $connection = $this->getRabbitConnection();
         $channel = new \AMQPChannel($connection);
         $exchange = new \AMQPExchange($channel);
+        $exchange->setName('test_exchange');
+        $exchange->setType(AMQP_EX_TYPE_TOPIC);
+        $exchange->declareExchange();
 
         $queue = new AMQPQueue($channel);
         $queue->setName($routing_key);
         $queue->setFlags(AMQP_NOPARAM);
         $queue->declareQueue();
+
+        $queue->bind($exchange->getName(), $routing_key);
 
         return [$connection, $routing_key, $channel, $exchange, $queue];
     }

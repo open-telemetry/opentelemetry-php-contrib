@@ -54,7 +54,7 @@ final class ExtAmqpInstrumentation
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION, $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, $routingKey)
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, sprintf('%s%s', $exchange->getName() . ' ' ?: '', $routingKey))
 
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, 'queue')
 
