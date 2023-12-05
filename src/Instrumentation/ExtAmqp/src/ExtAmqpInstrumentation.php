@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\ExtAmqp;
 
 use AMQPExchange;
 use AMQPQueue;
+use Composer\InstalledVersions;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -23,7 +24,10 @@ final class ExtAmqpInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.ext_amqp');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.ext_amqp',
+            InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-amqp'),
+        );
 
         hook(
             AMQPExchange::class,
