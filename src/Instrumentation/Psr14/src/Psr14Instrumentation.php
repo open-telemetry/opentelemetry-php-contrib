@@ -50,7 +50,7 @@ class Psr14Instrumentation
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
             },
-            post: static function (EventDispatcherInterface $pdo, array $params, object $event, ?Throwable $exception) {
+            post: static function (EventDispatcherInterface $dispatcher, array $params, $return, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
