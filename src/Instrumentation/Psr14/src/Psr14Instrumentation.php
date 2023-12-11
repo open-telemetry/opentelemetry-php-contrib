@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Psr14;
 
+use Composer\InstalledVersions;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -24,7 +25,10 @@ class Psr14Instrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr14');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.psr14',
+            InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr14'),
+        );
 
         /**
          * Create a span for each PSR-14 event that is disptached.
