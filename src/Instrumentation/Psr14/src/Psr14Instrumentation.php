@@ -43,8 +43,7 @@ class Psr14Instrumentation
                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                   ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
-                   ->setSpanKind(SpanKind::KIND_CLIENT);
+                   ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
 
                 if ($event) {
                     $builder->setAttribute(TraceAttributes::EVENT_NAME, $event::class);
