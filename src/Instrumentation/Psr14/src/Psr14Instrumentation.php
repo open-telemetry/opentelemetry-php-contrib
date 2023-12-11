@@ -56,11 +56,6 @@ class Psr14Instrumentation
                     return;
                 }
 
-                $scope = Context::storage()->scope();
-                if (!$scope) {
-                    return;
-                }
-
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
 
