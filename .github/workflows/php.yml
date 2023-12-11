@@ -50,7 +50,7 @@ jobs:
             php-version: 7.4
           - project: 'Instrumentation/Psr3'
             php-version: 7.4
-          - project: 'Instrumentation/Psr1'
+          - project: 'Instrumentation/Psr14'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'
             php-version: 7.4
