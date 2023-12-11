@@ -9,11 +9,11 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use Psr\EventDispatcher\EventDispatcherInterface;
-use OpenTelemetry\SemConv\TraceAttributes;
-use Throwable;
-
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\TraceAttributes;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+use Throwable;
 
 /**
  * @psalm-suppress ArgumentTypeCoercion
@@ -50,7 +50,7 @@ class Psr14Instrumentation
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
             },
-            post: static function (EventDispatcherInterface $dispatcher, array $params, $return, ?Throwable $exception) {
+            post: static function (EventDispatcherInterface $dispatcher, array $params, object $return, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;

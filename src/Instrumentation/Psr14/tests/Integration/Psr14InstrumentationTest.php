@@ -48,7 +48,7 @@ class Psr14InstrumentationTest extends TestCase
         $this->dispatcher = new class() implements EventDispatcherInterface {
             public function dispatch(object $event)
             {
-                // mock
+                return $event;
             }
         };
     }
