@@ -33,6 +33,12 @@
     "psalm/plugin-phpunit": "^0.16",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^4.0"
+    "vimeo/psalm": "^4.0",
+    "symfony/http-client": "^7.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
   }
 }
