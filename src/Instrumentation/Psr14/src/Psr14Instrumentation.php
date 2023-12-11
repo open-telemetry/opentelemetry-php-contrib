@@ -10,9 +10,10 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
+
+use function OpenTelemetry\Instrumentation\hook;
 
 /**
  * @psalm-suppress ArgumentTypeCoercion
