@@ -9,7 +9,7 @@
   "minimum-stability": "dev",
   "require": {
     "php": "^8.2",
-    "composer-runtime-api": "*",
+    "composer-runtime-api": "^2.0",
     "ext-amqp": "*",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1",
