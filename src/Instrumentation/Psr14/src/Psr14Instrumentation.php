@@ -45,7 +45,7 @@ class Psr14Instrumentation
                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
 
                 if ($event) {
-                    $builder->setAttribute(TraceAttributes::EVENT_NAME, $event::class);
+                    $builder->setAttribute('psr14.event.name', $event::class);
                 }
 
                 $parent = Context::getCurrent();
