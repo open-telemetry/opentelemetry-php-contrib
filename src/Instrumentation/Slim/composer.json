@@ -12,7 +12,7 @@
     "php": "^8.0",
     "ext-opentelemetry": "*",
     "ext-reflection": "*",
-    "open-telemetry/api": "^1.0.0beta10",
+    "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.22",
     "slim/slim": "^4"
   },
