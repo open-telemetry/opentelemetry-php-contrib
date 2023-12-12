@@ -61,8 +61,8 @@ class Psr14InstrumentationTest extends TestCase
 
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        var_dump($span->getAttributes());
 
+        $this->assertEquals(sprintf('event %s', SampleEventClass::class), $span->getName());
         $this->assertEquals(SampleEventClass::class, $span->getAttributes()->get('psr14.event.name'));
     }
 }
