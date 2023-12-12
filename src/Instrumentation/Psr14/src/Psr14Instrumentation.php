@@ -30,7 +30,7 @@ class Psr14Instrumentation
         );
 
         /**
-         * Create a span for each PSR-14 event that is disptached.
+         * Create a span for each PSR-14 event that is dispatched.
          */
         hook(
             EventDispatcherInterface::class,
