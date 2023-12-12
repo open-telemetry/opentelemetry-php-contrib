@@ -13,7 +13,8 @@
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.22",
-    "psr/event-dispatcher": "^1"
+    "psr/event-dispatcher": "^1",
+    "composer-runtime-api": "^2.0"
   },
   "autoload": {
     "psr-4": {
