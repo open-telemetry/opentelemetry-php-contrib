@@ -26,6 +26,7 @@ jobs:
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
           'Instrumentation/Psr3',
+          'Instrumentation/Psr14',
           'Instrumentation/Psr15',
           'Instrumentation/Psr18',
           'Instrumentation/IO',
@@ -48,6 +49,8 @@ jobs:
           - project: 'Instrumentation/Slim'
             php-version: 7.4
           - project: 'Instrumentation/Psr3'
+            php-version: 7.4
+          - project: 'Instrumentation/Psr14'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'
             php-version: 7.4
