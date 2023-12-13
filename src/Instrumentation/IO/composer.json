@@ -10,7 +10,7 @@
   "require": {
     "php": "^8.2",
     "ext-opentelemetry": "*",
-    "open-telemetry/api": "^1.0.0beta10",
+    "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.22"
   },
   "require-dev": {
