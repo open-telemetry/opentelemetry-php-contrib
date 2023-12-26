@@ -23,3 +23,7 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=yii
 ```
+
+## Examples
+
+you can find examples on how to use the Yii auto-instrumentation in the [examples directory](/examples/instrumentation/yii/README.md).
