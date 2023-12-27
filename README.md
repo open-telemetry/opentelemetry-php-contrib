@@ -45,7 +45,7 @@ the installation of one or more packages from [src/Instrumentation](./src/Instru
 
 ### Yii
 
-- The documentation for the Yii context can be found [here](/src/Instrumentation/Yii/README.md).
+- The documentation for Yii framework can be found [here](/src/Instrumentation/Yii/README.md).
 
 ## Development
 
