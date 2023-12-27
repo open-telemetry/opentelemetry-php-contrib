@@ -1,0 +1,20 @@
+version: '3.7'
+services:
+  php:
+    build:
+      context: .
+    ports:
+    - "80:80"
+    environment:
+      OTEL_PHP_AUTOLOAD_ENABLED: true
+      OTEL_SERVICE_NAME: otel-demo-php
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_PROPAGATORS: baggage,tracecontext
+  jaeger:
+    image: jaegertracing/all-in-one
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+    - 16686:16686

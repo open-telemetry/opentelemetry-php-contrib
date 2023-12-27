@@ -43,6 +43,10 @@ the installation of one or more packages from [src/Instrumentation](./src/Instru
 
 - The documentation for the Swoole context can be found [here](/src/Context/Swoole/README.md).
 
+### Yii
+
+- The documentation for Yii framework can be found [here](/src/Instrumentation/Yii/README.md).
+
 ## Development
 
 Please, consult the documentation of the main [OpenTelemetry PHP project][opentelemetry-php].
