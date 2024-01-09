@@ -1,7 +1,7 @@
 {
-  "name": "open-telemetry/opentelemetry-auto-slim",
-  "description": "OpenTelemetry auto-instrumentation for Slim Framework.",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "slim", "instrumentation"],
+  "name": "open-telemetry/opentelemetry-auto-guzzle",
+  "description": "OpenTelemetry auto-instrumentation for Guzzle.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "guzzle", "instrumentation"],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
@@ -11,7 +11,6 @@
   "require": {
     "php": "^8.0",
     "ext-opentelemetry": "*",
-    "ext-reflection": "*",
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.22",
     "guzzlehttp/guzzle": "^7"
@@ -19,10 +18,8 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
     "guzzlehttp/promises": "^2",
-    "mockery/mockery": "^1.5",
     "nyholm/psr7": "*",
     "phan/phan": "^5.0",
-    "php-http/mock-client": "*",
     "phpstan/phpstan-mockery": "^1.1.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
