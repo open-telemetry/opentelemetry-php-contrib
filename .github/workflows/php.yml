@@ -23,6 +23,7 @@ jobs:
           'Aws',
           'Context/Swoole',
           'Instrumentation/ExtAmqp',
+          'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
           'Instrumentation/Psr3',
@@ -44,6 +45,8 @@ jobs:
           'Symfony'
         ]
         exclude:
+          - project: 'Instrumentation/Guzzle'
+            php-version: 7.4
           - project: 'Instrumentation/HttpAsyncClient'
             php-version: 7.4
           - project: 'Instrumentation/Slim'
