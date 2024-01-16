@@ -1,9 +1,13 @@
 ARG PHP_VERSION=8.2
 FROM yiisoftware/yii2-php:${PHP_VERSION}-fpm
 
+RUN apt upgrade
 
-RUN pecl install opentelemetry
-RUN echo "extension=opentelemetry.so" > /usr/local/etc/php/conf.d/docker-php-ext-opentelemetry.ini
+RUN apt install $PHPIZE_DEPS
+
+RUN pecl install opentelemetry protobuf
+RUN docker-php-ext-enable opentelemetry protobuf
+RUN docker-php-source delete
 
 RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini
 
