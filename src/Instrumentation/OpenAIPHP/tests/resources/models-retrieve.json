@@ -1,0 +1,6 @@
+{
+  "id": "gpt-3.5-turbo-instruct",
+  "object": "model",
+  "created": 1686935002,
+  "owned_by": "openai"
+}
