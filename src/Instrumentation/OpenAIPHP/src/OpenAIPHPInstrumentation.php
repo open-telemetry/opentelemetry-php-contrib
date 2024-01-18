@@ -13,8 +13,6 @@ use OpenAI\Contracts\Resources\EmbeddingsContract;
 use OpenAI\Contracts\Resources\ImagesContract;
 use OpenAI\Contracts\Resources\ModelsContract;
 use OpenAI\Contracts\ResponseContract;
-use OpenAI\Contracts\TransporterContract;
-use OpenAI\ValueObjects\Transporter\Response;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Metrics\CounterInterface;
 use OpenTelemetry\API\Trace\Span;
@@ -71,31 +69,6 @@ final class OpenAIPHPInstrumentation
         self::hookApi($instrumentation, ModelsContract::class, 'models', 'list');
         self::hookApi($instrumentation, ModelsContract::class, 'models', 'retrieve');
         self::hookApi($instrumentation, ModelsContract::class, 'models', 'delete');
-
-        hook(
-            TransporterContract::class,
-            'requestObject',
-            pre: static function (
-                TransporterContract $transporter,
-                array               $params,
-                string              $class,
-                string              $function,
-                ?string             $filename,
-                ?int                $lineno,
-            ) use ($instrumentation): array {
-                $span = Span::getCurrent();
-
-                return $params;
-            },
-            post: static function (
-                TransporterContract $transporter,
-                array               $params,
-                ?Response           $success,
-                ?Throwable          $exception,
-            ): void {
-                $span = Span::getCurrent();
-            }
-        );
     }
 
     private static function hookApi(CachedInstrumentation $instrumentation, $class, string $resource, string $operation)
@@ -110,7 +83,7 @@ final class OpenAIPHPInstrumentation
                 string $function,
                 ?string $filename,
                 ?int $lineno,
-            )use ($instrumentation, $operation, $resource) {
+            ) use ($instrumentation, $operation, $resource) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
@@ -132,36 +105,47 @@ final class OpenAIPHPInstrumentation
                         switch ($key) {
                             case 'response_format':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_RESPONSE_FORMAT, $value);
+
                                 break;
                             case 'model':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_MODEL, $value);
+
                                 break;
                             case 'temperature':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_TEMPERATURE, $value);
+
                                 break;
                             case 'frequency_penalty':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_FREQUENCY_PENALTY, $value);
+
                                 break;
                             case 'max_tokens':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_MAX_TOKENS, $value);
+
                                 break;
                             case 'n':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_N, $value);
+
                                 break;
                             case 'presence_penalty':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_PRESENCE_PENALTY, $value);
+
                                 break;
                             case 'seed':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_SEED, $value);
+
                                 break;
                             case 'stream':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_STREAM, $value);
+
                                 break;
                             case 'top_p':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_TOP_P, $value);
+
                                 break;
                             case 'user':
                                 $builder->setAttribute(OpenAIAttributes::OPENAI_USER, $value);
+
                                 break;
                         }
                     }
@@ -183,7 +167,7 @@ final class OpenAIPHPInstrumentation
                 array $params,
                 $result,
                 ?Throwable $exception,
-            )use ($instrumentation, $operation, $resource) {
+            ) {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
                     return;
@@ -192,9 +176,7 @@ final class OpenAIPHPInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if ($result instanceof ResponseContract) {
-                    if (property_exists($result, 'usage')) {
-                        self::recordUsage($span, $result->usage);
-                    }
+                    self::recordUsage($span, $result);
                 }
 
                 if ($exception !== null) {
@@ -207,22 +189,25 @@ final class OpenAIPHPInstrumentation
         );
     }
 
-    private static function recordUsage(SpanInterface $span, object $usage)
+    private static function recordUsage(SpanInterface $span, object $response)
     {
-        if (!method_exists($usage, 'toArray')) {
+        if (!property_exists($response, 'usage') || !method_exists($response->usage, 'toArray')) {
             return;
         }
 
-        foreach ($usage->toArray() as $key => $value) {
+        foreach ($response->usage->toArray() as $key => $value) {
             switch ($key) {
                 case 'prompt_tokens':
                     $span->setAttribute(OpenAIAttributes::OPENAI_USAGE_PROMPT_TOKENS, $value);
+
                     break;
                 case 'completion_tokens':
                     $span->setAttribute(OpenAIAttributes::OPENAI_USAGE_COMPLETION_TOKENS, $value);
+
                     break;
                 case 'total_tokens':
                     $span->setAttribute(OpenAIAttributes::OPENAI_USAGE_TOTAL_TOKENS, $value);
+
                     break;
             }
         }

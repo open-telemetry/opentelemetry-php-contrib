@@ -59,6 +59,7 @@ class OpenAIPHPInstrumentationTest extends TestCase
             ->willReturn(new Response(200, ['content-type' => 'application/json'], $responseJson));
 
         $factory = new Factory();
+
         return $factory
             ->withHttpClient($httpClient)
             ->make();
