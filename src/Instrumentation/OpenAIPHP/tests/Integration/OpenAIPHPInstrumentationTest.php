@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Instrumentation\ExtAmqp\tests\Integration;
+namespace OpenTelemetry\Tests\Instrumentation\OpenAIPHP\tests\Integration;
 
 use ArrayObject;
 use Nyholm\Psr7\Response;
