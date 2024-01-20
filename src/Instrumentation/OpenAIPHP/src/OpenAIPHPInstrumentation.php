@@ -20,6 +20,7 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
@@ -176,7 +177,7 @@ final class OpenAIPHPInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if ($result instanceof ResponseContract) {
-                    self::recordUsage($span, $result);
+                    self::recordUsage($span, $result, $scope->context());
                 }
 
                 if ($exception !== null) {
@@ -189,10 +190,15 @@ final class OpenAIPHPInstrumentation
         );
     }
 
-    private static function recordUsage(SpanInterface $span, object $response)
+    private static function recordUsage(SpanInterface $span, object $response, ContextInterface $context)
     {
         if (!property_exists($response, 'usage') || !method_exists($response->usage, 'toArray')) {
             return;
+        }
+
+        $model = '';
+        if (property_exists($response, 'model')) {
+            $model = $response->model;
         }
 
         foreach ($response->usage->toArray() as $key => $value) {
@@ -207,6 +213,12 @@ final class OpenAIPHPInstrumentation
                     break;
                 case 'total_tokens':
                     $span->setAttribute(OpenAIAttributes::OPENAI_USAGE_TOTAL_TOKENS, $value);
+
+                    self::$totalTokensCounter->add(
+                        (is_int($value) || is_float($value)) ? $value : 0,
+                        new \ArrayIterator(['model' => $model]),
+                        $context,
+                    );
 
                     break;
             }
