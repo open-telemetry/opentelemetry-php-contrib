@@ -90,8 +90,6 @@ jobs:
             php-version: 7.4
           - project: 'Instrumentation/OpenAIPHP'
             php-version: 8.0
-          - project: 'Instrumentation/OpenAIPHP'
-            php-version: 8.1
     steps:
     - uses: actions/checkout@v3
 
