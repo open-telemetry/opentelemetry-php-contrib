@@ -181,7 +181,7 @@ final class OpenAIPHPInstrumentation
 
                 if ($exception !== null) {
                     $span->recordException($exception);
-                    $span->setStatus(StatusCode::STATUS_ERROR);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 
                 $span->end();

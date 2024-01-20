@@ -5,19 +5,24 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\OpenAIPHP\tests\Integration;
 
 use ArrayObject;
+use Http\Client\Exception\NetworkException;
 use Nyholm\Psr7\Response;
 use OpenAI\Client;
+use OpenAI\Exceptions\TransporterException;
 use OpenAI\Factory;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\Contrib\Instrumentation\OpenAIPHP\OpenAIAttributes;
+use OpenTelemetry\SDK\Trace\Event;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 
 class OpenAIPHPInstrumentationTest extends TestCase
 {
@@ -104,6 +109,47 @@ class OpenAIPHPInstrumentationTest extends TestCase
 
         foreach ($spanAttributes as $key => $value) {
             $this->assertSame($value, $span->getAttributes()->get($key));
+        }
+    }
+
+    public function test_will_set_status()
+    {
+        $httpClient = $this->createMock(ClientInterface::class);
+        $httpClient->expects($this->once())
+            ->method('sendRequest')
+            ->willThrowException(new NetworkException('Request failed', $this->createMock(RequestInterface::class)));
+
+        $factory = new Factory();
+
+        $client = $factory
+            ->withHttpClient($httpClient)
+            ->make();
+
+        try {
+            $response = $client->completions()->create([
+                'model' => 'gpt-3.5-turbo-instruct',
+                'prompt' => 'Say this is a test',
+                'max_tokens' => 7,
+                'temperature' => 0,
+            ]);
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(TransporterException::class, $th);
+        } finally {
+            $this->assertCount(1, $this->storage);
+
+            /** @var ImmutableSpan $span */
+            $span = $this->storage[0];
+
+            $this->assertSame('openai completions/create', $span->getName());
+            $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+            $this->assertSame('Request failed', $span->getStatus()->getDescription());
+
+            $this->assertCount(1, $span->getEvents());
+
+            /** @var Event $event */
+            $event = $span->getEvents()[0];
+            $this->assertSame('exception', $event->getName());
+            $this->assertSame('Request failed', $event->getAttributes()->get('exception.message'));
         }
     }
 }
