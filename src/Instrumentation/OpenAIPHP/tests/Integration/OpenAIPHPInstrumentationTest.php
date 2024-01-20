@@ -15,6 +15,7 @@ use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\Contrib\Instrumentation\OpenAIPHP\OpenAIAttributes;
+use OpenTelemetry\Contrib\Instrumentation\OpenAIPHP\OpenAIPHPInstrumentation;
 use OpenTelemetry\SDK\Trace\Event;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -151,5 +152,12 @@ class OpenAIPHPInstrumentationTest extends TestCase
             $this->assertSame('exception', $event->getName());
             $this->assertSame('Request failed', $event->getAttributes()->get('exception.message'));
         }
+    }
+
+    public function test_can_register()
+    {
+        $this->expectNotToPerformAssertions();
+
+        OpenAIPHPInstrumentation::register();
     }
 }
