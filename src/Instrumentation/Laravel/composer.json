@@ -13,7 +13,7 @@
     "ext-opentelemetry": "*",
     "laravel/framework": ">=6.0",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.22"
+    "open-telemetry/sem-conv": "^1.23"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",

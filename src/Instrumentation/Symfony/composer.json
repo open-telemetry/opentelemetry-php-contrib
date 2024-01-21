@@ -11,7 +11,7 @@
     "php": "^8.0",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.22",
+    "open-telemetry/sem-conv": "^1.23",
     "symfony/http-kernel": "*",
     "symfony/http-client-contracts": "*"
   },
