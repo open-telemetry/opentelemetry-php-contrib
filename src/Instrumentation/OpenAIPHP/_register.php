@@ -10,7 +10,7 @@ if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(OpenAIPHPInstrume
 }
 
 if (extension_loaded('opentelemetry') === false) {
-    trigger_error('The opentelemetry extension must be loaded in order to autoload the OpenTelemetry ext-amqp auto-instrumentation', E_USER_WARNING);
+    trigger_error('The opentelemetry extension must be loaded in order to autoload the OpenTelemetry OpenAI auto-instrumentation', E_USER_WARNING);
 
     return;
 }
