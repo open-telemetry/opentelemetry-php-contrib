@@ -15,8 +15,4 @@ if (extension_loaded('opentelemetry') === false) {
     return;
 }
 
-if (!extension_loaded('amqp')) {
-    return;
-}
-
 OpenAIPHPInstrumentation::register();
