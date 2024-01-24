@@ -33,6 +33,7 @@ jobs:
           'Instrumentation/IO',
           'Instrumentation/PDO',
           'Instrumentation/Symfony',
+          'Instrumentation/OpenAIPHP',
           'Instrumentation/Laravel',
           'Instrumentation/MongoDB',
           'Instrumentation/CodeIgniter',
@@ -85,6 +86,10 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.1
+          - project: 'Instrumentation/OpenAIPHP'
+            php-version: 7.4
+          - project: 'Instrumentation/OpenAIPHP'
+            php-version: 8.0
     steps:
     - uses: actions/checkout@v3
 
