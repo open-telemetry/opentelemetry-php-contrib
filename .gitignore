@@ -4,8 +4,10 @@ composer.lock
 var
 vendor
 .idea/
+.vscode/
 coverage.clover
 **/tests/coverage
+**/tests/runtime/cache
 .php_cs.cache
 phpunit.xml
 psalm.xml
