@@ -10,7 +10,7 @@ use OpenTelemetry\SDK\Common\Export\Stream\StreamTransportFactory;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
-use OpenTelemetry\SDK\Logs\Processor\BatchLogsProcessor;
+use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
 use Psr\Log\LogLevel;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -21,7 +21,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
  */
 
 $loggerProvider = new LoggerProvider(
-    new BatchLogsProcessor(
+    new BatchLogRecordProcessor(
         new LogsExporter((new StreamTransportFactory())->create('php://stdout', 'application/json')),
         ClockFactory::getDefault()
     ),

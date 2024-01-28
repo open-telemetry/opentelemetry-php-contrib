@@ -28,6 +28,7 @@ class LaravelInstrumentationTest extends TestCase
         $span = $this->storage[1];
         $this->assertSame('GET', $span->getName());
     }
+
     public function test_cache_log_db(): void
     {
         $this->router()->get('/hello', function () {

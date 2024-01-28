@@ -15,13 +15,13 @@ use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Logs\Exporter\ConsoleExporter;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
-use OpenTelemetry\SDK\Logs\Processor\BatchLogsProcessor;
+use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
 use Psr\Log\LogLevel;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $loggerProvider = new LoggerProvider(
-    new BatchLogsProcessor(
+    new BatchLogRecordProcessor(
         new ConsoleExporter((new StreamTransportFactory())->create('php://stdout', 'text')),
         ClockFactory::getDefault()
     ),
