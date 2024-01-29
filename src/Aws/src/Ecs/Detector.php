@@ -72,6 +72,9 @@ class Detector implements ResourceDetectorInterface
      * If running on ECS with an ECS agent v1.4, the returned resource has additionally the following
      * attributes as specified in https://opentelemetry.io/docs/reference/specification/resource/semantic_conventions/cloud_provider/aws/ecs/:
      *
+     * - cloud.account.id => <account_id> , e.g., '111122223333'
+     * - cloud.availability_zone => <availability_zone> , e.g., 'us-east-1a'
+     * - cloud.region => <availability_zone> , e.g., 'us-east-1'
      * - aws.ecs.container.arn
      * - aws.ecs.cluster.arn
      * - aws.ecs.launchtype
@@ -178,6 +181,13 @@ class Detector implements ResourceDetectorInterface
 
         $clusterArn = null;
         $taskArn = null;
+
+        $cloudResource = isset($taskMetadata['AvailabilityZone'])
+            ? ResourceInfo::create(Attributes::create([
+                ResourceAttributes::CLOUD_AVAILABILITY_ZONE => $taskMetadata['AvailabilityZone'],
+            ]))
+            : ResourceInfo::emptyResource();
+
         if (isset($taskMetadata['Cluster']) && isset($taskMetadata['TaskARN'])) {
             $taskArn = $taskMetadata['TaskARN'];
             $lastIndexOfColon = strrpos($taskArn, ':');
@@ -185,6 +195,14 @@ class Detector implements ResourceDetectorInterface
                 $baseArn = substr($taskArn, 0, $lastIndexOfColon);
                 $cluster = $taskMetadata['Cluster'];
                 $clusterArn = strpos($cluster, 'arn:') === 0 ? $cluster : $baseArn . ':cluster/' . $cluster;
+            }
+
+            $arnParts = explode(':', $taskArn);
+            if (count($arnParts) > 5) {
+                $cloudResource = $cloudResource->merge(ResourceInfo::create(Attributes::create([
+                    ResourceAttributes::CLOUD_ACCOUNT_ID => $arnParts[4],
+                    ResourceAttributes::CLOUD_REGION => $arnParts[3],
+                ])));
             }
         }
 
@@ -222,6 +240,6 @@ class Detector implements ResourceDetectorInterface
             ResourceAttributes::AWS_ECS_TASK_REVISION => $taskRevision,
         ]));
 
-        return $ecsResource->merge($logResource);
+        return $ecsResource->merge($cloudResource)->merge($logResource);
     }
 }
