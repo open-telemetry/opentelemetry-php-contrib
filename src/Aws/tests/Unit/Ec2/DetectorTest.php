@@ -42,6 +42,7 @@ class DetectorTest extends TestCase
     private const CLOUD_ACCOUNT_ID = 'my-account-id';
     private const CLOUD_REGION = 'my-region';
     private const CLOUD_PROVIDER = 'aws';
+    private const CLOUD_PLATFORM = 'aws_ec2';
 
     /**
      * @test
@@ -74,6 +75,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CLOUD_REGION => self::CLOUD_REGION,
                     ResourceAttributes::HOST_NAME => self::MOCK_HOSTNAME,
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             ),
             $detector->getResource()->getAttributes()
@@ -156,6 +158,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::CLOUD_ACCOUNT_ID => self::CLOUD_ACCOUNT_ID,
                     ResourceAttributes::CLOUD_REGION => self::CLOUD_REGION,
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             ),
             $detector->getResource()->getAttributes()
@@ -214,6 +217,7 @@ class DetectorTest extends TestCase
                     ResourceAttributes::HOST_IMAGE_ID => self::HOST_IMAGE_ID,
                     ResourceAttributes::HOST_NAME => self::MOCK_HOSTNAME,
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                    ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
                 ]
             ),
             $detector->getResource()->getAttributes()
