@@ -12,6 +12,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ClientRequestWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ExceptionWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\LogWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\QueryWatcher;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\RequestWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use function OpenTelemetry\Instrumentation\hook;
 use Throwable;
@@ -38,6 +39,7 @@ class LaravelInstrumentation
                 self::registerWatchers($application, new ExceptionWatcher());
                 self::registerWatchers($application, new LogWatcher());
                 self::registerWatchers($application, new QueryWatcher($instrumentation));
+                self::registerWatchers($application, new RequestWatcher());
             },
         );
 
