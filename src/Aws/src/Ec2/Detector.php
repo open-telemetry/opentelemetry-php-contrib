@@ -45,6 +45,7 @@ class Detector implements ResourceDetectorInterface
     private const AWS_METADATA_TTL_HEADER = 'X-aws-ec2-metadata-token-ttl-seconds';
     private const AWS_METADATA_TOKEN_HEADER = 'X-aws-ec2-metadata-token';
     private const CLOUD_PROVIDER = 'aws';
+    private const CLOUD_PLATFORM = 'aws_ec2';
 
     private ClientInterface $client;
     private RequestFactoryInterface $requestFactory;
@@ -112,6 +113,7 @@ class Detector implements ResourceDetectorInterface
 
             $attributes[ResourceAttributes::HOST_NAME] = $hostName;
             $attributes[ResourceAttributes::CLOUD_PROVIDER] = self::CLOUD_PROVIDER;
+            $attributes[ResourceAttributes::CLOUD_PLATFORM] = self::CLOUD_PLATFORM;
 
             return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
         } catch (\Throwable $e) {
