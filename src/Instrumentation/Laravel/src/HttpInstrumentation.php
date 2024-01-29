@@ -78,6 +78,22 @@ class HttpInstrumentation
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->headers->get('Content-Length'));
+
+                    // Propagate server-timing header to response, if ServerTimingPropagator is present
+                    if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
+                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+                        $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
+                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+                        $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                    }
+
+                    // Propagate traceresponse header to response, if TraceResponsePropagator is present
+                    if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
+                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+                        $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
+                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+                        $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                    }
                 }
 
                 $span->end();
