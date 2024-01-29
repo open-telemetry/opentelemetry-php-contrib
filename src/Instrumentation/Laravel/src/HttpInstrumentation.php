@@ -80,13 +80,6 @@ class HttpInstrumentation
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->headers->get('Content-Length'));
                 }
 
-                $request = ($params[0] instanceof Request) ? $params[0] : null;
-                if ($request && ($route = call_user_func($request->getRouteResolver()))) {
-                    /** @var \Illuminate\Routing\Route|null $route */
-                    /** @psalm-suppress ArgumentTypeCoercion */
-                    $span->updateName(sprintf('%s %s', $request->method() ?: 'unknown', '/' . ltrim($route->uri(), '/')));
-                }
-
                 $span->end();
             }
         );
