@@ -323,6 +323,9 @@ class DetectorTest extends TestCase
                 [
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                     ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_ACCOUNT_ID => '111122223333',
+                    ResourceAttributes::CLOUD_AVAILABILITY_ZONE => 'us-west-2d',
+                    ResourceAttributes::CLOUD_REGION => 'us-west-2',
                     ResourceAttributes::AWS_ECS_CONTAINER_ARN => 'arn:aws:ecs:us-west-2:111122223333:container/0206b271-b33f-47ab-86c6-a0ba208a70a9',
                     ResourceAttributes::AWS_ECS_CLUSTER_ARN => 'arn:aws:ecs:us-west-2:111122223333:cluster/default',
                     ResourceAttributes::AWS_ECS_LAUNCHTYPE => 'ec2',
@@ -366,6 +369,9 @@ class DetectorTest extends TestCase
                 [
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                     ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_ACCOUNT_ID => '111122223333',
+                    ResourceAttributes::CLOUD_AVAILABILITY_ZONE => 'us-west-2a',
+                    ResourceAttributes::CLOUD_REGION => 'us-west-2',
                     ResourceAttributes::AWS_ECS_CONTAINER_ARN => 'arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1',
                     ResourceAttributes::AWS_ECS_CLUSTER_ARN => 'arn:aws:ecs:us-west-2:111122223333:cluster/default',
                     ResourceAttributes::AWS_ECS_LAUNCHTYPE => 'fargate',
@@ -409,6 +415,9 @@ class DetectorTest extends TestCase
                 [
                     ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
                     ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
+                    ResourceAttributes::CLOUD_ACCOUNT_ID => '111122223333',
+                    ResourceAttributes::CLOUD_AVAILABILITY_ZONE => 'us-west-2a',
+                    ResourceAttributes::CLOUD_REGION => 'us-west-2',
                     ResourceAttributes::AWS_ECS_CONTAINER_ARN => 'arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1',
                     ResourceAttributes::AWS_ECS_CLUSTER_ARN => 'arn:aws:ecs:us-west-2:111122223333:cluster/default',
                     ResourceAttributes::AWS_ECS_LAUNCHTYPE => 'fargate',
