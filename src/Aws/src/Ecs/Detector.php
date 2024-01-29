@@ -198,7 +198,7 @@ class Detector implements ResourceDetectorInterface
             }
 
             $arnParts = explode(':', $taskArn);
-            if len($arnParts) > 5 {
+            if (count($arnParts) > 5) {
                 $cloudResource = $cloudResource->merge(ResourceInfo::create(Attributes::create([
                     ResourceAttributes::CLOUD_ACCOUNT_ID => $arnParts[4],
                     ResourceAttributes::CLOUD_REGION => $arnParts[3],
