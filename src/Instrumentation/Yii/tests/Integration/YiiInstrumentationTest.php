@@ -30,6 +30,23 @@ class YiiInstrumentationTest extends AbstractTest
         $this->assertGreaterThan(0, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
     }
 
+    public function test_non_inline_action()
+    {
+        $exception = $this->runRequest('/site/error');
+
+        // This is thrown from ErrorAction that does not extend InlineAction as it is not a controller method
+        $this->assertNotNull($exception);
+        $this->assertEquals('yii\base\ViewNotFoundException', get_class($exception));
+
+        $attributes = $this->storage[0]->getAttributes();
+        $this->assertCount(1, $this->storage);
+        $this->assertEquals('SiteController.error', $this->storage[0]->getName());
+        $this->assertEquals('http://example.com/site/error', $attributes->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
+        $this->assertEquals('SiteController.error', $attributes->get(TraceAttributes::HTTP_ROUTE));
+    }
+
     public function test_exception()
     {
         $exception = $this->runRequest('/site/throw');
@@ -155,6 +172,15 @@ class SiteController extends Controller
             'format' => \yii\web\Response::FORMAT_RAW,
             'content' => 'hello',
         ]);
+    }
+
+    public function actions()
+    {
+        return [
+            'error' => [
+                'class' => 'yii\web\ErrorAction',
+            ],
+        ];
     }
 
     public function actionThrow()
