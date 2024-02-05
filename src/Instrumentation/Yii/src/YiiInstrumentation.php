@@ -12,6 +12,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use yii\base\InlineAction;
 use yii\web\Application;
 use yii\web\Controller;
 use yii\web\Response;
@@ -134,7 +135,8 @@ class YiiInstrumentation
                 }
 
                 $span = Span::fromContext($scope->context());
-                $route = YiiInstrumentation::normalizeRouteName(get_class($controller), $action->actionMethod);
+                $actionName = $action instanceof InlineAction ? $action->actionMethod : $action->id;
+                $route = YiiInstrumentation::normalizeRouteName(get_class($controller), $actionName);
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span->updateName($route);
                 $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
@@ -157,14 +159,14 @@ class YiiInstrumentation
         return null;
     }
 
-    protected static function normalizeRouteName(string $controllerClassName, string $controllerMethod): string
+    protected static function normalizeRouteName(string $controllerClassName, string $actionName): string
     {
         $lastSegment = strrchr($controllerClassName, '\\');
         
         if ($lastSegment === false) {
-            return $controllerClassName . '.' . $controllerMethod;
+            return $controllerClassName . '.' . $actionName;
         }
 
-        return substr($lastSegment, 1) . '.' . $controllerMethod;
+        return substr($lastSegment, 1) . '.' . $actionName;
     }
 }
