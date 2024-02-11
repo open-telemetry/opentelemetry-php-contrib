@@ -33,6 +33,10 @@ final class HttpClientInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
+                if (class_exists("\ApiPlatform\Symfony\Bundle\Test\Client") && $client instanceof \ApiPlatform\Symfony\Bundle\Test\Client) {
+                    return $params;
+                }
+                
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
