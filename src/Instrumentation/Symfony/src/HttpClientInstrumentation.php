@@ -33,6 +33,7 @@ final class HttpClientInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
+                /** @psalm-suppress UndefinedClass */
                 if (class_exists("\ApiPlatform\Symfony\Bundle\Test\Client") && $client instanceof \ApiPlatform\Symfony\Bundle\Test\Client) {
                     return $params;
                 }
