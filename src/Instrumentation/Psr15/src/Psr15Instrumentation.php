@@ -100,7 +100,7 @@ class Psr15Instrumentation
                         ->startSpan();
                     $request = $request->withAttribute(SpanInterface::class, $span);
                 } else {
-                    $span = $builder->startSpan();
+                    $span = $builder->setSpanKind(SpanKind::KIND_INTERNAL)->startSpan();
                 }
                 Context::storage()->attach($span->storeInContext($parent));
 
