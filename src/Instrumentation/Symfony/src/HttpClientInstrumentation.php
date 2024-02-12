@@ -34,7 +34,7 @@ final class HttpClientInstrumentation
                 ?int $lineno,
             ) use ($instrumentation): array {
                 /** @psalm-suppress UndefinedClass */
-                if (class_exists("\ApiPlatform\Symfony\Bundle\Test\Client") && $client instanceof \ApiPlatform\Symfony\Bundle\Test\Client) {
+                if ($client instanceof \ApiPlatform\Symfony\Bundle\Test\Client) {
                     return $params;
                 }
                 
