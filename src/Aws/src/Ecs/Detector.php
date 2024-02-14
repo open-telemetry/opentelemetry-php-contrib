@@ -74,7 +74,8 @@ class Detector implements ResourceDetectorInterface
      *
      * - cloud.account.id => <account_id> , e.g., '111122223333'
      * - cloud.availability_zone => <availability_zone> , e.g., 'us-east-1a'
-     * - cloud.region => <availability_zone> , e.g., 'us-east-1'
+     * - cloud.region => <region> , e.g., 'us-east-1'
+     * - cloud.resource_id => <aws.ecs.container.arn> (see https://github.com/open-telemetry/semantic-conventions/issues/677)
      * - aws.ecs.container.arn
      * - aws.ecs.cluster.arn
      * - aws.ecs.launchtype
@@ -232,6 +233,7 @@ class Detector implements ResourceDetectorInterface
         }
 
         $ecsResource = ResourceInfo::create(Attributes::create([
+            ResourceAttributes::CLOUD_RESOURCE_ID => $containerArn,
             ResourceAttributes::AWS_ECS_CONTAINER_ARN => $containerArn,
             ResourceAttributes::AWS_ECS_CLUSTER_ARN => $clusterArn,
             ResourceAttributes::AWS_ECS_LAUNCHTYPE => $launchType,
