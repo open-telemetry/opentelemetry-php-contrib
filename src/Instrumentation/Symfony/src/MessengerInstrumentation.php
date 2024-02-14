@@ -81,7 +81,7 @@ final class MessengerInstrumentation
             post: static function (
                 MessageBusInterface $bus,
                 array $params,
-                Envelope $result,
+                ?Envelope $result,
                 ?\Throwable $exception
             ): void {
                 $scope = Context::storage()->scope();

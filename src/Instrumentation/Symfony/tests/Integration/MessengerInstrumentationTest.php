@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
+use _PHPStan_e4d4e781d\Nette\Neon\Exception;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -95,6 +96,25 @@ final class MessengerInstrumentationTest extends AbstractTest
         foreach ($attributes as $key => $value) {
             $this->assertTrue($span->getAttributes()->has($key), sprintf('Attribute %s not found', $key));
             $this->assertEquals($value, $span->getAttributes()->get($key));
+        }
+    }
+
+    public function test_can_sustain_throw()
+    {
+        $bus = new class() implements MessageBusInterface {
+            public function dispatch(object $message, array $stamps = []): Envelope
+            {
+                throw new Exception('booo!');
+            }
+        };
+
+        try {
+            $bus->dispatch(new SendEmailMessage('Hello Again'));
+        } catch (\Throwable $e) {
+            $this->assertCount(1, $this->storage);
+
+            /** @var ImmutableSpan $span */
+            $span = $this->storage[0];
         }
     }
 
