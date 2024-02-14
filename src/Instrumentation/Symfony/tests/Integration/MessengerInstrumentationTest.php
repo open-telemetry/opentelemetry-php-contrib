@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
-use _PHPStan_e4d4e781d\Nette\Neon\Exception;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -104,7 +103,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         $bus = new class() implements MessageBusInterface {
             public function dispatch(object $message, array $stamps = []): Envelope
             {
-                throw new Exception('booo!');
+                throw new \Exception('booo!');
             }
         };
 
