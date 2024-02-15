@@ -98,6 +98,25 @@ final class MessengerInstrumentationTest extends AbstractTest
         }
     }
 
+    public function test_can_sustain_throw()
+    {
+        $bus = new class() implements MessageBusInterface {
+            public function dispatch(object $message, array $stamps = []): Envelope
+            {
+                throw new \Exception('booo!');
+            }
+        };
+
+        try {
+            $bus->dispatch(new SendEmailMessage('Hello Again'));
+        } catch (\Throwable $e) {
+            $this->assertCount(1, $this->storage);
+
+            /** @var ImmutableSpan $span */
+            $span = $this->storage[0];
+        }
+    }
+
     public function sendDataProvider(): array
     {
         return [
