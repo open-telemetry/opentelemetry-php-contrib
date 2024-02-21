@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Guzzle;
 
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use function get_cfg_var;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -26,6 +27,8 @@ class GuzzleInstrumentation
     /** @psalm-suppress ArgumentTypeCoercion */
     public const NAME = 'guzzle';
 
+    public const OTEL_PHP_GUZZLE_USE_EXTENDED_SPAN_NAME = 'OTEL_PHP_GUZZLE_USE_EXTENDED_SPAN_NAME';
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.guzzle', schemaUrl: TraceAttributes::SCHEMA_URL);
@@ -40,10 +43,16 @@ class GuzzleInstrumentation
                 $propagator = Globals::propagator();
                 $parentContext = Context::getCurrent();
 
+                $spanName = sprintf('%s', $request->getMethod());
+                if (Configuration::has(self::OTEL_PHP_GUZZLE_USE_EXTENDED_SPAN_NAME) &&
+                    Configuration::getBoolean(self::OTEL_PHP_GUZZLE_USE_EXTENDED_SPAN_NAME)) {
+                    $spanName = sprintf('%s %s', $request->getMethod(), $request->getUri()->getHost());
+                }
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $spanBuilder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s', $request->getMethod()))
+                    ->spanBuilder($spanName)
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())

@@ -17,10 +17,16 @@ Auto-instrumentation hooks are registered via composer.
 * create spans automatically for each Guzzle request that is sent (sync or async)
 * add a `traceparent` header to the request to facilitate distributed tracing
 
+## Span name
+
+By default, span name is just an HTTP method like `GET` or `POST`. You can set environment variable
+`OTEL_PHP_GUZZLE_USE_EXTENDED_SPAN_NAME`, to have host name added to the span name: `GET example.com`.
+
 ## Configuration
 
 The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
 
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=guzzle
+OTEL_PHP_GUZZLE_USE_EXTENDED_SPAN_NAME=true
 ```

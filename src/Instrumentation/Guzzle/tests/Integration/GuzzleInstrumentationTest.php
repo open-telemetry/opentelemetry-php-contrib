@@ -15,6 +15,8 @@ use Nyholm\Psr7\Response;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\Contrib\Instrumentation\Guzzle\GuzzleInstrumentation;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -74,10 +76,29 @@ class GuzzleInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
+        $this->assertSame('GET', $span->getName());
         $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
         $this->assertSame('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame('/foo', $span->getAttributes()->get(TraceAttributes::URL_PATH));
         $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    public function test_extended_span_name(): void
+    {
+        $env_var_name = GuzzleInstrumentation::OTEL_PHP_GUZZLE_USE_EXTENDED_SPAN_NAME;
+        putenv("$env_var_name=true");
+
+        $this->mock->append(new Response());
+        $this->assertCount(0, $this->storage);
+        $request = new Request('GET', 'https://example.com/foo');
+        $this->client->send($request, [
+            'connect_timeout' => 3.14,
+        ]);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        assert($span instanceof ImmutableSpan);
+        $this->assertSame('GET example.com', $span->getName());
     }
 
     /**
