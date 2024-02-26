@@ -1,6 +1,6 @@
 {
   "name": "open-telemetry/opentelemetry-auto-psr3",
-  "description": "OpenTelemetry auto-instrumentation for psr3 http clients.",
+  "description": "OpenTelemetry auto-instrumentation for PSR-3 (Logger Interface).",
   "keywords": [
     "opentelemetry",
     "otel",

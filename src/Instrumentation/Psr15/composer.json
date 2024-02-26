@@ -1,6 +1,6 @@
 {
   "name": "open-telemetry/opentelemetry-auto-psr15",
-  "description": "OpenTelemetry auto-instrumentation for psr15 middleware.",
+  "description": "OpenTelemetry auto-instrumentation for PSR-15 (HTTP Server Request Handlers).",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "psr15", "instrumentation"],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
