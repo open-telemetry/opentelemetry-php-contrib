@@ -110,7 +110,7 @@ class ClientRequestWatcher extends Watcher
 
         $span->setStatus(
             StatusCode::STATUS_ERROR,
-            HttpResponse::$statusTexts[$response->status()] ?? $response->status()
+            HttpResponse::$statusTexts[$response->status()] ?? (string) $response->status()
         );
     }
 }
