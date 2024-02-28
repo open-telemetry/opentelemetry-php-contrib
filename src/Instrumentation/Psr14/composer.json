@@ -1,6 +1,6 @@
 {
   "name": "open-telemetry/opentelemetry-auto-psr14",
-  "description": "OpenTelemetry auto-instrumentation for PSR-14 (EventDispatcher).",
+  "description": "OpenTelemetry auto-instrumentation for PSR-14 (Event Dispatcher).",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "psr14", "instrumentation", "EventDispatcher"],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",

@@ -1,6 +1,6 @@
 {
   "name": "open-telemetry/opentelemetry-auto-psr18",
-  "description": "OpenTelemetry auto-instrumentation for psr18 http clients.",
+  "description": "OpenTelemetry auto-instrumentation for PSR-18 (HTTP Client).",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "psr18", "instrumentation"],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
