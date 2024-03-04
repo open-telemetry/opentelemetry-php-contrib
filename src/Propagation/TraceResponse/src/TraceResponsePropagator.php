@@ -17,8 +17,8 @@ use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
  */
 final class TraceResponsePropagator implements ResponsePropagator
 {
-    const IS_SAMPLED = '1';
-    const NOT_SAMPLED = '0';
+    const IS_SAMPLED = '01';
+    const NOT_SAMPLED = '00';
     const SUPPORTED_VERSION = '00';
     const TRACERESPONSE = 'traceresponse';
 
