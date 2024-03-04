@@ -17,8 +17,8 @@ use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
  */
 final class ServerTimingPropagator implements ResponsePropagator
 {
-    const IS_SAMPLED = '1';
-    const NOT_SAMPLED = '0';
+    const IS_SAMPLED = '01';
+    const NOT_SAMPLED = '00';
     const SUPPORTED_VERSION = '00';
     const SERVER_TIMING = 'server-timing';
     const TRACEPARENT = 'traceparent';

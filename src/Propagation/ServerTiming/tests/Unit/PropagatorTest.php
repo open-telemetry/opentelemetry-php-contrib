@@ -19,8 +19,8 @@ class PropagatorTest extends TestCase
 {
     private const TRACE_ID = '5759e988bd862e3fe1be46a994272793';
     private const SPAN_ID = '53995c3f42cd8ad8';
-    private const TRACERESPONSE_HEADER_SAMPLED = '00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-1';
-    private const TRACERESPONSE_HEADER_NOT_SAMPLED = '00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-0';
+    private const TRACERESPONSE_HEADER_SAMPLED = '00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-01';
+    private const TRACERESPONSE_HEADER_NOT_SAMPLED = '00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-00';
 
     /**
      * @test
