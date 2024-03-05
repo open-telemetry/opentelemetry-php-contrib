@@ -1,6 +1,6 @@
 {
   "name": "open-telemetry/opentelemetry-auto-psr16",
-  "description": "OpenTelemetry auto-instrumentation for psr16 cache.",
+  "description": "OpenTelemetry auto-instrumentation for PSR-16 (Common Interface for Caching Libraries).",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "psr16", "instrumentation"],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
