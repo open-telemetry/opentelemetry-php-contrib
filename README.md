@@ -1,7 +1,7 @@
 # OpenTelemetry php contrib library
 
 ![CI Build](https://github.com/open-telemetry/opentelemetry-php-contrib/workflows/PHP%20QA/badge.svg)
-[![codecov](https://codecov.io/gh/open-telemetry/opentelemetry-php-contrib/branch/main/graph/badge.svg)](https://codecov.io/gh/open-telemetry/opentelemetry-php)
+[![codecov](https://codecov.io/gh/open-telemetry/opentelemetry-php-contrib/branch/main/graph/badge.svg)](https://codecov.io/gh/open-telemetry/opentelemetry-php-contrib)
 
 ## Current Project Status
 For more information, please, consult the documentation of the main [OpenTelemetry PHP project][opentelemetry-php].
