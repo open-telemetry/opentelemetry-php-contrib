@@ -73,7 +73,7 @@ class SlimInstrumentationTest extends TestCase
     }
 
     /**
-     * @psalm-suppress PossiblyUndefinedMethod
+     * @psalm-suppress UndefinedInterfaceMethod
      */
     public function routeProvider(): array
     {

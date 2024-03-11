@@ -85,6 +85,7 @@ class Span implements API\Span
         if ($timestamp instanceof \DateTimeInterface) {
             $timestamp = $timestamp->format('Uu');
         } elseif (!is_float($timestamp) && !is_int($timestamp) && null !== $timestamp) {
+            /** @psalm-suppress NoValue */
             throw new InvalidArgumentException(
                 sprintf('Invalid timestamp. Expected float, int or DateTime, got %s', $timestamp)
             );

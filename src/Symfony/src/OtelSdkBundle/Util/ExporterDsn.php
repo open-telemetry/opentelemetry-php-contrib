@@ -37,6 +37,9 @@ class ExporterDsn
         $this->password = $password;
     }
 
+    /**
+     * @psalm-suppress PossiblyUndefinedArrayOffset,PossiblyNullArgument
+     */
     public static function fromArray(array $dsn): self
     {
         foreach (['type', 'scheme', 'host'] as $key) {
