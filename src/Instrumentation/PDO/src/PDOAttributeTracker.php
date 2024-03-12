@@ -57,6 +57,7 @@ final class PDOAttributeTracker
 
         try {
             $dbSystem = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            /** @psalm-suppress PossiblyInvalidArgument */
             $attributes[TraceAttributes::DB_SYSTEM] = self::mapDriverNameToAttribute($dbSystem);
         } catch (\Error $e) {
             // if we catched an exception, the driver is likely not supporting the operation, default to "other"

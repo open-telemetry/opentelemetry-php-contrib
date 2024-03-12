@@ -13,7 +13,7 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\HttpKernel\HttpKernel;
 
 /**
- * @psalm-suppress PossiblyNullReference,PossiblyUndefinedMethod
+ * @psalm-suppress PossiblyNullReference,UndefinedMethod,UndefinedInterfaceMethod
  */
 final class Configuration implements ConfigurationInterface
 {
