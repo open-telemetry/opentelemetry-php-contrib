@@ -20,6 +20,8 @@
     "friendsofphp/php-cs-fixer": "^3",
     "mockery/mockery": "^1.5",
     "nyholm/psr7": "*",
+    "open-telemetry/opentelemetry-propagation-server-timing": "*",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "*",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
     "phpstan/phpstan-mockery": "^1.1.0",
