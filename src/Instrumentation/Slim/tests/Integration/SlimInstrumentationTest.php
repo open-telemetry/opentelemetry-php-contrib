@@ -63,7 +63,7 @@ class SlimInstrumentationTest extends TestCase
             }
         };
         $app = $this->createMockApp(
-            $this->createMock(ResponseInterface::class),
+            new Response(),
             $routingMiddleware
         );
         $app->handle($request->withAttribute(RouteContext::ROUTE, $route));
@@ -132,6 +132,21 @@ class SlimInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0); // @var ImmutableSpan $span
         $this->assertSame('GET', $span->getName(), 'span name was not updated because routing failed');
+    }
+
+    public function test_response_propagation(): void
+    {
+        if (version_compare(phpversion('opentelemetry'), '1.0.2beta2') < 0) {
+            $this->markTestSkipped('response propagation requires opentelemetry extension >= 1.0.2beta2');
+        }
+        $request = (new ServerRequest('GET', 'https://example.com/foo'));
+        $app = $this->createMockApp(new Response(200, ['X-Foo' => 'foo']));
+        $response = $app->handle($request);
+        $this->assertCount(1, $this->storage);
+        $this->assertArrayHasKey('X-Foo', $response->getHeaders());
+        $this->assertArrayHasKey('server-timing', $response->getHeaders());
+        $this->assertStringStartsWith('traceparent;desc=', $response->getHeaderLine('server-timing'));
+        $this->assertArrayHasKey('traceresponse', $response->getHeaders());
     }
 
     public function createMockStrategy(): InvocationStrategyInterface

@@ -25,10 +25,16 @@ use Throwable;
 class SlimInstrumentation
 {
     public const NAME = 'slim';
+    private static bool $supportsResponsePropagation = false;
 
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim');
+        /**
+         * requires extension >= 1.0.2beta2
+         * @see https://github.com/open-telemetry/opentelemetry-php-instrumentation/pull/136
+         */
+        self::$supportsResponsePropagation = version_compare(phpversion('opentelemetry'), '1.0.2beta2') >= 0;
 
         hook(
             App::class,
@@ -65,10 +71,10 @@ class SlimInstrumentation
 
                 return [$request];
             },
-            post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) {
+            post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception): ?ResponseInterface {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
-                    return;
+                    return $response;
                 }
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
@@ -83,9 +89,24 @@ class SlimInstrumentation
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
-                }
 
+                    if (self::$supportsResponsePropagation) {
+                        // Propagate server-timing header to response, if ServerTimingPropagator is present
+                        if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
+                            $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
+                            $prop->inject($response, PsrResponsePropagationSetter::instance(), $scope->context());
+                        }
+
+                        // Propagate traceresponse header to response, if TraceResponsePropagator is present
+                        if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
+                            $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
+                            $prop->inject($response, PsrResponsePropagationSetter::instance(), $scope->context());
+                        }
+                    }
+                }
                 $span->end();
+
+                return $response;
             }
         );
 
