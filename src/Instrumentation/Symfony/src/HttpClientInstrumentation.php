@@ -33,6 +33,11 @@ final class HttpClientInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
+                /** @psalm-suppress UndefinedClass */
+                if ($client instanceof \ApiPlatform\Symfony\Bundle\Test\Client) {
+                    return $params;
+                }
+                
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
