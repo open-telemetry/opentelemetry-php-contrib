@@ -30,136 +30,37 @@ class Psr16Instrumentation
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr16')
         );
 
-        hook(
-            CacheInterface::class,
-            'get',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'get', $function, $class, $filename, $lineno)
+        $pre = static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            $span = self::makeSpanBuilder($instrumentation, $function, $class, $filename, $lineno)
                     ->startSpan();
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
+        };
+        $post = static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
+            self::end($exception);
+        };
 
-        hook(
-            CacheInterface::class,
-            'set',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'set', $function, $class, $filename, $lineno)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
-
-        hook(
-            CacheInterface::class,
-            'delete',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'delete', $function, $class, $filename, $lineno)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
-
-        hook(
-            CacheInterface::class,
-            'clear',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'clear', $function, $class, $filename, $lineno)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
-
-        hook(
-            CacheInterface::class,
-            'getMultiple',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'getMultiple', $function, $class, $filename, $lineno)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
-
-        hook(
-            CacheInterface::class,
-            'setMultiple',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'setMultiple', $function, $class, $filename, $lineno)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
-
-        hook(
-            CacheInterface::class,
-            'deleteMultiple',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'deleteMultiple', $function, $class, $filename, $lineno)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
-
-        hook(
-            CacheInterface::class,
-            'has',
-            pre: static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = self::makeSpanBuilder($instrumentation, 'has', $function, $class, $filename, $lineno)
-                    ->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            post: static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
-                self::end($exception);
-            }
-        );
+        foreach (['get', 'set', 'delete', 'clear', 'getMultiple', 'setMultiple', 'deleteMultiple', 'has'] as $f) {
+            hook(class: CacheInterface::class, function: $f, pre: $pre, post: $post);
+        }
     }
 
     private static function makeSpanBuilder(
         CachedInstrumentation $instrumentation,
-        string $operation,
         string $function,
         string $class,
         ?string $filename,
         ?int $lineno
     ): SpanBuilderInterface {
         return $instrumentation->tracer()
-            ->spanBuilder($operation)
+            ->spanBuilder($function)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
             ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
             ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
             ->setAttribute(TraceAttributes::DB_SYSTEM, 'psr16')
-            ->setAttribute(TraceAttributes::DB_OPERATION, $operation);
+            ->setAttribute(TraceAttributes::DB_OPERATION, $function);
     }
 
     private static function end(?Throwable $exception): void
