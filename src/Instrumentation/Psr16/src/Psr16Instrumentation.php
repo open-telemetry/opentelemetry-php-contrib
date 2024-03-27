@@ -34,7 +34,7 @@ class Psr16Instrumentation
             $span = self::makeSpanBuilder($instrumentation, $function, $class, $filename, $lineno)
                     ->startSpan();
 
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+            Context::storage()->attach($span->storeInContext(Context::getCurrent()));
         };
         $post = static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
             self::end($exception);
