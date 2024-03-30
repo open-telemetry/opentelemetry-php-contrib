@@ -8,6 +8,7 @@ use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\Contrib\Instrumentation\Psr16\Psr16Instrumentation;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -21,7 +22,7 @@ class Psr16InstrumentationTest extends TestCase
     private ScopeInterface $scope;
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
-    private CacheInterface $driver;
+    private CacheInterface $adapter;
 
     public function setUp(): void
     {
@@ -35,7 +36,7 @@ class Psr16InstrumentationTest extends TestCase
             ->withTracerProvider($this->tracerProvider)
             ->withPropagator(new TraceContextPropagator())
             ->activate();
-        $this->driver = $this->createMemoryCacheDriver();
+        $this->adapter = $this->createMemoryCacheAdapter();
     }
 
     public function tearDown(): void
@@ -46,7 +47,7 @@ class Psr16InstrumentationTest extends TestCase
     public function test_get_key(): void
     {
         $this->assertCount(0, $this->storage);
-        $this->driver->get('foo');
+        $this->adapter->get('foo');
         $this->assertCount(1, $this->storage);
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
@@ -58,9 +59,9 @@ class Psr16InstrumentationTest extends TestCase
     public function test_set_key(): void
     {
         $this->assertCount(0, $this->storage);
-        $driver = $this->createMemoryCacheDriver();
-        $driver->set('foo', 'bar');
+        $this->adapter->set('foo', 'bar');
         $this->assertCount(1, $this->storage);
+        /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertEquals('set', $span->getName());
         $this->assertEquals('psr16', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
@@ -70,11 +71,10 @@ class Psr16InstrumentationTest extends TestCase
     public function test_delete_key(): void
     {
         $this->assertCount(0, $this->storage);
-        $driver = $this->createMemoryCacheDriver();
-        $driver->set('foo', 'bar');
-        $driver->delete('foo');
-        $this->assertCount(2, $this->storage);
-        $span = $this->storage->offsetGet(1);
+        $this->adapter->delete('foo');
+        $this->assertCount(1, $this->storage);
+        /** @var ImmutableSpan $span */
+        $span = $this->storage->offsetGet(0);
         $this->assertEquals('delete', $span->getName());
         $this->assertEquals('psr16', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertEquals('delete', $span->getAttributes()->get(TraceAttributes::DB_OPERATION));
@@ -83,17 +83,95 @@ class Psr16InstrumentationTest extends TestCase
     public function test_clear_keys(): void
     {
         $this->assertCount(0, $this->storage);
-        $driver = $this->createMemoryCacheDriver();
-        $driver->set('foo', 'bar');
-        $driver->clear();
-        $this->assertCount(2, $this->storage);
-        $span = $this->storage->offsetGet(1);
+        $this->adapter->clear();
+        $this->assertCount(1, $this->storage);
+        /** @var ImmutableSpan $span */
+        $span = $this->storage->offsetGet(0);
         $this->assertEquals('clear', $span->getName());
         $this->assertEquals('psr16', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertEquals('clear', $span->getAttributes()->get(TraceAttributes::DB_OPERATION));
     }
 
-    private function createMemoryCacheDriver(): CacheInterface
+    public function test_get_multiple_keys(): void
+    {
+        $this->assertCount(0, $this->storage);
+        $this->adapter->getMultiple(['foo', 'bar']);
+        $this->assertCount(3, $this->storage);
+        /** @var ImmutableSpan $spanOne, $spanTwo, $spanThree */
+        $spanOne = $this->storage->offsetGet(0);
+        $spanTwo = $this->storage->offsetGet(1);
+        $spanThree = $this->storage->offsetGet(2);
+        $this->assertEquals('get', $spanOne->getName());
+        $this->assertEquals('get', $spanTwo->getName());
+        $this->assertEquals('getMultiple', $spanThree->getName());
+        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('psr16', $spanThree->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('get', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('get', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('getMultiple', $spanThree->getAttributes()->get(TraceAttributes::DB_OPERATION));
+    }
+
+    public function test_set_multiple_keys(): void
+    {
+        $this->assertCount(0, $this->storage);
+        $this->adapter->setMultiple(['foo' => 'bar']);
+        $this->assertCount(2, $this->storage);
+        /** @var ImmutableSpan $spanOne, $spanTwo */
+        $spanOne = $this->storage->offsetGet(0);
+        $spanTwo = $this->storage->offsetGet(1);
+        $this->assertEquals('set', $spanOne->getName());
+        $this->assertEquals('setMultiple', $spanTwo->getName());
+        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('set', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('setMultiple', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
+    }
+
+    public function test_delete_multiple_keys(): void
+    {
+        $this->assertCount(0, $this->storage);
+        $this->adapter->deleteMultiple(['foo', 'bar']);
+        $this->assertCount(3, $this->storage);
+        /** @var ImmutableSpan $spanOne, $spanTwo, $spanThree */
+        $spanOne = $this->storage->offsetGet(0);
+        $spanTwo = $this->storage->offsetGet(1);
+        $spanThree = $this->storage->offsetGet(2);
+        $this->assertEquals('delete', $spanOne->getName());
+        $this->assertEquals('delete', $spanTwo->getName());
+        $this->assertEquals('deleteMultiple', $spanThree->getName());
+        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('psr16', $spanThree->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('delete', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('delete', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('deleteMultiple', $spanThree->getAttributes()->get(TraceAttributes::DB_OPERATION));
+    }
+
+    public function test_has_key(): void
+    {
+        $this->assertCount(0, $this->storage);
+        $this->adapter->has('foo');
+        $this->assertCount(2, $this->storage);
+        /** @var ImmutableSpan $spanOne, $spanTwo */
+        $spanOne = $this->storage->offsetGet(0);
+        $spanTwo = $this->storage->offsetGet(1);
+        $this->assertEquals('get', $spanOne->getName());
+        $this->assertEquals('has', $spanTwo->getName());
+        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('get', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('has', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
+    }
+
+    public function test_can_register(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        Psr16Instrumentation::register();
+    }
+
+    private function createMemoryCacheAdapter(): CacheInterface
     {
         return new class() implements CacheInterface {
             private $data = [];
