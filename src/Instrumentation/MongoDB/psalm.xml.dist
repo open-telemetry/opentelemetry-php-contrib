@@ -13,4 +13,7 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <MissingClassConstType errorLevel="suppress" />
+    </issueHandlers>
 </psalm>
