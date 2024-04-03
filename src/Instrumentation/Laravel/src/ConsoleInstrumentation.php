@@ -11,8 +11,8 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
