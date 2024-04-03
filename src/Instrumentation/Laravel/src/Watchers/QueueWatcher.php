@@ -26,11 +26,11 @@ class QueueWatcher extends Watcher
     public function register(Application $app): void
     {
         Queue::createPayloadUsing(function () {
-            $opentelemetry = [];
-            TraceContextPropagator::getInstance()->inject($opentelemetry);
+            $carrier = [];
+            TraceContextPropagator::getInstance()->inject($carrier);
 
             return [
-                'opentelemetry' => $opentelemetry,
+                'opentelemetry' => $carrier,
             ];
         });
 
