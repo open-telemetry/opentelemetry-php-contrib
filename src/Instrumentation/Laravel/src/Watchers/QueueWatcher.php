@@ -56,16 +56,14 @@ class QueueWatcher extends Watcher
             TraceAttributes::MESSAGING_DESTINATION_NAME => $jobProcessing->job->getQueue(),
             TraceAttributes::MESSAGING_MESSAGE_ID => $jobProcessing->job->uuid(),
             TraceAttributes::MESSAGING_MESSAGE_ENVELOPE_SIZE => strlen($jobProcessing->job->getRawBody()),
-        ]);
-
-        $span->addEvent('job', [
-            'id' => $jobProcessing->job->getJobId(),
-            'name' => $jobProcessing->job->resolveName(),
-            'attempts' => $jobProcessing->job->attempts(),
-            'maxExceptions' => $jobProcessing->job->maxExceptions(),
-            'maxTries' => $jobProcessing->job->maxTries(),
-            'retryUntil' => $jobProcessing->job->retryUntil(),
-            'timeout' => $jobProcessing->job->timeout(),
+            TraceAttributes::MESSAGING_MESSAGE_CONVERSATION_ID => $jobProcessing->job->getJobId(),
+            // Existing sem-conv might not provide for the below, but hopefully this is permissible for now.
+            'messaging.message.job_name' => $jobProcessing->job->resolveName(),
+            'messaging.message.attempts' => $jobProcessing->job->attempts(),
+            'messaging.message.max_exceptions' => $jobProcessing->job->maxExceptions(),
+            'messaging.message.max_tries' => $jobProcessing->job->maxTries(),
+            'messaging.message.retry_until' => $jobProcessing->job->retryUntil(),
+            'messaging.message.timeout' => $jobProcessing->job->timeout(),
         ]);
 
         Context::storage()->attach($span->storeInContext($parent));
@@ -80,9 +78,9 @@ class QueueWatcher extends Watcher
         $scope->detach();
         $span = Span::fromContext($scope->context());
 
-        $span->addEvent('processed', [
-            'deleted' => $jobProcessed->job->isDeleted(),
-            'released' => $jobProcessed->job->isReleased(),
+        $span->setAttributes([
+            'messaging.message.deleted' => $jobProcessed->job->isDeleted(),
+            'messaging.message.released' => $jobProcessed->job->isReleased(),
         ]);
 
         $span->end();
