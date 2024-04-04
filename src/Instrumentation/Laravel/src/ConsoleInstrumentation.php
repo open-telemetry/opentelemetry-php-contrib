@@ -6,7 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Kernel;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -18,7 +18,7 @@ use Throwable;
 
 class ConsoleInstrumentation
 {
-    public static function register(CachedInstrumentation $instrumentation): void
+    public static function register(InstrumentationInterface $instrumentation): void
     {
         if (self::shouldTraceCli()) {
             self::hookConsoleKernel($instrumentation);
@@ -32,14 +32,14 @@ class ConsoleInstrumentation
         return PHP_SAPI !== 'cli' || Configuration::getBoolean('OTEL_PHP_TRACE_CLI_ENABLED', false);
     }
 
-    private static function hookConsoleKernel(CachedInstrumentation $instrumentation): void
+    private static function hookConsoleKernel(InstrumentationInterface $instrumentation): void
     {
         hook(
             Kernel::class,
             'handle',
             pre: static function (Kernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $instrumentation->tracer()
+                $builder = $instrumentation->getTracer()
                     ->spanBuilder('Artisan handler')
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
@@ -75,14 +75,14 @@ class ConsoleInstrumentation
         );
     }
 
-    private static function hookCommandExecution(CachedInstrumentation $instrumentation): void
+    private static function hookCommandExecution(InstrumentationInterface $instrumentation): void
     {
         hook(
             Command::class,
             'execute',
             pre: static function (Command $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $instrumentation->tracer()
+                $builder = $instrumentation->getTracer()
                     ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)

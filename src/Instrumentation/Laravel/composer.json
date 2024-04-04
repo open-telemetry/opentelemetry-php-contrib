@@ -11,6 +11,7 @@
     "php": "^8.0",
     "ext-json": "*",
     "ext-opentelemetry": "*",
+    "composer-runtime-api": "^2.0",
     "laravel/framework": ">=6.0",
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.23"

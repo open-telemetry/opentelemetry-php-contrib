@@ -11,6 +11,7 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\InstrumentationHelper;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -22,8 +23,6 @@ abstract class TestCase extends BaseTestCase
 
     public function setUp(): void
     {
-        parent::setUp();
-
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
@@ -34,6 +33,12 @@ abstract class TestCase extends BaseTestCase
         $this->scope = Configurator::create()
             ->withTracerProvider($this->tracerProvider)
             ->activate();
+
+        // @todo Find a nicer way.
+        InstrumentationHelper::instance()->setTracerProvider($this->tracerProvider);
+
+        // This will create a fresh Laravel application, which is hooked by the above instrumentation activation.
+        parent::setUp();
     }
 
     public function tearDown(): void

@@ -6,8 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
-use OpenTelemetry\API\Globals;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -20,7 +19,7 @@ use Throwable;
 
 class HttpInstrumentation
 {
-    public static function register(CachedInstrumentation $instrumentation): void
+    public static function register(InstrumentationInterface $instrumentation): void
     {
         hook(
             Kernel::class,
@@ -28,7 +27,7 @@ class HttpInstrumentation
             pre: static function (Kernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $instrumentation->tracer()
+                $builder = $instrumentation->getTracer()
                     ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
@@ -37,7 +36,7 @@ class HttpInstrumentation
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
-                    $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
+                    $parent = $instrumentation->getPropagator()->extract($request, HeadersPropagator::instance());
                     $span = $builder
                         ->setParent($parent)
                         ->setAttribute(TraceAttributes::URL_FULL, $request->fullUrl())

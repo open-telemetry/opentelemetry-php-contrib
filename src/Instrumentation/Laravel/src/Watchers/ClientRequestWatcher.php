@@ -10,7 +10,7 @@ use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\Response;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -25,7 +25,7 @@ class ClientRequestWatcher extends Watcher
     protected array $spans = [];
 
     public function __construct(
-        private CachedInstrumentation $instrumentation,
+        private InstrumentationInterface $instrumentation,
     ) {
     }
 
@@ -48,7 +48,7 @@ class ClientRequestWatcher extends Watcher
         if ($parsedUrl->has('query')) {
             $processedUrl .= '?' . $parsedUrl->get('query');
         }
-        $span = $this->instrumentation->tracer()->spanBuilder($request->request->method())
+        $span = $this->instrumentation->getTracer()->spanBuilder($request->request->method())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
                 TraceAttributes::HTTP_REQUEST_METHOD => $request->request->method(),
