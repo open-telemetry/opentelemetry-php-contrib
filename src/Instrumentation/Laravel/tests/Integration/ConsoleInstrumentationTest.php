@@ -27,14 +27,15 @@ class ConsoleInstrumentationTest extends TestCase
          *
          * @see \Illuminate\Foundation\Console\OptimizeClearCommand::handle() for the additional commands/spans.
          */
-        $count = 8;
-        $this->assertCount($count, $this->storage);
+        $this->assertCount(7, $this->storage);
 
-        $span = $this->storage[--$count];
-        $this->assertSame('Artisan handler', $span->getName());
-
-        $span = $this->storage[--$count];
-        $this->assertSame('Command optimize:clear', $span->getName());
+        $this->assertSame('Command event:clear', $this->storage[0]->getName());
+        $this->assertSame('Command view:clear', $this->storage[1]->getName());
+        $this->assertSame('Command cache:clear', $this->storage[2]->getName());
+        $this->assertSame('Command route:clear', $this->storage[3]->getName());
+        $this->assertSame('Command config:clear', $this->storage[4]->getName());
+        $this->assertSame('Command clear-compiled', $this->storage[5]->getName());
+        $this->assertSame('Command optimize:clear', $this->storage[6]->getName());
     }
 
     private function kernel(): Kernel

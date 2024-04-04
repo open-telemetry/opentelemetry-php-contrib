@@ -12,12 +12,27 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
 class ConsoleInstrumentation
 {
     public static function register(CachedInstrumentation $instrumentation): void
+    {
+        if (self::shouldTraceCli()) {
+            self::hookConsoleKernel($instrumentation);
+        }
+
+        self::hookCommandExecution($instrumentation);
+    }
+
+    private static function shouldTraceCli(): bool
+    {
+        return PHP_SAPI !== 'cli' || Configuration::getBoolean('OTEL_PHP_TRACE_CLI_ENABLED', false);
+    }
+
+    private static function hookConsoleKernel(CachedInstrumentation $instrumentation): void
     {
         hook(
             Kernel::class,
@@ -58,7 +73,10 @@ class ConsoleInstrumentation
                 $span->end();
             }
         );
+    }
 
+    private static function hookCommandExecution(CachedInstrumentation $instrumentation): void
+    {
         hook(
             Command::class,
             'execute',
