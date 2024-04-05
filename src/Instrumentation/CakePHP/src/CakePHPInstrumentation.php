@@ -72,6 +72,7 @@ class CakePHPInstrumentation
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {
+                    error_log();
                     if ($response->getStatusCode() >= 400) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
