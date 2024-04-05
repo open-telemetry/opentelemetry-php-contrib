@@ -100,6 +100,13 @@ class GuzzleInstrumentation
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                         $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
+
+                        foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
+                            if ($response->hasHeader($header)) {
+                                /** @psalm-suppress ArgumentTypeCoercion */
+                                $span->setAttribute(sprintf('http.response.header.%s', strtolower($header)), $response->getHeader($header));
+                            }
+                        }
                         if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
                             $span->setStatus(StatusCode::STATUS_ERROR);
                         }

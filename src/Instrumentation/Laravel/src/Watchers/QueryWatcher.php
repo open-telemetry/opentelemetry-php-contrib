@@ -36,7 +36,7 @@ class QueryWatcher extends Watcher
         if (! in_array($operationName, ['SELECT', 'INSERT', 'UPDATE', 'DELETE'])) {
             $operationName = null;
         }
-        /** @psalm-suppress InvalidArgument */
+        /** @psalm-suppress ArgumentTypeCoercion */
         $span = $this->instrumentation->tracer()->spanBuilder('sql ' . $operationName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setStartTimestamp($this->calculateQueryStartTime($nowInNs, $query->time))

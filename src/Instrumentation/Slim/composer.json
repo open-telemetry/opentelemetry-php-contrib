@@ -20,15 +20,17 @@
     "friendsofphp/php-cs-fixer": "^3",
     "mockery/mockery": "^1.5",
     "nyholm/psr7": "*",
+    "open-telemetry/opentelemetry-propagation-server-timing": "*",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "*",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
     "phpstan/phpstan-mockery": "^1.1.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.16",
+    "psalm/plugin-phpunit": "^0.18.4",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^4.0"
+    "vimeo/psalm": "^5.0"
   },
   "autoload": {
     "psr-4": {
