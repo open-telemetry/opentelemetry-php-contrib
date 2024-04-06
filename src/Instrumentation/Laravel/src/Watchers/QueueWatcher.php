@@ -29,9 +29,7 @@ class QueueWatcher extends Watcher
             $carrier = [];
             TraceContextPropagator::getInstance()->inject($carrier);
 
-            return [
-                'opentelemetry' => $carrier,
-            ];
+            return $carrier;
         });
 
         $app['events']->listen(JobProcessing::class, [$this, 'handleJobProcessing']);
@@ -41,7 +39,7 @@ class QueueWatcher extends Watcher
     public function handleJobProcessing(JobProcessing $jobProcessing): void
     {
         $parent = TraceContextPropagator::getInstance()->extract(
-            $jobProcessing->job->payload()['opentelemetry'] ?? [],
+            $jobProcessing->job->payload(),
         );
 
         $span = $this->instrumentation
