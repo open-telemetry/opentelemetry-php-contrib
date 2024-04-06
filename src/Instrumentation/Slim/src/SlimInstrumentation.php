@@ -68,6 +68,7 @@ class SlimInstrumentation
                     $span = $builder->startSpan();
                 }
                 Context::storage()->attach($span->storeInContext($parent));
+
                 return [$request];
             },
             post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception): ?ResponseInterface {
