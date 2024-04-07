@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
 
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Illuminate\Queue\Queue as AbstractQueue;
 use Illuminate\Queue\RedisQueue;
 use Illuminate\Queue\SqsQueue;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -19,7 +21,28 @@ class Queue extends AbstractHook
 {
     public function instrument(): void
     {
+        $this->hookAbstractQueueCreatePayloadArray();
         $this->hookQueuePushRaw();
+    }
+
+    protected function hookAbstractQueueCreatePayloadArray(): bool
+    {
+        // @todo: remove once post-hook return value works.
+        AbstractQueue::createPayloadUsing(function () {
+            $carrier = [];
+            TraceContextPropagator::getInstance()->inject($carrier);
+
+            return $carrier;
+        });
+
+        return hook(
+            AbstractQueue::class,
+            'createPayloadArray',
+            post: function (AbstractQueue $queue, array $params, array $payload, ?Throwable $exception) {
+                TraceContextPropagator::getInstance()->inject($payload);
+                return $payload;
+            },
+        );
     }
 
     protected function hookQueuePushRaw(): bool
