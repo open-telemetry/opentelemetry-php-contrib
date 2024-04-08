@@ -31,10 +31,21 @@ class Psr16Instrumentation
         );
 
         $pre = static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-            $span = self::makeSpanBuilder($instrumentation, $function, $class, $filename, $lineno)
-                    ->startSpan();
+            $builder = self::makeSpanBuilder($instrumentation, $function, $function, $class, $filename, $lineno);
+            
+            if (isset($params[0]) && is_string($params[0])) {
+                $builder->setAttribute('cache.key', $params[0]);
+            }
 
-            Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+            if (isset($params[0]) && is_array($params[0])) {
+                $keys = (array_values($params[0]) !== $params[0]) ? array_keys($params[0]) : $params[0];
+                $builder->setAttribute('cache.keys', implode(',', $keys));
+            }
+
+            $parent = Context::getCurrent();
+            $span = $builder->startSpan();
+
+            Context::storage()->attach($span->storeInContext($parent));
         };
         $post = static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
             self::end($exception);
@@ -47,20 +58,20 @@ class Psr16Instrumentation
 
     private static function makeSpanBuilder(
         CachedInstrumentation $instrumentation,
+        string $name,
         string $function,
         string $class,
         ?string $filename,
         ?int $lineno
     ): SpanBuilderInterface {
         return $instrumentation->tracer()
-            ->spanBuilder($function)
+            ->spanBuilder($name)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
             ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
             ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
-            ->setAttribute(TraceAttributes::DB_SYSTEM, 'psr16')
-            ->setAttribute(TraceAttributes::DB_OPERATION, $function);
+            ->setAttribute('cache.operation', $name);
     }
 
     private static function end(?Throwable $exception): void
