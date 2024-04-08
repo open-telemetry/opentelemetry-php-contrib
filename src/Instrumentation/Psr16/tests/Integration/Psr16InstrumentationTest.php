@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace OpenTelemetry\Instrumentation\Psr16\Tests\Integration;
 
 use ArrayObject;
+use DateInterval;
+use DateTime;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\Contrib\Instrumentation\Psr16\Psr16Instrumentation;
+use OpenTelemetry\SDK\Trace\Event;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 
@@ -52,8 +54,27 @@ class Psr16InstrumentationTest extends TestCase
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertEquals('get', $span->getName());
-        $this->assertEquals('psr16', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('get', $span->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('get', $span->getAttributes()->get('cache.operation'));
+        $this->assertEquals('foo', $span->getAttributes()->get('cache.key'));
+    }
+
+    public function test_get_key_invalid(): void
+    {
+        
+        try {
+            $this->adapter->get('');
+        } catch (\Throwable $ex) {
+            $this->assertInstanceOf(\InvalidArgumentException::class, $ex);
+        }
+        $this->assertCount(1, $this->storage);
+        /** @var ImmutableSpan $span */
+        $span = $this->storage->offsetGet(0);
+        $this->assertEquals('get', $span->getName());
+        /** @var Event $event */
+        $event = $span->getEvents()[0];
+        $this->assertSame('exception', $event->getName());
+        $this->assertSame(\InvalidArgumentException::class, $event->getAttributes()->get('exception.type'));
+        $this->assertSame('cache key is empty', $event->getAttributes()->get('exception.message'));
     }
 
     public function test_set_key(): void
@@ -64,8 +85,8 @@ class Psr16InstrumentationTest extends TestCase
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertEquals('set', $span->getName());
-        $this->assertEquals('psr16', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('set', $span->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('set', $span->getAttributes()->get('cache.operation'));
+        $this->assertEquals('foo', $span->getAttributes()->get('cache.key'));
     }
 
     public function test_delete_key(): void
@@ -76,8 +97,8 @@ class Psr16InstrumentationTest extends TestCase
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertEquals('delete', $span->getName());
-        $this->assertEquals('psr16', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('delete', $span->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('delete', $span->getAttributes()->get('cache.operation'));
+        $this->assertEquals('foo', $span->getAttributes()->get('cache.key'));
     }
 
     public function test_clear_keys(): void
@@ -88,8 +109,9 @@ class Psr16InstrumentationTest extends TestCase
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertEquals('clear', $span->getName());
-        $this->assertEquals('psr16', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('clear', $span->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('clear', $span->getAttributes()->get('cache.operation'));
+        $this->assertNull($span->getAttributes()->get('cache.key'));
+        $this->assertNull($span->getAttributes()->get('cache.keys'));
     }
 
     public function test_get_multiple_keys(): void
@@ -104,28 +126,32 @@ class Psr16InstrumentationTest extends TestCase
         $this->assertEquals('get', $spanOne->getName());
         $this->assertEquals('get', $spanTwo->getName());
         $this->assertEquals('getMultiple', $spanThree->getName());
-        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('psr16', $spanThree->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('get', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
-        $this->assertEquals('get', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
-        $this->assertEquals('getMultiple', $spanThree->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('get', $spanOne->getAttributes()->get('cache.operation'));
+        $this->assertEquals('get', $spanTwo->getAttributes()->get('cache.operation'));
+        $this->assertEquals('getMultiple', $spanThree->getAttributes()->get('cache.operation'));
+        $this->assertEquals('foo', $spanOne->getAttributes()->get('cache.key'));
+        $this->assertEquals('bar', $spanTwo->getAttributes()->get('cache.key'));
+        $this->assertEquals('foo,bar', $spanThree->getAttributes()->get('cache.keys'));
     }
 
     public function test_set_multiple_keys(): void
     {
         $this->assertCount(0, $this->storage);
-        $this->adapter->setMultiple(['foo' => 'bar']);
-        $this->assertCount(2, $this->storage);
+        $this->adapter->setMultiple(['foo' => 'bar', 'baz' => 'baa']);
+        $this->assertCount(3, $this->storage);
         /** @var ImmutableSpan $spanOne, $spanTwo */
         $spanOne = $this->storage->offsetGet(0);
         $spanTwo = $this->storage->offsetGet(1);
+        $spanThree = $this->storage->offsetGet(2);
         $this->assertEquals('set', $spanOne->getName());
-        $this->assertEquals('setMultiple', $spanTwo->getName());
-        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('set', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
-        $this->assertEquals('setMultiple', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('set', $spanTwo->getName());
+        $this->assertEquals('setMultiple', $spanThree->getName());
+        $this->assertEquals('set', $spanOne->getAttributes()->get('cache.operation'));
+        $this->assertEquals('set', $spanTwo->getAttributes()->get('cache.operation'));
+        $this->assertEquals('setMultiple', $spanThree->getAttributes()->get('cache.operation'));
+        $this->assertEquals('foo', $spanOne->getAttributes()->get('cache.key'));
+        $this->assertEquals('baz', $spanTwo->getAttributes()->get('cache.key'));
+        $this->assertEquals('foo,baz', $spanThree->getAttributes()->get('cache.keys'));
     }
 
     public function test_delete_multiple_keys(): void
@@ -140,12 +166,12 @@ class Psr16InstrumentationTest extends TestCase
         $this->assertEquals('delete', $spanOne->getName());
         $this->assertEquals('delete', $spanTwo->getName());
         $this->assertEquals('deleteMultiple', $spanThree->getName());
-        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('psr16', $spanThree->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('delete', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
-        $this->assertEquals('delete', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
-        $this->assertEquals('deleteMultiple', $spanThree->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('delete', $spanOne->getAttributes()->get('cache.operation'));
+        $this->assertEquals('delete', $spanTwo->getAttributes()->get('cache.operation'));
+        $this->assertEquals('deleteMultiple', $spanThree->getAttributes()->get('cache.operation'));
+        $this->assertEquals('foo', $spanOne->getAttributes()->get('cache.key'));
+        $this->assertEquals('bar', $spanTwo->getAttributes()->get('cache.key'));
+        $this->assertEquals('foo,bar', $spanThree->getAttributes()->get('cache.keys'));
     }
 
     public function test_has_key(): void
@@ -158,10 +184,10 @@ class Psr16InstrumentationTest extends TestCase
         $spanTwo = $this->storage->offsetGet(1);
         $this->assertEquals('get', $spanOne->getName());
         $this->assertEquals('has', $spanTwo->getName());
-        $this->assertEquals('psr16', $spanOne->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('psr16', $spanTwo->getAttributes()->get(TraceAttributes::DB_SYSTEM));
-        $this->assertEquals('get', $spanOne->getAttributes()->get(TraceAttributes::DB_OPERATION));
-        $this->assertEquals('has', $spanTwo->getAttributes()->get(TraceAttributes::DB_OPERATION));
+        $this->assertEquals('get', $spanOne->getAttributes()->get('cache.operation'));
+        $this->assertEquals('has', $spanTwo->getAttributes()->get('cache.operation'));
+        $this->assertEquals('foo', $spanOne->getAttributes()->get('cache.key'));
+        $this->assertEquals('foo', $spanTwo->getAttributes()->get('cache.key'));
     }
 
     public function test_can_register(): void
@@ -176,21 +202,79 @@ class Psr16InstrumentationTest extends TestCase
         return new class() implements CacheInterface {
             private $data = [];
 
-            public function get($key, $default = null): mixed
+            protected function checkKey(string $key):string
             {
-                return $this->data[$key] ?? $default;
+                if(empty($key)) {
+                    throw new \InvalidArgumentException('cache key is empty');
+                }
+        
+                return $key;
             }
 
-            public function set($key, $value, $ttl = null): bool
+            protected function getTTL(DateInterval|int|null $ttl):?int
             {
-                $this->data[$key] = $value;
+                if($ttl instanceof DateInterval) {
+                    return ((new DateTime())->add($ttl)->getTimeStamp() - time());
+                }
+        
+                if((is_int($ttl) && $ttl > 0)) {
+                    return $ttl;
+                }
+        
+                return null;
+            }
+
+            protected function fromIterable(iterable $data): array
+            {
+                if(is_array($data)) {
+                    return $data;
+                }
+        
+                return iterator_to_array($data);
+            }
+
+            protected function checkReturn(array $booleans): bool
+            {
+                foreach($booleans as $boolean) {
+                    if(!(bool) $boolean) {
+                        return false;
+                    }
+                }
 
                 return true;
             }
 
-            public function delete($key): bool
+            public function get(string $key, mixed $default = null): mixed
             {
-                unset($this->data[$key]);
+                $key = $this->checkKey($key);
+
+                if(isset($this->data[$key])) {
+                    if($this->data[$key]['ttl'] === null || $this->data[$key]['ttl'] > time()) {
+                        return $this->data[$key]['content'];
+                    }
+
+                    unset($this->data[$key]);
+                }
+
+                return $default;
+            }
+
+            public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+            {
+                $ttl = $this->getTTL($ttl);
+
+                if($ttl !== null) {
+                    $ttl = (time() + $ttl);
+                }
+
+                $this->data[$this->checkKey($key)] = ['ttl' => $ttl, 'content' => $value];
+
+                return true;
+            }
+
+            public function delete(string $key): bool
+            {
+                unset($this->data[$this->checkKey($key)]);
 
                 return true;
             }
@@ -202,35 +286,40 @@ class Psr16InstrumentationTest extends TestCase
                 return true;
             }
 
-            public function getMultiple($keys, $default = null): iterable
+            public function getMultiple(iterable $keys, mixed $default = null): iterable
             {
-                $values = [];
-                foreach ($keys as $key) {
-                    $values[$key] = $this->get($key, $default);
+                $data = [];
+
+                foreach ($this->fromIterable($keys) as $key) {
+                    $data[$key] = $this->get($key, $default);
                 }
 
-                return $values;
+                return $data;
             }
 
-            public function setMultiple($values, $ttl = null): bool
+            public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
             {
-                foreach ($values as $key => $value) {
-                    $this->set($key, $value, $ttl);
+                $return = [];
+
+                foreach ($this->fromIterable($values) as $key => $value) {
+                    $return[] = $this->set($key, $value, $ttl);
                 }
 
-                return true;
+                return $this->checkReturn($return);
             }
 
-            public function deleteMultiple($keys): bool
+            public function deleteMultiple(iterable $keys): bool
             {
-                foreach ($keys as $key) {
-                    $this->delete($key);
+                $return = [];
+
+                foreach ($this->fromIterable($keys) as $key) {
+                    $return[] = $this->delete($key);
                 }
 
-                return true;
+                return $this->checkReturn($return);
             }
 
-            public function has($key): bool
+            public function has(string $key): bool
             {
                 return !empty($this->get($key));
             }
