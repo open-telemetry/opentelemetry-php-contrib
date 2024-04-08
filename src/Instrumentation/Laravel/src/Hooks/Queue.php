@@ -38,7 +38,7 @@ class Queue extends AbstractHook
         return hook(
             AbstractQueue::class,
             'createPayloadArray',
-            post: function (AbstractQueue $queue, array $params, array $payload, ?Throwable $exception) {
+            post: function (AbstractQueue $queue, array $params, array $payload, ?Throwable $exception): array {
                 TraceContextPropagator::getInstance()->inject($payload);
                 return $payload;
             },
