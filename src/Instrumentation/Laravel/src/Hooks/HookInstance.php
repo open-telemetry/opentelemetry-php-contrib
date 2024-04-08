@@ -6,7 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 
-abstract class AbstractHook
+trait HookInstance
 {
     private static ?self $instance = null;
 
@@ -17,13 +17,13 @@ abstract class AbstractHook
 
     abstract public function instrument(): void;
 
-    public static function hook(CachedInstrumentation $instrumentation): static
+    public static function hook(CachedInstrumentation $instrumentation): self
     {
-        if (static::$instance === null) {
-            static::$instance = new static($instrumentation);
-            static::$instance->instrument();
+        if (self::$instance === null) {
+            self::$instance = new self($instrumentation);
+            self::$instance->instrument();
         }
 
-        return static::$instance;
+        return self::$instance;
     }
 }

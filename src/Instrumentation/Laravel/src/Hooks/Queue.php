@@ -17,8 +17,10 @@ use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
-class Queue extends AbstractHook
+class Queue
 {
+    use HookInstance;
+
     public function instrument(): void
     {
         $this->hookAbstractQueueCreatePayloadArray();
@@ -27,19 +29,12 @@ class Queue extends AbstractHook
 
     protected function hookAbstractQueueCreatePayloadArray(): bool
     {
-        // @todo: remove once post-hook return value works.
-        AbstractQueue::createPayloadUsing(function () {
-            $carrier = [];
-            TraceContextPropagator::getInstance()->inject($carrier);
-
-            return $carrier;
-        });
-
         return hook(
             AbstractQueue::class,
             'createPayloadArray',
             post: function (AbstractQueue $queue, array $params, array $payload, ?Throwable $exception): array {
                 TraceContextPropagator::getInstance()->inject($payload);
+
                 return $payload;
             },
         );
