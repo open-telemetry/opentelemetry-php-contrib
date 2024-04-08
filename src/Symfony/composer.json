@@ -30,7 +30,7 @@
     },
     "require-dev": {
         "ext-grpc": "*",
-        "composer/xdebug-handler": "^2.0",
+        "composer/xdebug-handler": "^3.0",
         "dg/bypass-finals": "^1.3",
         "friendsofphp/php-cs-fixer": "^3.0",
         "google/protobuf": "^3.23",
@@ -49,7 +49,7 @@
         "phpstan/phpstan-phpunit": "^1.0",
         "phpstan/phpstan-symfony": "^1.1",
         "phpunit/phpunit": "^9.5",
-        "psalm/plugin-phpunit": "^0.13.0",
+        "psalm/plugin-phpunit": "^0.18.4",
         "symfony/config": "^4.4|^5.0|^6.0",
         "symfony/http-client": "^5.3",
         "symfony/http-kernel": "^4.4|^5.3|^6.0",
@@ -57,7 +57,7 @@
         "symfony/polyfill-php80": "^1.16",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
-        "vimeo/psalm": "^4.0"
+        "vimeo/psalm": "^5.0"
     },
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",
