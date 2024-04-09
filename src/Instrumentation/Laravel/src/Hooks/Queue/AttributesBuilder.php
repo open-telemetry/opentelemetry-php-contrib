@@ -22,6 +22,7 @@ trait AttributesBuilder
         $payload = json_decode($rawPayload, true) ?? [];
 
         return array_merge([
+            TraceAttributes::MESSAGING_DESTINATION_NAME => '(anonymous)',
             TraceAttributes::MESSAGING_MESSAGE_ID => $payload['uuid'] ?? $payload['id'] ?? null,
             TraceAttributes::MESSAGING_MESSAGE_ENVELOPE_SIZE => strlen($rawPayload),
             'messaging.message.job_name' => $payload['displayName'] ?? $payload['job'] ?? null,

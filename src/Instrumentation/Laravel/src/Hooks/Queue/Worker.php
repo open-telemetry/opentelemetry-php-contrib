@@ -10,9 +10,9 @@ use Illuminate\Queue\WorkerOptions;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookHandler;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
@@ -21,6 +21,7 @@ class Worker
 {
     use AttributesBuilder;
     use HookInstance;
+    use PostHookHandler;
 
     public function instrument(): void
     {
@@ -47,13 +48,13 @@ class Worker
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME] ?? '(anonymous)',
+                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                         'process',
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setParent($parent)
-                    ->startSpan()
-                    ->setAttributes($attributes);
+                    ->setAttributes($attributes)
+                    ->startSpan();
 
                 Context::storage()->attach($span->storeInContext($parent));
 
@@ -65,13 +66,7 @@ class Worker
                     return;
                 }
 
-                $scope->detach();
                 $span = Span::fromContext($scope->context());
-                if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-                }
-
                 $connectionName = (is_string($params[0] ?? null) ? $params[0] : null);
                 $job = ($params[1] instanceof Job ? $params[1] : null);
                 $workerOptions = ($params[2] instanceof WorkerOptions ? $params[2] : null);
@@ -81,7 +76,7 @@ class Worker
                     'messaging.message.released' => $job?->isReleased(),
                 ]);
 
-                $span->end();
+                $this->endSpan($exception);
             },
         );
     }

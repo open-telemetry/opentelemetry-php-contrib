@@ -7,9 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue as AbstractQueue;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
-use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Queue\AttributesBuilder;
 use function OpenTelemetry\Instrumentation\hook;
@@ -21,6 +19,7 @@ class Queue
 {
     use AttributesBuilder;
     use HookInstance;
+    use PostHookHandler;
 
     public function instrument(): void
     {
@@ -55,12 +54,12 @@ class Queue
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME] ?? '(anonymous)',
+                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                         TraceAttributeValues::MESSAGING_OPERATION_PUBLISH,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->startSpan()
-                    ->setAttributes($attributes);
+                    ->setAttributes($attributes)
+                    ->startSpan();
 
                 Context::storage()->attach($span->storeInContext($parent));
 
@@ -72,14 +71,7 @@ class Queue
                     return;
                 }
 
-                $scope->detach();
-                $span = Span::fromContext($scope->context());
-                if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-                }
-
-                $span->end();
+                $this->endSpan($exception);
             },
         );
     }
