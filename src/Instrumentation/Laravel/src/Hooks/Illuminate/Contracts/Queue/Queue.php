@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
+namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contracts\Queue;
 
 use Illuminate\Contracts\Queue\Queue as QueueContract;
-use Illuminate\Queue\Queue as AbstractQueue;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Queue\AttributesBuilder;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookHandler;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\TraceAttributeValues;
@@ -23,23 +23,7 @@ class Queue
 
     public function instrument(): void
     {
-        $this->hookAbstractQueueCreatePayloadArray();
         $this->hookQueuePushRaw();
-
-        Queue\Worker::hook($this->instrumentation);
-    }
-
-    protected function hookAbstractQueueCreatePayloadArray(): bool
-    {
-        return hook(
-            AbstractQueue::class,
-            'createPayloadArray',
-            post: function (AbstractQueue $queue, array $params, array $payload, ?Throwable $exception): array {
-                TraceContextPropagator::getInstance()->inject($payload);
-
-                return $payload;
-            },
-        );
     }
 
     protected function hookQueuePushRaw(): bool

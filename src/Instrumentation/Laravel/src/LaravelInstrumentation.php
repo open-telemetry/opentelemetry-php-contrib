@@ -45,7 +45,10 @@ class LaravelInstrumentation
 
         ConsoleInstrumentation::register($instrumentation);
         HttpInstrumentation::register($instrumentation);
-        Hooks\Queue::hook($instrumentation);
+
+        Hooks\Illuminate\Contracts\Queue\Queue::hook($instrumentation);
+        Hooks\Illuminate\Queue\Queue::hook($instrumentation);
+        Hooks\Illuminate\Queue\Worker::hook($instrumentation);
 
         self::developmentInstrumentation();
     }
