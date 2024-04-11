@@ -8,13 +8,13 @@
   "license": "Apache-2.0",
   "minimum-stability": "dev",
   "require": {
-    "php": "^8.0",
+    "php": "^8.1",
     "ext-json": "*",
     "ext-opentelemetry": "*",
     "composer-runtime-api": "^2.0",
     "laravel/framework": ">=6.0",
-    "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.23"
+    "open-telemetry/opentelemetry": "dev-spi/autoinstrument as 1.x-dev",
+    "tbachert/spi": "^0.2"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
@@ -35,21 +35,30 @@
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\": "src/"
-    },
-    "files": [
-      "_register.php"
-    ]
+    }
   },
   "autoload-dev": {
     "psr-4": {
       "OpenTelemetry\\Tests\\Contrib\\Instrumentation\\Laravel\\": "tests/"
     }
   },
+  "extra": {
+    "spi": {
+      "OpenTelemetry\\API\\Instrumentation\\InstrumentationInterface": ["OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\LaravelInstrumentation"]
+    }
+  },
   "config": {
     "lock": false,
     "sort-packages": true,
     "allow-plugins": {
-      "php-http/discovery": false
+      "php-http/discovery": false,
+      "tbachert/spi": true
     }
-  }
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/ChrisLightfootWild/opentelemetry-php.git"
+    }
+  ]
 }

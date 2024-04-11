@@ -49,10 +49,6 @@ class LaravelInstrumentation implements InstrumentationInterface
 
     public function activate(): bool
     {
-        if (!$this->init()) {
-            return false;
-        }
-
         try {
             hook(
                 Application::class,
