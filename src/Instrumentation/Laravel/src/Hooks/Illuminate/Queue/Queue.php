@@ -7,7 +7,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 use Illuminate\Queue\Queue as AbstractQueue;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookHandler;
 use function OpenTelemetry\Instrumentation\hook;
 use Throwable;
 
@@ -15,7 +14,6 @@ class Queue
 {
     use AttributesBuilder;
     use HookInstance;
-    use PostHookHandler;
 
     public function instrument(): void
     {

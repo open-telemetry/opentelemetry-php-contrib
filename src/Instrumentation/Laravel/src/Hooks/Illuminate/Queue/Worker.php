@@ -6,7 +6,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Worker as QueueWorker;
-use Illuminate\Queue\WorkerOptions;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -36,7 +35,6 @@ class Worker
             pre: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $connectionName = (is_string($params[0] ?? null) ? $params[0] : null);
                 $job = ($params[1] instanceof Job ? $params[1] : null);
-                $workerOptions = ($params[2] instanceof WorkerOptions ? $params[2] : null);
 
                 $parent = TraceContextPropagator::getInstance()->extract(
                     $job?->payload() ?? [],
@@ -67,9 +65,7 @@ class Worker
                 }
 
                 $span = Span::fromContext($scope->context());
-                $connectionName = (is_string($params[0] ?? null) ? $params[0] : null);
                 $job = ($params[1] instanceof Job ? $params[1] : null);
-                $workerOptions = ($params[2] instanceof WorkerOptions ? $params[2] : null);
 
                 $span->setAttributes([
                     'messaging.message.deleted' => $job?->isDeleted(),
