@@ -23,7 +23,7 @@ return $config->setRules([
     'type_declaration_spaces' => true,
     'include' => true,
     'lowercase_cast' => true,
-    'new_with_braces' => true,
+    'new_with_parentheses' => true,
     'no_extra_blank_lines' => true,
     'no_leading_import_slash' => true,
     'echo_tag_syntax' => true,

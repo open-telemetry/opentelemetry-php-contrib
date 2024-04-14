@@ -30,6 +30,7 @@ jobs:
           'Instrumentation/Psr6',
           'Instrumentation/Psr14',
           'Instrumentation/Psr15',
+          'Instrumentation/Psr16',
           'Instrumentation/Psr18',
           'Instrumentation/IO',
           'Instrumentation/PDO',
@@ -60,6 +61,8 @@ jobs:
           - project: 'Instrumentation/Psr14'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'
+            php-version: 7.4
+          - project: 'Instrumentation/Psr16'
             php-version: 7.4
           - project: 'Instrumentation/Psr18'
             php-version: 7.4

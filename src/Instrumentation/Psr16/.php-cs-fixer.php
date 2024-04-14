@@ -2,7 +2,6 @@
 $finder = PhpCsFixer\Finder::create()
     ->exclude('vendor')
     ->exclude('var/cache')
-    ->exclude('proto')
     ->in(__DIR__);
 
 $config = new PhpCsFixer\Config();
@@ -38,7 +37,7 @@ return $config->setRules([
     'blank_lines_before_namespace' => true,
     'single_quote' => true,
     'trailing_comma_in_multiline' => true,
-    ])
+])
     ->setRiskyAllowed(true)
     ->setFinder($finder);
 
