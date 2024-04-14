@@ -9,8 +9,8 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookHandler;
-use OpenTelemetry\SemConv\TraceAttributes;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
 class SyncQueue
@@ -33,7 +33,7 @@ class SyncQueue
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
-                        method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
+                        $queue->getConnectionName(),
                         'process',
                     ]))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
