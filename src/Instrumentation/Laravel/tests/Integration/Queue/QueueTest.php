@@ -16,7 +16,6 @@ class QueueTest extends TestCase
         /** @var Queue $queue */
         $queue = $this->app['queue'];
 
-        // Crashes with SIGSEGV
         $queue->push(new DummyJob('A'));
     }
 }
