@@ -23,10 +23,76 @@ class Queue
 
     public function instrument(): void
     {
-        $this->hookQueuePushRaw();
+        $this->hookBulk();
+        $this->hookLater();
+        $this->hookPushRaw();
     }
 
-    protected function hookQueuePushRaw(): bool
+    protected function hookBulk(): bool
+    {
+        return hook(
+            QueueContract::class,
+            'bulk',
+            pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                $span = $this->instrumentation
+                    ->tracer()
+                    ->spanBuilder(vsprintf('%s %s', [
+                        method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
+                        TraceAttributeValues::MESSAGING_OPERATION_PUBLISH,
+                    ]))
+                    ->setSpanKind(SpanKind::KIND_PRODUCER)
+                    ->setAttributes([
+                        TraceAttributes::CODE_FUNCTION => $function,
+                        TraceAttributes::CODE_NAMESPACE => $class,
+                        TraceAttributes::CODE_FILEPATH => $filename,
+                        TraceAttributes::CODE_LINENO => $lineno,
+                        TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
+                    ])
+                    ->startSpan();
+
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+
+                return $params;
+            },
+            post: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
+                $this->endSpan($exception);
+            },
+        );
+    }
+
+    protected function hookLater(): bool
+    {
+        return hook(
+            QueueContract::class,
+            'later',
+            pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                $parent = Context::getCurrent();
+                $span = $this->instrumentation
+                    ->tracer()
+                    ->spanBuilder(vsprintf('%s %s', [
+                        method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
+                        'create',
+                    ]))
+                    ->setSpanKind(SpanKind::KIND_PRODUCER)
+                    ->setAttributes([
+                        TraceAttributes::CODE_FUNCTION => $function,
+                        TraceAttributes::CODE_NAMESPACE => $class,
+                        TraceAttributes::CODE_FILEPATH => $filename,
+                        TraceAttributes::CODE_LINENO => $lineno,
+                    ])
+                    ->startSpan();
+
+                Context::storage()->attach($span->storeInContext($parent));
+
+                return $params;
+            },
+            post: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
+                $this->endSpan($exception);
+            },
+        );
+    }
+
+    protected function hookPushRaw(): bool
     {
         return hook(
             QueueContract::class,
@@ -39,7 +105,7 @@ class Queue
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
                         $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
-                        TraceAttributeValues::MESSAGING_OPERATION_PUBLISH,
+                        TraceAttributeValues::MESSAGING_OPERATION_CREATE,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
@@ -50,11 +116,6 @@ class Queue
                 return $params;
             },
             post: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
-                $scope = Context::storage()->scope();
-                if (!$scope) {
-                    return;
-                }
-
                 $this->endSpan($exception);
             },
         );
