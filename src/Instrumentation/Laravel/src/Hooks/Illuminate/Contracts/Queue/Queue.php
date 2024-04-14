@@ -66,7 +66,6 @@ class Queue
             QueueContract::class,
             'later',
             pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                $parent = Context::getCurrent();
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
@@ -79,10 +78,16 @@ class Queue
                         TraceAttributes::CODE_NAMESPACE => $class,
                         TraceAttributes::CODE_FILEPATH => $filename,
                         TraceAttributes::CODE_LINENO => $lineno,
+                        'messaging.message.delivery_timestamp' => match (true) {
+                            is_int($params[0]) => (new \DateTime())->add(new \DateInterval("P{$params[0]}S"))->getTimestamp(),
+                            $params[0] instanceof \DateInterval => (new \DateTime())->add($params[0])->getTimestamp(),
+                            $params[0] instanceof \DateTimeInterface => ($params[0])->getTimestamp(),
+                            default => null,
+                        },
                     ])
                     ->startSpan();
 
-                Context::storage()->attach($span->storeInContext($parent));
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
                 return $params;
             },
