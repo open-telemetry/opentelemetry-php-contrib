@@ -1,31 +1,59 @@
 [![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-aws/releases)
 [![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
-[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Aws)
-[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-aws)
-[![Latest Version](http://poser.pugx.org/open-telemetry/contrib-aws/v/unstable)](https://packagist.org/packages/open-telemetry/contrib-aws/)
-[![Stable](http://poser.pugx.org/open-telemetry/contrib-aws/v/stable)](https://packagist.org/packages/open-telemetry/contrib-aws/)
+[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Azure)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-azure)
+[![Latest Version](http://poser.pugx.org/open-telemetry/contrib-azure/v/unstable)](https://packagist.org/packages/open-telemetry/contrib-azure/)
+[![Stable](http://poser.pugx.org/open-telemetry/contrib-azure/v/stable)](https://packagist.org/packages/open-telemetry/contrib-azure/)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
-## Installation
+# OpenTelemetry Azure Resource Detectors
 
-### 1.1. Install PHP library/SDK dependencies
+This package provides OpenTelemetry `ResourceDetector`s which will detect 
+resource attributes for these Azure services:
+* App Service
+* Container Apps
+* Virtual Machines
 
-Take a look at the documentation of the  [PHP library](https://github.com/open-telemetry/opentelemetry-php) on how to install its dependencies.
+The following OpenTelemetry resource attributes will be detected:
 
-### 1.2. Install the Package
+| Resource attribute      | VM       | App Service       | Containers           |
+| cloud.platform          | azure_vm | azure_app_service | azure_container_apps |
+| cloud.provider          | azure    | azure             | azure                |
+| cloud.resource.id       | auto     | auto              |                      |
+| cloud.region            | auto     | auto              |                      |
+| deployment.environment  |          | auto              |                      |
+| host.id                 | auto     | auto              |                      |
+| host.name               | auto     |                   |                      |
+| host.type               | auto     |                   |                      |
+| os.type                 | auto     |                   |                      |
+| os.version              | auto     |                   |                      |
+| azure.vm.scaleset.name  | auto     |                   |                      |
+| azure.vm.sku            | auto     |                   |                      |
+| service.name            |          | auto              | auto                 |
+| service.version         |          |                   | auto                 |
+| service.instance.id     |          | auto              | auto                 |
+| azure.app.service.stamp |          | auto              |                      |
 
-1. Add
+## Requirements
+
+* OpenTelemetry SDK
+
+## Installation via composer
+
 ```bash
-    "minimum-stability": "dev",
-    "prefer-stable": true,
+$ composer require open-telemetry/contrib-azure
 ```
 
-To your project's `composer.json` file, as this utility has not reached a stable release status yet.
+## Usage
 
-2. Install the package with composer:
+The detector will be automatically registered as part of composer autoloading.
 
-```bash
-$ composer require open-telemetry/contrib-aws
+By default, all built-in and registered custom resource detectors are used, and will be added to the default resources associated with traces, metrics, and logs.
+
+You can also provide a list of detectors via the `OTEL_PHP_DETECTORS` config (environment variable or php.ini setting):
+```php
+putenv('OTEL_PHP_DETECTORS=azure,env,os,<others>')
+
+var_dump(ResourceInfoFactory::defaultResource());
 ```
-
