@@ -7,22 +7,29 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Queue;
 use Illuminate\Contracts\Queue\Queue;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
+use Psr\Log\LoggerInterface;
 
 class QueueTest extends TestCase
 {
+    private Queue $queue;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        /** @psalm-suppress PossiblyNullReference */
+        $this->queue = $this->app->make(Queue::class);
+    }
+
     /**
      * @test
      * @psalm-suppress PossiblyNullArrayAccess
-     * @psalm-suppress PossiblyNullReference
      */
     public function it_handles_pushing_to_a_queue(): void
     {
-        /** @var Queue $queue */
-        $queue = $this->app['queue'];
-
-        $queue->push(new DummyJob('A'));
-        $queue->push(function () {
-            logger()->info('Logged from closure');
+        $this->queue->push(new DummyJob('A'));
+        $this->queue->push(function (LoggerInterface $logger) {
+            $logger->info('Logged from closure');
         });
 
         $this->assertEquals('sync process', $this->storage[0]->getName());
