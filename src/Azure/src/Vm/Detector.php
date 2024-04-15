@@ -66,7 +66,7 @@ class Detector implements ResourceDetectorInterface
         return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
     }
 
-    function getAzureMetadata()
+    private function getAzureMetadata()
     {
         $req = $this->requestFactory->createRequest('GET', self::AZURE_METADATA_ENDPOINT_URL);
         $req->withHeader('Metadata', 'true');
