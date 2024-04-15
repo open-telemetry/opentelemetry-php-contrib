@@ -34,6 +34,7 @@ class Queue
             QueueContract::class,
             'bulk',
             pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
@@ -66,6 +67,7 @@ class Queue
             QueueContract::class,
             'later',
             pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
@@ -106,6 +108,7 @@ class Queue
                 $attributes = $this->buildMessageAttributes($queue, ...$params);
 
                 $parent = Context::getCurrent();
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [

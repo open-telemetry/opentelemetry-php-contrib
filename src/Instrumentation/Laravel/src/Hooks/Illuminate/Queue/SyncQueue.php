@@ -30,6 +30,7 @@ class SyncQueue
             LaravelSyncQueue::class,
             'push',
             pre: function (LaravelSyncQueue $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [

@@ -10,7 +10,11 @@ use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
 class QueueTest extends TestCase
 {
-    /** @test */
+    /**
+     * @test
+     * @psalm-suppress PossiblyNullArrayAccess
+     * @psalm-suppress PossiblyNullReference
+     */
     public function it_handles_pushing_to_a_queue(): void
     {
         /** @var Queue $queue */

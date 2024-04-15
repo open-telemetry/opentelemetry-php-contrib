@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Psr\Log\LoggerInterface;
 
 class DummyJob implements ShouldQueue
 {
@@ -16,8 +17,8 @@ class DummyJob implements ShouldQueue
     ) {
     }
 
-    public function handle(): void
+    public function handle(LoggerInterface $logger): void
     {
-        logger()->info("Task: {$this->name}");
+        $logger->info("Task: {$this->name}");
     }
 }

@@ -33,8 +33,9 @@ class Worker
             QueueWorker::class,
             'process',
             pre: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                $connectionName = (is_string($params[0] ?? null) ? $params[0] : null);
-                $job = ($params[1] instanceof Job ? $params[1] : null);
+                $connectionName = $params[0];
+                /** @var Job $job */
+                $job = $params[1];
 
                 $parent = TraceContextPropagator::getInstance()->extract(
                     $job?->payload() ?? [],
@@ -43,6 +44,7 @@ class Worker
                 $queue = $worker->getManager()->connection($connectionName);
                 $attributes = $this->buildMessageAttributes($queue, $job->getRawBody(), $job->getQueue());
 
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
