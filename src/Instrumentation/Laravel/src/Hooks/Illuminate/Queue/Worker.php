@@ -38,7 +38,7 @@ class Worker
                 $job = $params[1];
 
                 $parent = TraceContextPropagator::getInstance()->extract(
-                    $job?->payload() ?? [],
+                    $job->payload(),
                 );
 
                 $queue = $worker->getManager()->connection($connectionName);
