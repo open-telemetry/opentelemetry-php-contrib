@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contracts\Queue;
 
+use DateInterval;
+use DateTime;
+use DateTimeInterface;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
@@ -81,9 +84,9 @@ class Queue
                         TraceAttributes::CODE_FILEPATH => $filename,
                         TraceAttributes::CODE_LINENO => $lineno,
                         'messaging.message.delivery_timestamp' => match (true) {
-                            is_int($params[0]) => (new \DateTime())->add(new \DateInterval("P{$params[0]}S"))->getTimestamp(),
-                            $params[0] instanceof \DateInterval => (new \DateTime())->add($params[0])->getTimestamp(),
-                            $params[0] instanceof \DateTimeInterface => ($params[0])->getTimestamp(),
+                            is_int($params[0]) => (new DateTime())->add(new DateInterval("PT{$params[0]}S"))->getTimestamp(),
+                            $params[0] instanceof DateInterval => (new DateTime())->add($params[0])->getTimestamp(),
+                            $params[0] instanceof DateTimeInterface => ($params[0])->getTimestamp(),
                             default => null,
                         },
                     ])
