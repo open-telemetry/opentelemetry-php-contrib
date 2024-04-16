@@ -39,6 +39,14 @@ class Queue
             QueueContract::class,
             'bulk',
             pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                $attributes = array_merge([
+                    TraceAttributes::CODE_FUNCTION => $function,
+                    TraceAttributes::CODE_NAMESPACE => $class,
+                    TraceAttributes::CODE_FILEPATH => $filename,
+                    TraceAttributes::CODE_LINENO => $lineno,
+                    TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
+                ], $this->contextualMessageSystemAttributes($queue, []));
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
                     ->tracer()
@@ -47,13 +55,7 @@ class Queue
                         TraceAttributeValues::MESSAGING_OPERATION_PUBLISH,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttributes([
-                        TraceAttributes::CODE_FUNCTION => $function,
-                        TraceAttributes::CODE_NAMESPACE => $class,
-                        TraceAttributes::CODE_FILEPATH => $filename,
-                        TraceAttributes::CODE_LINENO => $lineno,
-                        TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
-                    ])
+                    ->setAttributes($attributes)
                     ->startSpan();
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));

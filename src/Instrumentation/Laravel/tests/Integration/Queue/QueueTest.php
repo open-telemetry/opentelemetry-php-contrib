@@ -7,7 +7,9 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Queue;
 use DateInterval;
 use DateTimeImmutable;
 use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Queue\RedisQueue;
 use Illuminate\Queue\SqsQueue;
+use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Common\Time\ClockInterface;
@@ -106,5 +108,30 @@ class QueueTest extends TestCase
 
         $this->assertEquals('dummy-queue publish', $this->storage[0]->getName());
         $this->assertEquals(10, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_create_with_redis(): void
+    {
+        /** @var RedisQueue|MockInterface $mockQueue */
+        $mockQueue = $this->createMock(RedisQueue::class);
+        /** @psalm-suppress UndefinedMethod */
+        $mockQueue->method('getQueue')->willReturn('queues:default');
+        /** @psalm-suppress UndefinedMethod */
+        $mockQueue
+            ->method('getConnection')
+            ->willReturn($this->createMock(Connection::class));
+
+        /** @psalm-suppress PossiblyUndefinedMethod */
+        $mockQueue->bulk([
+            new DummyJob('A'),
+            new DummyJob('B'),
+        ]);
+
+        $this->assertEquals('queues:default publish', $this->storage[0]->getName());
+        $this->assertEquals(2, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
     }
 }
