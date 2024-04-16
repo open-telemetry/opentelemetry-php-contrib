@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Job;
+use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\Worker as QueueWorker;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
@@ -14,6 +15,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookHandler;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\TraceAttributeValues;
 use Throwable;
 
 class Worker
@@ -25,6 +27,7 @@ class Worker
     public function instrument(): void
     {
         $this->hookWorkerProcess();
+        $this->hookWorkerGetNextJob();
     }
 
     private function hookWorkerProcess(): bool
@@ -73,6 +76,65 @@ class Worker
                     'messaging.message.deleted' => $job?->isDeleted(),
                     'messaging.message.released' => $job?->isReleased(),
                 ]);
+
+                $this->endSpan($exception);
+            },
+        );
+    }
+
+    private function hookWorkerGetNextJob(): bool
+    {
+        return hook(
+            QueueWorker::class,
+            'getNextJob',
+            pre: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                /** @var Queue $connection */
+                $connection = $params[0];
+                $queue = $params[1];
+
+                $attributes = $this->buildMessageAttributes($connection, '', $queue);
+
+                /** @psalm-suppress ArgumentTypeCoercion */
+                $span = $this->instrumentation
+                    ->tracer()
+                    ->spanBuilder(vsprintf('%s %s', [
+                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        TraceAttributeValues::MESSAGING_OPERATION_RECEIVE,
+                    ]))
+                    ->setSpanKind(SpanKind::KIND_CONSUMER)
+                    ->setAttributes($attributes)
+                    ->startSpan();
+
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+
+                return $params;
+            },
+            post: function (QueueWorker $worker, array $params, ?Job $job, ?Throwable $exception) {
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+
+                // Discard empty receives.
+                if (!$job) {
+                    Context::storage()->destroy(
+                        $scope->detach(),
+                    );
+
+                    $this->endSpan($exception);
+
+                    return;
+                }
+
+                /** @var Queue $connection */
+                $connection = $params[0];
+                /** @var string $queue */
+                $queue = $params[1];
+                $attributes = $this->buildMessageAttributes($connection, $job->getRawBody(), $queue);
+
+                $span = Span::fromContext($scope->context());
+                /** @psalm-suppress PossiblyInvalidArgument */
+                $span->setAttributes($attributes);
 
                 $this->endSpan($exception);
             },
