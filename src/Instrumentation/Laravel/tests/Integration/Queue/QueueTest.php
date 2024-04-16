@@ -7,9 +7,11 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Queue;
 use DateInterval;
 use DateTimeImmutable;
 use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Queue\SqsQueue;
 use Mockery\MockInterface;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Common\Time\ClockInterface;
+use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 use Psr\Log\LoggerInterface;
@@ -82,5 +84,27 @@ class QueueTest extends TestCase
             1713220140,
             $this->storage[5]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_publish_in_bulk(): void
+    {
+        $jobs = [];
+        for ($i = 0; $i < 10; ++$i) {
+            $jobs[] = new DummyJob("#{$i}");
+        }
+
+        /** @var SqsQueue|MockInterface $mockQueue */
+        $mockQueue = $this->createMock(SqsQueue::class);
+        /** @psalm-suppress UndefinedMethod */
+        $mockQueue->method('getQueue')->willReturn('dummy-queue');
+
+        /** @psalm-suppress PossiblyUndefinedMethod */
+        $mockQueue->bulk($jobs);
+
+        $this->assertEquals('dummy-queue publish', $this->storage[0]->getName());
+        $this->assertEquals(10, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
     }
 }
