@@ -13,11 +13,12 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "guzzlehttp/guzzle": "^7.4",
         "php": "^7.4 || ^8.0",
-        "php-http/guzzle7-adapter": "^1.0",
+        "guzzlehttp/guzzle": "^7.4",
+        "guzzlehttp/psr7": "^2.6",
         "open-telemetry/api": "^1.0",
-        "open-telemetry/sdk": "^1.0"
+        "open-telemetry/sdk": "^1.0",
+        "php-http/guzzle7-adapter": "^1.0"
     },
     "require-dev": {
         "dg/bypass-finals": "^v1.4.1",
