@@ -14,6 +14,8 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookHandler;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SDK\Common\Time\ClockFactory;
+use OpenTelemetry\SDK\Common\Time\ClockInterface;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\TraceAttributeValues;
 use Throwable;
@@ -70,6 +72,24 @@ class Queue
             QueueContract::class,
             'later',
             pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                $clock = ClockFactory::getDefault();
+                $now = fn (): DateTimeInterface => new DateTime('@' . ($clock->now() / ClockInterface::NANOS_PER_SECOND));
+
+                $estimateDeliveryTimestamp = match (true) {
+                    is_int($params[0]) => $now()->add(new DateInterval("PT{$params[0]}S"))->getTimestamp(),
+                    $params[0] instanceof DateInterval => $now()->add($params[0])->getTimestamp(),
+                    $params[0] instanceof DateTimeInterface => ($params[0])->getTimestamp(),
+                    default => $params[0],
+                };
+
+                $attributes = [
+                    TraceAttributes::CODE_FUNCTION => $function,
+                    TraceAttributes::CODE_NAMESPACE => $class,
+                    TraceAttributes::CODE_FILEPATH => $filename,
+                    TraceAttributes::CODE_LINENO => $lineno,
+                    'messaging.message.delivery_timestamp' => $estimateDeliveryTimestamp,
+                ];
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
                     ->tracer()
@@ -78,18 +98,7 @@ class Queue
                         'create',
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttributes([
-                        TraceAttributes::CODE_FUNCTION => $function,
-                        TraceAttributes::CODE_NAMESPACE => $class,
-                        TraceAttributes::CODE_FILEPATH => $filename,
-                        TraceAttributes::CODE_LINENO => $lineno,
-                        'messaging.message.delivery_timestamp' => match (true) {
-                            is_int($params[0]) => (new DateTime())->add(new DateInterval("PT{$params[0]}S"))->getTimestamp(),
-                            $params[0] instanceof DateInterval => (new DateTime())->add($params[0])->getTimestamp(),
-                            $params[0] instanceof DateTimeInterface => ($params[0])->getTimestamp(),
-                            default => null,
-                        },
-                    ])
+                    ->setAttributes($attributes)
                     ->startSpan();
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
