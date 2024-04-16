@@ -42,7 +42,7 @@ class Detector implements ResourceDetectorInterface
     {
         $name = getenv(self::ENV_CONTAINER_APP_NAME_KEY);
 
-        if ($name == FALSE) {
+        if ($name == false) {
             return ResourceInfo::emptyResource();
         }
 
@@ -53,6 +53,7 @@ class Detector implements ResourceDetectorInterface
             ResourceAttributes::SERVICE_NAME => $name,
             ResourceAttributes::SERVICE_VERSION => getenv(self::ENV_CONTAINER_APP_REVISION_KEY),
         ];
+
         return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
     }
 }
