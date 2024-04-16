@@ -47,13 +47,13 @@ class Detector implements ResourceDetectorInterface
     public function getResource(): ResourceInfo
     {
         $name = getenv(self::ENV_WEBSITE_SITE_NAME_KEY);
+        $groupName = getenv(self::ENV_WEBSITE_RESOURCE_GROUP_KEY);
+        $subscriptionId = getenv(self::ENV_WEBSITE_OWNER_NAME_KEY);
 
-        if ($name == FALSE) {
+        if ($name == false || $groupName == false || $subscriptionId == false) {
             return ResourceInfo::emptyResource();
         }
 
-        $groupName = getenv(self::ENV_WEBSITE_RESOURCE_GROUP_KEY);
-        $subscriptionId = getenv(self::ENV_WEBSITE_OWNER_NAME_KEY);
         $attributes = [
             'azure.app.service.stamp' => getenv(self::ENV_WEBSITE_HOME_STAMPNAME_KEY),
             ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
@@ -65,10 +65,12 @@ class Detector implements ResourceDetectorInterface
             ResourceAttributes::SERVICE_INSTANCE_ID => getenv(self::ENV_WEBSITE_INSTANCE_ID_KEY),
             ResourceAttributes::SERVICE_NAME => $name,
         ];
+
         return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
     }
 
-    static function generateAzureResourceUri(string $siteName, string $groupName, string $subscriptionId): string {
+    public static function generateAzureResourceUri(string $siteName, string $groupName, string $subscriptionId): string
+    {
         return '/subscriptions/' . $subscriptionId . '/resourceGroups/' . $groupName . '/providers/Microsoft.Web/sites/' . $siteName;
     }
 }

@@ -26,13 +26,14 @@ use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Throwable;
 
 /**
  * AzureVmDetector
  */
 class Detector implements ResourceDetectorInterface
 {
-    private const AZURE_METADATA_ENDPOINT_URL = "http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json";
+    private const AZURE_METADATA_ENDPOINT_URL = 'http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json';
     public const CLOUD_PROVIDER = 'azure';
     public const CLOUD_PLATFORM = 'azure_vm';
     private ClientInterface $client;
@@ -48,22 +49,27 @@ class Detector implements ResourceDetectorInterface
 
     public function getResource(): ResourceInfo
     {
-        $metadata = $this->getAzureMetadata();
-        $attributes = [
-            'azure.vm.scaleset.name' => $metadata['compute']['vmScaleSetName'],
-            'azure.vm.sku' => $metadata['compute']['sku'],
-            ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
-            ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
-            ResourceAttributes::CLOUD_REGION => $metadata['compute']['location'],
-            ResourceAttributes::CLOUD_RESOURCE_ID => $metadata['compute']['resourceId'],
-            ResourceAttributes::HOST_ID => $metadata['compute']['vmId'],
-            ResourceAttributes::HOST_NAME => $metadata['compute']['name'],
-            ResourceAttributes::HOST_TYPE => $metadata['compute']['vmSize'],
-            ResourceAttributes::OS_TYPE => $metadata['compute']['osType'],
-            ResourceAttributes::OS_VERSION => $metadata['compute']['version'],
-            ResourceAttributes::SERVICE_INSTANCE_ID => $metadata['compute']['vmId'],
-        ];
-        return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
+        try {
+            $metadata = $this->getAzureMetadata();
+            $attributes = [
+                'azure.vm.scaleset.name' => $metadata['compute']['vmScaleSetName'],
+                'azure.vm.sku' => $metadata['compute']['sku'],
+                ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
+                ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                ResourceAttributes::CLOUD_REGION => $metadata['compute']['location'],
+                ResourceAttributes::CLOUD_RESOURCE_ID => $metadata['compute']['resourceId'],
+                ResourceAttributes::HOST_ID => $metadata['compute']['vmId'],
+                ResourceAttributes::HOST_NAME => $metadata['compute']['name'],
+                ResourceAttributes::HOST_TYPE => $metadata['compute']['vmSize'],
+                ResourceAttributes::OS_TYPE => $metadata['compute']['osType'],
+                ResourceAttributes::OS_VERSION => $metadata['compute']['version'],
+                ResourceAttributes::SERVICE_INSTANCE_ID => $metadata['compute']['vmId'],
+            ];
+
+            return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
+        } catch (Throwable $e) {
+            return ResourceInfo::emptyResource();
+        }
     }
 
     private function getAzureMetadata()
@@ -71,6 +77,7 @@ class Detector implements ResourceDetectorInterface
         $req = $this->requestFactory->createRequest('GET', self::AZURE_METADATA_ENDPOINT_URL);
         $req->withHeader('Metadata', 'true');
         $res = $this->client->sendRequest($req);
+
         return json_decode($res->getBody()->getContents(), true);
     }
 }
