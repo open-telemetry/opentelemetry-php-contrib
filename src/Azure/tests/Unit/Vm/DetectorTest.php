@@ -34,7 +34,6 @@ class DetectorTest extends TestCase
         $expected = [
             'azure.vm.scaleset.name' => $metadata['compute']['vmScaleSetName'],
             'azure.vm.sku' => $metadata['compute']['sku'],
-            ResourceAttributes::CLOUD_REGION => $metadata['compute']['location'],
             ResourceAttributes::CLOUD_PLATFORM => Detector::CLOUD_PLATFORM,
             ResourceAttributes::CLOUD_PROVIDER => Detector::CLOUD_PROVIDER,
             ResourceAttributes::CLOUD_REGION => $metadata['compute']['location'],
