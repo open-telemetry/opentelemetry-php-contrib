@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Illuminate\Queue\BeanstalkdQueue;
 use Illuminate\Queue\RedisQueue;
 use Illuminate\Queue\SqsQueue;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -42,10 +43,19 @@ trait AttributesBuilder
         mixed ...$params,
     ): array {
         return match (true) {
+            $queue instanceof BeanstalkdQueue => $this->beanstalkContextualAttributes($queue, $payload, $queueName, $options, ...$params),
             $queue instanceof RedisQueue => $this->redisContextualAttributes($queue, $payload, $queueName, $options, ...$params),
             $queue instanceof SqsQueue => $this->awsSqsContextualAttributes($queue, $payload, $queueName, $options, ...$params),
             default => [],
         };
+    }
+
+    private function beanstalkContextualAttributes(BeanstalkdQueue $queue, array $payload, string $queueName = null, array $options = [], mixed ...$params): array
+    {
+        return [
+            TraceAttributes::MESSAGING_SYSTEM => 'beanstalk',
+            TraceAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
+        ];
     }
 
     private function redisContextualAttributes(RedisQueue $queue, array $payload, string $queueName = null, array $options = [], mixed ...$params): array
