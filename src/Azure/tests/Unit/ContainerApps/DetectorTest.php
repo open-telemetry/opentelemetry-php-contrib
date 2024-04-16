@@ -34,9 +34,7 @@ class DetectorTest extends TestCase
                 putenv($item[1] . '=' . $item[2]);
             }
 
-            if ($item[0] !== null) {
-                $expected[$item[0]] = $item[2];
-            }
+            $expected[$item[0]] = $item[2];
         }
 
         $detector = new Detector();
