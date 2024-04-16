@@ -19,7 +19,7 @@ class DetectorTest extends TestCase
     /**
      * @test
      */
-    public function TestValidVm()
+    public function TestValidVmAttributes()
     {
         $body = $this->getResponseBodyFor('response.json');
         $metadata = json_decode($body, true);

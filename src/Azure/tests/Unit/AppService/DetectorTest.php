@@ -19,7 +19,7 @@ class DetectorTest extends TestCase
     /**
      * @test
      */
-    public function TestValidAppService()
+    public function TestValidAppServiceAttributes()
     {
         $data = [
             ['azure.app.service.stamp', Detector::ENV_WEBSITE_HOME_STAMPNAME_KEY, 'stamp'],
