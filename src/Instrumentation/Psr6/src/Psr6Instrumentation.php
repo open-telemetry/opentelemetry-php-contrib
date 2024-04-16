@@ -11,7 +11,6 @@ use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Cache\CacheItemPoolInterface;
 use Throwable;
@@ -30,19 +29,15 @@ class Psr6Instrumentation
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr6')
         );
 
-        $pre = static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+        $pre = static function (CacheItemPoolInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
             $span = self::makeSpanBuilder($instrumentation, $function, $class, $filename, $lineno)
                     ->startSpan();
 
             Context::storage()->attach($span->storeInContext(Context::getCurrent()));
         };
-        $post = static function (CacheInterface $cacheItem, array $params, $return, ?Throwable $exception) {
+        $post = static function (CacheItemPoolInterface $cacheItem, array $params, $return, ?Throwable $exception) {
             self::end($exception);
         };
-
-        foreach (['get', 'set', 'delete', 'clear', 'getMultiple', 'setMultiple', 'deleteMultiple', 'has'] as $f) {
-            hook(class: CacheInterface::class, function: $f, pre: $pre, post: $post);
-        }
     }
 
     private static function makeSpanBuilder(
@@ -58,9 +53,7 @@ class Psr6Instrumentation
             ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
-            ->setAttribute(TraceAttributes::DB_SYSTEM, 'psr6')
-            ->setAttribute(TraceAttributes::DB_OPERATION, $function);
+            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
     }
 
     private static function end(?Throwable $exception): void
