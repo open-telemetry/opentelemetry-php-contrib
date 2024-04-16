@@ -41,6 +41,11 @@ class Detector implements ResourceDetectorInterface
     public function getResource(): ResourceInfo
     {
         $name = getenv(self::ENV_CONTAINER_APP_NAME_KEY);
+
+        if ($name == FALSE) {
+            return ResourceInfo::emptyResource();
+        }
+
         $attributes = [
             ResourceAttributes::CLOUD_PLATFORM => self::CLOUD_PLATFORM,
             ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,

@@ -47,6 +47,11 @@ class Detector implements ResourceDetectorInterface
     public function getResource(): ResourceInfo
     {
         $name = getenv(self::ENV_WEBSITE_SITE_NAME_KEY);
+
+        if ($name == FALSE) {
+            return ResourceInfo::emptyResource();
+        }
+
         $groupName = getenv(self::ENV_WEBSITE_RESOURCE_GROUP_KEY);
         $subscriptionId = getenv(self::ENV_WEBSITE_OWNER_NAME_KEY);
         $attributes = [
