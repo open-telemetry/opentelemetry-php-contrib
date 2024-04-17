@@ -16,10 +16,7 @@ use PHPUnit\Framework\TestCase;
 
 class DetectorTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function TestValidVmAttributes()
+    public function test_valid_vm_attributes()
     {
         $body = $this->getResponseBodyFor('response.json');
         $metadata = json_decode($body, true);

@@ -15,10 +15,7 @@ class DetectorTest extends TestCase
     const CONTAINER_APP_REPLICA_NAME = 'container_app_replica_name';
     const CONTAINER_APP_REVISION = 'container_app_revision';
 
-    /**
-     * @test
-     */
-    public function TestValidContainerAppsAttributes()
+    public function test_valid_container_apps_attributes()
     {
         $data = [
             [ResourceAttributes::CLOUD_PLATFORM, null, Detector::CLOUD_PLATFORM],

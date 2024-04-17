@@ -16,10 +16,7 @@ class DetectorTest extends TestCase
     const SERVICE_NAME = 'demo-app';
     const RESOURCE_URI = '/subscriptions/owner_name/resourceGroups/resouce_group/providers/Microsoft.Web/sites/demo-app';
 
-    /**
-     * @test
-     */
-    public function TestValidAppServiceAttributes()
+    public function test_valid_app_service_attributes()
     {
         $data = [
             ['azure.app.service.stamp', Detector::ENV_WEBSITE_HOME_STAMPNAME_KEY, 'stamp'],
@@ -59,10 +56,7 @@ class DetectorTest extends TestCase
         }
     }
 
-    /**
-     * @test
-     */
-    public function TestResourceUriGeneration()
+    public function test_resource_uri_generation()
     {
         $out = Detector::generateAzureResourceUri(self::SERVICE_NAME, self::RESOURCE_GROUP, self::OWNER_NAME);
         $this->assertEquals(self::RESOURCE_URI, $out);
