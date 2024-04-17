@@ -121,8 +121,6 @@ class Worker
                         $scope->detach(),
                     );
 
-                    $this->endSpan($exception);
-
                     return;
                 }
 
