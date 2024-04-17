@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Azure\Vm;
 
+use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
@@ -33,6 +34,8 @@ use Throwable;
  */
 class Detector implements ResourceDetectorInterface
 {
+    use LogsMessagesTrait;
+
     private const AZURE_METADATA_ENDPOINT_URL = 'http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json';
     public const CLOUD_PROVIDER = 'azure';
     public const CLOUD_PLATFORM = 'azure_vm';
@@ -68,6 +71,7 @@ class Detector implements ResourceDetectorInterface
 
             return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
         } catch (Throwable $e) {
+            self::logWarning('Failed to detect Azure VM metadata', ['exception' => $e]);
             return ResourceInfo::emptyResource();
         }
     }
