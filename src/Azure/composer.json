@@ -36,7 +36,10 @@
     "autoload": {
         "psr-4": {
             "OpenTelemetry\\Azure\\": "src/"
-        }
+        },
+        "files": [
+          "_register.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
