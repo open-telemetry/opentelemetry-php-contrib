@@ -52,7 +52,6 @@ class CakePHPInstrumentation
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
                         ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
                         ->startSpan();
-                    $request = $request->withAttribute(SpanInterface::class, $span);
                 } else {
                     $span = $builder->startSpan();
                 }
@@ -81,9 +80,7 @@ class CakePHPInstrumentation
                 }
 
                 $span->end();
-            }
-            
+            },
         );
-       
     }
 }
