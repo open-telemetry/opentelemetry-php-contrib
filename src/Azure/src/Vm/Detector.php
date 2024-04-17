@@ -20,6 +20,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Azure\Vm;
 
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
@@ -43,11 +45,11 @@ class Detector implements ResourceDetectorInterface
     private RequestFactoryInterface $requestFactory;
 
     public function __construct(
-        ClientInterface $client,
-        RequestFactoryInterface $requestFactory
+        ClientInterface $client = null,
+        RequestFactoryInterface $requestFactory = null
     ) {
-        $this->client = $client;
-        $this->requestFactory = $requestFactory;
+        $this->client = $client ?: Psr18ClientDiscovery::find();
+        $this->requestFactory = $requestFactory ?: Psr17FactoryDiscovery::findRequestFactory();
     }
 
     public function getResource(): ResourceInfo
@@ -72,6 +74,7 @@ class Detector implements ResourceDetectorInterface
             return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
         } catch (Throwable $e) {
             self::logWarning('Failed to detect Azure VM metadata', ['exception' => $e]);
+
             return ResourceInfo::emptyResource();
         }
     }
