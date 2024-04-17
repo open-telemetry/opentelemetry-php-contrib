@@ -75,7 +75,7 @@ class Detector implements ResourceDetectorInterface
     private function getAzureMetadata()
     {
         $req = $this->requestFactory->createRequest('GET', self::AZURE_METADATA_ENDPOINT_URL);
-        $req->withHeader('Metadata', 'true');
+        $req = $req->withHeader('Metadata', 'true');
         $res = $this->client->sendRequest($req);
 
         return json_decode($res->getBody()->getContents(), true);
