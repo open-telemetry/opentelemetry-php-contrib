@@ -11,7 +11,7 @@
     "require": {
       "php": "^8.0",
       "ext-opentelemetry": "*",
-      "codeigniter4/framework": "^4.4",
+      "codeigniter4/framework": "^4.3",
       "open-telemetry/api": "^1.0",
       "open-telemetry/sem-conv": "^1.23"
     },
