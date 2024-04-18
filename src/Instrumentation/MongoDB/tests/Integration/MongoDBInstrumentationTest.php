@@ -65,7 +65,6 @@ class MongoDBInstrumentationTest extends TestCase
         $attributes = $this->span->getAttributes();
         self::assertSame('mongodb', $attributes->get(TraceAttributes::DB_SYSTEM));
         self::assertSame(self::DATABASE_NAME, $attributes->get(TraceAttributes::DB_NAME));
-        self::assertSame('mongodb://127.0.0.1:27017/db', $attributes->get(TraceAttributes::DB_CONNECTION_STRING));
         self::assertSame('find', $attributes->get(TraceAttributes::DB_OPERATION));
         self::assertSame(self::COLLECTION_NAME, $attributes->get(TraceAttributes::DB_MONGODB_COLLECTION));
         self::assertSame('127.0.0.1', $attributes->get(TraceAttributes::SERVER_ADDRESS));

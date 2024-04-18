@@ -52,7 +52,6 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber
         $port = $server->getPort();
         $host = $server->getHost();
         $isSocket = str_starts_with($host, '/');
-        $connectionString = self::getConnectionString($host, $port, $databaseName);
         /** @psalm-suppress RiskyTruthyFalsyComparison **/
         $scopedCommand = ($collectionName ? $collectionName . '.' : '') . $commandName;
 
@@ -60,7 +59,6 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttribute(TraceAttributes::DB_SYSTEM, 'mongodb')
             ->setAttribute(TraceAttributes::DB_NAME, $databaseName)
-            ->setAttribute(TraceAttributes::DB_CONNECTION_STRING, $connectionString)
             ->setAttribute(TraceAttributes::DB_OPERATION, $commandName)
             ->setAttribute(TraceAttributes::SERVER_ADDRESS, $isSocket ? null : $host)
             ->setAttribute(TraceAttributes::SERVER_PORT, $isSocket ? null : $port)
@@ -119,11 +117,5 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber
         }
 
         $span->end();
-    }
-
-    private static function getConnectionString(?string $host, ?int $port, string $databaseName): ?string
-    {
-        /** @psalm-suppress RiskyTruthyFalsyComparison **/
-        return $host && $port ? sprintf('mongodb://%s:%d/%s', $host, $port, $databaseName) : null;
     }
 }

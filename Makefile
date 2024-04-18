@@ -13,12 +13,15 @@ help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 all-checks: style validate phan psalm phpstan test ## All checks + tests
 all: update all-checks ## Everything
+all-lowest: update-lowest all-checks ## Everything, with lowest supported versions
 build: ## Build image
 	$(DOCKER_COMPOSE) build --build-arg PHP_VERSION php
 install: ## Install dependencies
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer install
 update: ## Update dependencies
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update
+update-lowest: ## Update dependencies to lowest supported versions
+	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --prefer-lowest
 test: ## Run all tests
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testdox --colors=always
 test-unit: ## Run unit tests

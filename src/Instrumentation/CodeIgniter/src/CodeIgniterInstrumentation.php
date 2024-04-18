@@ -54,7 +54,7 @@ class CodeIgniterInstrumentation
                 $spanBuilder = $instrumentation
                     ->tracer()
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
-                    ->spanBuilder(\sprintf('%s', $request?->getMethod(true) ?? 'unknown'))
+                    ->spanBuilder(\sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -66,12 +66,11 @@ class CodeIgniterInstrumentation
                 if ($request) {
                     $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
 
-                    /** @psalm-suppress DeprecatedMethod */
                     $spanBuilder = $spanBuilder->setParent($parent)
                         ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
                         ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
                         /** @phan-suppress-next-line PhanDeprecatedFunction */
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod(true))
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
                         ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
                         ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
