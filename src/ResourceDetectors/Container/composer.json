@@ -9,8 +9,8 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^7.0|^8.0",
-    "open-telemetry/sdk": ">= 1.0.0RC1 <= 2"
+    "php": "^8.0",
+    "open-telemetry/sdk": "^1.0"
   },
   "autoload": {
     "psr-4": {

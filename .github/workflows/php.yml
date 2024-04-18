@@ -93,6 +93,10 @@ jobs:
             php-version: 7.4
           - project: 'Instrumentation/OpenAIPHP'
             php-version: 8.0
+          - project: 'Propagation/ServerTiming'
+            php-version: 7.4
+          - project: 'ResourceDetectors/Container'
+            php-version: 7.4
     steps:
     - uses: actions/checkout@v3
 
