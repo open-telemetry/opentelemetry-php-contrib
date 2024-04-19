@@ -29,6 +29,7 @@ jobs:
           'Instrumentation/Psr3',
           'Instrumentation/Psr14',
           'Instrumentation/Psr15',
+          'Instrumentation/Psr16',
           'Instrumentation/Psr18',
           'Instrumentation/IO',
           'Instrumentation/PDO',
@@ -57,6 +58,8 @@ jobs:
           - project: 'Instrumentation/Psr14'
             php-version: 7.4
           - project: 'Instrumentation/Psr15'
+            php-version: 7.4
+          - project: 'Instrumentation/Psr16'
             php-version: 7.4
           - project: 'Instrumentation/Psr18'
             php-version: 7.4
@@ -90,8 +93,12 @@ jobs:
             php-version: 7.4
           - project: 'Instrumentation/OpenAIPHP'
             php-version: 8.0
+          - project: 'Propagation/ServerTiming'
+            php-version: 7.4
+          - project: 'ResourceDetectors/Container'
+            php-version: 7.4
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
@@ -105,7 +112,7 @@ jobs:
 
     - name: Cache Composer packages
       id: composer-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: src/${{ matrix.project }}/vendor
         key: ${{ runner.os }}-${{ matrix.php-version }}-php-${{ hashFiles('**/composer.json') }}
