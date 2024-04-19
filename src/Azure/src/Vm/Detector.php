@@ -38,6 +38,7 @@ class Detector implements ResourceDetectorInterface
 {
     use LogsMessagesTrait;
 
+    /** @see https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=windows */
     private const AZURE_METADATA_ENDPOINT_URL = 'http://169.254.169.254/metadata/instance/compute?api-version=2021-12-13&format=json';
     public const CLOUD_PROVIDER = 'azure';
     public const CLOUD_PLATFORM = 'azure_vm';
