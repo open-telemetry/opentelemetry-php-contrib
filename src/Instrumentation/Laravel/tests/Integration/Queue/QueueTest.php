@@ -58,7 +58,7 @@ class QueueTest extends TestCase
         /** @psalm-suppress UndefinedInterfaceMethod */
         $clock
             ->method('now')
-            ->willReturn(ClockFactory::create()->build()->now());
+            ->willReturn(1234567890 * ClockInterface::NANOS_PER_SECOND);
 
         /** @psalm-suppress PossiblyInvalidArgument */
         ClockFactory::setDefault($clock);
