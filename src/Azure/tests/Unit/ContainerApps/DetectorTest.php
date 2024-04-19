@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Azure\Unit\ContainerApps;
 
+use AssertWell\PHPUnitGlobalState\EnvironmentVariables;
 use OpenTelemetry\Azure\ContainerApps\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
@@ -11,9 +12,16 @@ use PHPUnit\Framework\TestCase;
 
 class DetectorTest extends TestCase
 {
+    use EnvironmentVariables;
+
     const CONTAINER_APP_NAME = 'container_app_name';
     const CONTAINER_APP_REPLICA_NAME = 'container_app_replica_name';
     const CONTAINER_APP_REVISION = 'container_app_revision';
+
+    public function tearDown(): void
+    {
+        self::restoreEnvironmentVariables();
+    }
 
     public function test_valid_container_apps_attributes()
     {
@@ -28,7 +36,7 @@ class DetectorTest extends TestCase
 
         foreach ($data as $item) {
             if ($item[1] !== null) {
-                putenv($item[1] . '=' . $item[2]);
+                self::setEnvironmentVariable($item[1], $item[2]);
             }
 
             $expected[$item[0]] = $item[2];
@@ -39,11 +47,5 @@ class DetectorTest extends TestCase
             Attributes::create($expected),
             $detector->getResource()->getAttributes()
         );
-
-        foreach ($data as $item) {
-            if ($item[1] !== null) {
-                putenv($item[1]);
-            }
-        }
     }
 }

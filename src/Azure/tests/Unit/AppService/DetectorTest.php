@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Azure\Unit\AppService;
 
+use AssertWell\PHPUnitGlobalState\EnvironmentVariables;
 use OpenTelemetry\Azure\AppService\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
@@ -11,10 +12,17 @@ use PHPUnit\Framework\TestCase;
 
 class DetectorTest extends TestCase
 {
+    use EnvironmentVariables;
+
     const RESOURCE_GROUP = 'resouce_group';
     const OWNER_NAME = 'owner_name';
     const SERVICE_NAME = 'demo-app';
     const RESOURCE_URI = '/subscriptions/owner_name/resourceGroups/resouce_group/providers/Microsoft.Web/sites/demo-app';
+
+    public function tearDown(): void
+    {
+        self::restoreEnvironmentVariables();
+    }
 
     public function test_valid_app_service_attributes()
     {
@@ -35,7 +43,7 @@ class DetectorTest extends TestCase
 
         foreach ($data as $item) {
             if ($item[1] !== null) {
-                putenv($item[1] . '=' . $item[2]);
+                self::setEnvironmentVariable($item[1], $item[2]);
             }
 
             if ($item[0] !== null) {
@@ -48,12 +56,6 @@ class DetectorTest extends TestCase
             Attributes::create($expected),
             $detector->getResource()->getAttributes()
         );
-
-        foreach ($data as $item) {
-            if ($item[1] !== null) {
-                putenv($item[1]);
-            }
-        }
     }
 
     public function test_resource_uri_generation()

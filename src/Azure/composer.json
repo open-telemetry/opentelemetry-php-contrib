@@ -19,6 +19,7 @@
         "open-telemetry/sdk": "^1.0"
     },
     "require-dev": {
+        "assertwell/phpunit-global-state": "^0.2.2",
         "dg/bypass-finals": "^v1.4.1",
         "friendsofphp/php-cs-fixer": "^3.0",
         "mikey179/vfsstream": "^1.6",
