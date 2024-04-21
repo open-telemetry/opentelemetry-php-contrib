@@ -48,6 +48,7 @@ class Queue
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
+                        /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
                         TraceAttributeValues::MESSAGING_OPERATION_PUBLISH,
                     ]))
@@ -90,6 +91,7 @@ class Queue
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
+                        /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
                         'create',
                     ]))
@@ -113,6 +115,7 @@ class Queue
             QueueContract::class,
             'pushRaw',
             pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                /** @phan-suppress-next-line PhanParamTooFewUnpack */
                 $attributes = $this->buildMessageAttributes($queue, ...$params);
 
                 $parent = Context::getCurrent();

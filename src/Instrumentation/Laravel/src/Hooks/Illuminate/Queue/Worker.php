@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Job;
-use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\Worker as QueueWorker;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
@@ -88,7 +87,7 @@ class Worker
             QueueWorker::class,
             'getNextJob',
             pre: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                /** @var Queue $connection */
+                /** @var \Illuminate\Contracts\Queue\Queue $connection */
                 $connection = $params[0];
                 $queue = $params[1];
 
@@ -124,7 +123,7 @@ class Worker
                     return;
                 }
 
-                /** @var Queue $connection */
+                /** @var \Illuminate\Contracts\Queue\Queue $connection */
                 $connection = $params[0];
                 /** @var string $queue */
                 $queue = $params[1];

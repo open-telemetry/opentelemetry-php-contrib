@@ -42,6 +42,7 @@ class ClientRequestWatcher extends Watcher
 
     /**
      * @psalm-suppress ArgumentTypeCoercion
+     * @suppress PhanEmptyFQSENInCallable,PhanUndeclaredFunctionInCallable
      */
     public function recordRequest(RequestSending $request): void
     {

@@ -42,7 +42,10 @@ class CacheWatcher extends Watcher
             'tags' => json_encode($event->tags),
         ]);
     }
-    /** @psalm-suppress UndefinedPropertyFetch */
+    /**
+     * @psalm-suppress UndefinedPropertyFetch
+     * @suppress PhanUndeclaredProperty
+     */
     public function recordCacheSet(KeyWritten $event): void
     {
         $ttl = property_exists($event, 'minutes')
