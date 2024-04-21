@@ -19,6 +19,7 @@ trait LaravelHookTrait
 
     public static function hook(CachedInstrumentation $instrumentation): LaravelHook
     {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
         if (!isset(self::$instance)) {
             /** @phan-suppress-next-line PhanTypeInstantiateTraitStaticOrSelf,PhanTypeMismatchPropertyReal */
             self::$instance = new self($instrumentation);
