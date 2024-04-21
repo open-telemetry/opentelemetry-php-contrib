@@ -116,9 +116,7 @@ class Worker
 
                 // Discard empty receives.
                 if (!$job) {
-                    Context::storage()->destroy(
-                        $scope->detach(),
-                    );
+                    $scope->detach();
 
                     return;
                 }
