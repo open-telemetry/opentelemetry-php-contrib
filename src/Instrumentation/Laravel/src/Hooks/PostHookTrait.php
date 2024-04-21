@@ -10,7 +10,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
-trait PostHookHandler
+trait PostHookTrait
 {
     private function endSpan(?Throwable $exception = null): void
     {

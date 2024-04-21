@@ -6,14 +6,15 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Queue\Queue as AbstractQueue;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
 use Throwable;
 
-class Queue
+class Queue implements LaravelHook
 {
     use AttributesBuilder;
-    use HookInstance;
+    use LaravelHookTrait;
 
     public function instrument(): void
     {

@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Foundation\Console;
 
 use Illuminate\Foundation\Console\ServeCommand as FoundationServeCommand;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
 
 /**
  * Instrument Laravel's local PHP development server.
  */
-class ServeCommand
+class ServeCommand implements LaravelHook
 {
-    use HookInstance;
+    use LaravelHookTrait;
 
     public function instrument(): void
     {

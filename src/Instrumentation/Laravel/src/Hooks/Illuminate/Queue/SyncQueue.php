@@ -7,17 +7,18 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 use Illuminate\Queue\SyncQueue as LaravelSyncQueue;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookHandler;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
-class SyncQueue
+class SyncQueue implements LaravelHook
 {
     use AttributesBuilder;
-    use HookInstance;
-    use PostHookHandler;
+    use LaravelHookTrait;
+    use PostHookTrait;
 
     public function instrument(): void
     {

@@ -6,9 +6,9 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 
-trait HookInstance
+trait LaravelHookTrait
 {
-    private static ?self $instance = null;
+    private static LaravelHook $instance;
 
     protected function __construct(
         protected CachedInstrumentation $instrumentation,
@@ -17,9 +17,10 @@ trait HookInstance
 
     abstract public function instrument(): void;
 
-    public static function hook(CachedInstrumentation $instrumentation): self
+    public static function hook(CachedInstrumentation $instrumentation): LaravelHook
     {
-        if (self::$instance === null) {
+        if (!isset(self::$instance)) {
+            /** @phan-suppress-next-line PhanTypeInstantiateTraitStaticOrSelf,PhanTypeMismatchPropertyReal */
             self::$instance = new self($instrumentation);
             self::$instance->instrument();
         }

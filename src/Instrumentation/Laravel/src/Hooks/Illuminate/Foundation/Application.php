@@ -6,7 +6,8 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Foundat
 
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 use Illuminate\Foundation\Application as FoundationalApplication;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\HookInstance;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\CacheWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ClientRequestWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ExceptionWatcher;
@@ -17,9 +18,9 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use function OpenTelemetry\Instrumentation\hook;
 use Throwable;
 
-class Application
+class Application implements LaravelHook
 {
-    use HookInstance;
+    use LaravelHookTrait;
 
     public function instrument(): void
     {
