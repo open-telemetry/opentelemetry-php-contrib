@@ -14,7 +14,10 @@ use OpenTelemetry\Context\Context;
 
 class CacheWatcher extends Watcher
 {
-    /** @psalm-suppress UndefinedInterfaceMethod */
+    /**
+     * @psalm-suppress UndefinedInterfaceMethod
+     * @suppress PhanTypeArraySuspicious
+     */
     public function register(Application $app): void
     {
         $app['events']->listen(CacheHit::class, [$this, 'recordCacheHit']);

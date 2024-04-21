@@ -14,6 +14,7 @@ class RequestWatcher extends Watcher
     /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
     {
+        /** @phan-suppress-next-line PhanTypeArraySuspicious */
         $app['events']->listen(RouteMatched::class, static function (RouteMatched $event): void {
             /** @var SpanInterface|null $span */
             $span = $event->request->attributes->get(SpanInterface::class);

@@ -14,6 +14,7 @@ class LogWatcher extends Watcher
     /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
     {
+        /** @phan-suppress-next-line PhanTypeArraySuspicious */
         $app['events']->listen(MessageLogged::class, [$this, 'recordLog']);
     }
 
