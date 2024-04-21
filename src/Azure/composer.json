@@ -1,5 +1,5 @@
 {
-    "name": "open-telemetry/contrib-azure",
+    "name": "open-telemetry/detector-azure",
     "description": "The Azure package for opentelemetry-php",
     "keywords": ["opentelemetry", "otel", "azure", "tracing", "detector", "propagator"],
     "type": "library",

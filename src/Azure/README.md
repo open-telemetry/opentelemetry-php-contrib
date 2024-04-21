@@ -1,9 +1,9 @@
 [![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-aws/releases)
 [![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Azure)
-[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-azure)
-[![Latest Version](http://poser.pugx.org/open-telemetry/contrib-azure/v/unstable)](https://packagist.org/packages/open-telemetry/contrib-azure/)
-[![Stable](http://poser.pugx.org/open-telemetry/contrib-azure/v/stable)](https://packagist.org/packages/open-telemetry/contrib-azure/)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/detector-azure)
+[![Latest Version](http://poser.pugx.org/open-telemetry/detector-azure/v/unstable)](https://packagist.org/packages/open-telemetry/detector-azure/)
+[![Stable](http://poser.pugx.org/open-telemetry/detector-azure/v/stable)](https://packagist.org/packages/open-telemetry/detector-azure/)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
@@ -42,7 +42,7 @@ The following OpenTelemetry resource attributes will be detected:
 ## Installation via composer
 
 ```bash
-$ composer require open-telemetry/contrib-azure
+$ composer require open-telemetry/detector-azure
 ```
 
 ## Usage
