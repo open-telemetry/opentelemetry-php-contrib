@@ -1,0 +1,56 @@
+{
+    "name": "open-telemetry/detector-azure",
+    "description": "The Azure package for opentelemetry-php",
+    "keywords": ["opentelemetry", "otel", "azure", "tracing", "detector", "propagator"],
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "opentelemetry-php-contrib contributors",
+            "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "open-telemetry/api": "^1.0",
+        "open-telemetry/sdk": "^1.0"
+    },
+    "require-dev": {
+        "assertwell/phpunit-global-state": "^0.2.2",
+        "dg/bypass-finals": "^v1.4.1",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "guzzlehttp/guzzle": "^7.8",
+        "mikey179/vfsstream": "^1.6",
+        "open-telemetry/dev-tools": "dev-main",
+        "phan/phan": "^4.1 || ^5",
+        "php-http/mock-client": "*",
+        "phpstan/phpstan": "^1.4",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "phpunit/phpunit": "~9",
+        "psalm/plugin-phpunit": "^0.18.4",
+        "vimeo/psalm": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Azure\\": "src/"
+        },
+        "files": [
+          "_register.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Tests\\Azure\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "symfony/runtime": true,
+            "php-http/discovery": false
+        }
+    }
+}
