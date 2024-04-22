@@ -7,8 +7,11 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Queue;
 use DateInterval;
 use DateTimeImmutable;
 use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\RedisQueue;
 use Illuminate\Queue\SqsQueue;
+use Illuminate\Queue\Worker;
+use Illuminate\Queue\WorkerOptions;
 use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -103,5 +106,44 @@ class QueueTest extends TestCase
         $this->assertEquals('queues:default publish', $this->storage[0]->getName());
         $this->assertEquals(2, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
         $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+    }
+
+    public function test_it_drops_empty_receives(): void
+    {
+        $mockQueueManager = $this->createMock(QueueManager::class);
+
+        $mockQueueManager->method('connection')
+            ->with('sqs')
+            ->willReturn($this->createMock(SqsQueue::class));
+
+        /**
+         * @psalm-suppress PossiblyNullReference
+         * @var Worker $worker
+         */
+        $worker = $this->app->make(Worker::class, [
+            'manager' => $mockQueueManager,
+            'isDownForMaintenance' => fn () => false,
+        ]);
+
+        $receive = fn () => $worker->runNextJob('sqs', 'default', new WorkerOptions(sleep: 0));
+
+        for ($i = 0; $i < 1000; $i++) {
+            if ($i % 10 === 0) {
+                $this->queue->push(new DummyJob("{$i}"));
+            }
+
+            $receive();
+        }
+
+        for ($i = 0; $i < 2; $i++) {
+            $this->queue->push(new DummyJob('More work'));
+            $receive();
+        }
+
+        /** @psalm-suppress PossiblyInvalidMethodCall */
+        $this->assertEquals(102, $this->storage->count());
+
+        $this->assertEquals('Task: 500', $this->storage[50]->getEvents()[0]->getName());
+        $this->assertEquals('Task: More work', $this->storage[100]->getEvents()[0]->getName());
     }
 }
