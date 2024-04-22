@@ -26,6 +26,7 @@ jobs:
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
+          'Instrumentation/CakePHP',
           'Instrumentation/Psr3',
           'Instrumentation/Psr14',
           'Instrumentation/Psr15',
@@ -89,6 +90,8 @@ jobs:
           - project: 'Instrumentation/OpenAIPHP'
             php-version: 7.4
           - project: 'Instrumentation/OpenAIPHP'
+            php-version: 8.0
+          - project: 'Instrumentation/CakePHP'
             php-version: 8.0
     steps:
     - uses: actions/checkout@v3
