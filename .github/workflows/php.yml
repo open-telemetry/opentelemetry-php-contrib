@@ -21,7 +21,6 @@ jobs:
         php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
         project: [
           'Aws',
-          'Azure',
           'Context/Swoole',
           'Instrumentation/ExtAmqp',
           'Instrumentation/Guzzle',
@@ -43,6 +42,7 @@ jobs:
           'Logs/Monolog',
           'Propagation/ServerTiming',
           'Propagation/TraceResponse',
+          'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
           'Shims/OpenTracing',
           'Symfony'
