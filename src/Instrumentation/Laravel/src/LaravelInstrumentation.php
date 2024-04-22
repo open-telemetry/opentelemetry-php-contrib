@@ -15,10 +15,9 @@ class LaravelInstrumentation
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');
 
-        HttpInstrumentation::register($instrumentation);
-
         Hooks\Illuminate\Console\Command::hook($instrumentation);
         Hooks\Illuminate\Contracts\Console\Kernel::hook($instrumentation);
+        Hooks\Illuminate\Contracts\Http\Kernel::hook($instrumentation);
         Hooks\Illuminate\Contracts\Queue\Queue::hook($instrumentation);
         Hooks\Illuminate\Foundation\Application::hook($instrumentation);
         Hooks\Illuminate\Foundation\Console\ServeCommand::hook($instrumentation);
