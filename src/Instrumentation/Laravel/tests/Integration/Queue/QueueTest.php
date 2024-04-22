@@ -28,10 +28,7 @@ class QueueTest extends TestCase
         $this->queue = $this->app->make(Queue::class);
     }
 
-    /**
-     * @test
-     */
-    public function it_handles_pushing_to_a_queue(): void
+    public function test_it_handles_pushing_to_a_queue(): void
     {
         $this->queue->push(new DummyJob('A'));
         $this->queue->push(function (LoggerInterface $logger) {
@@ -45,10 +42,7 @@ class QueueTest extends TestCase
         $this->assertEquals('Logged from closure', $this->storage[1]->getEvents()[0]->getName());
     }
 
-    /**
-     * @test
-     */
-    public function it_can_push_a_message_with_a_delay(): void
+    public function test_it_can_push_a_message_with_a_delay(): void
     {
         $this->queue->later(15, new DummyJob('int'));
         $this->queue->later(new DateInterval('PT10M'), new DummyJob('DateInterval'));
@@ -70,10 +64,7 @@ class QueueTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
-    public function it_can_publish_in_bulk(): void
+    public function test_it_can_publish_in_bulk(): void
     {
         $jobs = [];
         for ($i = 0; $i < 10; ++$i) {
@@ -92,10 +83,7 @@ class QueueTest extends TestCase
         $this->assertEquals(10, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
     }
 
-    /**
-     * @test
-     */
-    public function it_can_create_with_redis(): void
+    public function test_it_can_create_with_redis(): void
     {
         /** @var RedisQueue|MockInterface $mockQueue */
         $mockQueue = $this->createMock(RedisQueue::class);
