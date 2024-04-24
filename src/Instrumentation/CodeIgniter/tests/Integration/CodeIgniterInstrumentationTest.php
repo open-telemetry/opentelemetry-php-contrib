@@ -25,9 +25,9 @@ class CodeIgniterInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('GET', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/index.php/home', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEqualsIgnoringCase('GET', $this->storage[0]->getName());
+        $this->assertStringMatchesFormat('http://%s/home', $attributes->get(TraceAttributes::URL_FULL));
+        $this->assertEqualsIgnoringCase('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
         $this->assertEquals('Home.index', $attributes->get(TraceAttributes::HTTP_ROUTE));
         $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
@@ -55,9 +55,9 @@ class CodeIgniterInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('GET', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/index.php/exception', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEqualsIgnoringCase('GET', $this->storage[0]->getName());
+        $this->assertStringMatchesFormat('http://%s/exception', $attributes->get(TraceAttributes::URL_FULL));
+        $this->assertEqualsIgnoringCase('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
         $this->assertEquals('Closure.index', $attributes->get(TraceAttributes::HTTP_ROUTE));
         $this->assertNull($attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));

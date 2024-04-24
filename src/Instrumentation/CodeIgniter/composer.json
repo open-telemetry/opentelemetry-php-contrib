@@ -7,15 +7,16 @@
     "readme": "./README.md",
     "license": "Apache-2.0",
     "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
       "php": "^8.0",
       "ext-opentelemetry": "*",
-      "codeigniter4/framework": ">=4.0",
+      "codeigniter4/framework": "^4.3",
       "open-telemetry/api": "^1.0",
       "open-telemetry/sem-conv": "^1.23"
     },
     "require-dev": {
-      "friendsofphp/php-cs-fixer": "^3",
+      "friendsofphp/php-cs-fixer": "^3.50",
       "open-telemetry/sdk": "^1.0",
       "phan/phan": "^5.0",
       "php-http/mock-client": "*",
