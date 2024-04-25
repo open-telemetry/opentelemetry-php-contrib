@@ -40,4 +40,3 @@ return $config->setRules([
     ])
     ->setRiskyAllowed(true)
     ->setFinder($finder);
-
