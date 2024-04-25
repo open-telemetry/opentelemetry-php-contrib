@@ -2,33 +2,47 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
+namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contracts\Http;
 
-use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Contracts\Http\Kernel as KernelContract;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use OpenTelemetry\API\Globals;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\HeadersPropagator;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\ResponsePropagationSetter;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-class HttpInstrumentation
+class Kernel implements LaravelHook
 {
-    public static function register(CachedInstrumentation $instrumentation): void
+    use LaravelHookTrait;
+    use PostHookTrait;
+
+    public function instrument(): void
     {
-        hook(
-            Kernel::class,
+        $this->hookHandle();
+    }
+
+    protected function hookHandle(): bool
+    {
+        return hook(
+            KernelContract::class,
             'handle',
-            pre: static function (Kernel $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $instrumentation->tracer()
+                $builder = $this->instrumentation
+                    ->tracer()
                     ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
@@ -37,6 +51,7 @@ class HttpInstrumentation
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
+                    /** @phan-suppress-next-line PhanAccessMethodInternal */
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
                     $span = $builder
                         ->setParent($parent)
@@ -46,8 +61,8 @@ class HttpInstrumentation
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                         ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $request->ip())
-                        ->setAttribute(TraceAttributes::URL_PATH, self::httpTarget($request))
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, self::httpHostName($request))
+                        ->setAttribute(TraceAttributes::URL_PATH, $this->httpTarget($request))
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $this->httpHostName($request))
                         ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
                         ->setAttribute(TraceAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
                         ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->userAgent())
@@ -60,17 +75,21 @@ class HttpInstrumentation
 
                 return [$request];
             },
-            post: static function (Kernel $kernel, array $params, ?Response $response, ?Throwable $exception) {
+            post: function (KernelContract $kernel, array $params, ?Response $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
                 }
-                $scope->detach();
                 $span = Span::fromContext($scope->context());
-                if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+
+                $request = ($params[0] instanceof Request) ? $params[0] : null;
+                $route = $request?->route();
+
+                if ($request && $route instanceof Route) {
+                    $span->updateName("{$request->method()} /" . ltrim($route->uri, '/'));
+                    $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route->uri);
                 }
+
                 if ($response) {
                     if ($response->getStatusCode() >= 400) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
@@ -83,7 +102,7 @@ class HttpInstrumentation
                     if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
                         /** @phan-suppress-next-line PhanUndeclaredClassMethod */
                         $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+                        /** @phan-suppress-next-line PhanAccessMethodInternal,PhanUndeclaredClassMethod */
                         $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                     }
 
@@ -91,17 +110,17 @@ class HttpInstrumentation
                     if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
                         /** @phan-suppress-next-line PhanUndeclaredClassMethod */
                         $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+                        /** @phan-suppress-next-line PhanAccessMethodInternal,PhanUndeclaredClassMethod */
                         $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                     }
                 }
 
-                $span->end();
+                $this->endSpan($exception);
             }
         );
     }
 
-    private static function httpTarget(Request $request): string
+    private function httpTarget(Request $request): string
     {
         $query = $request->getQueryString();
         $question = $request->getBaseUrl() . $request->getPathInfo() === '/' ? '/?' : '?';
@@ -109,11 +128,12 @@ class HttpInstrumentation
         return $query ? $request->path() . $question . $query : $request->path();
     }
 
-    private static function httpHostName(Request $request): string
+    private function httpHostName(Request $request): string
     {
         if (method_exists($request, 'host')) {
             return $request->host();
         }
+
         if (method_exists($request, 'getHost')) {
             return $request->getHost();
         }

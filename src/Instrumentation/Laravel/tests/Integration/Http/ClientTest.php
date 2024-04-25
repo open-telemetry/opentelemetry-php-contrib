@@ -15,8 +15,7 @@ use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
 class ClientTest extends TestCase
 {
-    /** @test */
-    public function it_records_requests(): void
+    public function test_it_records_requests(): void
     {
         Http::fake([
             'ok.opentelemetry.io/*' => Http::response(status: 201),
@@ -36,8 +35,7 @@ class ClientTest extends TestCase
         self::assertEquals('ok.opentelemetry.io/foo', $span->getAttributes()->get(TraceAttributes::URL_PATH));
     }
 
-    /** @test */
-    public function it_records_connection_failures(): void
+    public function test_it_records_connection_failures(): void
     {
         Http::fake(fn (Request $request) => new RejectedPromise(new ConnectException('Failure', $request->toPsrRequest())));
 

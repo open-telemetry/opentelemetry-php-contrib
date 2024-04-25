@@ -21,6 +21,7 @@ class QueryWatcher extends Watcher
     /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
     {
+        /** @phan-suppress-next-line PhanTypeArraySuspicious */
         $app['events']->listen(QueryExecuted::class, [$this, 'recordQuery']);
     }
 

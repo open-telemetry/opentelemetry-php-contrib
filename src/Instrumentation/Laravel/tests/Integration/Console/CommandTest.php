@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
+namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Kernel;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
-class ConsoleInstrumentationTest extends TestCase
+class CommandTest extends TestCase
 {
     public function test_command_tracing(): void
     {
