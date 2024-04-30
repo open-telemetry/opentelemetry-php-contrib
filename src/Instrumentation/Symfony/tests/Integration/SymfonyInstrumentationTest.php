@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
+use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
+use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -162,6 +164,22 @@ class SymfonyInstrumentationTest extends AbstractTest
             $response->headers->all(),
             'server-timings header is present if ServerTimingPropagator is present'
         );
+    }
+
+    public function test_http_kernel_handle_subrequest(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $this->assertCount(0, $this->storage);
+        $request = new Request();
+        $request->attributes->set('_controller', 'ErrorController');
+
+        $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
+        $this->assertCount(1, $this->storage);
+
+        /** @var ImmutableSpan $span */
+        $span = $this->storage[0];
+        $this->assertSame('GET ErrorController', $span->getName());
+        $this->assertSame(SpanKind::KIND_INTERNAL, $span->getKind());
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = []): HttpKernel
