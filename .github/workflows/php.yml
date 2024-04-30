@@ -170,5 +170,10 @@ jobs:
       run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
 
     - name: Code Coverage
-      working-directory: src/${{ matrix.project }}
-      run: bash <(curl -s https://codecov.io/bash) -F ${{ matrix.php-version }}
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: src/${{ matrix.project }}
+        files: ./coverage.clover
+        flags: ${{ matrix.project }}:${{ matrix.php-version }}
+        verbose: false
