@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\CakePHP;
 
+use Cake\Controller\Controller;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
@@ -15,8 +15,6 @@ use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Cake\Controller\Controller;
-use Cake\Http\Response;
 use Throwable;
 
 class CakePHPInstrumentation
