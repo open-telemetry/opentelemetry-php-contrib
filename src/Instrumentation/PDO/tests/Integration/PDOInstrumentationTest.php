@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Integration;
+namespace OpenTelemetry\Tests\Instrumentation\PDO\Integration;
 
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
@@ -12,22 +12,23 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
+use PDO;
 use PHPUnit\Framework\TestCase;
 
 class PDOInstrumentationTest extends TestCase
 {
     private ScopeInterface $scope;
+    /** @var ArrayObject<int, ImmutableSpan> */
     private ArrayObject $storage;
-    private TracerProvider $tracerProvider;
 
-    private function createDB():\PDO
+    private function createDB(): PDO
     {
-        return new \PDO('sqlite::memory:');
+        return new PDO('sqlite::memory:');
     }
 
     private function fillDB():string
     {
-        $statement =<<<SQL
+        return <<<SQL
         CREATE TABLE `technology` (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name VARCHAR(25) NOT NULL,
@@ -40,21 +41,19 @@ class PDOInstrumentationTest extends TestCase
             ('CPP', '1979-05-06');
 
         SQL;
-
-        return $statement;
     }
 
     public function setUp(): void
     {
         $this->storage = new ArrayObject();
-        $this->tracerProvider = new TracerProvider(
+        $tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
                 new InMemoryExporter($this->storage)
             )
         );
 
         $this->scope = Configurator::create()
-            ->withTracerProvider($this->tracerProvider)
+            ->withTracerProvider($tracerProvider)
             ->activate();
     }
 
@@ -65,11 +64,9 @@ class PDOInstrumentationTest extends TestCase
 
     public function test_pdo_construct(): void
     {
-        // @var ImmutableSpan $span
         $this->assertCount(0, $this->storage);
-        $pdo =  self::createDB();
+        self::createDB();
         $this->assertCount(1, $this->storage);
-        /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
         $this->assertSame('PDO::__construct', $span->getName());
         $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
@@ -79,12 +76,11 @@ class PDOInstrumentationTest extends TestCase
     {
         $this->expectException(\PDOException::class);
         $this->expectExceptionMessage('could not find driver');
-        new \PDO('unknown:foo');
+        new PDO('unknown:foo');
     }
 
     public function test_statement_execution(): void
     {
-        // @var ImmutableSpan $span
         $db =  self::createDB();
         $statement = self::fillDB();
 
@@ -107,7 +103,7 @@ class PDOInstrumentationTest extends TestCase
         $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
         $this->assertCount(4, $this->storage);
 
-        $result = $sth->fetchAll();
+        $sth->fetchAll();
         $span = $this->storage->offsetGet(4);
         $this->assertSame('PDOStatement::fetchAll', $span->getName());
         $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
@@ -155,5 +151,40 @@ class PDOInstrumentationTest extends TestCase
         $sth = $db->prepare('SELECT * FROM `technology`');
         $sth->execute();
         $this->assertSame(2, count($sth->fetchAll()));
+    }
+
+    public function test_execute_and_fetch_all_spans_linked_to_prepared_statement_span(): void
+    {
+        //setup
+        $db = self::createDB();
+        $this->assertCount(1, $this->storage, 'pdo constructor span');
+        $db->exec($this->fillDB());
+        $this->assertCount(2, $this->storage, 'pdo exec span');
+
+        //prepare query
+        $stmt = $db->prepare('select * from `technology`');
+        $this->assertCount(3, $this->storage, 'statement prepare span');
+        $prepareSpan = $this->storage->offsetGet(2);
+        $this->assertSame('PDO::prepare', $prepareSpan->getName());
+
+        //execute prepared query
+        $stmt->execute();
+        $this->assertCount(4, $this->storage, 'statement execute span');
+        $executeSpan = $this->storage->offsetGet(3);
+        $this->assertSame('PDOStatement::execute', $executeSpan->getName());
+
+        //verify prepared statement linked to execute
+        $this->assertCount(1, $executeSpan->getLinks());
+        $this->assertEquals($prepareSpan->getContext(), $executeSpan->getLinks()[0]->getSpanContext());
+
+        //fetch prepared query
+        $this->assertSame(2, count($stmt->fetchAll()));
+        $this->assertCount(5, $this->storage, 'statement fetchAll span');
+        $fetchAllSpan = $this->storage->offsetGet(4);
+        $this->assertSame('PDOStatement::fetchAll', $fetchAllSpan->getName());
+
+        //verify prepared statement linked to fetchAll
+        $this->assertCount(1, $fetchAllSpan->getLinks());
+        $this->assertEquals($prepareSpan->getContext(), $fetchAllSpan->getLinks()[0]->getSpanContext());
     }
 }
