@@ -16,6 +16,7 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 final class SymfonyInstrumentation
 {
@@ -37,11 +38,16 @@ final class SymfonyInstrumentation
                 ?int $lineno,
             ) use ($instrumentation): array {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
+                $method = $request?->getMethod() ?? 'unknown';
+                $name = ($type === HttpKernelInterface::SUB_REQUEST)
+                    ? sprintf('%s %s', $method, $request?->attributes?->get('_controller') ?? 'sub-request')
+                    : $method;
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('%s', $request?->getMethod() ?? 'unknown'))
-                    ->setSpanKind(SpanKind::KIND_SERVER)
+                    ->spanBuilder($name)
+                    ->setSpanKind(($type === HttpKernelInterface::SUB_REQUEST) ? SpanKind::KIND_INTERNAL : SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
