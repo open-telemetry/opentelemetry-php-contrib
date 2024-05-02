@@ -14,7 +14,6 @@ use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 class CakePHPInstrumentation
@@ -29,30 +28,28 @@ class CakePHPInstrumentation
             Controller::class,
             'invokeAction',
             pre: static function (Controller $app, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $request = ($app->getRequest() instanceof ServerRequestInterface) ? $app->getRequest() : null;
+                $request = $app->getRequest();
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation->tracer()
-                    ->spanBuilder(sprintf('%s', $request?->getMethod() ?? 'unknown'))
+                    ->spanBuilder($request->getMethod())
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
-                if ($request) {
-                    $parent = Globals::propagator()->extract($request->getHeaders());
-                    $span = $builder
-                        ->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, $request->getUri()->__toString())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
-                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
-                        ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
-                        ->startSpan();
-                } else {
-                    $span = $builder->startSpan();
-                }
+                    
+                $parent = Globals::propagator()->extract($request->getHeaders());
+                $span = $builder
+                    ->setParent($parent)
+                    ->setAttribute(TraceAttributes::URL_FULL, $request->getUri()->__toString())
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                    ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
+                    ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
+                    ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
+                    ->startSpan();
                 
                 Context::storage()->attach($span->storeInContext($parent));
             },
@@ -68,6 +65,7 @@ class CakePHPInstrumentation
                     $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
+                /** @var ResponseInterface|null $response */
                 if ($response) {
                     if ($response->getStatusCode() >= 400) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
