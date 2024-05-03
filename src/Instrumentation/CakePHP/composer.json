@@ -1,0 +1,50 @@
+{
+  "name": "open-telemetry/opentelemetry-auto-cakephp",
+  "description": "OpenTelemetry auto-instrumentation for CakePHP Framework.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "cakephp", "instrumentation"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.0",
+    "ext-opentelemetry": "*",
+    "cakephp/cakephp": ">=4.0",
+    "open-telemetry/api": "^1.0",
+    "open-telemetry/sem-conv": "^1.23"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "mockery/mockery": "^1.5",
+    "nyholm/psr7": "*",
+    "phan/phan": "^5.0",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan-mockery": "^1.1.0",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.18.4",
+    "open-telemetry/sdk": "^1.0",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^5.24"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\CakePHP\\": "src/"
+    },
+    "files": [
+      "_register.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\CakePHP\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
+  }
+}
