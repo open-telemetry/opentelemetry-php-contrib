@@ -27,7 +27,8 @@
     "psalm/plugin-phpunit": "^0.18.4",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^5.24"
+    "vimeo/psalm": "^5.24",
+    "symfony/http-client": "^7.0"
   },
   "autoload": {
     "psr-4": {
@@ -39,7 +40,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OpenTelemetry\\Tests\\Instrumentation\\CakePHP\\": "tests/"
+      "OpenTelemetry\\Tests\\Instrumentation\\CakePHP\\": "tests/",
+      "OpenTelemetry\\Tests\\Instrumentation\\CakePHP\\Integration\\App\\": "tests/Integration/App"
     }
   },
   "config": {
