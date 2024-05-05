@@ -11,7 +11,7 @@
   "require": {
     "php": "^8.0",
     "ext-opentelemetry": "*",
-    "cakephp/cakephp": ">=4.0",
+    "cakephp/cakephp": "^4 || ^5",
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.23"
   },
@@ -20,14 +20,14 @@
     "mockery/mockery": "^1.5",
     "nyholm/psr7": "*",
     "phan/phan": "^5.0",
-    "php-http/mock-client": "*",
     "phpstan/phpstan-mockery": "^1.1.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.18.4",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^5.24"
+    "vimeo/psalm": "^5.24",
+    "symfony/http-client": "^6 || ^7"
   },
   "autoload": {
     "psr-4": {
@@ -39,7 +39,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OpenTelemetry\\Tests\\Instrumentation\\CakePHP\\": "tests/"
+      "OpenTelemetry\\Tests\\Instrumentation\\CakePHP\\": "tests/",
+      "OpenTelemetry\\Tests\\Instrumentation\\CakePHP\\Integration\\App\\": "tests/Integration/App"
     }
   },
   "config": {
