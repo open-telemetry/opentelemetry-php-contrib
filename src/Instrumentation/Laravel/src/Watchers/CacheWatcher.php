@@ -14,7 +14,10 @@ use OpenTelemetry\Context\Context;
 
 class CacheWatcher extends Watcher
 {
-    /** @psalm-suppress UndefinedInterfaceMethod */
+    /**
+     * @psalm-suppress UndefinedInterfaceMethod
+     * @suppress PhanTypeArraySuspicious
+     */
     public function register(Application $app): void
     {
         $app['events']->listen(CacheHit::class, [$this, 'recordCacheHit']);
@@ -39,7 +42,10 @@ class CacheWatcher extends Watcher
             'tags' => json_encode($event->tags),
         ]);
     }
-    /** @psalm-suppress UndefinedPropertyFetch */
+    /**
+     * @psalm-suppress UndefinedPropertyFetch
+     * @suppress PhanUndeclaredProperty
+     */
     public function recordCacheSet(KeyWritten $event): void
     {
         $ttl = property_exists($event, 'minutes')

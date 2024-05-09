@@ -29,7 +29,10 @@ class ClientRequestWatcher extends Watcher
     ) {
     }
 
-    /** @psalm-suppress UndefinedInterfaceMethod */
+    /**
+     * @psalm-suppress UndefinedInterfaceMethod
+     * @suppress PhanTypeArraySuspicious
+     */
     public function register(Application $app): void
     {
         $app['events']->listen(RequestSending::class, [$this, 'recordRequest']);
@@ -39,6 +42,7 @@ class ClientRequestWatcher extends Watcher
 
     /**
      * @psalm-suppress ArgumentTypeCoercion
+     * @suppress PhanEmptyFQSENInCallable,PhanUndeclaredFunctionInCallable
      */
     public function recordRequest(RequestSending $request): void
     {

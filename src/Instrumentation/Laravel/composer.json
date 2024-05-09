@@ -7,21 +7,21 @@
   "readme": "./README.md",
   "license": "Apache-2.0",
   "minimum-stability": "dev",
+  "prefer-stable": true,
   "require": {
     "php": "^8.0",
     "ext-json": "*",
     "ext-opentelemetry": "*",
-    "laravel/framework": ">=6.0",
+    "laravel/framework": "^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.23"
+    "open-telemetry/sem-conv": "^1.24"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3",
+    "friendsofphp/php-cs-fixer": "^3.50",
     "guzzlehttp/guzzle": "*",
-    "laravel/tinker": "*",
     "nunomaduro/collision": "*",
     "open-telemetry/sdk": "^1.0",
-    "orchestra/testbench": ">=4.0",
+    "orchestra/testbench": ">=7.41.3",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^1.1",

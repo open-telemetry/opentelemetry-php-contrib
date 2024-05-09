@@ -29,6 +29,7 @@
       "OpenTelemetry\\Contrib\\Instrumentation\\Slim\\": "src/Instrumentation/Slim/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Symfony\\": "src/Instrumentation/Symfony/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Wordpress\\": "src/Instrumentation/Wordpress/src",
+      "OpenTelemetry\\Contrib\\Instrumentation\\CakePHP\\": "src/Instrumentation/CakePHP/src",
       "OpenTelemetry\\Contrib\\Logs\\Monolog\\": "src/Logs/Monolog/src",
       "OpenTelemetry\\Contrib\\Propagation\\ServerTiming\\": "src/Propagation/ServerTiming/src",
       "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/Propagation/TraceResponse/src",

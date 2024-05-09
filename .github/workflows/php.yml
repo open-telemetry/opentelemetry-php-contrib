@@ -26,6 +26,7 @@ jobs:
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
+          'Instrumentation/CakePHP',
           'Instrumentation/Psr3',
           'Instrumentation/Psr6',
           'Instrumentation/Psr14',
@@ -97,6 +98,8 @@ jobs:
             php-version: 7.4
           - project: 'Instrumentation/OpenAIPHP'
             php-version: 8.0
+          - project: 'Instrumentation/CakePHP'
+            php-version: 7.4
           - project: 'Propagation/ServerTiming'
             php-version: 7.4
           - project: 'ResourceDetectors/Container'
@@ -173,5 +176,10 @@ jobs:
       run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
 
     - name: Code Coverage
-      working-directory: src/${{ matrix.project }}
-      run: bash <(curl -s https://codecov.io/bash) -F ${{ matrix.php-version }}
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: src/${{ matrix.project }}
+        files: ./coverage.clover
+        flags: ${{ matrix.project }}:${{ matrix.php-version }}
+        verbose: false
