@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Instrumentation\Psr6\Tests\Integration;
 
 use ArrayObject;
-use DateInterval;
-use DateTime;
+use DateTimeImmutable;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
@@ -60,7 +59,7 @@ class Psr6InstrumentationTest extends TestCase
     }
 
     public function test_get_item_with_key_invalid(): void
-    { 
+    {
         try {
             $this->adapter->getItem('');
         } catch (\Throwable $ex) {
@@ -358,9 +357,9 @@ final class CacheItem implements CacheItemInterface
         return $this;
     }
 
-    public function expiresAt(?\DateTimeInterface $expiresAt): static
+    public function expiresAt(?\DateTimeInterface $expiration): static
     {
-        $this->expiresAt = $expiresAt;
+        $this->expiresAt = $expiration;
 
         return $this;
     }
@@ -369,6 +368,7 @@ final class CacheItem implements CacheItemInterface
     {
         if ($time === null) {
             $this->expiresAt = null;
+
             return $this;
         }
 
@@ -376,7 +376,7 @@ final class CacheItem implements CacheItemInterface
             $time = new \DateInterval("PT{$time}S");
         }
 
-        $this->expiresAt = (new \DateTimeImmutable())->add($time);
+        $this->expiresAt = (new DateTimeImmutable())->add($time);
 
         return $this;
     }
