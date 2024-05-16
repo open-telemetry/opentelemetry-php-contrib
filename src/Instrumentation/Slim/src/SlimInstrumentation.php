@@ -29,7 +29,7 @@ class SlimInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim', schemaUrl: TraceAttributes::SCHEMA_URL);
+        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.slim', 'https://opentelemetry.io/schemas/1.25.0');
         /**
          * requires extension >= 1.0.2beta2
          * @see https://github.com/open-telemetry/opentelemetry-php-instrumentation/pull/136
