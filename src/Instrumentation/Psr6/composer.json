@@ -13,7 +13,8 @@
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.23",
-    "psr/cache": "^1 || ^2 || ^3"
+    "psr/cache": "^1 || ^2 || ^3",
+    "composer-runtime-api": "^2.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
