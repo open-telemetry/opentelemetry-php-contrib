@@ -21,6 +21,7 @@ class LogWatcher extends Watcher
         /** @phan-suppress-next-line PhanTypeArraySuspicious */
         $app['events']->listen(MessageLogged::class, [$this, 'recordLog']);
 
+        /** @phan-suppress-next-line PhanTypeArraySuspicious */
         $this->logger = $app['log'];
     }
 
