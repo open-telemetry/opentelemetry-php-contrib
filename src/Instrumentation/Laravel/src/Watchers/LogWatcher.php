@@ -12,7 +12,6 @@ use OpenTelemetry\Context\Context;
 
 class LogWatcher extends Watcher
 {
-    /** @var LogManager */
     private LogManager $logger;
 
     /** @psalm-suppress UndefinedInterfaceMethod */
