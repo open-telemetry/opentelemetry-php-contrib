@@ -30,7 +30,10 @@ class LogWatcher extends Watcher
      */
     public function recordLog(MessageLogged $log): void
     {
-        if (!$this->logger->isHandling($log->level)) {
+        $underlyingLogger = $this->logger->getLogger();
+
+        /** @phan-suppress-next-line PhanUndeclaredMethod */
+        if (method_exists($underlyingLogger, 'isHandling') && !$underlyingLogger->isHandling($log->level)) {
             return;
         }
 
