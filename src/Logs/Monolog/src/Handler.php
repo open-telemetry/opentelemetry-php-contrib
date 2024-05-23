@@ -45,16 +45,15 @@ class Handler extends AbstractProcessingHandler
      */
     protected function write($record): void
     {
-        $formatted = $record['formatted'];
         $logRecord = (new API\LogRecord())
             ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
             ->setSeverityNumber(API\Map\Psr3::severityNumber($record['level_name']))
             ->setSeverityText($record['level_name'])
-            ->setBody($formatted['message'])
+            ->setBody($record['message'])
         ;
         foreach (['context', 'extra'] as $key) {
-            if (isset($formatted[$key]) && count($formatted[$key]) > 0) {
-                $logRecord->setAttribute($key, $formatted[$key]);
+            if (isset($record[$key]) && count($record[$key]) > 0) {
+                $logRecord->setAttribute($key, $record[$key]);
             }
         }
         $this->getLogger($record['channel'])->emit($logRecord);
