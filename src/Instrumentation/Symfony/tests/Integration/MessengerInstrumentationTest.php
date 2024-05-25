@@ -11,7 +11,8 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
-use Symfony\Component\Messenger\Transport\InMemoryTransport as LegacyInmemoryTransport;
+use Symfony\Component\Messenger\Transport\InMemoryTransport as LegacyInMemoryTransport;
+use Symfony\Component\Messenger\Transport\TransportInterface;
 
 final class SendEmailMessage
 {
@@ -42,7 +43,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         }
 
         // Symfony 5+
-        return new LegacyInmemoryTransport();
+        return new LegacyInMemoryTransport();
     }
 
     /**
@@ -98,7 +99,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         }
     }
 
-    public function test_can_sustain_throw()
+    public function test_can_sustain_throw_while_dispatching()
     {
         $bus = new class() implements MessageBusInterface {
             public function dispatch(object $message, array $stamps = []): Envelope
@@ -113,6 +114,39 @@ final class MessengerInstrumentationTest extends AbstractTest
             $this->assertCount(1, $this->storage);
 
             /** @var ImmutableSpan $span */
+            $span = $this->storage[0];
+        }
+    }
+
+    public function test_can_sustain_throw_while_sending()
+    {
+        $transport = new class() implements TransportInterface {
+            public function get(): iterable
+            {
+                throw new \Exception('booo!');
+            }
+
+            public function ack(Envelope $envelope): void
+            {
+                throw new \Exception('booo!');
+            }
+
+            public function reject(Envelope $envelope): void
+            {
+                throw new \Exception('booo!');
+            }
+
+            public function send(Envelope $envelope): Envelope
+            {
+                throw new \Exception('booo!');
+            }
+        };
+
+        try {
+            $transport->send(new Envelope(new SendEmailMessage('Hello Again')));
+        } catch (\Throwable $e) {
+            $this->assertCount(1, $this->storage);
+
             $span = $this->storage[0];
         }
     }
