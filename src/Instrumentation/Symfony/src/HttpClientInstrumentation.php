@@ -28,7 +28,7 @@ final class HttpClientInstrumentation
 
     public static function isSupportedImplementation(string $class): bool
     {
-        return in_array($class, self::NON_SUPPORTED_CLIENTS);
+        return false === in_array($class, self::NON_SUPPORTED_CLIENTS);
     }
 
     public static function register(): void
