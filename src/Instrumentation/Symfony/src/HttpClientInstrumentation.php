@@ -20,10 +20,9 @@ final class HttpClientInstrumentation
 {
     /**
      * These clients are not supported by this instrumentation.
-     *
-     * @psalm-suppress UndefinedClass
      */
     const NON_SUPPORTED_CLIENTS = [
+        /** @psalm-suppress UndefinedClass */
         \ApiPlatform\Symfony\Bundle\Test\Client::class,
     ];
 
