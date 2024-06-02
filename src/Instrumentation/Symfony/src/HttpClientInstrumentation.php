@@ -19,16 +19,17 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 final class HttpClientInstrumentation
 {
     /**
-     * These clients are not supported by this instrumentation.
+     * These clients are not supported by this instrumentation, because
+     * they are synchronous and do not support the on_progress option.
      */
-    const NON_SUPPORTED_CLIENTS = [
+    const SYNCHRONOUS_CLIENTS = [
         /** @psalm-suppress UndefinedClass */
         '\ApiPlatform\Symfony\Bundle\Test\Client',
     ];
 
-    public static function isSupportedImplementation(string $class): bool
+    public static function supportsProgress(string $class): bool
     {
-        return false === in_array($class, self::NON_SUPPORTED_CLIENTS);
+        return false === in_array($class, self::SYNCHRONOUS_CLIENTS);
     }
 
     public static function register(): void
@@ -72,7 +73,7 @@ final class HttpClientInstrumentation
                 }
 
                 /** @psalm-suppress UndefinedClass */
-                if (false === self::isSupportedImplementation($class)) {
+                if (false === self::supportsProgress($class)) {
                     $context = $span->storeInContext($parent);
                     $propagator->inject($requestOptions['headers'], ArrayAccessGetterSetter::getInstance(), $context);
 
@@ -136,7 +137,7 @@ final class HttpClientInstrumentation
                     return;
                 }
 
-                if ($response !== null && false === self::isSupportedImplementation(get_class($client))) {
+                if ($response !== null && false === self::supportsProgress(get_class($client))) {
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
 
                     if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
