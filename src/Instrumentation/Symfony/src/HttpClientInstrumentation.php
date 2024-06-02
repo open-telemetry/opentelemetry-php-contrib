@@ -23,7 +23,7 @@ final class HttpClientInstrumentation
      */
     const NON_SUPPORTED_CLIENTS = [
         /** @psalm-suppress UndefinedClass */
-        \ApiPlatform\Symfony\Bundle\Test\Client::class,
+        '\ApiPlatform\Symfony\Bundle\Test\Client',
     ];
 
     public static function isSupportedImplementation(string $class): bool
