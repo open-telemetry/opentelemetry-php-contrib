@@ -127,29 +127,26 @@ final class HttpClientInstrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
 
-                /** @psalm-suppress UndefinedClass */
-                if (false === self::isSupportedImplementation(get_class($client))) {
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
-
-                    if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
-                        $span->setStatus(StatusCode::STATUS_ERROR);
-                    }
-
-                    if (null === $exception) {
-                        $span->end();
-                    }
-                }
-
                 if (null !== $exception) {
                     $span->recordException($exception, [
                         TraceAttributes::EXCEPTION_ESCAPED => true,
                     ]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
+
+                    return;
                 }
 
-                //As Response are lazy we end span after response is received,
-                //it's added in on_progress callback, see line 69
+                if ($response !== null && false === self::isSupportedImplementation(get_class($client))) {
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+
+                    if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
+                        $span->setStatus(StatusCode::STATUS_ERROR);
+                    }
+                }
+
+                // As most Response are lazy we end span after response is received,
+                // it's added in on_progress callback, see line 69
             },
         );
     }
