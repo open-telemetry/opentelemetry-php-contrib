@@ -5,34 +5,40 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Console;
 
 use Illuminate\Console\Command as IlluminateCommand;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Logs\LoggerInterface;
+use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
-class Command implements LaravelHook
+class Command implements Hook
 {
-    use LaravelHookTrait;
     use PostHookTrait;
 
-    public function instrument(): void
-    {
-        $this->hookExecute();
+    public function instrument(
+        HookManager $hookManager,
+        LaravelConfiguration $configuration,
+        LoggerInterface $logger,
+        MeterInterface $meter,
+        TracerInterface $tracer,
+    ): void {
+        $this->hookExecute($hookManager, $tracer);
     }
 
-    protected function hookExecute(): bool
+    protected function hookExecute(HookManager $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             IlluminateCommand::class,
             'execute',
-            pre: function (IlluminateCommand $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            preHook: function (IlluminateCommand $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $this->instrumentation
-                    ->tracer()
+                $builder = $tracer
                     ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -45,7 +51,7 @@ class Command implements LaravelHook
 
                 return $params;
             },
-            post: function (IlluminateCommand $command, array $params, ?int $exitCode, ?Throwable $exception) {
+            postHook: function (IlluminateCommand $command, array $params, ?int $exitCode, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;

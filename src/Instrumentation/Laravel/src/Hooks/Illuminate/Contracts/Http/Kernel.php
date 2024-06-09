@@ -8,41 +8,47 @@ use Illuminate\Contracts\Http\Kernel as KernelContract;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Logs\LoggerInterface;
+use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\HeadersPropagator;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\ResponsePropagationSetter;
-use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-class Kernel implements LaravelHook
+class Kernel implements Hook
 {
-    use LaravelHookTrait;
     use PostHookTrait;
 
-    public function instrument(): void
-    {
-        $this->hookHandle();
+    public function instrument(
+        HookManager $hookManager,
+        LaravelConfiguration $configuration,
+        LoggerInterface $logger,
+        MeterInterface $meter,
+        TracerInterface $tracer,
+    ): void {
+        $this->hookHandle($hookManager, $tracer);
     }
 
-    protected function hookHandle(): bool
+    protected function hookHandle(HookManager $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             KernelContract::class,
             'handle',
-            pre: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            preHook: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $this->instrumentation
-                    ->tracer()
+                $builder = $tracer
                     ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
@@ -75,7 +81,7 @@ class Kernel implements LaravelHook
 
                 return [$request];
             },
-            post: function (KernelContract $kernel, array $params, ?Response $response, ?Throwable $exception) {
+            postHook: function (KernelContract $kernel, array $params, ?Response $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
