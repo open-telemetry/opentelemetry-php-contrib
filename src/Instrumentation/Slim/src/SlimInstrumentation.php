@@ -30,8 +30,9 @@ class SlimInstrumentation
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
-            name: 'io.opentelemetry.contrib.php.slim',
-            schemaUrl: 'https://opentelemetry.io/schemas/1.25.0'
+            'io.opentelemetry.contrib.php.slim',
+            null,
+            'https://opentelemetry.io/schemas/1.25.0'
         );
         /**
          * requires extension >= 1.0.2beta2
