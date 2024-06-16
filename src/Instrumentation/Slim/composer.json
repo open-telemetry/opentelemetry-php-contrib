@@ -44,10 +44,5 @@
     "psr-4": {
       "OpenTelemetry\\Tests\\Instrumentation\\Slim\\": "tests/"
     }
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": false
-    }
   }
 }

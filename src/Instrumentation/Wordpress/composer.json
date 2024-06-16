@@ -37,10 +37,5 @@
     "psr-4": {
       "OpenTelemetry\\Tests\\Instrumentation\\Wordpress\\": "tests/"
     }
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": false
-    }
   }
 }
