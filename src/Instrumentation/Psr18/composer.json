@@ -34,10 +34,5 @@
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^5.0"
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": false
-    }
   }
 }
