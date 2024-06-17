@@ -15,7 +15,7 @@ all-checks: style validate phan psalm phpstan test ## All checks + tests
 all: update all-checks ## Everything
 all-lowest: update-lowest all-checks ## Everything, with lowest supported versions
 build: ## Build image
-	$(DOCKER_COMPOSE) build --build-arg PHP_VERSION php
+	$(DOCKER_COMPOSE) build --build-arg PHP_VERSION=${PHP_VERSION} php
 install: ## Install dependencies
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer install
 update: ## Update dependencies
