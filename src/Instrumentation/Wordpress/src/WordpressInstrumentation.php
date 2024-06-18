@@ -45,7 +45,7 @@ class WordpressInstrumentation
             pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = self::builder($instrumentation, 'wpdb.__connect', $function, $class, $filename, $lineno)
                     ->setAttribute(TraceAttributes::DB_USER, $params[0] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_NAME, $params[1] ?? 'unknown')
+                    ->setAttribute(TraceAttributes::DB_NAME, $params[2] ?? 'unknown')
                     ->setAttribute(TraceAttributes::DB_SYSTEM, 'mysql')
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
