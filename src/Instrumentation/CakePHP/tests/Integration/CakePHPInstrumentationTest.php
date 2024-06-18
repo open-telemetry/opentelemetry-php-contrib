@@ -8,6 +8,7 @@ use ArrayObject;
 use Cake\Core\Configure;
 use Cake\Http\Response;
 use Cake\Http\ServerRequest;
+use Cake\TestSuite\IntegrationTestTrait;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -17,7 +18,8 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\Tests\Instrumentation\CakePHP\Integration\App\ArticleController;
+use OpenTelemetry\Tests\Instrumentation\CakePHP\Integration\App\src\Controller\ArticleController;
+use OpenTelemetry\Tests\Instrumentation\CakePHP\Integration\App\src\Application;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
@@ -27,6 +29,8 @@ use Psr\Http\Message\ResponseInterface;
  */
 class CakePHPInstrumentationTest extends TestCase
 {
+    use IntegrationTestTrait;
+
     private const TRACE_ID = 'ff000000000000000000000000000041';
     private const SPAN_ID = 'ff00000000000041';
     private const TRACEPARENT_HEADER = '00-' . self::TRACE_ID . '-' . self::SPAN_ID . '-01';
@@ -47,8 +51,7 @@ class CakePHPInstrumentationTest extends TestCase
             ->withTracerProvider($tracerProvider)
             ->withPropagator(TraceContextPropagator::getInstance())
             ->activate();
-
-        Configure::write('App.encoding', 'utf8');
+        $this->configRequest(['headers'=>['Accept'=>'application/json']]);
     }
 
     public function tearDown(): void
@@ -60,12 +63,14 @@ class CakePHPInstrumentationTest extends TestCase
     {
         $this->assertCount(0, $this->storage);
 
-        $request = new ServerRequest(['environment' => ['HTTP_TRACEPARENT' => self::TRACEPARENT_HEADER]]);
-        $controller = new ArticleController($request);
+        $this->configRequest(['headers'=>[
+            'Accept'=>'application/json',
+            'traceparent' => '01-'. self::TRACE_ID . '-' . self::SPAN_ID . '-ff'
+        ]]);
 
-        $controller->invokeAction(function (): ResponseInterface {
-            return new Response(['body' => 'hello world']);
-        }, []);
+        $this->get('/article');
+
+        print((string) $this->_response->getBody());
 
         $this->assertCount(1, $this->storage);
         /** @var ImmutableSpan $span */
@@ -86,15 +91,7 @@ class CakePHPInstrumentationTest extends TestCase
     {
         $this->assertCount(0, $this->storage);
 
-        $request = new ServerRequest();
-        $controller = new ArticleController($request);
-
-        try {
-            $controller->invokeAction(function (): ResponseInterface {
-                throw new \Exception('kaboom');
-            }, []);
-        } catch (\Exception $e) {
-        }
+        $this->get('/article/exception');
 
         $this->assertCount(1, $this->storage);
         /** @var ImmutableSpan $span */
@@ -103,5 +100,23 @@ class CakePHPInstrumentationTest extends TestCase
         $event = $span->getEvents()[0];
         $this->assertSame('exception', $event->getName());
         $this->assertSame('kaboom', $event->getAttributes()->get('exception.message'));
+    }
+
+    public function test_resource_route()
+    {
+        $this->get('/article/1234');
+        /** @var ImmutableSpan $span */
+        $span = $this->storage[0];
+        $attributes = $span->getAttributes()->toArray();
+        $this->assertSame('/article/{id}', $attributes['http.route']);
+    }
+
+    public function test_fallback_route()
+    {
+        $this->get('/article/update');
+        /** @var ImmutableSpan $span */
+        $span = $this->storage[0];
+        $attributes = $span->getAttributes()->toArray();
+        $this->assertSame('/{controller}/{action}/*', $attributes['http.route']);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Controller;
 
 use Cake\Controller\Controller as CakeController;
+use Cake\Routing\Router;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -48,6 +49,7 @@ class Controller implements CakeHook
                     ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                     ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
                     ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
+                    ->setAttribute(TraceAttributes::HTTP_ROUTE, $request->getParam('_matchedRoute'))
                     ->startSpan();
 
                 Context::storage()->attach($span->storeInContext($parent));
