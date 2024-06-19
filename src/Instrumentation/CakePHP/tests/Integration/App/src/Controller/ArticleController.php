@@ -27,13 +27,31 @@ class ArticleController extends Controller
         return $this->response;
     }
 
-    public function exception()
+    /**
+     * @throws \Exception
+     */
+    public function exception(): void
     {
-        throw new \Exception('kaboom');
+        throw new \RuntimeException('kaboom');
     }
 
     public function view(): ResponseInterface
     {
         return $this->response;
+    }
+
+    public function clientErrorResponse(): ResponseInterface
+    {
+        return $this->response->withStatus(400);
+    }
+
+    public function add(): ResponseInterface
+    {
+        return $this->response;
+    }
+
+    public function  body(): ResponseInterface
+    {
+        return $this->response->withStringBody('test123');
     }
 }
