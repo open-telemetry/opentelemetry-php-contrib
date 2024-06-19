@@ -32,7 +32,10 @@
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\": "src/"
-    }
+    },
+    "files": [
+      "_register.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
