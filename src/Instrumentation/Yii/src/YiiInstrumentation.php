@@ -26,7 +26,7 @@ class YiiInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.yii',
             null,
-            'https://opentelemetry.io/schemas/1.25.0'
+            'https://opentelemetry.io/schemas/1.24.0'
         );
 
         hook(

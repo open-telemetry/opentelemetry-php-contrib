@@ -63,7 +63,7 @@ class Psr3Instrumentation
                     $instrumentation ??= new CachedInstrumentation(
                         'io.opentelemetry.contrib.php.psr3',
                         null,
-                        'https://opentelemetry.io/schemas/1.25.0'
+                        'https://opentelemetry.io/schemas/1.24.0'
                     );
                     if ($function === 'log') {
                         $level = $params[0];

@@ -25,7 +25,7 @@ class PDOInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.pdo',
             null,
-            'https://opentelemetry.io/schemas/1.25.0'
+            'https://opentelemetry.io/schemas/1.24.0'
         );
         $pdoTracker = new PDOTracker();
 

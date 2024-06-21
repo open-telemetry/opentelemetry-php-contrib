@@ -26,7 +26,7 @@ class WordpressInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.wordpress',
             null,
-            'https://opentelemetry.io/schemas/1.25.0'
+            'https://opentelemetry.io/schemas/1.24.0'
         );
 
         self::_hook($instrumentation, 'WP', 'main', 'WP.main');

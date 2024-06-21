@@ -31,7 +31,7 @@ class GuzzleInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.guzzle',
             null,
-            'https://opentelemetry.io/schemas/1.25.0'
+            'https://opentelemetry.io/schemas/1.24.0'
         );
 
         hook(
