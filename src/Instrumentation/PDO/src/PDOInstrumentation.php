@@ -22,7 +22,11 @@ class PDOInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.pdo');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.pdo',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
         $pdoTracker = new PDOTracker();
 
         hook(

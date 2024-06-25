@@ -13,7 +13,11 @@ class LaravelInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.laravel');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.laravel',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
 
         Hooks\Illuminate\Console\Command::hook($instrumentation);
         Hooks\Illuminate\Contracts\Console\Kernel::hook($instrumentation);
