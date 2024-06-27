@@ -1,24 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Controller;
 
 use Cake\Controller\Controller as CakeController;
-use Cake\Routing\Router;
-use OpenTelemetry\API\Globals;
-use OpenTelemetry\API\Trace\SpanInterface;
-use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHook;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHookTrait;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\SDK\Trace\Span;
-use OpenTelemetry\SemConv\TraceAttributes;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Throwable;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\TraceAttributes;
+use Throwable;
 
 class Controller implements CakeHook
 {

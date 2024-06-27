@@ -1,30 +1,28 @@
 <?php
+
 declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Http;
 
 use Cake\Routing\Exception\MissingRouteException;
 use Cake\Routing\Router;
-use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Trace\SpanInterface;
-use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHook;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHookTrait;
+use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Time\ClockInterface;
-use OpenTelemetry\SDK\Trace\Span;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
-use function OpenTelemetry\Instrumentation\hook;
 
 class Server implements CakeHook
 {
     use CakeHookTrait;
 
-    private array $metricAttributes;
+    private array $metricAttributes = [];
 
     public function instrument(): void
     {
@@ -32,18 +30,23 @@ class Server implements CakeHook
             \Cake\Http\Server::class,
             'run',
             pre: function (\Cake\Http\Server $server, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
-                [$serverAddress, $serverPort] = $this->extractHostAddressAndPort($request);
+                $request = $params[0];
+                assert($request === null || $request instanceof ServerRequestInterface);
 
-                $this->metricAttributes = [
-                    TraceAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
-                    TraceAttributes::URL_SCHEME => $request->getUri()->getScheme(),
-                    TraceAttributes::NETWORK_PROTOCOL_VERSION => $request->getProtocolVersion(),
-                    TraceAttributes::SERVER_ADDRESS => $serverAddress,
-                    TraceAttributes::SERVER_PORT => $serverPort,
-                ];
+                if($request !== null) {
+                    [$serverAddress, $serverPort] = $this->extractHostAddressAndPort($request);
 
+                    $this->metricAttributes = [
+                        TraceAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
+                        TraceAttributes::URL_SCHEME => $request->getUri()->getScheme(),
+                        TraceAttributes::NETWORK_PROTOCOL_VERSION => $request->getProtocolVersion(),
+                        TraceAttributes::SERVER_ADDRESS => $serverAddress,
+                        TraceAttributes::SERVER_PORT => $serverPort,
+                    ];
+                }
+                
                 $request = $this->buildSpan($request, $class, $function, $filename, $lineno);
+
                 return [$request];
             },
             post: function (\Cake\Http\Server $server, array $params, ?ResponseInterface $response, ?Throwable $exception) {
@@ -154,7 +157,7 @@ class Server implements CakeHook
      */
     private function recordRequestBodySize(ServerRequestInterface $request, array $metricAttributes): void
     {
-        if ($request->getBody()->getSize()) {
+        if ($request->getBody()->getSize() !== null) {
             $this->instrumentation->meter()->createHistogram(
                 'http.server.request.body.size',
                 'By',
@@ -170,7 +173,7 @@ class Server implements CakeHook
      */
     private function recordResponseBodySize(?ResponseInterface $response, array $metricAttributes): void
     {
-        if ($response && $response->getBody()->getSize()) {
+        if ($response && $response->getBody()->getSize() !== null) {
             $this->instrumentation->meter()->createHistogram(
                 'http.server.response.body.size',
                 'By',
@@ -181,12 +184,13 @@ class Server implements CakeHook
 
     /**
      * @param $request
-     * @return mixed|null
+     * @return string|null
      */
     private function getRouteTemplate($request): string|null
     {
         try {
             $route = Router::parseRequest($request);
+
             return $route['_matchedRoute'] ?? null;
         } catch (MissingRouteException) {
             return null;
