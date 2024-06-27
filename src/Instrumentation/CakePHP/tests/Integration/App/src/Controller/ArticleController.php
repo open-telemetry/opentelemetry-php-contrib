@@ -50,7 +50,7 @@ class ArticleController extends Controller
         return $this->response;
     }
 
-    public function  body(): ResponseInterface
+    public function body(): ResponseInterface
     {
         return $this->response->withStringBody('test123');
     }

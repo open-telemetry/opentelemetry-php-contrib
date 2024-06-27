@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -15,9 +16,7 @@ declare(strict_types=1);
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
-/*
- * Configure paths required to find CakePHP + general filepath constants
- */
+// Configure paths required to find CakePHP + general filepath constants
 require __DIR__ . DIRECTORY_SEPARATOR . 'paths.php';
 
 /*
@@ -37,7 +36,6 @@ use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Datasource\ConnectionManager;
 use Cake\Error\ErrorTrap;
 use Cake\Error\ExceptionTrap;
-use Cake\Http\ServerRequest;
 use Cake\Log\Log;
 use Cake\Mailer\Mailer;
 use Cake\Mailer\TransportFactory;
@@ -109,9 +107,7 @@ if (Configure::read('debug')) {
  */
 date_default_timezone_set(Configure::read('App.defaultTimezone'));
 
-/*
- * Configure the mbstring extension to use the correct encoding.
- */
+// Configure the mbstring extension to use the correct encoding.
 mb_internal_encoding(Configure::read('App.encoding'));
 
 /*
@@ -120,15 +116,11 @@ mb_internal_encoding(Configure::read('App.encoding'));
  */
 ini_set('intl.default_locale', Configure::read('App.defaultLocale'));
 
-/*
- * Register application error and exception handlers.
- */
+// Register application error and exception handlers.
 (new ErrorTrap(Configure::read('Error')))->register();
 (new ExceptionTrap(Configure::read('Error')))->register();
 
-/*
- * Include the CLI bootstrap overrides.
- */
+// Include the CLI bootstrap overrides.
 if (PHP_SAPI === 'cli') {
     require CONFIG . 'bootstrap_cli.php';
 }
@@ -171,7 +163,6 @@ TransportFactory::setConfig(Configure::consume('EmailTransport'));
 Mailer::setConfig(Configure::consume('Email'));
 Log::setConfig(Configure::consume('Log'));
 Security::setSalt(Configure::consume('Security.salt'));
-
 
 /*
  * You can enable default locale format parsing by adding calls

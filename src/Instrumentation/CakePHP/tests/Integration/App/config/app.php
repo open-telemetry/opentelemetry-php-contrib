@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 use Cake\Cache\Engine\FileEngine;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Mysql;
-use Cake\Log\Engine\FileLog;
 use Cake\Mailer\Transport\MailTransport;
 
 return [
@@ -91,9 +92,7 @@ return [
         // 'cacheTime' => '+1 year'
     ],
 
-    /*
-     * Configure the cache adapters.
-     */
+    // Configure the cache adapters.
     'Cache' => [
         'default' => [
             'className' => FileEngine::class,
@@ -222,9 +221,7 @@ return [
             'host' => 'localhost',
             'port' => 25,
             'timeout' => 30,
-            /*
-             * It is recommended to set these options through your environment or app_local.php
-             */
+            // It is recommended to set these options through your environment or app_local.php
             //'username' => null,
             //'password' => null,
             'client' => null,
@@ -246,9 +243,7 @@ return [
         'default' => [
             'transport' => 'default',
             'from' => 'you@localhost',
-            /*
-             * Will by default be set to config value of App.encoding, if that exists otherwise to UTF-8.
-             */
+            // Will by default be set to config value of App.encoding, if that exists otherwise to UTF-8.
             //'charset' => 'utf-8',
             //'headerCharset' => 'utf-8',
         ],
@@ -284,9 +279,7 @@ return [
             'persistent' => false,
             'timezone' => 'UTC',
 
-            /*
-             * For MariaDB/MySQL the internal default changed from utf8 to utf8mb4, aka full utf-8 support, in CakePHP 3.6
-             */
+            // For MariaDB/MySQL the internal default changed from utf8 to utf8mb4, aka full utf-8 support, in CakePHP 3.6
             //'encoding' => 'utf8mb4',
 
             /*
@@ -318,9 +311,7 @@ return [
             //'init' => ['SET GLOBAL innodb_stats_on_metadata = 0'],
         ],
 
-        /*
-         * The test connection is used during the test suite.
-         */
+        // The test connection is used during the test suite.
         'test' => [
             'className' => Connection::class,
             'driver' => Mysql::class,
@@ -335,31 +326,23 @@ return [
         ],
     ],
 
-    /*
-     * Configures logging options
-     */
+    // Configures logging options
     'Log' => [
         'debug' => [
-            'className' => FileLog::class,
-            'path' => LOGS,
-            'file' => 'debug',
+            'className' => \Cake\Log\Engine\ConsoleLog::class,
             'url' => env('LOG_DEBUG_URL', null),
             'scopes' => null,
             'levels' => ['notice', 'info', 'debug'],
         ],
         'error' => [
-            'className' => FileLog::class,
-            'path' => LOGS,
-            'file' => 'error',
+            'className' => \Cake\Log\Engine\ConsoleLog::class,
             'url' => env('LOG_ERROR_URL', null),
             'scopes' => null,
             'levels' => ['warning', 'error', 'critical', 'alert', 'emergency'],
         ],
         // To enable this dedicated query log, you need to set your datasource's log flag to true
         'queries' => [
-            'className' => FileLog::class,
-            'path' => LOGS,
-            'file' => 'queries',
+            'className' => \Cake\Log\Engine\ConsoleLog::class,
             'url' => env('LOG_QUERIES_URL', null),
             'scopes' => ['cake.database.queries'],
         ],
@@ -415,6 +398,6 @@ return [
     'DebugKit' => [
         'forceEnable' => filter_var(env('DEBUG_KIT_FORCE_ENABLE', false), FILTER_VALIDATE_BOOLEAN),
         'safeTld' => env('DEBUG_KIT_SAFE_TLD', null),
-        'ignoreAuthorization' => env('DEBUG_KIT_IGNORE_AUTHORIZATION', false)
+        'ignoreAuthorization' => env('DEBUG_KIT_IGNORE_AUTHORIZATION', false),
     ],
 ];

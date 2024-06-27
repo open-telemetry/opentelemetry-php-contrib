@@ -12,6 +12,7 @@
         <directory name="tests"/>
         <ignoreFiles>
             <directory name="tests/Integration/App" />
+            <directory name="vendor"/>
         </ignoreFiles>
     </projectFiles>
     <plugins>

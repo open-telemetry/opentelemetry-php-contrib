@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks;
 
 use OpenTelemetry\API\Globals;
@@ -8,6 +10,7 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
+use Psr\Http\Message\ServerRequestInterface;
 
 trait CakeHookTrait
 {
@@ -35,14 +38,14 @@ trait CakeHookTrait
     }
 
     /**
-     * @param mixed $request
+     * @param ServerRequestInterface|null $request
      * @param string $class
      * @param string $function
      * @param string|null $filename
      * @param int|null $lineno
      * @return mixed
      */
-    protected function buildSpan(mixed $request, string $class, string $function, ?string $filename, ?int $lineno): mixed
+    protected function buildSpan(?ServerRequestInterface $request, string $class, string $function, ?string $filename, ?int $lineno): mixed
     {
         $root = $request
             ? $request->getAttribute(SpanInterface::class)
@@ -79,6 +82,7 @@ trait CakeHookTrait
             $span = $builder->setSpanKind(SpanKind::KIND_INTERNAL)->startSpan();
         }
         Context::storage()->attach($span->storeInContext($parent));
+
         return $request;
     }
 

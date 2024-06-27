@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\CakePHP\Integration\App\src;
