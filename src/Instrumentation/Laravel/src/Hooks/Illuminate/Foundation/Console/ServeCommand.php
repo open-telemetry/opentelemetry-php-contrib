@@ -5,23 +5,29 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Foundation\Console;
 
 use Illuminate\Foundation\Console\ServeCommand as FoundationServeCommand;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
-use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Logs\LoggerInterface;
+use OpenTelemetry\API\Metrics\MeterInterface;
+use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 
 /**
  * Instrument Laravel's local PHP development server.
  */
-class ServeCommand implements LaravelHook
+class ServeCommand implements Hook
 {
-    use LaravelHookTrait;
-
-    public function instrument(): void
-    {
-        hook(
+    public function instrument(
+        HookManager $hookManager,
+        LaravelConfiguration $configuration,
+        LoggerInterface $logger,
+        MeterInterface $meter,
+        TracerInterface $tracer,
+    ): void {
+        $hookManager->hook(
             FoundationServeCommand::class,
             'handle',
-            pre: static function (FoundationServeCommand $serveCommand, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            preHook: static function (FoundationServeCommand $serveCommand, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 if (!property_exists(FoundationServeCommand::class, 'passthroughVariables')) {
                     return;
                 }
