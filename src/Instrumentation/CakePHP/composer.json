@@ -13,7 +13,7 @@
     "ext-opentelemetry": "*",
     "cakephp/cakephp": "^4 || ^5",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.23"
+    "open-telemetry/sem-conv": "^1.24"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",

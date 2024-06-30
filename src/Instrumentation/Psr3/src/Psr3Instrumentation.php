@@ -60,7 +60,11 @@ class Psr3Instrumentation
                     break;
                 case self::MODE_EXPORT:
                     static $instrumentation;
-                    $instrumentation ??= new CachedInstrumentation('psr3');
+                    $instrumentation ??= new CachedInstrumentation(
+                        'io.opentelemetry.contrib.php.psr3',
+                        null,
+                        'https://opentelemetry.io/schemas/1.24.0'
+                    );
                     if ($function === 'log') {
                         $level = $params[0];
                         $body = $params[1] ?? '';

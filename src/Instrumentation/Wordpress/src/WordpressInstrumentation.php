@@ -23,7 +23,11 @@ class WordpressInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.wordpress');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.wordpress',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
 
         self::_hook($instrumentation, 'WP', 'main', 'WP.main');
         self::_hook($instrumentation, 'WP', 'init', 'WP.init');
@@ -45,7 +49,7 @@ class WordpressInstrumentation
             pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = self::builder($instrumentation, 'wpdb.__connect', $function, $class, $filename, $lineno)
                     ->setAttribute(TraceAttributes::DB_USER, $params[0] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_NAME, $params[1] ?? 'unknown')
+                    ->setAttribute(TraceAttributes::DB_NAME, $params[2] ?? 'unknown')
                     ->setAttribute(TraceAttributes::DB_SYSTEM, 'mysql')
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));

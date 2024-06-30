@@ -11,6 +11,7 @@ use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
 use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
+use OpenTelemetry\SemConv\Version;
 
 class LaravelInstrumentation implements Instrumentation
 {
@@ -24,9 +25,9 @@ class LaravelInstrumentation implements Instrumentation
             return;
         }
 
-        $logger = $context->loggerProvider->getLogger(self::INSTRUMENTATION_NAME);
-        $meter = $context->meterProvider->getMeter(self::INSTRUMENTATION_NAME);
-        $tracer = $context->tracerProvider->getTracer(self::INSTRUMENTATION_NAME);
+        $logger = $context->loggerProvider->getLogger(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_25_0->url());
+        $meter = $context->meterProvider->getMeter(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_25_0->url());
+        $tracer = $context->tracerProvider->getTracer(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_25_0->url());
 
         foreach (ServiceLoader::load(Hook::class) as $hook) {
             /** @var Hook $hook */

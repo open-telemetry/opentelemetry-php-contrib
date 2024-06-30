@@ -19,7 +19,11 @@ class IOInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.io');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.io',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
 
         self::_hook($instrumentation, null, 'fopen', 'fopen');
         self::_hook($instrumentation, null, 'fwrite', 'fwrite');

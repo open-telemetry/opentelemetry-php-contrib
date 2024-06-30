@@ -18,6 +18,20 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class HttpClientInstrumentation
 {
+    /**
+     * These clients are not supported by this instrumentation, because
+     * they are synchronous and do not support the on_progress option.
+     */
+    const SYNCHRONOUS_CLIENTS = [
+        /** @psalm-suppress UndefinedClass */
+        '\ApiPlatform\Symfony\Bundle\Test\Client',
+    ];
+
+    public static function supportsProgress(string $class): bool
+    {
+        return false === in_array($class, self::SYNCHRONOUS_CLIENTS);
+    }
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_http');
@@ -58,6 +72,16 @@ final class HttpClientInstrumentation
                     $requestOptions['headers'] = [];
                 }
 
+                /** @psalm-suppress UndefinedClass */
+                if (false === self::supportsProgress($class)) {
+                    $context = $span->storeInContext($parent);
+                    $propagator->inject($requestOptions['headers'], ArrayAccessGetterSetter::getInstance(), $context);
+
+                    Context::storage()->attach($context);
+
+                    return $params;
+                }
+
                 $previousOnProgress = $requestOptions['on_progress'] ?? null;
 
                 //As Response are lazy we end span when status code was received
@@ -75,7 +99,6 @@ final class HttpClientInstrumentation
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
 
                         if ($statusCode >= 400 && $statusCode < 600) {
-                            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
                             $span->setStatus(StatusCode::STATUS_ERROR);
                         }
 
@@ -110,10 +133,20 @@ final class HttpClientInstrumentation
                     ]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
+
+                    return;
                 }
 
-                //As Response are lazy we end span after response is received,
-                //it's added in on_progress callback, see line 63
+                if ($response !== null && false === self::supportsProgress(get_class($client))) {
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+
+                    if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
+                        $span->setStatus(StatusCode::STATUS_ERROR);
+                    }
+                }
+
+                // As most Response are lazy we end span after response is received,
+                // it's added in on_progress callback, see line 69
             },
         );
     }
