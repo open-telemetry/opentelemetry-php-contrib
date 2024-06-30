@@ -43,26 +43,12 @@
     }
   },
   "extra": {
+    "spi-config": {
+      "autoload-files": true
+    },
     "spi": {
       "OpenTelemetry\\Config\\SDK\\Configuration\\ComponentProvider": [
         "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\LaravelComponentProvider"
-      ],
-      "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\Instrumentation": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\LaravelInstrumentation"
-      ],
-      "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Hook": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Console\\Command",
-
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Contracts\\Console\\Kernel",
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Contracts\\Http\\Kernel",
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Contracts\\Queue\\Queue",
-
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Foundation\\Console\\ServeCommand",
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Foundation\\Application",
-
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Queue\\Queue",
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Queue\\SyncQueue",
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Hooks\\Illuminate\\Queue\\Worker"
       ]
     }
   },

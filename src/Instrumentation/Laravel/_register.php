@@ -1,4 +1,8 @@
 <?php
+/**
+ * This file must *only* be used to register SPI components, as it
+ * will be pruned automatically via the tbachert/spi plugin.
+ */
 
 declare(strict_types=1);
 
@@ -7,7 +11,6 @@ use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 
-// In case the `tbachert/spi` plugin has not been allowed in composer allow-plugins (root-level).
 ServiceLoader::register(Instrumentation::class, LaravelInstrumentation::class);
 
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Console\Command::class);
