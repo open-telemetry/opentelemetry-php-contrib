@@ -88,7 +88,7 @@ class Worker implements Hook
         );
     }
 
-    private function hookWorkerGetNextJob(HookManager $hookManager, TracerInterface $tracer): bool
+    private function hookWorkerGetNextJob(HookManager $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueWorker::class,
