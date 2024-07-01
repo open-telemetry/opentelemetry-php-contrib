@@ -1,0 +1,36 @@
+{
+    "name": "open-telemetry/contrib-sampler-rule-based",
+    "description": "OpenTelemetry SDK contrib rule-based sampler",
+    "keywords": ["opentelemetry", "otel", "sdk", "tracing", "sampler"],
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.1",
+        "open-telemetry/sdk": "dev-main as 1.1.0",
+        "open-telemetry/"
+    },
+    "require-dev": {
+        "symfony/config": "^5.4 || ^6.4 || ^7.0",
+        "tbachert/otel-sdk-configuration": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nevay\\OTelSDK\\Contrib\\Sampler\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        },
+        "spi": {
+            "Nevay\\OTelSDK\\Configuration\\ComponentProvider": [
+                "Nevay\\OTelSDK\\Contrib\\Sampler\\Configuration\\SamplerAlwaysRecording",
+                "Nevay\\OTelSDK\\Contrib\\Sampler\\Configuration\\SamplerRuleBased",
+                "Nevay\\OTelSDK\\Contrib\\Sampler\\Configuration\\SamplingRuleAttribute",
+                "Nevay\\OTelSDK\\Contrib\\Sampler\\Configuration\\SamplingRuleLink",
+                "Nevay\\OTelSDK\\Contrib\\Sampler\\Configuration\\SamplingRuleParent",
+                "Nevay\\OTelSDK\\Contrib\\Sampler\\Configuration\\SamplingRuleSpanKind",
+                "Nevay\\OTelSDK\\Contrib\\Sampler\\Configuration\\SamplingRuleSpanName"
+            ]
+        }
+    }
+}
