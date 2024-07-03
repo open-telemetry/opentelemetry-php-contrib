@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\ComponentProvider;
 
 use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
 use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
 use OpenTelemetry\Config\SDK\Configuration\Context;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
-use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\LinkRule;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\ParentRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-final class SamplingRuleLink implements ComponentProvider
+final class SamplingRuleParent implements ComponentProvider
 {
 
     /**
@@ -22,7 +22,7 @@ final class SamplingRuleLink implements ComponentProvider
      */
     public function createPlugin(array $properties, Context $context): SamplingRule
     {
-        return new LinkRule(
+        return new ParentRule(
             $properties['sampled'],
             $properties['remote'],
         );
@@ -30,7 +30,7 @@ final class SamplingRuleLink implements ComponentProvider
 
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
-        $node = new ArrayNodeDefinition('link');
+        $node = new ArrayNodeDefinition('parent');
         $node
             ->children()
                 ->booleanNode('sampled')->isRequired()->end()

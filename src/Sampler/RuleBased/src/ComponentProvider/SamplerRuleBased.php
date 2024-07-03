@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\ComponentProvider;
 
 use OpenTelemetry\Config\SDK\Configuration\ComponentPlugin;
 use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;

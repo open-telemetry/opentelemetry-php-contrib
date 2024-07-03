@@ -2,40 +2,39 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\ComponentProvider;
 
 use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
 use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
 use OpenTelemetry\Config\SDK\Configuration\Context;
-use OpenTelemetry\Config\SDK\Configuration\Validation;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
-use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\SpanNameRule;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\LinkRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-final class SamplingRuleSpanName implements ComponentProvider
+final class SamplingRuleLink implements ComponentProvider
 {
 
     /**
      * @param array{
-     *     pattern: string,
+     *     sampled: bool,
+     *     remote: ?bool,
      * } $properties
      */
     public function createPlugin(array $properties, Context $context): SamplingRule
     {
-        return new SpanNameRule(
-            $properties['pattern'],
+        return new LinkRule(
+            $properties['sampled'],
+            $properties['remote'],
         );
     }
 
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
-        $node = new ArrayNodeDefinition('span_name');
+        $node = new ArrayNodeDefinition('link');
         $node
             ->children()
-                ->scalarNode('pattern')
-                    ->isRequired()
-                    ->validate()->always(Validation::ensureRegexPattern())->end()
-                ->end()
+                ->booleanNode('sampled')->isRequired()->end()
+                ->booleanNode('remote')->defaultNull()->end()
             ->end()
         ;
 

@@ -31,13 +31,13 @@
         },
         "spi": {
             "OpenTelemetry\\Config\\SDK\\Configuration\\ComponentProvider": [
-                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\Configuration\\SamplerRuleBased",
+                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplerRuleBased",
 
-                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\Configuration\\SamplingRuleAttribute",
-                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\Configuration\\SamplingRuleLink",
-                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\Configuration\\SamplingRuleParent",
-                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\Configuration\\SamplingRuleSpanKind",
-                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\Configuration\\SamplingRuleSpanName"
+                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleAttribute",
+                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleLink",
+                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleParent",
+                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleSpanKind",
+                "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleSpanName"
             ]
         }
     },
