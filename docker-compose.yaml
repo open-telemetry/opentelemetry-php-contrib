@@ -13,6 +13,7 @@ services:
       XDEBUG_CONFIG: ${XDEBUG_CONFIG:-''}
       PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-''}
       RABBIT_HOST: ${RABBIT_HOST:-rabbitmq}
+      KAFKA_HOST: ${KAFKA_HOST:-kafka}
 
   zipkin:
     image: openzipkin/zipkin-slim
@@ -42,3 +43,22 @@ services:
       retries: 3
     ports:
       - "5672:5672/tcp"
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    hostname: kafka
+    ports:
+      - "9092/tcp"
+    environment:
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    command: "bash -c '/tmp/update_run.sh && /etc/confluent/docker/run'"
+    volumes:
+      - ./docker/kafka/update_run.sh:/tmp/update_run.sh
+
+
