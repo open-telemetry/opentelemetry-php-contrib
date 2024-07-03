@@ -1,28 +1,34 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler\Configuration;
+<?php
 
-use Nevay\OTelSDK\Configuration\ComponentProvider;
-use Nevay\OTelSDK\Configuration\ComponentProviderRegistry;
-use Nevay\OTelSDK\Configuration\Context;
-use Nevay\OTelSDK\Configuration\Validation;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule\SpanNameRule;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+
+use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
+use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
+use OpenTelemetry\Config\SDK\Configuration\Context;
+use OpenTelemetry\Config\SDK\Configuration\Validation;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\SpanNameRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-final class SamplingRuleSpanName implements ComponentProvider {
+final class SamplingRuleSpanName implements ComponentProvider
+{
 
     /**
      * @param array{
      *     pattern: string,
      * } $properties
      */
-    public function createPlugin(array $properties, Context $context): SamplingRule {
+    public function createPlugin(array $properties, Context $context): SamplingRule
+    {
         return new SpanNameRule(
             $properties['pattern'],
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition {
+    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    {
         $node = new ArrayNodeDefinition('span_name');
         $node
             ->children()

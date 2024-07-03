@@ -1,15 +1,19 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler\Configuration;
+<?php
 
-use Nevay\OTelSDK\Configuration\ComponentProvider;
-use Nevay\OTelSDK\Configuration\ComponentProviderRegistry;
-use Nevay\OTelSDK\Configuration\Context;
-use Nevay\OTelSDK\Configuration\Validation;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule\AttributeRule;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+
+use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
+use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
+use OpenTelemetry\Config\SDK\Configuration\Context;
+use OpenTelemetry\Config\SDK\Configuration\Validation;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\AttributeRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-final class SamplingRuleAttribute implements ComponentProvider {
+final class SamplingRuleAttribute implements ComponentProvider
+{
 
     /**
      * @param array{
@@ -17,14 +21,16 @@ final class SamplingRuleAttribute implements ComponentProvider {
      *     pattern: string,
      * } $properties
      */
-    public function createPlugin(array $properties, Context $context): SamplingRule {
+    public function createPlugin(array $properties, Context $context): SamplingRule
+    {
         return new AttributeRule(
             $properties['key'],
             $properties['pattern'],
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition {
+    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    {
         $node = new ArrayNodeDefinition('attribute');
         $node
             ->children()

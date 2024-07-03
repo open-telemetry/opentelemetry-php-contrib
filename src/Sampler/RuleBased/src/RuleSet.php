@@ -1,21 +1,39 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler;
+<?php
 
-use Nevay\OTelSDK\Trace\Sampler;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased;
+
 use function implode;
+use OpenTelemetry\SDK\Trace\SamplerInterface;
 use function sprintf;
 
-final class RuleSet {
-
+final class RuleSet implements RuleSetInterface
+{
     /**
      * @param list<SamplingRule> $samplingRules
      */
     public function __construct(
-        public readonly array $samplingRules,
-        public readonly Sampler $delegate,
-    ) {}
+        private readonly array $samplingRules,
+        private readonly SamplerInterface $delegate,
+    ) {
+    }
 
-    public function __toString(): string {
-        return sprintf('RuleSet{rules=[%s],delegate=%s}', implode(',', $this->samplingRules), $this->delegate);
+    public function __toString(): string
+    {
+        return sprintf('RuleSet{rules=[%s],delegate=%s}', implode(',', $this->samplingRules), $this->delegate->getDescription());
+    }
+
+    /**
+     * @return list<SamplingRule>
+     */
+    public function samplingRules(): array
+    {
+        return $this->samplingRules;
+    }
+
+    public function delegate(): SamplerInterface
+    {
+        return $this->delegate;
     }
 }

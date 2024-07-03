@@ -1,36 +1,41 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler\SamplingRule;
+<?php
 
-use Nevay\OTelSDK\Common\Attributes;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule;
-use Nevay\OTelSDK\Trace\Span\Kind;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
+
 use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
+use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use function sprintf;
 use function var_export;
 
 /**
  * Checks whether at least one link matches sampled and remote.
  */
-final class LinkRule implements SamplingRule {
+final class LinkRule implements SamplingRule
+{
 
     public function __construct(
         private readonly bool $sampled,
         private readonly ?bool $remote = null,
-    ) {}
+    ) {
+    }
 
     public function matches(
         ContextInterface $context,
         string $traceId,
         string $spanName,
-        Kind $spanKind,
-        Attributes $attributes,
+        int $spanKind,
+        AttributesInterface $attributes,
         array $links,
     ): bool {
         foreach ($links as $link) {
-            if ($link->spanContext->isSampled() !== $this->sampled) {
+            /* @var \OpenTelemetry\SDK\Trace\LinkInterface $link */
+            if ($link->getSpanContext()->isSampled() !== $this->sampled) {
                 continue;
             }
-            if ($this->remote !== null && $link->spanContext->isRemote() !== $this->remote) {
+            if ($this->remote !== null && $link->getSpanContext()->isRemote() !== $this->remote) {
                 continue;
             }
 
@@ -40,7 +45,8 @@ final class LinkRule implements SamplingRule {
         return false;
     }
 
-    public function __toString(): string {
+    public function __toString(): string
+    {
         return sprintf('Link{sampled=%s,remote=%s}', var_export($this->sampled, true), var_export($this->remote, true));
     }
 }

@@ -1,50 +1,59 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler;
+<?php
 
-use Nevay\OTelSDK\Common\Attributes;
-use Nevay\OTelSDK\Trace\Sampler;
-use Nevay\OTelSDK\Trace\SamplingResult;
-use Nevay\OTelSDK\Trace\Span\Kind;
-use OpenTelemetry\Context\ContextInterface;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased;
+
 use function implode;
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
+use OpenTelemetry\SDK\Trace\SamplerInterface;
+use OpenTelemetry\SDK\Trace\SamplingResult;
 use function sprintf;
 
 /**
  * Samples based on a list of rule sets. The first matching rule set will be
  * used for sampling decisions.
  */
-final class RuleBasedSampler implements Sampler {
-
+final class RuleBasedSampler implements SamplerInterface
+{
     /**
      * @param list<RuleSet> $ruleSets
      */
     public function __construct(
         private readonly array $ruleSets,
-        private readonly Sampler $fallback,
-    ) {}
+        private readonly SamplerInterface $fallback,
+    ) {
+    }
 
     public function shouldSample(
-        ContextInterface $context,
+        ContextInterface $parentContext,
         string $traceId,
         string $spanName,
-        Kind $spanKind,
-        Attributes $attributes,
+        int $spanKind,
+        AttributesInterface $attributes,
         array $links,
     ): SamplingResult {
         foreach ($this->ruleSets as $ruleSet) {
-            foreach ($ruleSet->samplingRules as $samplingRule) {
-                if (!$samplingRule->matches($context, $traceId, $spanName, $spanKind, $attributes, $links)) {
+            foreach ($ruleSet->samplingRules() as $samplingRule) {
+                if (!$samplingRule->matches($parentContext, $traceId, $spanName, $spanKind, $attributes, $links)) {
                     continue 2;
                 }
             }
 
-            return $ruleSet->delegate->shouldSample($context, $traceId, $spanName, $spanKind, $attributes, $links);
+            return $ruleSet->delegate()->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
         }
 
-        return $this->fallback->shouldSample($context, $traceId, $spanName, $spanKind, $attributes, $links);
+        return $this->fallback->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
 
-    public function __toString(): string {
-        return sprintf('RuleBasedSampler{rules=[%s],fallback=%s}', implode(',', $this->ruleSets), $this->fallback);
+    public function __toString(): string
+    {
+        return sprintf('RuleBasedSampler{rules=[%s],fallback=%s}', implode(',', $this->ruleSets), $this->fallback->getDescription());
+    }
+
+    public function getDescription(): string
+    {
+        return $this->__toString();
     }
 }

@@ -1,34 +1,40 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler\Configuration;
+<?php
 
-use Nevay\OTelSDK\Configuration\ComponentProvider;
-use Nevay\OTelSDK\Configuration\ComponentProviderRegistry;
-use Nevay\OTelSDK\Configuration\Context;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule\SpanKindRule;
-use Nevay\OTelSDK\Trace\Span\Kind;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+
+use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
+use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
+use OpenTelemetry\Config\SDK\Configuration\Context;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\SpanKindRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-final class SamplingRuleSpanKind implements ComponentProvider {
+final class SamplingRuleSpanKind implements ComponentProvider
+{
 
     /**
      * @param array{
      *     kind: 'INTERNAL'|'CLIENT'|'SERVER'|'PRODUCER'|'CONSUMER',
      * } $properties
      */
-    public function createPlugin(array $properties, Context $context): SamplingRule {
+    public function createPlugin(array $properties, Context $context): SamplingRule
+    {
         return new SpanKindRule(
             match ($properties['kind']) {
-                'INTERNAL' => Kind::Internal,
-                'CLIENT' => Kind::Client,
-                'SERVER' => Kind::Server,
-                'PRODUCER' => Kind::Producer,
-                'CONSUMER' => Kind::Consumer,
+                'INTERNAL' => SpanKind::KIND_INTERNAL,
+                'CLIENT' => SpanKind::KIND_CLIENT,
+                'SERVER' => SpanKind::KIND_SERVER,
+                'PRODUCER' => SpanKind::KIND_PRODUCER,
+                'CONSUMER' => SpanKind::KIND_CONSUMER,
             },
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition {
+    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    {
         $node = new ArrayNodeDefinition('span_kind');
         $node
             ->children()

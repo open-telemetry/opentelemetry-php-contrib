@@ -1,14 +1,18 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler\Configuration;
+<?php
 
-use Nevay\OTelSDK\Configuration\ComponentProvider;
-use Nevay\OTelSDK\Configuration\ComponentProviderRegistry;
-use Nevay\OTelSDK\Configuration\Context;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule\ParentRule;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+
+use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
+use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
+use OpenTelemetry\Config\SDK\Configuration\Context;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\ParentRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-final class SamplingRuleParent implements ComponentProvider {
+final class SamplingRuleParent implements ComponentProvider
+{
 
     /**
      * @param array{
@@ -16,14 +20,16 @@ final class SamplingRuleParent implements ComponentProvider {
      *     remote: ?bool,
      * } $properties
      */
-    public function createPlugin(array $properties, Context $context): SamplingRule {
+    public function createPlugin(array $properties, Context $context): SamplingRule
+    {
         return new ParentRule(
             $properties['sampled'],
             $properties['remote'],
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition {
+    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    {
         $node = new ArrayNodeDefinition('parent');
         $node
             ->children()

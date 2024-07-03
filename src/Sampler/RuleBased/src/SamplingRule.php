@@ -1,13 +1,15 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler;
+<?php
 
-use Nevay\OTelSDK\Common\Attributes;
-use Nevay\OTelSDK\Trace\Sampler;
-use Nevay\OTelSDK\Trace\Span\Kind;
-use Nevay\OTelSDK\Trace\Span\Link;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased;
+
 use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
+use OpenTelemetry\SDK\Trace\LinkInterface;
 
-interface SamplingRule {
+interface SamplingRule
+{
 
     /**
      * Returns whether this sampling rule matches the given data.
@@ -15,9 +17,9 @@ interface SamplingRule {
      * @param ContextInterface $context parent context
      * @param string $traceId trace id in binary format
      * @param string $spanName span name
-     * @param Kind $spanKind span kind
-     * @param Attributes $attributes span attributes
-     * @param list<Link> $links span links
+     * @param int $spanKind span kind
+     * @param AttributesInterface $attributes span attributes
+     * @param list<LinkInterface> $links span links
      * @return bool whether this rule matches the given data
      *
      * @see Sampler::shouldSample()
@@ -26,8 +28,8 @@ interface SamplingRule {
         ContextInterface $context,
         string $traceId,
         string $spanName,
-        Kind $spanKind,
-        Attributes $attributes,
+        int $spanKind,
+        AttributesInterface $attributes,
         array $links,
     ): bool;
 

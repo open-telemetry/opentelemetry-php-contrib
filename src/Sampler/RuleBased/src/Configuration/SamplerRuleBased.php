@@ -1,28 +1,32 @@
-<?php declare(strict_types=1);
-namespace Nevay\OTelSDK\Contrib\Sampler\Configuration;
+<?php
 
-use Nevay\OTelSDK\Configuration\ComponentPlugin;
-use Nevay\OTelSDK\Configuration\ComponentProvider;
-use Nevay\OTelSDK\Configuration\ComponentProviderRegistry;
-use Nevay\OTelSDK\Configuration\Context;
-use Nevay\OTelSDK\Contrib\Sampler\RuleBasedSampler;
-use Nevay\OTelSDK\Contrib\Sampler\RuleSet;
-use Nevay\OTelSDK\Contrib\Sampler\SamplingRule;
-use Nevay\OTelSDK\Trace\Sampler;
+declare(strict_types=1);
+
+namespace OpenTelemetry\Contrib\Sampler\RuleBased\Configuration;
+
+use OpenTelemetry\Config\SDK\Configuration\ComponentPlugin;
+use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
+use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
+use OpenTelemetry\Config\SDK\Configuration\Context;
+use OpenTelemetry\Contrib\Sampler\RuleBased\RuleBasedSampler;
+use OpenTelemetry\Contrib\Sampler\RuleBased\RuleSet;
+use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
+use OpenTelemetry\SDK\Trace\SamplerInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-final class SamplerRuleBased implements ComponentProvider {
-
+final class SamplerRuleBased implements ComponentProvider
+{
     /**
      * @param array{
      *     rule_sets: list<array{
      *         rules: list<ComponentPlugin<SamplingRule>>,
-     *         delegate: ComponentPlugin<Sampler>,
+     *         delegate: ComponentPlugin<SamplerInterface>,
      *     }>,
-     *     fallback: ComponentPlugin<Sampler>,
+     *     fallback: ComponentPlugin<SamplerInterface>,
      * } $properties
      */
-    public function createPlugin(array $properties, Context $context): Sampler {
+    public function createPlugin(array $properties, Context $context): SamplerInterface
+    {
         $ruleSets = [];
         foreach ($properties['rule_sets'] as $ruleSet) {
             $samplingRules = [];
@@ -42,7 +46,8 @@ final class SamplerRuleBased implements ComponentProvider {
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition {
+    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    {
         $node = new ArrayNodeDefinition('rule_based');
         $node
             ->children()
@@ -50,11 +55,11 @@ final class SamplerRuleBased implements ComponentProvider {
                     ->arrayPrototype()
                         ->children()
                             ->append($registry->componentList('rules', SamplingRule::class)->isRequired()->cannotBeEmpty())
-                            ->append($registry->component('delegate', Sampler::class)->isRequired())
+                            ->append($registry->component('delegate', SamplerInterface::class)->isRequired())
                         ->end()
                     ->end()
                 ->end()
-                ->append($registry->component('fallback', Sampler::class)->isRequired())
+                ->append($registry->component('fallback', SamplerInterface::class)->isRequired())
             ->end()
         ;
 
