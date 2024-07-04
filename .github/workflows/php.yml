@@ -45,6 +45,7 @@ jobs:
           'Propagation/TraceResponse',
           'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
+          'Sampler/RuleBased',
           'Shims/OpenTracing',
           'Symfony'
         ]
@@ -101,6 +102,10 @@ jobs:
             php-version: 7.4
           - project: 'ResourceDetectors/Container'
             php-version: 7.4
+          - project: 'Sampler/RuleBased'
+            php-version: 7.4
+          - project: 'Sampler/RuleBased'
+            php-version: 8.0
     steps:
     - uses: actions/checkout@v4
 
