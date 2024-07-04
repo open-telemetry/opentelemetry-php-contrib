@@ -14,6 +14,9 @@ use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
+/**
+ * @implements ComponentProvider<SamplerInterface>
+ */
 final class SamplerRuleBased implements ComponentProvider
 {
     /**

@@ -34,6 +34,6 @@ class SpanKindRuleTest extends TestCase
     {
         $rule = new SpanKindRule(SpanKind::KIND_SERVER);
 
-        $this->assertSame('SpanKind{kind=2}', (string)$rule);
+        $this->assertSame('SpanKind{kind=2}', (string) $rule);
     }
 }

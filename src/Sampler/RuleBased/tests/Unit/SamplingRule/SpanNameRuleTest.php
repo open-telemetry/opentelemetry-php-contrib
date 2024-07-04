@@ -15,6 +15,9 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SpanNameRule::class)]
 class SpanNameRuleTest extends TestCase
 {
+    /**
+     * @param non-empty-string $pattern
+     */
     #[DataProvider('matchesProvider')]
     public function test_matches(string $pattern, string $spanName, bool $expected): void
     {

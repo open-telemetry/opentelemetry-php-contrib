@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Tests\Unit\Sampler\RuleBased;
 
 use OpenTelemetry\Contrib\Sampler\RuleBased\RuleSet;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(RuleSet::class)]
 class RuleSetTest extends TestCase
 {
+    /** @var SamplerInterface&MockObject */
     private SamplerInterface $delegate;
+    /** @var SamplingRule&MockObject */
     private SamplingRule $rule_one;
+    /** @var SamplingRule&MockObject */
     private SamplingRule $rule_two;
 
     public function setUp(): void
@@ -38,6 +44,6 @@ class RuleSetTest extends TestCase
         $this->delegate->expects($this->once())->method('getDescription')->willReturn('delegate');
         $ruleSet = new RuleSet([$this->rule_one, $this->rule_two], $this->delegate);
 
-        $this->assertSame('RuleSet{rules=[rule_one,rule_two],delegate=delegate}', (string)$ruleSet);
+        $this->assertSame('RuleSet{rules=[rule_one,rule_two],delegate=delegate}', (string) $ruleSet);
     }
 }

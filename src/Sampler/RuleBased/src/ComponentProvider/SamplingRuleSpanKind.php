@@ -12,6 +12,9 @@ use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\SpanKindRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
+/**
+ * @implements ComponentProvider<SamplingRule>
+ */
 final class SamplingRuleSpanKind implements ComponentProvider
 {
 

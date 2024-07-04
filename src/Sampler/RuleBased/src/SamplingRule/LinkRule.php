@@ -31,7 +31,7 @@ final class LinkRule implements SamplingRule
         array $links,
     ): bool {
         foreach ($links as $link) {
-            /* @var \OpenTelemetry\SDK\Trace\LinkInterface $link */
+            // @var \OpenTelemetry\SDK\Trace\LinkInterface $link
             if ($link->getSpanContext()->isSampled() !== $this->sampled) {
                 continue;
             }

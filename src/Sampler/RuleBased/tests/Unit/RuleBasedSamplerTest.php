@@ -1,26 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Tests\Unit\Sampler\RuleBased;
 
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Contrib\Sampler\RuleBased\RuleBasedSampler;
 use OpenTelemetry\Contrib\Sampler\RuleBased\RuleSet;
 use OpenTelemetry\Contrib\Sampler\RuleBased\RuleSetInterface;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
+use OpenTelemetry\SDK\Trace\LinkInterface;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SamplingResult;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(RuleBasedSampler::class)]
 class RuleBasedSamplerTest extends TestCase
 {
+    /** @var SamplerInterface&MockObject */
     private SamplerInterface $fallback;
+    /** @var SamplerInterface&MockObject */
     private SamplerInterface $delegate;
     private RuleSetInterface $ruleSet;
+    /** @var SamplingRule&MockObject */
     private SamplingRule $rule;
     private RuleBasedSampler $sampler;
     private ContextInterface $context;
@@ -28,6 +34,7 @@ class RuleBasedSamplerTest extends TestCase
     private string $spanName;
     private int $spanKind;
     private AttributesInterface $attributes;
+    /** @var list<LinkInterface> */
     private array $links;
 
     public function setUp(): void

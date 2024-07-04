@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Tests\Unit\Sampler\RuleBased\SamplingRule;
 
 use OpenTelemetry\API\Trace\SpanContext;
@@ -7,7 +9,6 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TraceFlags;
 use OpenTelemetry\Context\ContextInterface;
-use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\LinkRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\ParentRule;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -65,6 +66,6 @@ class ParentRuleTest extends TestCase
     public function test_to_string(): void
     {
         $rule = new ParentRule(true, false);
-        $this->assertSame('Parent{sampled=true,remote=false}', (string)$rule);
+        $this->assertSame('Parent{sampled=true,remote=false}', (string) $rule);
     }
 }

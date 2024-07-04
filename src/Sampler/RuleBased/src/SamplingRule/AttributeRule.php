@@ -15,7 +15,10 @@ use function sprintf;
  */
 final class AttributeRule implements SamplingRule
 {
-
+    /**
+     * @param non-empty-string $attributeKey
+     * @param non-empty-string $pattern
+     */
     public function __construct(
         private readonly string $attributeKey,
         private readonly string $pattern,

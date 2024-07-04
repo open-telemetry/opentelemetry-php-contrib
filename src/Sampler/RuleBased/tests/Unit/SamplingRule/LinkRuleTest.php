@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Tests\Unit\Sampler\RuleBased\SamplingRule;
 
 use OpenTelemetry\API\Trace\SpanContext;
@@ -61,6 +63,6 @@ class LinkRuleTest extends TestCase
     public function test_to_string(): void
     {
         $rule = new LinkRule(true, false);
-        $this->assertSame('Link{sampled=true,remote=false}', (string)$rule);
+        $this->assertSame('Link{sampled=true,remote=false}', (string) $rule);
     }
 }

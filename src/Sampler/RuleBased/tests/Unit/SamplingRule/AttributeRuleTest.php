@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Tests\Unit\Sampler\RuleBased\SamplingRule;
 
 use OpenTelemetry\API\Trace\SpanKind;

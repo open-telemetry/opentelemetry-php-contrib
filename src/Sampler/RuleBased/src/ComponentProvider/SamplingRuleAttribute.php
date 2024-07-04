@@ -12,6 +12,9 @@ use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\AttributeRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
+/**
+ * @implements ComponentProvider<SamplingRule>
+ */
 final class SamplingRuleAttribute implements ComponentProvider
 {
 
@@ -20,6 +23,7 @@ final class SamplingRuleAttribute implements ComponentProvider
      *     key: string,
      *     pattern: string,
      * } $properties
+     * @psalm-suppress ArgumentTypeCoercion
      */
     public function createPlugin(array $properties, Context $context): SamplingRule
     {

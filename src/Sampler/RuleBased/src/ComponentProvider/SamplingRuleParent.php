@@ -11,6 +11,9 @@ use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\ParentRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
+/**
+ * @implements ComponentProvider<SamplingRule>
+ */
 final class SamplingRuleParent implements ComponentProvider
 {
 

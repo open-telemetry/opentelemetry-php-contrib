@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Sampler\RuleBased;
 
 use OpenTelemetry\SDK\Trace\SamplerInterface;

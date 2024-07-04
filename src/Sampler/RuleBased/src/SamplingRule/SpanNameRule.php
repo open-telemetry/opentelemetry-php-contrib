@@ -12,7 +12,9 @@ use function sprintf;
 
 final class SpanNameRule implements SamplingRule
 {
-
+    /**
+     * @param non-empty-string $pattern
+     */
     public function __construct(
         private readonly string $pattern,
     ) {
