@@ -59,11 +59,12 @@ final class PDOTracker
 
     /**
      * @param PDO $pdo
+     * @param string $dsn
      * @return iterable<non-empty-string, bool|int|float|string|array|null>
      */
-    public function trackPdoAttributes(PDO $pdo): iterable
+    public function trackPdoAttributes(PDO $pdo, string $dsn): iterable
     {
-        $attributes = [];
+        $attributes = self::extractAttributesFromDSN($dsn);
 
         try {
             $dbSystem = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -105,5 +106,36 @@ final class PDOTracker
             'ibm' => 'db2',
             default => 'other_sql',
         };
+    }
+
+    /**
+     * Extracts attributes from a DSN string
+     *
+     * @param string $dsn
+     * @return array
+     */
+    private static function extractAttributesFromDSN(string $dsn): array
+    {
+        $attributes = [];
+        if (str_starts_with($dsn, 'sqlite')) {
+            $attributes[TraceAttributes::DB_NAME] = $dsn;
+
+            return $attributes;
+        }
+
+        if (preg_match("/user=([^;]*)/", $dsn, $matches)) {
+            $user = $matches[1];
+            $attributes[TraceAttributes::DB_USER] = $user ?? 'unknown';
+        }
+        if (preg_match("/host=([^;]*)/", $dsn, $matches)) {
+            $host = $matches[1];
+            $attributes[TraceAttributes::NET_PEER_NAME] = $host ?? 'unknown';
+        }
+        if (preg_match("/dbname=([^;]*)/", $dsn, $matches)) {
+            $dbname = $matches[1];
+            $attributes[TraceAttributes::DB_NAME] = $dbname ?? 'unknown';
+        }
+
+        return $attributes;
     }
 }
