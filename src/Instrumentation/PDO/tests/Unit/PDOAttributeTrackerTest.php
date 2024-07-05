@@ -23,7 +23,7 @@ class PDOAttributeTrackerTest extends TestCase
 
         $this->assertContains(TraceAttributes::DB_SYSTEM, array_keys($attributes));
         $this->assertContains(TraceAttributes::DB_NAME, array_keys($attributes));
-        $this->assertSame($dsn, $attributes[TraceAttributes::DB_NAME]);
+        $this->assertSame('memory', $attributes[TraceAttributes::DB_NAME]);
 
         $stmt = $pdo->prepare('SELECT NULL LIMIT 0;');
         $objectMap->trackStatement($stmt, $pdo, $span->getContext());
