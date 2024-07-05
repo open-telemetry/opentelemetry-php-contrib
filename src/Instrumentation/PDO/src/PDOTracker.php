@@ -112,9 +112,9 @@ final class PDOTracker
      * Extracts attributes from a DSN string
      *
      * @param string $dsn
-     * @return array
+     * @return iterable<non-empty-string, bool|int|float|string|array|null>
      */
-    private static function extractAttributesFromDSN(string $dsn): array
+    private static function extractAttributesFromDSN(string $dsn): iterable
     {
         $attributes = [];
         if (str_starts_with($dsn, 'sqlite::memory:')) {
