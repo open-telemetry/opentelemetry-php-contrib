@@ -125,15 +125,21 @@ final class PDOTracker
 
         if (preg_match('/user=([^;]*)/', $dsn, $matches)) {
             $user = $matches[1];
-            $attributes[TraceAttributes::DB_USER] = $user ?? 'unknown';
+            if ($user !== '') {
+                $attributes[TraceAttributes::DB_USER] = $user;
+            }
         }
         if (preg_match('/host=([^;]*)/', $dsn, $matches)) {
             $host = $matches[1];
-            $attributes[TraceAttributes::NET_PEER_NAME] = $host ?? 'unknown';
+            if ($host !== '') {
+                $attributes[TraceAttributes::NET_PEER_NAME] = $host;
+            }
         }
         if (preg_match('/dbname=([^;]*)/', $dsn, $matches)) {
             $dbname = $matches[1];
-            $attributes[TraceAttributes::DB_NAME] = $dbname ?? 'unknown';
+            if ($dbname !== '') {
+                $attributes[TraceAttributes::DB_NAME] = $dbname;
+            }
         }
 
         return $attributes;
