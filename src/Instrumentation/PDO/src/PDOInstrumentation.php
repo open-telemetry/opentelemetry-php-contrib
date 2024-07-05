@@ -53,7 +53,9 @@ class PDOInstrumentation
                 }
                 $span = Span::fromContext($scope->context());
 
-                $attributes = $pdoTracker->trackPdoAttributes($pdo);
+                $dsn = $params[0] ?? '';
+
+                $attributes = $pdoTracker->trackPdoAttributes($pdo, $dsn);
                 $span->setAttributes($attributes);
 
                 self::end($exception);
