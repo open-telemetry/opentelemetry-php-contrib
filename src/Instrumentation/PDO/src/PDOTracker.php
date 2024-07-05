@@ -117,7 +117,18 @@ final class PDOTracker
     private static function extractAttributesFromDSN(string $dsn): array
     {
         $attributes = [];
-        if (str_starts_with($dsn, 'sqlite')) {
+        if (str_starts_with($dsn, 'sqlite::memory:')) {
+            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAME] = 'memory';
+
+            return $attributes;
+        } else if (str_starts_with($dsn, 'sqlite:')) {
+            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAME] = substr($dsn, 7);
+
+            return $attributes;
+        } else if (str_starts_with($dsn, 'sqlite')) {
+            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
             $attributes[TraceAttributes::DB_NAME] = $dsn;
 
             return $attributes;
