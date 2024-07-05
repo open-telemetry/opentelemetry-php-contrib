@@ -122,12 +122,12 @@ final class PDOTracker
             $attributes[TraceAttributes::DB_NAME] = 'memory';
 
             return $attributes;
-        } else if (str_starts_with($dsn, 'sqlite:')) {
+        } elseif (str_starts_with($dsn, 'sqlite:')) {
             $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
             $attributes[TraceAttributes::DB_NAME] = substr($dsn, 7);
 
             return $attributes;
-        } else if (str_starts_with($dsn, 'sqlite')) {
+        } elseif (str_starts_with($dsn, 'sqlite')) {
             $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
             $attributes[TraceAttributes::DB_NAME] = $dsn;
 
