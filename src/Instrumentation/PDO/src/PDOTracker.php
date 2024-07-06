@@ -67,18 +67,26 @@ final class PDOTracker
         $attributes = self::extractAttributesFromDSN($dsn);
 
         try {
+            /** @var string $dbSystem */
             $dbSystem = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-            /** @psalm-suppress PossiblyInvalidArgument */
+            /** @psalm-suppress InvalidArrayAssignment */
             $attributes[TraceAttributes::DB_SYSTEM] = self::mapDriverNameToAttribute($dbSystem);
         } catch (\Error) {
             // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $attributes[TraceAttributes::DB_SYSTEM] = 'other_sql';
         }
 
-        return $this->pdoToAttributesMap[$pdo] = $attributes;
+        $this->pdoToAttributesMap[$pdo] = $attributes;
+
+        return $attributes;
     }
 
-    public function trackedAttributesForPdo(PDO $pdo)
+    /**
+     * @param PDO $pdo
+     * @return iterable<non-empty-string, bool|int|float|string|array|null>
+     */
+    public function trackedAttributesForPdo(PDO $pdo): iterable
     {
         return $this->pdoToAttributesMap[$pdo] ?? [];
     }
@@ -144,6 +152,7 @@ final class PDOTracker
             $host = $matches[1];
             if ($host !== '') {
                 $attributes[TraceAttributes::NET_PEER_NAME] = $host;
+                $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
             }
         }
         if (preg_match('/dbname=([^;]*)/', $dsn, $matches)) {

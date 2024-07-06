@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 class PDOAttributeTrackerTest extends TestCase
 {
-    public function testPdoCanBeTracked()
+    public function testPdoCanBeTracked(): void
     {
         $dsn = 'sqlite::memory:';
         $pdo = new \PDO($dsn);
@@ -21,8 +21,11 @@ class PDOAttributeTrackerTest extends TestCase
         $attributes = $objectMap->trackedAttributesForPdo($pdo);
         $span = Span::getInvalid();
 
+        /** @psalm-suppress InvalidArgument */
         $this->assertContains(TraceAttributes::DB_SYSTEM, array_keys($attributes));
+        /** @psalm-suppress InvalidArgument */
         $this->assertContains(TraceAttributes::DB_NAME, array_keys($attributes));
+        /** @psalm-suppress InvalidArrayAccess */
         $this->assertSame('memory', $attributes[TraceAttributes::DB_NAME]);
 
         $stmt = $pdo->prepare('SELECT NULL LIMIT 0;');
