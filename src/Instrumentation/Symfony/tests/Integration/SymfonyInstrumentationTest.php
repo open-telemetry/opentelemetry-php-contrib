@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -18,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolverInterface;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
@@ -32,6 +34,28 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         $response = $kernel->handle(new Request());
+
+        $this->assertArrayHasKey(
+            TraceResponsePropagator::TRACERESPONSE,
+            $response->headers->all(),
+            'traceresponse header is present if TraceResponsePropagator is present'
+        );
+    }
+
+    public function test_http_kernel_marks_root_as_erroneous(): void
+    {
+        $this->expectException(HttpException::class);
+        $kernel = $this->getHttpKernel(new EventDispatcher(), function () {
+            throw new HttpException(500, 'foo');
+        });
+        $this->assertCount(0, $this->storage);
+
+        $response = $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+
+        $this->assertCount(1, $this->storage);
+        $this->assertSame(500, $this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+
+        $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
 
         $this->assertArrayHasKey(
             TraceResponsePropagator::TRACERESPONSE,
