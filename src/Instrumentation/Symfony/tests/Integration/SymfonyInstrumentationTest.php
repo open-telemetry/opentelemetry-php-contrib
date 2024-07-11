@@ -42,7 +42,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         );
     }
 
-    public function test_kernel_marks_root_as_erroneous(): void
+    public function test_http_kernel_marks_root_as_erroneous(): void
     {
         $this->expectException(HttpException::class);
         $kernel = $this->getHttpKernel(new EventDispatcher(), function () {
@@ -54,7 +54,8 @@ class SymfonyInstrumentationTest extends AbstractTest
 
         $this->assertCount(1, $this->storage);
         $this->assertSame(500, $this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus());
+
+        $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
 
         $this->assertArrayHasKey(
             TraceResponsePropagator::TRACERESPONSE,

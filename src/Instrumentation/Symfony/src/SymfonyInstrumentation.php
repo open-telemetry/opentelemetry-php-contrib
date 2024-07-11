@@ -152,7 +152,7 @@ final class SymfonyInstrumentation
                 string $function,
                 ?string $filename,
                 ?int $lineno,
-            ) use ($instrumentation): array {
+            ): array {
                 /** @var \Throwable $throwable */
                 $throwable = $params[0];
 
