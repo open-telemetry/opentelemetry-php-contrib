@@ -41,9 +41,7 @@ $span->end();
 
 Message context:
 
-time: %d.%d
-memory: %d
-category: '%s'
+%A
 
 {
     "resource": {
