@@ -15,7 +15,11 @@ class CakePHPInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.cakephp');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.cakephp',
+            null,
+            'https://opentelemetry.io/schemas/1.25.0'
+        );
         Server::hook($instrumentation);
         Controller::hook($instrumentation);
         Command::hook($instrumentation);
