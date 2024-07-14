@@ -62,17 +62,6 @@ class CakePHPInstrumentationTest extends TestCase
         $this->assertSame('invokeAction', $attributes['code.function']);
         $this->assertSame($serverSpan->getTraceId(), $controllerSpan->getParentContext()->getTraceId());
         $this->assertSame($serverSpan->getSpanId(), $controllerSpan->getParentContext()->getSpanId());
-
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        /** @var Histogram $metric */
-        $metric = $metrics[0]->data;
-        $this->assertSame('http.server.request.duration', $metrics[0]->name);
-        $this->assertGreaterThan(0, $metric->dataPoints[0]->attributes->count());
-        $metricAttributes = $metric->dataPoints[0]->attributes->toArray();
-        $this->assertSame('GET', $metricAttributes['http.request.method']);
-        $this->assertSame('/article', $metricAttributes['http.route']);
-        $this->assertSame(200, $metricAttributes['http.response.status_code']);
     }
 
     public function test_exception(): void
@@ -95,17 +84,6 @@ class CakePHPInstrumentationTest extends TestCase
         $event = $serverSpan->getEvents()[0];
         $this->assertSame('exception', $event->getName());
         $this->assertSame('kaboom', $event->getAttributes()->get('exception.message'));
-
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        /** @var Histogram $metric */
-        $metric = $metrics[0]->data;
-        $this->assertSame('http.server.request.duration', $metrics[0]->name);
-        $this->assertGreaterThan(0, $metric->dataPoints[0]->attributes->count());
-        $metricAttributes = $metric->dataPoints[0]->attributes->toArray();
-        $this->assertSame('GET', $metricAttributes['http.request.method']);
-        $this->assertSame('/{controller}/{action}/*', $metricAttributes['http.route']);
-        $this->assertSame('RuntimeException', $metricAttributes['error.type']);
     }
 
     public function test_low_cardinality_route_attribute(): void
@@ -116,13 +94,6 @@ class CakePHPInstrumentationTest extends TestCase
         $span = $this->storage[1];
         $attributes = $span->getAttributes()->toArray();
         $this->assertSame('/article/{id}', $attributes['http.route']);
-
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        /** @var Histogram $metric */
-        $metric = $metrics[0]->data;
-        $metricAttributes = $metric->dataPoints[0]->attributes->toArray();
-        $this->assertSame('/article/{id}', $metricAttributes['http.route']);
     }
 
     public function test_fallback_route(): void
@@ -133,13 +104,6 @@ class CakePHPInstrumentationTest extends TestCase
         $span = $this->storage[1];
         $attributes = $span->getAttributes()->toArray();
         $this->assertSame('/{controller}/{action}/*', $attributes['http.route']);
-
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        /** @var Histogram $metric */
-        $metric = $metrics[0]->data;
-        $metricAttributes = $metric->dataPoints[0]->attributes->toArray();
-        $this->assertSame('/{controller}/{action}/*', $metricAttributes['http.route']);
     }
 
     public function test_response_code_gte_400(): void
@@ -164,44 +128,5 @@ class CakePHPInstrumentationTest extends TestCase
         $this->assertCount(0, $events);
         $attributes = $span->getAttributes()->toArray();
         $this->assertSame(400, $attributes['http.response.status_code']);
-
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        /** @var Histogram $metric */
-        $metric = $metrics[0]->data;
-        $metricAttributes = $metric->dataPoints[0]->attributes->toArray();
-        $this->assertSame(400, $metricAttributes['error.type']);
-    }
-
-    public function test_add(): void
-    {
-        $this->assertCount(0, $this->storage);
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        $this->assertCount(0, $metrics);
-
-        $this->post('/article', 'test123');
-
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        $this->assertCount(2, $metrics);
-        $this->assertSame('http.server.request.duration', $metrics[0]->name);
-        $this->assertSame('http.server.request.body.size', $metrics[1]->name);
-    }
-
-    public function test_body(): void
-    {
-        $this->assertCount(0, $this->storage);
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        $this->assertCount(0, $metrics);
-
-        $this->get('/article/body');
-
-        $this->metricReader->collect();
-        $metrics = $this->metricExporter->collect();
-        $this->assertCount(2, $metrics);
-        $this->assertSame('http.server.request.duration', $metrics[0]->name);
-        $this->assertSame('http.server.response.body.size', $metrics[1]->name);
     }
 }

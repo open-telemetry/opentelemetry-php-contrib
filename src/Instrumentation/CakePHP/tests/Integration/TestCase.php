@@ -21,8 +21,6 @@ class TestCase extends \Cake\TestSuite\TestCase
     /** @var ArrayObject|ImmutableSpan[] $storage */
     protected ArrayObject|array $storage;
     protected TracerProvider $tracerProvider;
-    protected \OpenTelemetry\SDK\Metrics\MetricExporter\InMemoryExporter $metricExporter;
-    protected ExportingReader $metricReader;
 
     public function setUp(): void
     {
@@ -35,16 +33,9 @@ class TestCase extends \Cake\TestSuite\TestCase
             ),
         );
 
-        $this->metricExporter = new \OpenTelemetry\SDK\Metrics\MetricExporter\InMemoryExporter();
-        $this->metricReader = new ExportingReader($this->metricExporter);
-        $meterProvider = MeterProvider::builder()
-            ->addReader($this->metricReader)
-            ->build();
-
         $this->scope = Configurator::create()
             ->withTracerProvider($this->tracerProvider)
             ->withPropagator(TraceContextPropagator::getInstance())
-            ->withMeterProvider($meterProvider)
             ->activate();
     }
 
