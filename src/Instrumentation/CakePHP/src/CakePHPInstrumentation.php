@@ -8,6 +8,7 @@ use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Command\Command;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Controller\Controller;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Http\Server;
+use OpenTelemetry\SemConv\TraceAttributes;
 
 class CakePHPInstrumentation
 {
@@ -17,8 +18,7 @@ class CakePHPInstrumentation
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.cakephp',
-            null,
-            'https://opentelemetry.io/schemas/1.25.0'
+            schemaUrl: TraceAttributes::SCHEMA_URL,
         );
         Server::hook($instrumentation);
         Controller::hook($instrumentation);
