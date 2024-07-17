@@ -31,5 +31,5 @@ $span->end();
 ?>
 
 --EXPECTF--
-bool(true)
+%Abool(true)
 [%s] INFO Goodbye, otel: traceId={traceId} spanId={spanId}

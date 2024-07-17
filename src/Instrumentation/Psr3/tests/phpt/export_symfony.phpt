@@ -28,7 +28,7 @@ $span->end();
 ?>
 
 --EXPECTF--
-[warning] hello world
+%A[warning] hello world
 
 {
     "resource": {

@@ -34,7 +34,7 @@ $span->end();
 ?>
 
 --EXPECTF--
-[%s] WARNING hello apix
+%A[%s] WARNING hello apix
 [warning] hello symfony
 [%s] test.WARNING: hello monolog [] []
 %s [warning][application] hello yii

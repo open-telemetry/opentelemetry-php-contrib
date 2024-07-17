@@ -33,7 +33,7 @@ $span->end();
 ?>
 
 --EXPECTF--
-%s [info][%s] hello world
+%A%s [info][%s] hello world
 
 Message context:
 %A
