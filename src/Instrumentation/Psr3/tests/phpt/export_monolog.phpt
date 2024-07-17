@@ -28,7 +28,7 @@ $span->end();
 ?>
 
 --EXPECTF--
-%A{
+{
     "resource": {
         "attributes": [],
         "dropped_attributes_count": 0

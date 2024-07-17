@@ -28,7 +28,7 @@ $span->end();
 ?>
 
 --EXPECTF--
-%A%s [warning][%s] hello world traceId=%s spanId=%s
+%s [warning][%s] hello world traceId=%s spanId=%s
 
 Message context:
 %A

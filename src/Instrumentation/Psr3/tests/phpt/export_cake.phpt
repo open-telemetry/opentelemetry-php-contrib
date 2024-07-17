@@ -32,7 +32,7 @@ $span->end();
 ?>
 
 --EXPECTF--
-%A%s info: hello world
+%s info: hello world
 
 {
     "resource": {
