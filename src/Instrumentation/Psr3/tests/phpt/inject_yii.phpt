@@ -32,15 +32,6 @@ $span->end();
 
 Message context:
 %A
-foo: 'bar'
-exception: RuntimeException: kablam in %s
-Stack trace:
-#0 %s
-#1 %s
-
-Next Exception: kaboom in %s
-Stack trace:
-#0 %s
-#1 %s
+foo: 'bar'%A
 traceId: '%s'
 spanId: '%s'%A
