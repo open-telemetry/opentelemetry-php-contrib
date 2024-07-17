@@ -23,6 +23,7 @@ jobs:
           'Aws',
           'Context/Swoole',
           'Instrumentation/ExtAmqp',
+          'Instrumentation/ExtRdKafka',
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/Slim',
@@ -94,6 +95,12 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.1
+          - project: 'Instrumentation/ExtRdKafka'
+            php-version: 7.4
+          - project: 'Instrumentation/ExtRdKafka'
+            php-version: 8.0
+          - project: 'Instrumentation/ExtRdKafka'
+            php-version: 8.1
           - project: 'Instrumentation/OpenAIPHP'
             php-version: 7.4
           - project: 'Instrumentation/OpenAIPHP'
@@ -112,7 +119,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, amqp, grpc, opentelemetry
+        extensions: ast, amqp, grpc, opentelemetry, rdkafka
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -166,6 +173,11 @@ jobs:
       if: ${{ matrix.project == 'Instrumentation/ExtAmqp' }}
       run: |
         docker compose up rabbitmq -d --wait
+
+    - name: Start Kafka
+      if: ${{ matrix.project == 'Instrumentation/ExtRdKafka' }}
+      run: |
+        KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092 docker compose up  kafka -d --wait
 
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
