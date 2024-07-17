@@ -5,7 +5,7 @@ Provides additional samplers that are not part of the official specification.
 ## Installation
 
 ```shell
-composer require tbachert/otel-sdk-contrib-sampler
+composer require open-telemetry/sampler-rule-based
 ```
 
 ## RuleBasedSampler
