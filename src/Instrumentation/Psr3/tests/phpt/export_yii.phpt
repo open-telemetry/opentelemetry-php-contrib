@@ -47,7 +47,7 @@ Next Exception: kaboom in %s
 Stack trace:
 #0 %s
 #1 {main}
-
+%A
 {
     "resource": {
         "attributes": [],

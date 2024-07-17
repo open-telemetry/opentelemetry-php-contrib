@@ -31,7 +31,6 @@ $span->end();
 %s [warning][%s] hello world traceId=%s spanId=%s
 
 Message context:
-
 %A
 foo: 'bar'
 exception: RuntimeException: kablam in %s
@@ -44,4 +43,4 @@ Stack trace:
 #0 %s
 #1 %s
 traceId: '%s'
-spanId: '%s'
+spanId: '%s'%A
