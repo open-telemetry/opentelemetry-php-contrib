@@ -2,7 +2,7 @@ file_format: "0.1"
 
 tracer_provider:
   sampler:
-    rule_based:
+    contrib_rule_based:
       rule_sets:
         - rules:
             - attribute: {key: is.important, pattern: ~false~ }

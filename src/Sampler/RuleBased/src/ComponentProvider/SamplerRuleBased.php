@@ -51,7 +51,7 @@ final class SamplerRuleBased implements ComponentProvider
 
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
-        $node = new ArrayNodeDefinition('rule_based');
+        $node = new ArrayNodeDefinition('contrib_rule_based');
         $node
             ->children()
                 ->arrayNode('rule_sets')

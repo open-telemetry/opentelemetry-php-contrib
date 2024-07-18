@@ -32,7 +32,7 @@ $sampler = new RuleBasedSampler(
 ###### Example: drop spans for the /health endpoint
 
 ```yaml
-rule_based:
+contrib_rule_based:
     rule_sets:
     -   rules:
         -   span_kind: { kind: SERVER }
@@ -45,7 +45,7 @@ rule_based:
 ###### Example: sample spans with at least one sampled link
 
 ```yaml
-rule_based:
+contrib_rule_based:
     rule_sets:
     -   rules: [ link: { sampled: true } ]
         delegate:
