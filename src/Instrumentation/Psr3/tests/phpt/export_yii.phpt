@@ -36,7 +36,7 @@ $span->end();
 %s [info][%s] hello world
 
 Message context:
-
+%A
 foo: 'bar'
 exception: RuntimeException: kablam in %s
 Stack trace:
@@ -47,10 +47,7 @@ Next Exception: kaboom in %s
 Stack trace:
 #0 %s
 #1 {main}
-time: %d.%d
-memory: %d
-category: '%s'
-
+%A
 {
     "resource": {
         "attributes": [],
