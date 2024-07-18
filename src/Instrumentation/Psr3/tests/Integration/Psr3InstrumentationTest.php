@@ -19,20 +19,19 @@ class Psr3InstrumentationTest extends TestCase
 {
     private ScopeInterface $scope;
     private SpanInterface $span;
-    private TracerProvider $tracerProvider;
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
     public function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
-        $this->tracerProvider = new TracerProvider(
+        $tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
                 new InMemoryExporter(new ArrayObject())
             )
         );
 
-        $this->span = $this->tracerProvider
+        $this->span = $tracerProvider
             ->getTracer('phpunit')
             ->spanBuilder('root')
             ->startSpan();

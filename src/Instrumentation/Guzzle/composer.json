@@ -12,7 +12,7 @@
     "php": "^8.0",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.23",
+    "open-telemetry/sem-conv": "^1.24",
     "guzzlehttp/guzzle": "^7"
   },
   "require-dev": {

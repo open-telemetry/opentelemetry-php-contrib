@@ -23,7 +23,11 @@ class YiiInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.yii');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.yii',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
 
         hook(
             Application::class,

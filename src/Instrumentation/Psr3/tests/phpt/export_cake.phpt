@@ -41,11 +41,11 @@ $span->end();
     },
     "scopes": [
         {
-            "name": "psr3",
+            "name": "io.opentelemetry.contrib.php.psr3",
             "version": null,
             "attributes": [],
             "dropped_attributes_count": 0,
-            "schema_url": null,
+            "schema_url": "https:\/\/opentelemetry.io\/schemas\/1.24.0",
             "logs": [
                 {
                     "timestamp": null,
