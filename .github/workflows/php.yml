@@ -177,9 +177,11 @@ jobs:
 
     - name: Code Coverage
       uses: codecov/codecov-action@v4
+      # only generate coverage against the latest PHP version
+      if: ${{ matrix.php-version == '8.3' }}
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: src/${{ matrix.project }}
         files: ./coverage.clover
-        flags: ${{ matrix.project }}:${{ matrix.php-version }}
+        flags: ${{ matrix.project }}
         verbose: false
