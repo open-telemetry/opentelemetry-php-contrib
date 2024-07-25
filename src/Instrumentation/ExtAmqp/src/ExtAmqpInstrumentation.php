@@ -27,7 +27,7 @@ final class ExtAmqpInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.ext_amqp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-amqp'),
-            TraceAttributes::SCHEMA_URL,
+            'https://opentelemetry.io/schemas/1.24.0',
         );
 
         hook(

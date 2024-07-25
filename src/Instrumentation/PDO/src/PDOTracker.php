@@ -59,25 +59,34 @@ final class PDOTracker
 
     /**
      * @param PDO $pdo
+     * @param string $dsn
      * @return iterable<non-empty-string, bool|int|float|string|array|null>
      */
-    public function trackPdoAttributes(PDO $pdo): iterable
+    public function trackPdoAttributes(PDO $pdo, string $dsn): iterable
     {
-        $attributes = [];
+        $attributes = self::extractAttributesFromDSN($dsn);
 
         try {
+            /** @var string $dbSystem */
             $dbSystem = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-            /** @psalm-suppress PossiblyInvalidArgument */
+            /** @psalm-suppress InvalidArrayAssignment */
             $attributes[TraceAttributes::DB_SYSTEM] = self::mapDriverNameToAttribute($dbSystem);
         } catch (\Error) {
             // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $attributes[TraceAttributes::DB_SYSTEM] = 'other_sql';
         }
 
-        return $this->pdoToAttributesMap[$pdo] = $attributes;
+        $this->pdoToAttributesMap[$pdo] = $attributes;
+
+        return $attributes;
     }
 
-    public function trackedAttributesForPdo(PDO $pdo)
+    /**
+     * @param PDO $pdo
+     * @return iterable<non-empty-string, bool|int|float|string|array|null>
+     */
+    public function trackedAttributesForPdo(PDO $pdo): iterable
     {
         return $this->pdoToAttributesMap[$pdo] ?? [];
     }
@@ -105,5 +114,54 @@ final class PDOTracker
             'ibm' => 'db2',
             default => 'other_sql',
         };
+    }
+
+    /**
+     * Extracts attributes from a DSN string
+     *
+     * @param string $dsn
+     * @return iterable<non-empty-string, bool|int|float|string|array|null>
+     */
+    private static function extractAttributesFromDSN(string $dsn): iterable
+    {
+        $attributes = [];
+        if (str_starts_with($dsn, 'sqlite::memory:')) {
+            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAME] = 'memory';
+
+            return $attributes;
+        } elseif (str_starts_with($dsn, 'sqlite:')) {
+            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAME] = substr($dsn, 7);
+
+            return $attributes;
+        } elseif (str_starts_with($dsn, 'sqlite')) {
+            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAME] = $dsn;
+
+            return $attributes;
+        }
+
+        if (preg_match('/user=([^;]*)/', $dsn, $matches)) {
+            $user = $matches[1];
+            if ($user !== '') {
+                $attributes[TraceAttributes::DB_USER] = $user;
+            }
+        }
+        if (preg_match('/host=([^;]*)/', $dsn, $matches)) {
+            $host = $matches[1];
+            if ($host !== '') {
+                $attributes[TraceAttributes::NET_PEER_NAME] = $host;
+                $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
+            }
+        }
+        if (preg_match('/dbname=([^;]*)/', $dsn, $matches)) {
+            $dbname = $matches[1];
+            if ($dbname !== '') {
+                $attributes[TraceAttributes::DB_NAME] = $dbname;
+            }
+        }
+
+        return $attributes;
     }
 }

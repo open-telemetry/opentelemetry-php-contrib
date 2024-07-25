@@ -23,7 +23,11 @@ class CodeIgniterInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.codeigniter');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.codeigniter',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
 
         // The method that creates request/response/controller objects is in the same class as the method
         // that handles them, and they are not passed as method parameters, but rather stored in private
