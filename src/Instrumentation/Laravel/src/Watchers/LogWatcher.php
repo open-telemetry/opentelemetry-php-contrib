@@ -6,16 +6,22 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Log\LogManager;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
 
 class LogWatcher extends Watcher
 {
+    private LogManager $logger;
+
     /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
     {
         /** @phan-suppress-next-line PhanTypeArraySuspicious */
         $app['events']->listen(MessageLogged::class, [$this, 'recordLog']);
+
+        /** @phan-suppress-next-line PhanTypeArraySuspicious */
+        $this->logger = $app['log'];
     }
 
     /**
@@ -23,6 +29,13 @@ class LogWatcher extends Watcher
      */
     public function recordLog(MessageLogged $log): void
     {
+        $underlyingLogger = $this->logger->getLogger();
+
+        /** @phan-suppress-next-line PhanUndeclaredMethod */
+        if (method_exists($underlyingLogger, 'isHandling') && !$underlyingLogger->isHandling($log->level)) {
+            return;
+        }
+
         $attributes = [
             'level' => $log->level,
         ];
