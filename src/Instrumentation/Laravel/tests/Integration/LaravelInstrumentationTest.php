@@ -34,7 +34,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/hello', function () {
             $text = 'Hello Cruel World';
             cache()->forever('opentelemetry', 'opentelemetry');
-            Log::info('Log info');
+            Log::info('Log info', ['test' => true]);
             cache()->get('opentelemetry.io', 'php');
             cache()->get('opentelemetry', 'php');
             cache()->forget('opentelemetry');
@@ -46,23 +46,30 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(2, $this->storage);
-        $span = $this->storage[1];
+        $this->assertCount(3, $this->storage);
+        $span = $this->storage[2];
         $this->assertSame('GET /hello', $span->getName());
         $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::URL_FULL));
-        $this->assertCount(5, $span->getEvents());
+        $this->assertCount(4, $span->getEvents());
         $this->assertSame('cache set', $span->getEvents()[0]->getName());
-        $this->assertSame('Log info', $span->getEvents()[1]->getName());
-        $this->assertSame('cache miss', $span->getEvents()[2]->getName());
-        $this->assertSame('cache hit', $span->getEvents()[3]->getName());
-        $this->assertSame('cache forget', $span->getEvents()[4]->getName());
+        $this->assertSame('cache miss', $span->getEvents()[1]->getName());
+        $this->assertSame('cache hit', $span->getEvents()[2]->getName());
+        $this->assertSame('cache forget', $span->getEvents()[3]->getName());
 
-        $span = $this->storage[0];
+        $span = $this->storage[1];
         $this->assertSame('sql SELECT', $span->getName());
         $this->assertSame('SELECT', $span->getAttributes()->get('db.operation'));
         $this->assertSame(':memory:', $span->getAttributes()->get('db.name'));
         $this->assertSame('select 1', $span->getAttributes()->get('db.statement'));
         $this->assertSame('sqlite', $span->getAttributes()->get('db.system'));
+
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord */
+        $logRecord = $this->storage[0];
+        $this->assertSame('Log info', $logRecord->getBody());
+        $this->assertSame('info', $logRecord->getSeverityText());
+        $this->assertSame(9, $logRecord->getSeverityNumber());
+        $this->assertArrayHasKey('context', $logRecord->getAttributes()->toArray());
+        $this->assertSame(json_encode(['test' => true]), $logRecord->getAttributes()->toArray()['context']);
     }
 
     public function test_low_cardinality_route_span_name(): void
