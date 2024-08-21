@@ -7,15 +7,15 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter as LogInMemoryExporter;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\Processor\SimpleLogRecordProcessor;
-use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter as LogInMemoryExporter;
+use OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter as SpanInMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
-use OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
 
 abstract class TestCase extends BaseTestCase
 {
