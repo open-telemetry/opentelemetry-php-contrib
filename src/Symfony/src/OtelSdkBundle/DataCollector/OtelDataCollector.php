@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
+use Throwable;
 
 class OtelDataCollector extends DataCollector implements LateDataCollectorInterface, InstrumentationInterface
 {
@@ -27,7 +28,7 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
     /**
      * {@inheritDoc}
      */
-    public function collect(Request $request, Response $response, \Throwable $exception = null): void
+    public function collect(Request $request, Response $response, ?Throwable $exception = null): void
     {
         // Everything is collected during the request, and formatted on kernel terminate.
     }

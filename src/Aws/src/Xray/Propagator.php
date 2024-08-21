@@ -73,7 +73,7 @@ class Propagator implements TextMapPropagatorInterface
      * X-Amzn-Trace-Id: Root={traceId};Parent={parentId};Sampled={samplingFlag}
      * X-Amzn-Trace-Id: Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1
      */
-    public function inject(&$carrier, PropagationSetterInterface $setter = null, ContextInterface $context = null): void
+    public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
         $setter = $setter ?? ArrayAccessGetterSetter::getInstance();
         $context = $context ?? Context::getCurrent();
@@ -102,7 +102,7 @@ class Propagator implements TextMapPropagatorInterface
      * This function will parse all parts of the header and validate that it is
      * formatted properly to AWS X-ray standards
      */
-    public function extract($carrier, PropagationGetterInterface $getter = null, ContextInterface $context = null): ContextInterface
+    public function extract($carrier, ?PropagationGetterInterface $getter = null, ?ContextInterface $context = null): ContextInterface
     {
         $getter = $getter ?? ArrayAccessGetterSetter::getInstance();
         $context = $context ?? Context::getCurrent();

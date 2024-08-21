@@ -16,7 +16,7 @@ trait AttributesBuilder
     private function buildMessageAttributes(
         QueueContract $queue,
         string $rawPayload,
-        string $queueName = null,
+        ?string $queueName = null,
         array $options = [],
         mixed ...$params,
     ): array {
@@ -38,7 +38,7 @@ trait AttributesBuilder
     private function contextualMessageSystemAttributes(
         QueueContract $queue,
         array $payload,
-        string $queueName = null,
+        ?string $queueName = null,
         array $options = [],
         mixed ...$params,
     ): array {
@@ -50,7 +50,7 @@ trait AttributesBuilder
         };
     }
 
-    private function beanstalkContextualAttributes(BeanstalkdQueue $queue, array $payload, string $queueName = null, array $options = [], mixed ...$params): array
+    private function beanstalkContextualAttributes(BeanstalkdQueue $queue, array $payload, ?string $queueName = null, array $options = [], mixed ...$params): array
     {
         return [
             TraceAttributes::MESSAGING_SYSTEM => 'beanstalk',
@@ -58,7 +58,7 @@ trait AttributesBuilder
         ];
     }
 
-    private function redisContextualAttributes(RedisQueue $queue, array $payload, string $queueName = null, array $options = [], mixed ...$params): array
+    private function redisContextualAttributes(RedisQueue $queue, array $payload, ?string $queueName = null, array $options = [], mixed ...$params): array
     {
         return [
             TraceAttributes::MESSAGING_SYSTEM => 'redis',
@@ -66,7 +66,7 @@ trait AttributesBuilder
         ];
     }
 
-    private function awsSqsContextualAttributes(SqsQueue $queue, array $payload, string $queueName = null, array $options = [], mixed ...$params): array
+    private function awsSqsContextualAttributes(SqsQueue $queue, array $payload, ?string $queueName = null, array $options = [], mixed ...$params): array
     {
         return [
             TraceAttributes::MESSAGING_SYSTEM => TraceAttributeValues::MESSAGING_SYSTEM_AWS_SQS,
