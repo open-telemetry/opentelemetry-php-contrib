@@ -6,7 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contrac
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Span;
@@ -28,7 +28,7 @@ class Kernel implements Hook
     use PostHookTrait;
 
     public function instrument(
-        HookManager $hookManager,
+        HookManagerInterface $hookManager,
         LaravelConfiguration $configuration,
         LoggerInterface $logger,
         MeterInterface $meter,
@@ -39,7 +39,7 @@ class Kernel implements Hook
         }
     }
 
-    private function hookHandle(HookManager $hookManager, TracerInterface $tracer): void
+    private function hookHandle(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             KernelContract::class,

@@ -7,14 +7,14 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contrac
 use DateInterval;
 use DateTimeInterface;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -27,7 +27,7 @@ class Queue implements Hook
     use PostHookTrait;
 
     public function instrument(
-        HookManager $hookManager,
+        HookManagerInterface $hookManager,
         LaravelConfiguration $configuration,
         LoggerInterface $logger,
         MeterInterface $meter,
@@ -38,7 +38,7 @@ class Queue implements Hook
         $this->hookPushRaw($hookManager, $tracer);
     }
 
-    protected function hookBulk(HookManager $hookManager, TracerInterface $tracer): void
+    protected function hookBulk(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueContract::class,
@@ -73,7 +73,7 @@ class Queue implements Hook
         );
     }
 
-    protected function hookLater(HookManager $hookManager, TracerInterface $tracer): void
+    protected function hookLater(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueContract::class,
@@ -115,7 +115,7 @@ class Queue implements Hook
         );
     }
 
-    protected function hookPushRaw(HookManager $hookManager, TracerInterface $tracer): void
+    protected function hookPushRaw(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueContract::class,

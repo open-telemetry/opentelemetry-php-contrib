@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Foundation\Console;
 
 use Illuminate\Foundation\Console\ServeCommand as FoundationServeCommand;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\TracerInterface;
@@ -18,7 +18,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 class ServeCommand implements Hook
 {
     public function instrument(
-        HookManager $hookManager,
+        HookManagerInterface $hookManager,
         LaravelConfiguration $configuration,
         LoggerInterface $logger,
         MeterInterface $meter,

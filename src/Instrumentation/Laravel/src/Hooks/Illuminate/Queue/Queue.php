@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Queue\Queue as AbstractQueue;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
@@ -19,7 +19,7 @@ class Queue implements Hook
     use AttributesBuilder;
 
     public function instrument(
-        HookManager $hookManager,
+        HookManagerInterface $hookManager,
         LaravelConfiguration $configuration,
         LoggerInterface $logger,
         MeterInterface $meter,

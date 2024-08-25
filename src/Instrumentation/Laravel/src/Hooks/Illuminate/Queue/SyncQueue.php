@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Queue\SyncQueue as LaravelSyncQueue;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -23,7 +23,7 @@ class SyncQueue implements Hook
     use PostHookTrait;
 
     public function instrument(
-        HookManager $hookManager,
+        HookManagerInterface $hookManager,
         LaravelConfiguration $configuration,
         LoggerInterface $logger,
         MeterInterface $meter,
@@ -32,7 +32,7 @@ class SyncQueue implements Hook
         $this->hookPush($hookManager, $tracer);
     }
 
-    protected function hookPush(HookManager $hookManager, TracerInterface $tracer): void
+    protected function hookPush(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             LaravelSyncQueue::class,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Console;
 
 use Illuminate\Console\Command as IlluminateCommand;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Span;
@@ -22,7 +22,7 @@ class Command implements Hook
     use PostHookTrait;
 
     public function instrument(
-        HookManager $hookManager,
+        HookManagerInterface $hookManager,
         LaravelConfiguration $configuration,
         LoggerInterface $logger,
         MeterInterface $meter,
@@ -31,7 +31,7 @@ class Command implements Hook
         $this->hookExecute($hookManager, $tracer);
     }
 
-    protected function hookExecute(HookManager $hookManager, TracerInterface $tracer): void
+    protected function hookExecute(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             IlluminateCommand::class,

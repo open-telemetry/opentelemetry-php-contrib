@@ -6,7 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Worker as QueueWorker;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManager;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
@@ -27,7 +27,7 @@ class Worker implements Hook
     use PostHookTrait;
 
     public function instrument(
-        HookManager $hookManager,
+        HookManagerInterface $hookManager,
         LaravelConfiguration $configuration,
         LoggerInterface $logger,
         MeterInterface $meter,
@@ -37,7 +37,7 @@ class Worker implements Hook
         $this->hookWorkerGetNextJob($hookManager, $tracer);
     }
 
-    private function hookWorkerProcess(HookManager $hookManager, TracerInterface $tracer): void
+    private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueWorker::class,
@@ -88,7 +88,7 @@ class Worker implements Hook
         );
     }
 
-    private function hookWorkerGetNextJob(HookManager $hookManager, TracerInterface $tracer): void
+    private function hookWorkerGetNextJob(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueWorker::class,

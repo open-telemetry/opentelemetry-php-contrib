@@ -13,7 +13,7 @@
     "ext-json": "*",
     "ext-opentelemetry": "*",
     "laravel/framework": "^10.0 || ^11.0",
-    "open-telemetry/opentelemetry": "dev-auto-instrumentation-registration"
+    "open-telemetry/opentelemetry": "dev-main as 1.x-dev"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.50",
@@ -55,7 +55,7 @@
   "repositories": [
     {
       "type": "vcs",
-      "url": "https://github.com/brettmc/opentelemetry-php"
+      "url": "https://github.com/open-telemetry/opentelemetry-php"
     }
   ],
   "config": {
