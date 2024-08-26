@@ -7,10 +7,11 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
 use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter as LogInMemoryExporter;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\Processor\SimpleLogRecordProcessor;
-use OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter as SpanInMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -20,8 +21,9 @@ use Orchestra\Testbench\TestCase as BaseTestCase;
 abstract class TestCase extends BaseTestCase
 {
     protected ScopeInterface $scope;
-    /** @var ArrayObject|ImmutableSpan[]|ReadWriteLogRecord $storage */
+    /** @var ArrayObject|ImmutableSpan[] $storage */
     protected ArrayObject $storage;
+    protected ArrayObject $loggerStorage;
     protected TracerProvider $tracerProvider;
     protected LoggerProvider $loggerProvider;
 
@@ -35,13 +37,13 @@ abstract class TestCase extends BaseTestCase
                 new SpanInMemoryExporter($this->storage),
             ),
         );
-        $this->loggerProvider = LoggerProvider::builder()
-            ->addLogRecordProcessor(
-                new SimpleLogRecordProcessor(
-                    new LogInMemoryExporter($this->storage),
-                ),
-            )
-            ->build();
+
+        $this->loggerProvider = new LoggerProvider(
+            new SimpleLogRecordProcessor(
+                new LogInMemoryExporter($this->storage),
+            ),
+            new InstrumentationScopeFactory(Attributes::factory())
+        );
 
         $this->scope = Configurator::create()
             ->withTracerProvider($this->tracerProvider)
