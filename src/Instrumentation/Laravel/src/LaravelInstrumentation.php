@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Nevay\SPI\ServiceLoader;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\ConfigurationRegistry;
+use OpenTelemetry\API\Configuration\ConfigProperties;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
@@ -17,7 +17,7 @@ class LaravelInstrumentation implements Instrumentation
 {
     public const INSTRUMENTATION_NAME = 'io.opentelemetry.contrib.php.laravel';
 
-    public function register(HookManagerInterface $hookManager, ConfigurationRegistry $configuration, Context $context): void
+    public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, Context $context): void
     {
         $config = $configuration->get(LaravelConfiguration::class) ?? LaravelConfiguration::default();
 
