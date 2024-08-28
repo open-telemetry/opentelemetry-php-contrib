@@ -6,13 +6,11 @@ namespace OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Http;
 
 use Cake\Routing\Exception\MissingRouteException;
 use Cake\Routing\Router;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHook;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SDK\Common\Time\ClockInterface;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

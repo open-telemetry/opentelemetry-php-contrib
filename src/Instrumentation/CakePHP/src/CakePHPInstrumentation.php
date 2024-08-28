@@ -8,7 +8,6 @@ use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Command\Command;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Controller\Controller;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Http\Server;
-use OpenTelemetry\SemConv\TraceAttributes;
 
 class CakePHPInstrumentation
 {
