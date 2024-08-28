@@ -25,9 +25,15 @@
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.18.4",
     "open-telemetry/sdk": "^1.0",
-    "phpunit/phpunit": "^9.5",
+    "phpunit/phpunit": "^9.5|^10.5",
     "vimeo/psalm": "^5.24",
     "symfony/http-client": "^6 || ^7"
+  },
+  "suggest": {
+    "open-telemetry/opentelemetry-auto-psr3": "OpenTelemetry auto-instrumentation for PSR-3 (Logger Interface)",
+    "open-telemetry/opentelemetry-auto-psr18": "OpenTelemetry auto-instrumentation for PSR-18 (HTTP Client)",
+    "open-telemetry/opentelemetry-auto-psr15": "OpenTelemetry auto-instrumentation for PSR-15 (HTTP Server Request Handlers)",
+    "open-telemetry/opentelemetry-auto-pdo": "OpenTelemetry auto-instrumentation for PDO"
   },
   "autoload": {
     "psr-4": {
