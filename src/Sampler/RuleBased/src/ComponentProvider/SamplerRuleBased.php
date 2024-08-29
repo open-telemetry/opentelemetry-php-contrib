@@ -57,7 +57,7 @@ final class SamplerRuleBased implements ComponentProvider
                 ->arrayNode('rule_sets')
                     ->arrayPrototype()
                         ->children()
-                            ->append($registry->componentList('rules', SamplingRule::class)->isRequired()->cannotBeEmpty())
+                            ->append($registry->componentArrayList('rules', SamplingRule::class)->isRequired()->cannotBeEmpty())
                             ->append($registry->component('delegate', SamplerInterface::class)->isRequired())
                         ->end()
                     ->end()

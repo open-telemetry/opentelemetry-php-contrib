@@ -7,10 +7,13 @@ namespace OpenTelemetry\Contrib\Sampler\RuleBased;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use OpenTelemetry\SDK\Trace\LinkInterface;
+use Stringable;
 
-interface SamplingRule
+/**
+ * @phan-suppress PhanRedefinedInheritedInterface
+ */
+interface SamplingRule extends Stringable
 {
-
     /**
      * Returns whether this sampling rule matches the given data.
      *
@@ -32,6 +35,4 @@ interface SamplingRule
         AttributesInterface $attributes,
         array $links,
     ): bool;
-
-    public function __toString(): string;
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Tests\Integration\Propagation\RuleBased;
+namespace OpenTelemetry\Contrib\Tests\Integration\Sampler\RuleBased;
 
 use OpenTelemetry\Config\SDK\Configuration;
 use PHPUnit\Framework\Attributes\CoversNothing;
