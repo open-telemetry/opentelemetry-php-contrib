@@ -38,11 +38,15 @@ class QueueTest extends TestCase
             $logger->info('Logged from closure');
         });
 
-        $this->assertEquals('sync process', $this->storage[0]->getName());
-        $this->assertEquals('Task: A', $this->storage[0]->getEvents()[0]->getName());
-
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord0 */
+        $logRecord0 = $this->storage[0];
+        $this->assertEquals('Task: A', $logRecord0->getBody());
         $this->assertEquals('sync process', $this->storage[1]->getName());
-        $this->assertEquals('Logged from closure', $this->storage[1]->getEvents()[0]->getName());
+
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord2 */
+        $logRecord2 = $this->storage[2];
+        $this->assertEquals('Logged from closure', $logRecord2->getBody());
+        $this->assertEquals('sync process', $this->storage[3]->getName());
     }
 
     public function test_it_can_push_a_message_with_a_delay(): void
@@ -51,19 +55,19 @@ class QueueTest extends TestCase
         $this->queue->later(new DateInterval('PT10M'), new DummyJob('DateInterval'));
         $this->queue->later(new DateTimeImmutable('2024-04-15 22:29:00.123Z'), new DummyJob('DateTime'));
 
-        $this->assertEquals('sync create', $this->storage[1]->getName());
+        $this->assertEquals('sync create', $this->storage[2]->getName());
         $this->assertIsInt(
-            $this->storage[1]->getAttributes()->get('messaging.message.delivery_timestamp'),
-        );
-
-        $this->assertEquals('sync create', $this->storage[3]->getName());
-        $this->assertIsInt(
-            $this->storage[3]->getAttributes()->get('messaging.message.delivery_timestamp'),
+            $this->storage[2]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
         $this->assertEquals('sync create', $this->storage[5]->getName());
         $this->assertIsInt(
             $this->storage[5]->getAttributes()->get('messaging.message.delivery_timestamp'),
+        );
+
+        $this->assertEquals('sync create', $this->storage[8]->getName());
+        $this->assertIsInt(
+            $this->storage[8]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
     }
 
@@ -141,9 +145,14 @@ class QueueTest extends TestCase
         }
 
         /** @psalm-suppress PossiblyInvalidMethodCall */
-        $this->assertEquals(102, $this->storage->count());
+        $this->assertEquals(204, $this->storage->count());
 
-        $this->assertEquals('Task: 500', $this->storage[50]->getEvents()[0]->getName());
-        $this->assertEquals('Task: More work', $this->storage[100]->getEvents()[0]->getName());
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord100 */
+        $logRecord100 = $this->storage[100];
+        $this->assertEquals('Task: 500', $logRecord100->getBody());
+
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord200 */
+        $logRecord200 = $this->storage[200];
+        $this->assertEquals('Task: More work', $logRecord200->getBody());
     }
 }
