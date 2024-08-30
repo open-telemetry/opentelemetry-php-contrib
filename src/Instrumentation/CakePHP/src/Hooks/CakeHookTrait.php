@@ -44,6 +44,7 @@ trait CakeHookTrait
      * @param string|null $filename
      * @param int|null $lineno
      * @return mixed
+     * @psalm-suppress ArgumentTypeCoercion
      */
     protected function buildSpan(?ServerRequestInterface $request, string $class, string $function, ?string $filename, ?int $lineno): mixed
     {

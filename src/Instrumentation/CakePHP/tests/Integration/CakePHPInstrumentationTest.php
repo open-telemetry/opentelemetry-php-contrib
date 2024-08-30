@@ -7,7 +7,6 @@ namespace OpenTelemetry\Tests\Instrumentation\CakePHP\Integration;
 use Cake\TestSuite\IntegrationTestTrait;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\SDK\Metrics\Data\Histogram;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 
 /**
