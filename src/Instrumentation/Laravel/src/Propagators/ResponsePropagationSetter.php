@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators;
 
 use function assert;
-use Illuminate\Http\Response;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @internal

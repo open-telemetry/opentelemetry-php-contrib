@@ -141,5 +141,29 @@ final class SymfonyInstrumentation
                 $span->end();
             }
         );
+
+        hook(
+            HttpKernel::class,
+            'handleThrowable',
+            pre: static function (
+                HttpKernel $kernel,
+                array $params,
+                string $class,
+                string $function,
+                ?string $filename,
+                ?int $lineno,
+            ): array {
+                /** @var \Throwable $throwable */
+                $throwable = $params[0];
+
+                Span::getCurrent()
+                    ->recordException($throwable, [
+                        TraceAttributes::EXCEPTION_ESCAPED => true,
+                    ])
+                    ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage());
+
+                return $params;
+            },
+        );
     }
 }

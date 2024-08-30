@@ -736,7 +736,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      * @param array $arguments
      * @return Definition
      */
-    private static function createDefinition(string $class = null, array $arguments = []): Definition
+    private static function createDefinition(?string $class = null, array $arguments = []): Definition
     {
         return new Definition($class, $arguments);
     }

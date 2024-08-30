@@ -50,7 +50,7 @@ class TraceableSpanProcessor implements SpanProcessorInterface
         return $this->spanProcessor->forceFlush();
     }
 
-    public function shutdown(CancellationInterface $cancellation = null): bool
+    public function shutdown(?CancellationInterface $cancellation = null): bool
     {
         return $this->spanProcessor->shutdown();
     }

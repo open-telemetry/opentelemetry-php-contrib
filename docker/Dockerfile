@@ -6,6 +6,7 @@ USER root
 RUN install-php-extensions \
         opentelemetry \
         mongodb \
-        amqp
+        amqp \
+        rdkafka
 
 USER php

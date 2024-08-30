@@ -107,25 +107,25 @@ class Psr3Instrumentation
     /**
      * @see https://www.php.net/manual/en/function.class-uses.php#112671
      */
-    private static function class_uses_deep(object $class, bool $autoload = false): array
+    private static function class_uses_deep(object $class): array
     {
         $traits = [];
 
         // Get traits of all parent classes
         do {
-            $traits = array_merge(class_uses($class, $autoload), $traits);
+            $traits = array_merge(class_uses($class, false), $traits);
         } while ($class = get_parent_class($class));
 
         // Get traits of all parent traits
         $traitsToSearch = $traits;
         while (!empty($traitsToSearch)) {
-            $newTraits = class_uses(array_pop($traitsToSearch), $autoload);
+            $newTraits = class_uses(array_pop($traitsToSearch), false);
             $traits = array_merge($newTraits, $traits);
             $traitsToSearch = array_merge($newTraits, $traitsToSearch);
         };
 
         foreach ($traits as $trait => $same) {
-            $traits = array_merge(class_uses($trait, $autoload), $traits);
+            $traits = array_merge(class_uses($trait, false), $traits);
         }
 
         return array_unique($traits);

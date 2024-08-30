@@ -46,8 +46,8 @@ class Detector implements ResourceDetectorInterface
     private RequestFactoryInterface $requestFactory;
 
     public function __construct(
-        ClientInterface $client = null,
-        RequestFactoryInterface $requestFactory = null
+        ?ClientInterface $client = null,
+        ?RequestFactoryInterface $requestFactory = null
     ) {
         $this->client = $client ?: Psr18ClientDiscovery::find();
         $this->requestFactory = $requestFactory ?: Psr17FactoryDiscovery::findRequestFactory();

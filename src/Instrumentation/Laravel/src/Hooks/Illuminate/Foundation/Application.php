@@ -32,11 +32,11 @@ class Application implements Hook
         $hookManager->hook(
             FoundationalApplication::class,
             '__construct',
-            postHook: function (FoundationalApplication $application, array $params, mixed $returnValue, ?Throwable $exception) use ($tracer) {
+            postHook: function (FoundationalApplication $application, array $params, mixed $returnValue, ?Throwable $exception) use ($logger, $tracer) {
                 $this->registerWatchers($application, new CacheWatcher());
                 $this->registerWatchers($application, new ClientRequestWatcher($tracer));
                 $this->registerWatchers($application, new ExceptionWatcher());
-                $this->registerWatchers($application, new LogWatcher());
+                $this->registerWatchers($application, new LogWatcher($logger));
                 $this->registerWatchers($application, new QueryWatcher($tracer));
             },
         );
