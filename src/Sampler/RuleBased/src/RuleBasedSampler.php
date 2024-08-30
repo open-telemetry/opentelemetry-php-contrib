@@ -54,6 +54,6 @@ final class RuleBasedSampler implements SamplerInterface
 
     public function getDescription(): string
     {
-        return $this->__toString();
+        return (string) $this;
     }
 }
