@@ -91,7 +91,7 @@ class Kernel implements LaravelHook
                 }
 
                 if ($response) {
-                    if ($response->getStatusCode() >= 400) {
+                    if ($response->getStatusCode() >= 500) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
