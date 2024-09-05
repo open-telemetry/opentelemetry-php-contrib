@@ -13,6 +13,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ClientRequestWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ExceptionWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\LogWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\QueryWatcher;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\RedisCommand\RedisCommandWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use function OpenTelemetry\Instrumentation\hook;
 use Throwable;
@@ -32,6 +33,7 @@ class Application implements LaravelHook
                 $this->registerWatchers($application, new ExceptionWatcher());
                 $this->registerWatchers($application, new LogWatcher($this->instrumentation));
                 $this->registerWatchers($application, new QueryWatcher($this->instrumentation));
+                $this->registerWatchers($application, new RedisCommandWatcher($this->instrumentation));
             },
         );
     }
