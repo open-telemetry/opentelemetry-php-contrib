@@ -5,11 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Queue as QueueContract;
-use Illuminate\Queue\BeanstalkdQueue;
-use Illuminate\Queue\RedisQueue;
-use Illuminate\Queue\SqsQueue;
 use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
 
 trait AttributesBuilder
 {
@@ -42,35 +38,12 @@ trait AttributesBuilder
         array $options = [],
         mixed ...$params,
     ): array {
-        return match (true) {
-            $queue instanceof BeanstalkdQueue => $this->beanstalkContextualAttributes($queue, $payload, $queueName, $options, ...$params),
-            $queue instanceof RedisQueue => $this->redisContextualAttributes($queue, $payload, $queueName, $options, ...$params),
-            $queue instanceof SqsQueue => $this->awsSqsContextualAttributes($queue, $payload, $queueName, $options, ...$params),
-            default => [],
-        };
-    }
+        foreach (AttributesBuilderRegister::getBuilders() as $builder) {
+            if ($builder->canHandle($queue)) {
+                return $builder->contextualAttributes($queue, $payload, $queueName, $options, $params);
+            }
+        }
 
-    private function beanstalkContextualAttributes(BeanstalkdQueue $queue, array $payload, ?string $queueName = null, array $options = [], mixed ...$params): array
-    {
-        return [
-            TraceAttributes::MESSAGING_SYSTEM => 'beanstalk',
-            TraceAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
-        ];
-    }
-
-    private function redisContextualAttributes(RedisQueue $queue, array $payload, ?string $queueName = null, array $options = [], mixed ...$params): array
-    {
-        return [
-            TraceAttributes::MESSAGING_SYSTEM => 'redis',
-            TraceAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
-        ];
-    }
-
-    private function awsSqsContextualAttributes(SqsQueue $queue, array $payload, ?string $queueName = null, array $options = [], mixed ...$params): array
-    {
-        return [
-            TraceAttributes::MESSAGING_SYSTEM => TraceAttributeValues::MESSAGING_SYSTEM_AWS_SQS,
-            TraceAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
-        ];
+        return [];
     }
 }

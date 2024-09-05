@@ -14,8 +14,11 @@ use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilderRegister;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Queues\AnotherAttributesBuilder;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Queues\AnotherQueue;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -154,5 +157,25 @@ class QueueTest extends TestCase
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord200 */
         $logRecord200 = $this->storage[200];
         $this->assertEquals('Task: More work', $logRecord200->getBody());
+    }
+
+    public function test_it_can_create_with_another_queue(): void
+    {
+        AttributesBuilderRegister::registerContextualAttributesBuilder(new AnotherAttributesBuilder());
+
+        /** @var AnotherQueue|MockInterface $mockQueue */
+        $mockQueue = $this->createMock(AnotherQueue::class);
+
+        /** @psalm-suppress PossiblyUndefinedMethod */
+        $mockQueue->bulk([
+            new DummyJob('A'),
+            new DummyJob('B'),
+        ]);
+
+        $this->assertEquals(' publish', $this->storage[0]->getName());
+        $this->assertEquals(2, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals('another-queue', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+
+        AttributesBuilderRegister::clean();
     }
 }
