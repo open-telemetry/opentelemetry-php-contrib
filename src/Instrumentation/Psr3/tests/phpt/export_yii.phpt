@@ -36,7 +36,7 @@ $span->end();
 %s [info][%s] hello world
 
 Message context:
-
+%A
 foo: 'bar'
 exception: RuntimeException: kablam in %s
 Stack trace:
@@ -47,10 +47,7 @@ Next Exception: kaboom in %s
 Stack trace:
 #0 %s
 #1 {main}
-time: %d.%d
-memory: %d
-category: '%s'
-
+%A
 {
     "resource": {
         "attributes": [],
@@ -58,11 +55,11 @@ category: '%s'
     },
     "scopes": [
         {
-            "name": "psr3",
+            "name": "io.opentelemetry.contrib.php.psr3",
             "version": null,
             "attributes": [],
             "dropped_attributes_count": 0,
-            "schema_url": null,
+            "schema_url": "https:\/\/opentelemetry.io\/schemas\/1.24.0",
             "logs": [
                 {
                     "timestamp": null,

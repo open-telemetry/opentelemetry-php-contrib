@@ -28,7 +28,11 @@ class GuzzleInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.guzzle', schemaUrl: TraceAttributes::SCHEMA_URL);
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.guzzle',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
 
         hook(
             ClientInterface::class,

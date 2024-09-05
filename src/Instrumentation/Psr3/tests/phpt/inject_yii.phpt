@@ -1,5 +1,5 @@
 --TEST--
-Test inject context to symfony logger
+Test inject context to yii logger
 --FILE--
 
 <?php
@@ -31,19 +31,7 @@ $span->end();
 %s [warning][%s] hello world traceId=%s spanId=%s
 
 Message context:
-
-foo: 'bar'
-exception: RuntimeException: kablam in %s
-Stack trace:
-#0 %s
-#1 %s
-
-Next Exception: kaboom in %s
-Stack trace:
-#0 %s
-#1 %s
+%A
+foo: 'bar'%A
 traceId: '%s'
-spanId: '%s'
-time: %d.%d
-memory: %d
-category: '%s'
+spanId: '%s'%A

@@ -27,6 +27,7 @@ class Psr14Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr14',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr14'),
+            'https://opentelemetry.io/schemas/1.24.0'
         );
 
         /**

@@ -164,6 +164,9 @@ class SlimInstrumentationTest extends TestCase
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn($response);
 
+        /**
+         * @psalm-suppress MissingTemplateParam
+         */
         return new class($response, $routingMiddleware, $handler) extends App {
             private ResponseInterface $response;
             private RequestHandlerInterface $handler;

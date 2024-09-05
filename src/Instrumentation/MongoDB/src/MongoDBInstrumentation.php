@@ -16,7 +16,11 @@ final class MongoDBInstrumentation
      */
     public static function register(callable $commandSerializer = null): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.mongodb');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.mongodb',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
         $commandSerializer ??= self::defaultCommandSerializer();
         /** @psalm-suppress UnusedFunctionCall */
         addSubscriber(new MongoDBInstrumentationSubscriber($instrumentation, $commandSerializer));

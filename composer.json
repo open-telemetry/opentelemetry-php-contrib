@@ -18,6 +18,7 @@
       "OpenTelemetry\\Contrib\\Aws\\": "src/Aws/src",
       "OpenTelemetry\\Contrib\\Context\\Swoole\\": "src/Context/Swoole/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\ExtAmqp\\": "src/Instrumentation/ExtAmqp/src",
+      "OpenTelemetry\\Contrib\\Instrumentation\\ExtRdKafka\\": "src/Instrumentation/ExtRdKafka/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\": "src/Instrumentation/Laravel/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\HttpAsyncClient\\": "src/Instrumentation/HttpAsyncClient/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\IO\\": "src/Instrumentation/IO/src",
@@ -39,6 +40,7 @@
     },
     "files": [
       "src/Instrumentation/ExtAmqp/_register.php",
+      "src/Instrumentation/ExtRdKafka/_register.php",
       "src/Instrumentation/HttpAsyncClient/_register.php",
       "src/Instrumentation/IO/_register.php",
       "src/Instrumentation/Laravel/_register.php",

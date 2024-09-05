@@ -22,7 +22,11 @@ class PDOInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.pdo');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.pdo',
+            null,
+            'https://opentelemetry.io/schemas/1.24.0'
+        );
         $pdoTracker = new PDOTracker();
 
         hook(
@@ -49,7 +53,9 @@ class PDOInstrumentation
                 }
                 $span = Span::fromContext($scope->context());
 
-                $attributes = $pdoTracker->trackPdoAttributes($pdo);
+                $dsn = $params[0] ?? '';
+
+                $attributes = $pdoTracker->trackPdoAttributes($pdo, $dsn);
                 $span->setAttributes($attributes);
 
                 self::end($exception);

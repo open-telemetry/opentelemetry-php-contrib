@@ -30,7 +30,7 @@ class Application implements LaravelHook
                 $this->registerWatchers($application, new CacheWatcher());
                 $this->registerWatchers($application, new ClientRequestWatcher($this->instrumentation));
                 $this->registerWatchers($application, new ExceptionWatcher());
-                $this->registerWatchers($application, new LogWatcher());
+                $this->registerWatchers($application, new LogWatcher($this->instrumentation));
                 $this->registerWatchers($application, new QueryWatcher($this->instrumentation));
             },
         );

@@ -6,13 +6,16 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
-use Illuminate\Log\LogManager;
-use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\Context\Context;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Logs\LogRecord;
+use OpenTelemetry\API\Logs\Map\Psr3;
 
 class LogWatcher extends Watcher
 {
-    private LogManager $logger;
+    public function __construct(
+        private CachedInstrumentation $instrumentation,
+    ) {
+    }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
@@ -37,18 +40,16 @@ class LogWatcher extends Watcher
         }
 
         $attributes = [
-            'level' => $log->level,
+            'context' => json_encode(array_filter($log->context)),
         ];
 
-        $attributes['context'] = json_encode(array_filter($log->context));
+        $logger = $this->instrumentation->logger();
 
-        $message = $log->message;
+        $record = (new LogRecord($log->message))
+            ->setSeverityText($log->level)
+            ->setSeverityNumber(Psr3::severityNumber($log->level))
+            ->setAttributes($attributes);
 
-        $scope = Context::storage()->scope();
-        if (!$scope) {
-            return;
-        }
-        $span = Span::fromContext($scope->context());
-        $span->addEvent($message, $attributes);
+        $logger->emit($record);
     }
 }
