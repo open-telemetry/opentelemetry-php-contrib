@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Sampler\RuleBased;
 
 use OpenTelemetry\SDK\Trace\SamplerInterface;
+use Stringable;
 
-interface RuleSetInterface
+/**
+ * @phan-suppress PhanRedefinedInheritedInterface
+ */
+interface RuleSetInterface extends Stringable
 {
     /**
      * @return list<SamplingRule>
      */
     public function samplingRules(): array;
     public function delegate(): SamplerInterface;
-    public function __toString();
 }
