@@ -62,13 +62,13 @@ class Serializer
         }
 
         // Serialize the allowed number of arguments
-        $paramsWillToSerialize = ($paramsToSerializeNum >= 0) ? array_slice($params, 0, $paramsToSerializeNum) : $params;
+        $paramsToSerialize = ($paramsToSerializeNum >= 0) ? array_slice($params, 0, $paramsToSerializeNum) : $params;
 
         // If there are more arguments than serialized, add a placeholder
-        if (count($params) > count($paramsWillToSerialize)) {
-            $paramsWillToSerialize[] = '[' . (count($params) - $paramsToSerializeNum) . ' other arguments]';
+        if (count($params) > count($paramsToSerialize)) {
+            $paramsToSerialize[] = '[' . (count($params) - $paramsToSerializeNum) . ' other arguments]';
         }
 
-        return $command . ' ' . implode(' ', $paramsWillToSerialize);
+        return $command . ' ' . implode(' ', $paramsToSerialize);
     }
 }
