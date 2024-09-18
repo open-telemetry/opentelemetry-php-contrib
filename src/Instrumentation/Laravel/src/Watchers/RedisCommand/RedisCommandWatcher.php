@@ -45,7 +45,7 @@ class RedisCommandWatcher extends Watcher
     {
         $nowInNs = (int) (microtime(true) * 1E9);
 
-        $operationName = Str::upper($event->command);
+        $operationName = strtoupper($event->command);
 
         /** @psalm-suppress ArgumentTypeCoercion */
         $span = $this->instrumentation->tracer()
