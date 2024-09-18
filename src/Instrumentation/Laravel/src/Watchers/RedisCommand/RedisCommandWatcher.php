@@ -9,7 +9,6 @@ use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Redis\Events\CommandExecuted;
-use Illuminate\Support\Str;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
@@ -17,6 +16,7 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\TraceAttributeValues;
 use RangeException;
 use RuntimeException;
+use Throwable;
 
 /**
  * Watch the Redis Command event
@@ -73,29 +73,19 @@ class RedisCommandWatcher extends Watcher
         return (int) ($nowInNs - ($queryTimeMs * 1E6));
     }
 
-    private function fetchDbIndex(Connection $connection): int
+    private function fetchDbIndex(Connection $connection): ?int
     {
-        if ($connection instanceof PhpRedisConnection) {
-            $index = $connection->client()->getDbNum();
-
-            if ($index === false) {
-                throw new RuntimeException('Cannot fetch database index.');
+        try {
+            if ($connection instanceof PhpRedisConnection) {
+                return $connection->client()->getDbNum();
+            } elseif ($connection instanceof PredisConnection) {
+                /** @psalm-suppress PossiblyUndefinedMethod */
+                return $connection->client()->getConnection()->getParameters()->database;
             }
-
-            return $index;
-        } elseif ($connection instanceof PredisConnection) {
-            /** @psalm-suppress PossiblyUndefinedMethod */
-            $index = $connection->client()->getConnection()->getParameters()->database;
-
-            if (is_int($index)) {
-                throw new RuntimeException('Cannot fetch database index.');
-            }
-
-            return $index;
+        } catch (Throwable $e) {
         }
 
-        throw new RangeException('Unknown Redis connection instance: ' . get_class($connection));
-        
+        return null;
     }
 
     private function fetchDbHost(Connection $connection): string
