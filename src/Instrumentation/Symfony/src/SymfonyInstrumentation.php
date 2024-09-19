@@ -113,11 +113,6 @@ final class SymfonyInstrumentation
                     return;
                 }
 
-                // Do not set error status on server spans for 4xx responses
-                if (!$span->getKind(SpanKind::KIND_SERVER) && $response->getStatusCode() >= Response::HTTP_BAD_REQUEST) {
-                    $span->setStatus(StatusCode::STATUS_ERROR);
-                }
-                // Do set error status on all spans for 5xx responses
                 if ($response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
                     $span->setStatus(StatusCode::STATUS_ERROR);
                 }
