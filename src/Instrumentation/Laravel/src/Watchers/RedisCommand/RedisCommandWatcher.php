@@ -38,7 +38,7 @@ class RedisCommandWatcher extends Watcher
     }
 
     /**
-     * Record a query.
+     * Record a Redis command.
      */
     /** @psalm-suppress UndefinedThisPropertyFetch */
     public function recordRedisCommand(CommandExecuted $event): void
@@ -59,7 +59,7 @@ class RedisCommandWatcher extends Watcher
             TraceAttributes::DB_SYSTEM => TraceAttributeValues::DB_SYSTEM_REDIS,
             TraceAttributes::DB_NAME => $this->fetchDbIndex($event->connection),
             TraceAttributes::DB_OPERATION => $operationName,
-            TraceAttributes::DB_QUERY_TEXT => Serializer::serializeCommand($event->command, $event->parameters),
+            TraceAttributes::DB_STATEMENT => Serializer::serializeCommand($event->command, $event->parameters),
             TraceAttributes::SERVER_ADDRESS => $this->fetchDbHost($event->connection),
         ];
 
