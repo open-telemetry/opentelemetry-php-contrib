@@ -89,28 +89,19 @@ class RedisCommandWatcher extends Watcher
         }
     }
 
-    private function fetchDbHost(Connection $connection): string
+    private function fetchDbHost(Connection $connection): ?string
     {
-        if ($connection instanceof PhpRedisConnection) {
-            $host = $connection->client()->getHost();
-
-            if ($host === false) {
-                throw new RuntimeException('Cannot fetch database host.');
+        try {
+            if ($connection instanceof PhpRedisConnection) {
+                return $connection->client()->getHost();
+            } elseif ($connection instanceof PredisConnection) {
+                /** @psalm-suppress PossiblyUndefinedMethod */
+                return $connection->client()->getConnection()->getParameters()->host;
             }
 
-            return $host;
-        } elseif ($connection instanceof PredisConnection) {
-            /** @psalm-suppress PossiblyUndefinedMethod */
-            $host = $connection->client()->getConnection()->getParameters()->host;
-
-            if (is_int($host)) {
-                throw new RuntimeException('Cannot fetch database index.');
-            }
-
-            return $host;
+            return null;
+        } catch (Throwable $e) {
+            return null;
         }
-
-        throw new RangeException('Unknown Redis connection instance: ' . get_class($connection));
-        
     }
 }
