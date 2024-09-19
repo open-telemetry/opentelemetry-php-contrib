@@ -82,10 +82,11 @@ class RedisCommandWatcher extends Watcher
                 /** @psalm-suppress PossiblyUndefinedMethod */
                 return $connection->client()->getConnection()->getParameters()->database;
             }
-        } catch (Throwable $e) {
-        }
 
-        return null;
+            return null;
+        } catch (Throwable $e) {
+            return null;
+        }
     }
 
     private function fetchDbHost(Connection $connection): string
