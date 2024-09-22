@@ -14,8 +14,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\TraceAttributeValues;
-use RangeException;
-use RuntimeException;
 use Throwable;
 
 /**
