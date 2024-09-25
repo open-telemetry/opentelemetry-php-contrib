@@ -22,6 +22,9 @@ class LogWatcher extends Watcher
     {
         /** @phan-suppress-next-line PhanTypeArraySuspicious */
         $app['events']->listen(MessageLogged::class, [$this, 'recordLog']);
+
+        /** @phan-suppress-next-line PhanTypeArraySuspicious */
+        $this->logger = $app['log'];
     }
 
     /**
@@ -29,6 +32,13 @@ class LogWatcher extends Watcher
      */
     public function recordLog(MessageLogged $log): void
     {
+        $underlyingLogger = $this->logger->getLogger();
+
+        /** @phan-suppress-next-line PhanUndeclaredMethod */
+        if (method_exists($underlyingLogger, 'isHandling') && !$underlyingLogger->isHandling($log->level)) {
+            return;
+        }
+
         $attributes = [
             'context' => json_encode(array_filter($log->context)),
         ];
