@@ -7,8 +7,7 @@
   "prefer-stable": true,
   "require": {
     "php": "^7.4 || ^8.0",
-    "ext-json": "*",
-    "ext-mbstring": "*"
+    "ext-json": "*"
   },
   "require-dev": {
     "composer/xdebug-handler": "^2.0",
