@@ -17,7 +17,7 @@ final class LaravelConfiguration implements InstrumentationConfiguration
     public static function fromArray(array $properties): self
     {
         return new self(
-            enabled: (class_exists(Sdk::class) && !Sdk::isDisabled()) || $properties['enabled'],
+            enabled: (class_exists(Sdk::class) && !Sdk::isInstrumentationDisabled('laravel')) || $properties['enabled'],
         );
     }
 
