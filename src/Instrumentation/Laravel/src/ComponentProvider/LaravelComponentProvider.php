@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
+namespace OpenTelemetry\Contrib\Instrumentation\Laravel\ComponentProvider;
 
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\InstrumentationConfiguration;
 use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
 use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
 use OpenTelemetry\Config\SDK\Configuration\Context;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
 class LaravelComponentProvider implements ComponentProvider
