@@ -1,0 +1,25 @@
+file_format: "0.3"
+
+tracer_provider:
+  sampler:
+    contrib_rule_based:
+      rule_sets:
+        - rules:
+            - attribute: {key: is.important, pattern: ~false~ }
+          delegate:
+            always_off: {}
+        - rules:
+            - link: { sampled: true }
+          delegate:
+            always_off: {}
+        - rules:
+            - span_name: { pattern: ~foobar~ }
+          delegate:
+            always_off: {}
+        - rules:
+            - span_kind: { kind: SERVER }
+            - attribute: { key: url.path, pattern: ~^/health$~ }
+          delegate:
+            always_off: {}
+      fallback:
+        always_on: {}

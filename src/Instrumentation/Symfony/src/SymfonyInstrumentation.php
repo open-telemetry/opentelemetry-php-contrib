@@ -113,7 +113,7 @@ final class SymfonyInstrumentation
                     return;
                 }
 
-                if ($response->getStatusCode() >= Response::HTTP_BAD_REQUEST) {
+                if ($response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
                     $span->setStatus(StatusCode::STATUS_ERROR);
                 }
                 $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());

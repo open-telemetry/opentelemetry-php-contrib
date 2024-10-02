@@ -187,4 +187,31 @@ class PDOInstrumentationTest extends TestCase
         $this->assertCount(1, $fetchAllSpan->getLinks());
         $this->assertEquals($prepareSpan->getContext(), $fetchAllSpan->getLinks()[0]->getSpanContext());
     }
+
+    /**
+     * Tests that the db statement is encoded as UTF-8, this is relevant for grpc exporter which expects UTF-8 encoding.
+     */
+    public function test_encode_db_statement_as_utf8(): void
+    {
+        //setup
+        $db = self::createDB();
+        $db->exec($this->fillDB());
+
+        $non_utf8_id = mb_convert_encoding('rückwärts', 'ISO-8859-1', 'UTF-8');
+
+        $db->prepare("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
+        $span_db_prepare = $this->storage->offsetGet(2);
+        $this->assertTrue(mb_check_encoding($span_db_prepare->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertCount(3, $this->storage);
+
+        $db->query("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
+        $span_db_query = $this->storage->offsetGet(3);
+        $this->assertTrue(mb_check_encoding($span_db_query->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertCount(4, $this->storage);
+
+        $db->exec("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
+        $span_db_exec = $this->storage->offsetGet(4);
+        $this->assertTrue(mb_check_encoding($span_db_exec->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertCount(5, $this->storage);
+    }
 }

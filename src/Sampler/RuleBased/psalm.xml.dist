@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="3"
+    cacheDirectory="var/cache/psalm"
+    findUnusedBaselineEntry="false"
+    findUnusedCode="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd">
+    <projectFiles>
+        <directory name="src"/>
+        <directory name="tests"/>
+    </projectFiles>
+    <plugins>
+        <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
+    </plugins>
+    <issueHandlers>
+        <UndefinedInterfaceMethod>
+            <errorLevel type="suppress">
+                <directory name="src/ComponentProvider"/>
+            </errorLevel>
+        </UndefinedInterfaceMethod>
+        <PossiblyNullReference>
+            <errorLevel type="suppress">
+                <directory name="src/ComponentProvider"/>
+            </errorLevel>
+        </PossiblyNullReference>
+        <MoreSpecificImplementedParamType>
+            <errorLevel type="suppress">
+                <directory name="src/ComponentProvider"/>
+            </errorLevel>
+        </MoreSpecificImplementedParamType>
+    </issueHandlers>
+</psalm>

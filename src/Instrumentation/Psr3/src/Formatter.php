@@ -10,21 +10,21 @@ class Formatter
 {
     public static function format(array $context): array
     {
-        $return = [];
+        $formatted = [];
         foreach ($context as $key => $value) {
             if ($key === 'exception' && $value instanceof Throwable) {
-                $return[$key] = self::formatThrowable($value);
+                $formatted[$key] = self::formatThrowable($value);
             } else {
-                $return[$key] = json_decode(json_encode($value));
+                $formatted[$key] = json_decode(json_encode($value));
             }
         }
 
-        return $return;
+        return $formatted;
     }
 
-    public static function formatThrowable(?Throwable $exception): array
+    private static function formatThrowable(?Throwable $exception): array
     {
-        if($exception) {
+        if ($exception) {
             return [
                 'message' => $exception->getMessage(),
                 'code' => $exception->getCode(),
@@ -36,6 +36,5 @@ class Formatter
         }
 
         return [];
-        
     }
 }

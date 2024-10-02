@@ -112,6 +112,12 @@ class ClientRequestWatcher extends Watcher
             return;
         }
 
+        // HTTP status code 3xx is not really error
+        // See https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx
+        if ($response->redirect()) {
+            return;
+        }
+
         $span->setStatus(
             StatusCode::STATUS_ERROR,
             HttpResponse::$statusTexts[$response->status()] ?? (string) $response->status()
