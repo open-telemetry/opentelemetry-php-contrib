@@ -18,6 +18,7 @@
     "require": {
         "php": "^8.2",
         "ext-opentelemetry": "*",
+        "doctrine/dbal": "^3 || ^4 || ^5",
         "open-telemetry/api": "^1.0",
         "open-telemetry/sem-conv": "^1.24"
     },
@@ -39,6 +40,11 @@
         "files": [
             "_register.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Tests\\Instrumentation\\Doctrine\\": "tests/"
+        }
     },
     "config": {
         "allow-plugins": {
