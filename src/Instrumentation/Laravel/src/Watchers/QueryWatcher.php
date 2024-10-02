@@ -38,7 +38,8 @@ class QueryWatcher extends Watcher
             $operationName = null;
         }
         /** @psalm-suppress ArgumentTypeCoercion */
-        $span = $this->tracer->spanBuilder('sql ' . $operationName)
+        $span = $this->tracer
+            ->spanBuilder('sql ' . $operationName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setStartTimestamp($this->calculateQueryStartTime($nowInNs, $query->time))
             ->startSpan();
