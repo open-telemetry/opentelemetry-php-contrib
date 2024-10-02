@@ -21,7 +21,7 @@ $scope = $span->activate();
 
 $input = require(__DIR__ . '/input.php');
 
-$logger->warning($input['message'], $input['context']);
+$logger->warning($input['message'], $input['context'] + ['zero']);
 
 $scope->detach();
 $span->end();
@@ -78,7 +78,8 @@ $span->end();
                                 ],
                                 "previous": []
                             }
-                        }
+                        },
+                        "0": "zero"
                     },
                     "dropped_attributes_count": 0
                 }
