@@ -24,7 +24,7 @@ class Formatter
 
     public static function formatThrowable(?Throwable $exception): array
     {
-        if($exception) {
+        if ($exception) {
             return [
                 'message' => $exception->getMessage(),
                 'code' => $exception->getCode(),

@@ -6,14 +6,14 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
-use Illuminate\Log\Logger;
+use Illuminate\Log\LogManager;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\API\Logs\Map\Psr3;
 
 class LogWatcher extends Watcher
 {
-    private Logger $logger;
+    private LogManager $logger;
     public function __construct(
         private CachedInstrumentation $instrumentation,
     ) {
