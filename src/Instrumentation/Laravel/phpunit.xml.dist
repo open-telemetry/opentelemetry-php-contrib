@@ -5,6 +5,7 @@
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
     backupGlobals="false"
     backupStaticAttributes="false"
+    bootstrap="tests/bootstrap.php"
     cacheResult="false"
     colors="false"
     convertErrorsToExceptions="true"
@@ -41,7 +42,10 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
-        <env name="TELESCOPE_ENABLED" value="false"/>        
+        <env name="TELESCOPE_ENABLED" value="false"/>
+
+        <server name="OTEL_PHP_AUTOLOAD_ENABLED" value="true"/>
+        <server name="OTEL_EXPERIMENTAL_CONFIG_FILE" value="tests/Fixtures/otel-instrumentation.yaml"/>
     </php>
 
     <testsuites>
