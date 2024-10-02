@@ -12,6 +12,7 @@ class FormatterTest extends TestCase
     public function test_format(): void
     {
         $context = [
+            0 => 'zero',
             'foo' => 'bar',
             'exception' => new \Exception('foo', 500, new \RuntimeException('bar')),
         ];

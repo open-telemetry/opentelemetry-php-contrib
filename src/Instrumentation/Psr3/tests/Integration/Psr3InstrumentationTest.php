@@ -49,7 +49,7 @@ class Psr3InstrumentationTest extends TestCase
     {
         $level = LogLevel::EMERGENCY;
         $msg = 'log test';
-        $context = ['user' => 'php', 'pid' => 1];
+        $context = [0 => 'zero', 'user' => 'php', 'pid' => 1];
 
         $this->logger
             ->expects($this->once())
