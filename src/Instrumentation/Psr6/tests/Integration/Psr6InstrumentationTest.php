@@ -213,7 +213,7 @@ class Psr6InstrumentationTest extends TestCase
 
             protected function checkKey(string $key):string
             {
-                if(empty($key)) {
+                if (empty($key)) {
                     throw new \InvalidArgumentException('cache key is empty');
                 }
         
