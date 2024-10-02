@@ -76,6 +76,8 @@ jobs:
             php-version: 7.4
           - project: 'Instrumentation/Laravel'
             php-version: 7.4
+          - project: 'Instrumentation/Laravel'
+            php-version: 8.0
           - project: 'Instrumentation/CodeIgniter'
             php-version: 7.4
           - project: 'Instrumentation/Yii'
