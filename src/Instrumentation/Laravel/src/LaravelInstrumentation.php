@@ -25,9 +25,9 @@ class LaravelInstrumentation implements Instrumentation
             return;
         }
 
-        $logger = $context->loggerProvider->getLogger(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_25_0->url());
-        $meter = $context->meterProvider->getMeter(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_25_0->url());
-        $tracer = $context->tracerProvider->getTracer(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_25_0->url());
+        $logger = $context->loggerProvider->getLogger(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_24_0->url());
+        $meter = $context->meterProvider->getMeter(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_24_0->url());
+        $tracer = $context->tracerProvider->getTracer(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_24_0->url());
 
         foreach (ServiceLoader::load(Hook::class) as $hook) {
             /** @var Hook $hook */
