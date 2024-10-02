@@ -45,7 +45,7 @@ class Server implements CakeHook
                 $route = $this->getRouteTemplate($request);
                 $span = \OpenTelemetry\API\Trace\Span::fromContext($scope->context());
 
-                if($route && $this->isRoot()) {
+                if ($route && $this->isRoot()) {
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
                 }
                 if ($exception) {

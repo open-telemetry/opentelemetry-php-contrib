@@ -173,7 +173,9 @@ return [
         'skipLog' => [],
         'log' => true,
         'trace' => true,
-        'ignoredDeprecationPaths' => [],
+        'ignoredDeprecationPaths' => [
+            '/src/I18n/I18n.php',
+        ],
     ],
 
     /*

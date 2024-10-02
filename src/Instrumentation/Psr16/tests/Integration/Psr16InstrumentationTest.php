@@ -204,7 +204,7 @@ class Psr16InstrumentationTest extends TestCase
 
             protected function checkKey(string $key):string
             {
-                if(empty($key)) {
+                if (empty($key)) {
                     throw new \InvalidArgumentException('cache key is empty');
                 }
         
@@ -213,11 +213,11 @@ class Psr16InstrumentationTest extends TestCase
 
             protected function getTTL(DateInterval|int|null $ttl):?int
             {
-                if($ttl instanceof DateInterval) {
+                if ($ttl instanceof DateInterval) {
                     return ((new DateTime())->add($ttl)->getTimeStamp() - time());
                 }
         
-                if((is_int($ttl) && $ttl > 0)) {
+                if ((is_int($ttl) && $ttl > 0)) {
                     return $ttl;
                 }
         
@@ -226,7 +226,7 @@ class Psr16InstrumentationTest extends TestCase
 
             protected function fromIterable(iterable $data): array
             {
-                if(is_array($data)) {
+                if (is_array($data)) {
                     return $data;
                 }
         
@@ -235,8 +235,8 @@ class Psr16InstrumentationTest extends TestCase
 
             protected function checkReturn(array $booleans): bool
             {
-                foreach($booleans as $boolean) {
-                    if(!(bool) $boolean) {
+                foreach ($booleans as $boolean) {
+                    if (!(bool) $boolean) {
                         return false;
                     }
                 }
@@ -248,8 +248,8 @@ class Psr16InstrumentationTest extends TestCase
             {
                 $key = $this->checkKey($key);
 
-                if(isset($this->data[$key])) {
-                    if($this->data[$key]['ttl'] === null || $this->data[$key]['ttl'] > time()) {
+                if (isset($this->data[$key])) {
+                    if ($this->data[$key]['ttl'] === null || $this->data[$key]['ttl'] > time()) {
                         return $this->data[$key]['content'];
                     }
 
@@ -263,7 +263,7 @@ class Psr16InstrumentationTest extends TestCase
             {
                 $ttl = $this->getTTL($ttl);
 
-                if($ttl !== null) {
+                if ($ttl !== null) {
                     $ttl = (time() + $ttl);
                 }
 

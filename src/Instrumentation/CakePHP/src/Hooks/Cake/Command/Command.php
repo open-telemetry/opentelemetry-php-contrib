@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace  OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Command;
+namespace OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\Cake\Command;
 
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
