@@ -58,10 +58,10 @@ class ClientRequestWatcher extends Watcher
             ->setAttributes([
                 TraceAttributes::HTTP_REQUEST_METHOD => $request->request->method(),
                 TraceAttributes::URL_FULL => $processedUrl,
-                TraceAttributes::URL_PATH => $parsedUrl['path'] ?? '',
-                TraceAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? '',
-                TraceAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? '',
-                TraceAttributes::SERVER_PORT => $parsedUrl['port'] ?? '',
+                TraceAttributes::URL_PATH => $parsedUrl['path'] ?? null,
+                TraceAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? null,
+                TraceAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? null,
+                TraceAttributes::SERVER_PORT => $parsedUrl['port'] ?? null,
             ])
             ->startSpan();
         $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
