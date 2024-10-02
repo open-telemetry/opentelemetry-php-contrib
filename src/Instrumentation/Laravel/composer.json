@@ -27,7 +27,7 @@
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "phpunit/phpunit": "^9.5",
+    "phpunit/phpunit": "^10.5 || ^11.3",
     "psalm/plugin-phpunit": "^0.18.4",
     "spatie/laravel-ignition": "*",
     "vimeo/psalm": "^5.0"
