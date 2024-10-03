@@ -13,6 +13,9 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
 class LaravelComponentProvider implements ComponentProvider
 {
+    /**
+     * @phan-suppress PhanTypeMismatchReturn
+     */
     public function createPlugin(array $properties, Context $context): InstrumentationConfiguration
     {
         return LaravelConfiguration::fromArray($properties);
