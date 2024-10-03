@@ -54,6 +54,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-cakephp.git"
   - prefix: "src/Instrumentation/Yii"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-yii.git"
+  - prefix: "src/Instrumentation/Doctrine"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-doctrine.git"
   - prefix: "src/Context/Swoole"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-swoole.git"
   - prefix: "src/AutoInstrumentationInstaller"

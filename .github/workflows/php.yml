@@ -42,6 +42,7 @@ jobs:
           'Instrumentation/MongoDB',
           'Instrumentation/CodeIgniter',
           'Instrumentation/Yii',
+          'Instrumentation/Doctrine',
           'Logs/Monolog',
           'Propagation/ServerTiming',
           'Propagation/TraceResponse',
