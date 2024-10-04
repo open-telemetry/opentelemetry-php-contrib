@@ -52,6 +52,7 @@ final class HttpClientInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('%s', $params[0]))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
+                    ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
