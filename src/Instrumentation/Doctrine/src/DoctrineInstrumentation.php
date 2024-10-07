@@ -40,7 +40,7 @@ class DoctrineInstrumentation
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
             },
-            post: static function (\Doctrine\DBAL\Driver $driver, array $params, \Doctrine\DBAL\Driver\Connection $connection, ?Throwable $exception) {
+            post: static function (\Doctrine\DBAL\Driver $driver, array $params, ?\Doctrine\DBAL\Driver\Connection $connection, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
