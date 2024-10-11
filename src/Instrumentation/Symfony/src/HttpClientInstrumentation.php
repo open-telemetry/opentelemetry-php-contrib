@@ -48,16 +48,34 @@ final class HttpClientInstrumentation
                 ?int $lineno,
             ) use ($instrumentation): array {
                 /** @psalm-suppress ArgumentTypeCoercion */
+                $requestOptions = $params[2] ?? [];
+
+                if (array_key_exists('base_uri', $requestOptions)) {
+                    $baseuri = $requestOptions['base_uri'];
+                    $parsedUrl = parse_url($baseuri);
+                    if (!array_key_exists('port', $parsedUrl)) {
+                        $parsedUrl['port'] = $parsedUrl['scheme'] === 'https' ? 443 : 80;
+                    }
+                } else {
+                    $parsedUrl = parse_url((string) $params[1]);
+                    if (!array_key_exists('port', $parsedUrl)) {
+                        $parsedUrl['port'] = $parsedUrl['scheme'] === 'https' ? 443 : 80;
+                    }
+                    $baseuri = sprintf('%s://%s:%d', $parsedUrl['scheme'], $parsedUrl['host'], $parsedUrl['port']);
+                }
+
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('%s', $params[0]))
+                    ->spanBuilder(\sprintf('%s %s', $params[0],$baseuri))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
+                    ->setAttribute(TraceAttributes::PEER_SERVICE, $parsedUrl['host'])
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::SERVER_ADDRESS,$parsedUrl['host'])
+                    ->setAttribute(TraceAttributes::SERVER_PORT, $parsedUrl['port'])
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
 
                 $propagator = Globals::propagator();
@@ -67,7 +85,6 @@ final class HttpClientInstrumentation
                     ->setParent($parent)
                     ->startSpan();
 
-                $requestOptions = $params[2] ?? [];
 
                 if (!isset($requestOptions['headers'])) {
                     $requestOptions['headers'] = [];
