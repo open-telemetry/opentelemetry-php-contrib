@@ -157,7 +157,7 @@ final class MessengerInstrumentationTest extends AbstractTest
             [
                 new SendEmailMessage('Hello Again'),
                 'SEND OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-                SpanKind::KIND_INTERNAL,
+                SpanKind::KIND_PRODUCER,
                 [
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_TRANSPORT => class_exists('Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport') ? 'Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport' : 'Symfony\Component\Messenger\Transport\InMemoryTransport',
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
@@ -172,7 +172,7 @@ final class MessengerInstrumentationTest extends AbstractTest
             [
                 new SendEmailMessage('Hello Again'),
                 'DISPATCH OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-                SpanKind::KIND_INTERNAL,
+                SpanKind::KIND_PRODUCER,
                 [
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS => 'Symfony\Component\Messenger\MessageBus',
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',

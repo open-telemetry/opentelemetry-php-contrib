@@ -58,7 +58,7 @@ final class MessengerInstrumentation
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_INTERNAL)
+                    ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
@@ -125,7 +125,7 @@ final class MessengerInstrumentation
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('SEND %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_INTERNAL)
+                    ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
