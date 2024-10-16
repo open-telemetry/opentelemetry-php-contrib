@@ -37,7 +37,9 @@ class LogWatcher extends Watcher
         $underlyingLogger = $this->logger->getLogger();
 
         /** @phan-suppress-next-line PhanUndeclaredMethod */
-        if (method_exists($underlyingLogger, 'isHandling') && !$underlyingLogger->isHandling($log->level)) {
+        if (method_exists($underlyingLogger, 'isHandling') && !$underlyingLogger->isHandling(
+                $underlyingLogger->toMonologLevel($log->level))
+        ) {
             return;
         }
 
