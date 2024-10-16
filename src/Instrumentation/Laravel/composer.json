@@ -48,7 +48,8 @@
     "lock": false,
     "sort-packages": true,
     "allow-plugins": {
-      "php-http/discovery": false
+      "php-http/discovery": false,
+      "tbachert/spi": true
     }
   }
 }

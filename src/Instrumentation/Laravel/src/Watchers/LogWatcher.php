@@ -29,10 +29,7 @@ class LogWatcher extends Watcher
         $this->logger = $app['log'];
     }
 
-    /**
-     * Record a log.
-     */
-    public function recordLog(MessageLogged $log): void
+    public function shouldRecordLog(MessageLogged $log): bool
     {
         $underlyingLogger = $this->logger->getLogger();
 
@@ -41,6 +38,18 @@ class LogWatcher extends Watcher
             && method_exists($underlyingLogger, 'toMonologLevel')
             && !$underlyingLogger->isHandling($underlyingLogger->toMonologLevel($log->level))
         ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Record a log.
+     */
+    public function recordLog(MessageLogged $log): void
+    {
+        if (!$this->shouldRecordLog($log)) {
             return;
         }
 
