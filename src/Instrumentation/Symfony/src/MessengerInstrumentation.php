@@ -118,7 +118,6 @@ final class MessengerInstrumentation
 
                  // Instrument sending as a "send" operation with SpanKind::KIND_PRODUCER
                 $builder = $instrumentation
-<<<<<<< HEAD
                  ->tracer()
                  ->spanBuilder(\sprintf('send %s', $messageClass))
                  ->setSpanKind(SpanKind::KIND_PRODUCER) // Set KIND_PRODUCER for sending
@@ -128,19 +127,6 @@ final class MessengerInstrumentation
                  ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
                  ->setAttribute(self::ATTRIBUTE_MESSENGER_TRANSPORT, $class)
                  ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass);
-=======
-                    ->tracer()
-                    ->spanBuilder(\sprintf('SEND %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
-
-                    ->setAttribute(self::ATTRIBUTE_MESSENGER_TRANSPORT, $class)
-                    ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
-                ;
->>>>>>> 78a04cebaeba48d60a00dc1c48653695b926299d
 
                 $parent = Context::getCurrent();
                 $span = $builder
@@ -180,9 +166,9 @@ final class MessengerInstrumentation
 
          // Instrument the receiving of messages (consumer-side)
          hook(
-            SenderInterface::class,
-            'receive',
-            pre: static function (
+            ReceiverInterface::class,
+            'get',
+             static function (
                 SenderInterface $bus,
                 array $params,
                 string $class,
