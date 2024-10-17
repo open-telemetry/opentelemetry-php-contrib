@@ -12,7 +12,7 @@
   "require-dev": {
     "composer/xdebug-handler": "^2.0",
     "open-telemetry/dev-tools": "dev-main",
-    "phpunit/phpunit": "^11.4"
+    "phpunit/phpunit": "^8.0 || ^9.5 || ^10.0"  // Support for PHP 8.0/8.1 while allowing newer versions
   },
   "autoload": {
     "psr-4": {
