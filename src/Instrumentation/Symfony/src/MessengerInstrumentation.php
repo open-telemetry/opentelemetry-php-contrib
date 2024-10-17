@@ -56,13 +56,8 @@ final class MessengerInstrumentation
                 // Instrument dispatch as a "send" operation with SpanKind::KIND_PRODUCER
                 $builder = $instrumentation
                     ->tracer()
-<<<<<<< HEAD
                     ->spanBuilder(\sprintf('publish %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_PRODUCER) // Set KIND_PRODUCER for dispatch
-=======
-                    ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_PRODUCER)
->>>>>>> 78a04cebaeba48d60a00dc1c48653695b926299d
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
