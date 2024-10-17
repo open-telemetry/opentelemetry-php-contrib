@@ -11,7 +11,8 @@
   },
   "require-dev": {
     "composer/xdebug-handler": "^2.0",
-    "open-telemetry/dev-tools": "dev-main"
+    "open-telemetry/dev-tools": "dev-main",
+    "phpunit/phpunit": "^11.4"
   },
   "autoload": {
     "psr-4": {
