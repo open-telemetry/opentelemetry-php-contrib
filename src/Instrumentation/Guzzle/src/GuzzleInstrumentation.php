@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Guzzle;
 
 use function get_cfg_var;
-use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -35,9 +35,9 @@ class GuzzleInstrumentation
         );
 
         hook(
-            ClientInterface::class,
+            Client::class,
             'transfer',
-            pre: static function (ClientInterface $client, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): array {
+            pre: static function (Client $client, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): array {
                 $request = $params[0];
                 assert($request instanceof RequestInterface);
 
@@ -84,7 +84,7 @@ class GuzzleInstrumentation
 
                 return [$request];
             },
-            post: static function (ClientInterface $client, array $params, PromiseInterface $promise, ?Throwable $exception): void {
+            post: static function (Client $client, array $params, PromiseInterface $promise, ?Throwable $exception): void {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
