@@ -7,18 +7,18 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contrac
 use DateInterval;
 use DateTimeInterface;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
-use OpenTelemetry\API\Logs\LoggerInterface;
-use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
 class Queue implements Hook
@@ -27,12 +27,15 @@ class Queue implements Hook
     use PostHookTrait;
 
     public function instrument(
+        LaravelInstrumentation $instrumentation,
         HookManagerInterface $hookManager,
-        LaravelConfiguration $configuration,
-        LoggerInterface $logger,
-        MeterInterface $meter,
-        TracerInterface $tracer,
+        InstrumentationContext $context,
     ): void {
+        $tracer = $context->tracerProvider->getTracer(
+            $instrumentation->buildProviderName('queue'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        );
+
         $this->hookBulk($hookManager, $tracer);
         $this->hookLater($hookManager, $tracer);
         $this->hookPushRaw($hookManager, $tracer);

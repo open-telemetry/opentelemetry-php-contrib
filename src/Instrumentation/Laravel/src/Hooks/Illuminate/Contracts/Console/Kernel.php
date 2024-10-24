@@ -6,9 +6,8 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contrac
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
-use OpenTelemetry\API\Logs\LoggerInterface;
-use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -17,9 +16,9 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
 class Kernel implements Hook
@@ -28,13 +27,16 @@ class Kernel implements Hook
     use PostHookTrait;
 
     public function instrument(
+        LaravelInstrumentation $instrumentation,
         HookManagerInterface $hookManager,
-        LaravelConfiguration $configuration,
-        LoggerInterface $logger,
-        MeterInterface $meter,
-        TracerInterface $tracer,
+        InstrumentationContext $context,
     ): void {
-        if (LaravelInstrumentation::shouldTraceCli()) {
+        $tracer = $context->tracerProvider->getTracer(
+            $instrumentation->buildProviderName('console', 'kernel'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        );
+
+        if ($instrumentation->shouldTraceCli()) {
             $this->hookHandle($hookManager, $tracer);
         }
     }

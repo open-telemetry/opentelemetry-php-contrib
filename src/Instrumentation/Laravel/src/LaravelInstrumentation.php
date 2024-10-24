@@ -11,7 +11,6 @@ use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
 use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
-use OpenTelemetry\SemConv\Version;
 
 class LaravelInstrumentation implements Instrumentation
 {
@@ -25,17 +24,21 @@ class LaravelInstrumentation implements Instrumentation
             return;
         }
 
-        $logger = $context->loggerProvider->getLogger(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_24_0->url());
-        $meter = $context->meterProvider->getMeter(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_24_0->url());
-        $tracer = $context->tracerProvider->getTracer(self::INSTRUMENTATION_NAME, schemaUrl: Version::VERSION_1_24_0->url());
-
         foreach (ServiceLoader::load(Hook::class) as $hook) {
             /** @var Hook $hook */
-            $hook->instrument($hookManager, $config, $logger, $meter, $tracer);
+            $hook->instrument($this, $hookManager, $context);
         }
     }
 
-    public static function shouldTraceCli(): bool
+    public function buildProviderName(string ...$component): string
+    {
+        return implode('.', [
+            self::INSTRUMENTATION_NAME,
+            ...$component,
+        ]);
+    }
+
+    public function shouldTraceCli(): bool
     {
         return PHP_SAPI !== 'cli' || (new ConfigurationResolver())->getBoolean('OTEL_PHP_TRACE_CLI_ENABLED');
     }

@@ -6,9 +6,8 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Worker as QueueWorker;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
-use OpenTelemetry\API\Logs\LoggerInterface;
-use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -16,9 +15,10 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
 class Worker implements Hook
@@ -27,12 +27,15 @@ class Worker implements Hook
     use PostHookTrait;
 
     public function instrument(
+        LaravelInstrumentation $instrumentation,
         HookManagerInterface $hookManager,
-        LaravelConfiguration $configuration,
-        LoggerInterface $logger,
-        MeterInterface $meter,
-        TracerInterface $tracer,
+        InstrumentationContext $context,
     ): void {
+        $tracer = $context->tracerProvider->getTracer(
+            $instrumentation->buildProviderName('queue', 'worker'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        );
+
         $this->hookWorkerProcess($hookManager, $tracer);
         $this->hookWorkerGetNextJob($hookManager, $tracer);
     }

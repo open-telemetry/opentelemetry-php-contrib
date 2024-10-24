@@ -8,9 +8,8 @@ use Illuminate\Contracts\Http\Kernel as KernelContract;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
-use OpenTelemetry\API\Logs\LoggerInterface;
-use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -19,10 +18,11 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\HeadersPropagator;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\ResponsePropagationSetter;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -31,12 +31,15 @@ class Kernel implements Hook
     use PostHookTrait;
 
     public function instrument(
+        LaravelInstrumentation $instrumentation,
         HookManagerInterface $hookManager,
-        LaravelConfiguration $configuration,
-        LoggerInterface $logger,
-        MeterInterface $meter,
-        TracerInterface $tracer,
+        InstrumentationContext $context,
     ): void {
+        $tracer = $context->tracerProvider->getTracer(
+            $instrumentation->buildProviderName('http', 'kernel'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        );
+
         $this->hookHandle($hookManager, $tracer);
     }
 
