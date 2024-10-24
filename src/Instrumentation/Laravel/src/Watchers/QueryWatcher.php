@@ -27,8 +27,10 @@ class QueryWatcher extends Watcher
 
     /**
      * Record a query.
+     *
+     * @psalm-suppress UndefinedThisPropertyFetch
+     * @phan-suppress PhanDeprecatedClassConstant
      */
-    /** @psalm-suppress UndefinedThisPropertyFetch */
     public function recordQuery(QueryExecuted $query): void
     {
         $nowInNs = (int) (microtime(true) * 1E9);
