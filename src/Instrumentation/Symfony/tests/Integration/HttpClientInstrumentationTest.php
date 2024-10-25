@@ -48,6 +48,8 @@ final class HttpClientInstrumentationTest extends AbstractTest
             $this->assertNotNull($requestHeaders['HTTP_TRACEPARENT']);
         }
 
+        $this->assertTrue($span->getAttributes()->has(TraceAttributes::PEER_SERVICE));
+        $this->assertSame(parse_url($uri)['host'] ?? null, $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
         $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
         $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));

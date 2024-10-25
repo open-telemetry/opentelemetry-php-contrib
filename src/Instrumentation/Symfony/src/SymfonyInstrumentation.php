@@ -104,7 +104,9 @@ final class SymfonyInstrumentation
                     $span->recordException($exception, [
                         TraceAttributes::EXCEPTION_ESCAPED => true,
                     ]);
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+                        $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    }
                 }
 
                 if (null === $response) {
@@ -159,8 +161,7 @@ final class SymfonyInstrumentation
                 Span::getCurrent()
                     ->recordException($throwable, [
                         TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ])
-                    ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage());
+                    ]);
 
                 return $params;
             },
