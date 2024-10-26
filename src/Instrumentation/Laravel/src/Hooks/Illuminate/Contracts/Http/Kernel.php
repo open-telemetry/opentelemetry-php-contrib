@@ -7,7 +7,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contrac
 use Illuminate\Contracts\Http\Kernel as KernelContract;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
-use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\Span;
@@ -16,6 +15,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
@@ -40,15 +40,18 @@ class Kernel implements Hook
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 
-        $this->hookHandle($hookManager, $tracer);
+        $this->hookHandle($hookManager, $tracer, $context->propagator);
     }
 
-    protected function hookHandle(HookManagerInterface $hookManager, TracerInterface $tracer): void
-    {
+    protected function hookHandle(
+        HookManagerInterface $hookManager,
+        TracerInterface $tracer,
+        TextMapPropagatorInterface $propagator,
+    ): void {
         $hookManager->hook(
             KernelContract::class,
             'handle',
-            preHook: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+            preHook: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer, $propagator) {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $tracer
@@ -61,7 +64,7 @@ class Kernel implements Hook
                 $parent = Context::getCurrent();
                 if ($request) {
                     /** @phan-suppress-next-line PhanAccessMethodInternal */
-                    $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
+                    $parent = $propagator->extract($request, HeadersPropagator::instance());
                     $span = $builder
                         ->setParent($parent)
                         ->setAttribute(TraceAttributes::URL_FULL, $request->fullUrl())
