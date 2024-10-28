@@ -17,12 +17,15 @@ final class LaravelConfiguration implements InstrumentationConfiguration
     public static function fromArray(array $properties): self
     {
         return new self(
-            enabled: (class_exists(Sdk::class) && !Sdk::isInstrumentationDisabled('laravel')) || $properties['enabled'],
+            enabled: $properties['enabled'],
         );
     }
 
     public static function default(): self
     {
-        return self::fromArray([]);
+        return self::fromArray([
+            // Enabled by default if the OpenTelemetry SDK is not present. If it is, check whether disabled explicitly.
+            'enabled' => !class_exists(Sdk::class) || !Sdk::isInstrumentationDisabled('laravel'),
+        ]);
     }
 }
