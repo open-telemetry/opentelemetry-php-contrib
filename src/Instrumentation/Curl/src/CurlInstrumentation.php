@@ -67,10 +67,9 @@ class CurlInstrumentation
                     return;
                 }
 
-                $attr = self::getAttributeFromCurlOption($params[1], $params[2]);
-                if ($attr) {
-                    $handleAttributes = &$curlHandleToAttributes[$params[0]];
-                    $handleAttributes[$attr[0]] = $attr[1];
+                $attribute = self::getAttributeFromCurlOption($params[1], $params[2]);
+                if ($attribute) {
+                    $curlHandleToAttributes[$params[0]][$attribute[0]] = $attribute[1];
                 }
             }
         );
@@ -85,10 +84,9 @@ class CurlInstrumentation
                 }
 
                 foreach ($params[1] as $option => $value) {
-                    $attr = self::getAttributeFromCurlOption($option, $value);
-                    if ($attr) {
-                        $handleAttributes = &$curlHandleToAttributes[$params[0]];
-                        $handleAttributes[$attr[0]] = $attr[1];
+                    $attribute = self::getAttributeFromCurlOption($option, $value);
+                    if ($attribute) {
+                        $curlHandleToAttributes[$params[0]][$attribute[0]] = $attribute[1];
                     }
                 }
             }
@@ -131,12 +129,11 @@ class CurlInstrumentation
             null,
             'curl_exec',
             pre: static function ($obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation, $curlHandleToAttributes) {
-                /** @psalm-suppress ArgumentTypeCoercion */
                 if (!($params[0] instanceof CurlHandle)) {
                     return;
                 }
 
-                $spanName = array_key_exists(TraceAttributes::HTTP_REQUEST_METHOD, $curlHandleToAttributes[$params[0]]) ? $curlHandleToAttributes[$params[0]][TraceAttributes::HTTP_REQUEST_METHOD] : 'curl_exec';
+                $spanName = $curlHandleToAttributes[$params[0]][TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_exec';
 
                 $builder = $instrumentation->tracer()
                     ->spanBuilder($spanName)
@@ -196,8 +193,7 @@ class CurlInstrumentation
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle) {
                 if ($retVal == 0) {
-                    $mHandle = &$curlMultiToHandle[$params[0]];
-                    $mHandle['handles'][$params[1]] = ['finished' => false, 'span' => null];
+                    $curlMultiToHandle[$params[0]]['handles'][$params[1]] = ['finished' => false, 'span' => null];
                 }
             }
         );
@@ -240,7 +236,7 @@ class CurlInstrumentation
                     if (!$mHandle['started']) { // on first call to curl_multi_exec we're marking it's a transfer start for all curl handles attached to multi handle
                         $parent = Context::getCurrent();
                         foreach ($handles as $cHandle => &$metadata) {
-                            $spanName = array_key_exists(TraceAttributes::HTTP_REQUEST_METHOD, $curlHandleToAttributes[$cHandle]) ? $curlHandleToAttributes[$cHandle][TraceAttributes::HTTP_REQUEST_METHOD] : 'curl_multi_exec';
+                            $spanName = $curlHandleToAttributes[$cHandle][TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_multi_exec';
                             $builder = $instrumentation->tracer()
                                 ->spanBuilder($spanName)
                                 ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -363,23 +359,23 @@ class CurlInstrumentation
     private static function setAttributesFromCurlGetInfo(CurlHandle $handle, SpanInterface $span)
     {
         $info = curl_getinfo($handle);
-        if (array_key_exists('http_code', $info)) {
-            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $info['http_code']);
+        if (($value = $info['http_code'] ?? null) != 0) {
+            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $value);
         }
-        if (array_key_exists('download_content_length', $info) && $info['download_content_length'] > -1) {
-            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $info['download_content_length']);
+        if (($value = $info['download_content_length'] ?? null) > -1) {
+            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $value);
         }
-        if (array_key_exists('upload_content_length', $info) && $info['upload_content_length'] > -1) {
-            $span->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $info['upload_content_length']);
+        if (($value = $info['upload_content_length'] ?? null) > -1) {
+            $span->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $value);
         }
-        if (array_key_exists('scheme', $info)) {
-            $span->setAttribute(TraceAttributes::URL_SCHEME, $info['scheme']);
+        if ($value = $info['scheme'] ?? null) {
+            $span->setAttribute(TraceAttributes::URL_SCHEME, $value);
         }
-        if (array_key_exists('primary_ip', $info)) {
-            $span->setAttribute(TraceAttributes::SERVER_ADDRESS, $info['primary_ip']);
+        if ($value = $info['primary_ip'] ?? null) {
+            $span->setAttribute(TraceAttributes::SERVER_ADDRESS, $value);
         }
-        if (array_key_exists('primary_port', $info)) {
-            $span->setAttribute(TraceAttributes::SERVER_PORT, $info['primary_port']);
+        if ($value = $info['primary_port'] ?? null) {
+            $span->setAttribute(TraceAttributes::SERVER_PORT, $value);
         }
     }
 }
