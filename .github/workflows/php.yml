@@ -22,9 +22,9 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
-          'Instrumentation/Curl',
           'Instrumentation/CakePHP',
           'Instrumentation/CodeIgniter',
+          'Instrumentation/Curl',
           'Instrumentation/ExtAmqp',
           'Instrumentation/ExtRdKafka',
           'Instrumentation/Guzzle',
