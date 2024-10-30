@@ -24,6 +24,7 @@ jobs:
           'Context/Swoole',
           'Instrumentation/CakePHP',
           'Instrumentation/CodeIgniter',
+          'Instrumentation/Curl',
           'Instrumentation/ExtAmqp',
           'Instrumentation/ExtRdKafka',
           'Instrumentation/Guzzle',
@@ -84,6 +85,12 @@ jobs:
           - project: 'Instrumentation/IO'
             php-version: 8.0
           - project: 'Instrumentation/IO'
+            php-version: 8.1
+          - project: 'Instrumentation/Curl'
+            php-version: 7.4
+          - project: 'Instrumentation/Curl'
+            php-version: 8.0
+          - project: 'Instrumentation/Curl'
             php-version: 8.1
           - project: 'Instrumentation/PDO'
             php-version: 7.4
