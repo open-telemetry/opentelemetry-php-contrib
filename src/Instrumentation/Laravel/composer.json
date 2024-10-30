@@ -43,7 +43,9 @@
     }
   },
   "suggest": {
-    "ext-opentelemetry": "Required to provide auto-instrumentation hooks."
+    "ext-opentelemetry": "Required to provide auto-instrumentation hooks.",
+    "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
   },
   "extra": {
     "spi-config": {
