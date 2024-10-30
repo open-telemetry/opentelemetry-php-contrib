@@ -14,6 +14,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sdk-bundle.git"
   - prefix: "src/Instrumentation/CodeIgniter"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-codeigniter.git"
+  - prefix: "src/Instrumentation/Curl"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-curl.git"
   - prefix: "src/Instrumentation/ExtAmqp"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-ext-amqp.git"
   - prefix: "src/Instrumentation/ExtRdKafka"
