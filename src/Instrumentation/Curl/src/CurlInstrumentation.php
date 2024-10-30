@@ -51,8 +51,8 @@ class CurlInstrumentation
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if ($retVal instanceof CurlHandle) {
                     $curlHandleToAttributes[$retVal] = [TraceAttributes::HTTP_REQUEST_METHOD => 'GET'];
-                    if ($params[0] !== null) {
-                        $curlHandleToAttributes[$retVal][TraceAttributes::URL_FULL] = self::redactUrlString($params[0]);
+                    if (($handle = $params[0] ?? null) !== null) {
+                        $curlHandleToAttributes[$retVal][TraceAttributes::URL_FULL] = self::redactUrlString($handle);
                     }
                 }
             }
@@ -96,7 +96,7 @@ class CurlInstrumentation
             null,
             'curl_close',
             pre: static function ($obj, array $params) use ($curlHandleToAttributes) {
-                if ($params[0] instanceof CurlHandle) {
+                if (count($params) > 0 && $params[0] instanceof CurlHandle) {
                     $curlHandleToAttributes->offsetUnset($params[0]);
                 }
             },
@@ -118,7 +118,7 @@ class CurlInstrumentation
             null,
             'curl_reset',
             pre: static function ($obj, array $params) use ($curlHandleToAttributes) {
-                if ($params[0] instanceof CurlHandle) {
+                if (count($params) > 0 && $params[0] instanceof CurlHandle) {
                     $curlHandleToAttributes[$params[0]] = [TraceAttributes::HTTP_REQUEST_METHOD => 'GET'];
                 }
             },
@@ -147,7 +147,7 @@ class CurlInstrumentation
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
             },
-            post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
+            post: static function ($obj, array $params, mixed $retVal) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -359,22 +359,22 @@ class CurlInstrumentation
     private static function setAttributesFromCurlGetInfo(CurlHandle $handle, SpanInterface $span)
     {
         $info = curl_getinfo($handle);
-        if (($value = $info['http_code'] ?? null) != 0) {
+        if (($value = $info['http_code']) != 0) {
             $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $value);
         }
-        if (($value = $info['download_content_length'] ?? null) > -1) {
+        if (($value = $info['download_content_length']) > -1) {
             $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $value);
         }
-        if (($value = $info['upload_content_length'] ?? null) > -1) {
+        if (($value = $info['upload_content_length']) > -1) {
             $span->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $value);
         }
-        if ($value = $info['scheme'] ?? null) {
+        if (!empty($value = $info['scheme'])) {
             $span->setAttribute(TraceAttributes::URL_SCHEME, $value);
         }
-        if ($value = $info['primary_ip'] ?? null) {
+        if (!empty($value = $info['primary_ip'])) {
             $span->setAttribute(TraceAttributes::SERVER_ADDRESS, $value);
         }
-        if ($value = $info['primary_port'] ?? null) {
+        if (($value = $info['primary_port']) != 0) {
             $span->setAttribute(TraceAttributes::SERVER_PORT, $value);
         }
     }
