@@ -31,7 +31,7 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=curl
 ```
 
-### Request and response headers captuing
+### Request and response headers capturing
 
 Curl auto-instrumentation enables capturing headers from both requests and responses. This feature is disabled by default and be enabled through environment variables or array directives in the `php.ini` configuration file.
 

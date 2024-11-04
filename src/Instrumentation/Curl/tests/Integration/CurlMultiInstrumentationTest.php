@@ -247,5 +247,4 @@ class CurlMultiInstrumentationTest extends TestCase
             $this->assertNotEmpty($span->getAttributes()->get('http.request.header.traceparent'));
         }
     }
-
 }

@@ -31,6 +31,7 @@ class CurlHandleMetadata
     {
         return $this->verboseEnabled;
     }
+
     public function getAttributes(): array
     {
         return $this->attributes;
@@ -68,12 +69,12 @@ class CurlHandleMetadata
     {
         $this->responseHeaders = [];
         $func = function (CurlHandle $handle, string $headerLine): int {
+            $header = trim($headerLine, "\n\r");
 
-            $header =  trim($headerLine, "\n\r");
             if (strlen($header) > 0) {
                 if (strpos($header, ': ') !== false) {
                     /** @psalm-suppress PossiblyUndefinedArrayOffset */
-                    list($key, $value) = explode(': ', $header, 2);
+                    [$key, $value] = explode(': ', $header, 2);
                     $this->responseHeaders[strtolower($key)] = $value;
                 }
             }
