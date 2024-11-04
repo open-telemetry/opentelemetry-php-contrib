@@ -57,7 +57,7 @@ class CurlInstrumentation
                 if ($retVal instanceof CurlHandle) {
                     $curlHandleToAttributes[$retVal] = new CurlHandleMetadata();
                     if (($fullUrl = $params[0] ?? null) !== null) {
-                        $curlHandleToAttributes[$retVal]->setAttribute(TraceAttributes::URL_FULL, self::redactUrlString($fullUrl));
+                        $curlHandleToAttributes[$retVal]->setAttribute(TraceAttributes::URL_FULL, CurlHandleMetadata::redactUrlString($fullUrl));
                     }
                 }
             }
@@ -380,26 +380,6 @@ class CurlInstrumentation
         $span->end();
     }
 
-    private static function redactUrlString(string $fullUrl)
-    {
-        $urlParts = parse_url($fullUrl);
-        if ($urlParts == false) {
-            return;
-        }
-
-        $scheme   = isset($urlParts['scheme']) ? $urlParts['scheme'] . '://' : '';
-        $host     = isset($urlParts['host']) ? $urlParts['host'] : '';
-        $port     = isset($urlParts['port']) ? ':' . $urlParts['port'] : '';
-        $user     = isset($urlParts['user']) ? 'REDACTED' : '';
-        $pass     = isset($urlParts['pass']) ? ':' . 'REDACTED'  : '';
-        $pass     = ($user || $pass) ? "$pass@" : '';
-        $path     = isset($urlParts['path']) ? $urlParts['path'] : '';
-        $query    = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
-        $fragment = isset($urlParts['fragment']) ? '#' . $urlParts['fragment'] : '';
-
-        return $scheme . $user . $pass . $host . $port . $path . $query . $fragment;
-    }
-
     private static function transformHeaderStringToArray(string $header): array
     {
         $lines = explode("\n", $header);
@@ -407,14 +387,14 @@ class CurlInstrumentation
 
         $headersResult = [];
         foreach ($lines as $line) {
-            $line =  trim($line, "\r");
+            $line = trim($line, "\r");
             if (empty($line)) {
                 continue;
             }
 
             if (strpos($line, ': ') !== false) {
                 /** @psalm-suppress PossiblyUndefinedArrayOffset */
-                list($key, $value) = explode(': ', $line, 2);
+                [$key, $value] = explode(': ', $line, 2);
                 $headersResult[strtolower($key)] = $value;
             }
         }
@@ -440,10 +420,6 @@ class CurlInstrumentation
         if (!empty($value = $info['primary_ip'])) {
             $span->setAttribute(TraceAttributes::SERVER_ADDRESS, $value);
         }
-        if (($value = $info['primary_port']) != 0) {
-            $span->setAttribute(TraceAttributes::SERVER_PORT, $value);
-        }
-
         if (($value = $info['primary_port']) != 0) {
             $span->setAttribute(TraceAttributes::SERVER_PORT, $value);
         }

@@ -65,9 +65,22 @@ class CurlInstrumentationTest extends TestCase
 
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
+        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertSame('POST', $span->getName());
         $this->assertSame('Error', $span->getStatus()->getCode());
         $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
+    }
+
+    public function test_curl_setopt_overrides_url(): void
+    {
+        $ch = curl_init('http://example.com');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_URL, 'http://gugugaga.gugugaga/');
+        curl_exec($ch);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
     }
 
     public function test_curl_setopt_array(): void

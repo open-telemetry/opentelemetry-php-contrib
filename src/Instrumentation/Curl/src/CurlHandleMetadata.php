@@ -120,7 +120,8 @@ class CurlHandleMetadata
 
                 break;
             case CURLOPT_URL:
-                // $this->setAttribute(TraceAttributes::URL_FULL, self::redactUrlString($value));
+                $this->setAttribute(TraceAttributes::URL_FULL, self::redactUrlString($value));
+
                 break;
             case CURLOPT_USERAGENT:
                 $this->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $value);
@@ -132,9 +133,34 @@ class CurlHandleMetadata
                 break;
             case CURLOPT_HEADERFUNCTION:
                 $this->originalHeaderFunction = $value;
-                // no break
-            case CURLOPT_VERBOSE:
                 $this->verboseEnabled = false;
+
+                break;
+            case CURLOPT_VERBOSE:
+                $this->verboseEnabled = $value;
+
+                break;
         }
     }
+
+    public static function redactUrlString(string $fullUrl)
+    {
+        $urlParts = parse_url($fullUrl);
+        if ($urlParts == false) {
+            return;
+        }
+
+        $scheme   = isset($urlParts['scheme']) ? $urlParts['scheme'] . '://' : '';
+        $host     = isset($urlParts['host']) ? $urlParts['host'] : '';
+        $port     = isset($urlParts['port']) ? ':' . $urlParts['port'] : '';
+        $user     = isset($urlParts['user']) ? 'REDACTED' : '';
+        $pass     = isset($urlParts['pass']) ? ':' . 'REDACTED'  : '';
+        $pass     = ($user || $pass) ? "$pass@" : '';
+        $path     = isset($urlParts['path']) ? $urlParts['path'] : '';
+        $query    = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
+        $fragment = isset($urlParts['fragment']) ? '#' . $urlParts['fragment'] : '';
+
+        return $scheme . $user . $pass . $host . $port . $path . $query . $fragment;
+    }
+
 }
