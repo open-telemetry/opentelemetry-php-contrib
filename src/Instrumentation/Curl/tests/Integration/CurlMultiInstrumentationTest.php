@@ -174,7 +174,7 @@ class CurlMultiInstrumentationTest extends TestCase
         }
     }
 
-    public function test_curl_multi_exec_headers_captuing(): void
+    public function test_curl_multi_exec_headers_capturing(): void
     {
         putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type');
         putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
