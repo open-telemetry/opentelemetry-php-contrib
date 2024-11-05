@@ -74,14 +74,14 @@ class ExtRdKafkaInstrumentation
                 /** @var CachedInstrumentation $instrumentation */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s %s', $exchange->getName(), TraceAttributeValues::MESSAGING_OPERATION_PUBLISH))
+                    ->spanBuilder(sprintf('%s %s', $exchange->getName(), TraceAttributeValues::MESSAGING_OPERATION_TYPE_PUBLISH))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, TraceAttributeValues::MESSAGING_SYSTEM_KAFKA)
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION, TraceAttributeValues::MESSAGING_OPERATION_PUBLISH)
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, TraceAttributeValues::MESSAGING_OPERATION_TYPE_PUBLISH)
                 ;
 
                 $parent = Context::getCurrent();
@@ -147,12 +147,12 @@ class ExtRdKafkaInstrumentation
                 $builder = $instrumentation
                     ->tracer()
                     // @phan-suppress-next-line PhanTypeMismatchArgumentInternal - Doesn't seem to know this has to be a string
-                    ->spanBuilder(sprintf('%s %s', $message->topic_name, TraceAttributeValues::MESSAGING_OPERATION_DELIVER))
+                    ->spanBuilder(sprintf('%s %s', $message->topic_name, TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, TraceAttributeValues::MESSAGING_SYSTEM_KAFKA)
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION, TraceAttributeValues::MESSAGING_OPERATION_DELIVER)
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS)
                     ->setAttribute(TraceAttributes::MESSAGING_KAFKA_MESSAGE_KEY, $message->key)
-                    ->setAttribute(TraceAttributes::MESSAGING_KAFKA_MESSAGE_OFFSET, $message->offset)
+                    ->setAttribute(TraceAttributes::MESSAGING_KAFKA_OFFSET, $message->offset)
                 ;
 
                 if (is_array($message->headers)) {

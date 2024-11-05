@@ -9,6 +9,7 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use OpenTelemetry\API\Logs as API;
+use OpenTelemetry\API\Logs\Severity;
 
 class Handler extends AbstractProcessingHandler
 {
@@ -48,7 +49,7 @@ class Handler extends AbstractProcessingHandler
         $formatted = $record['formatted'];
         $logRecord = (new API\LogRecord())
             ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
-            ->setSeverityNumber(API\Map\Psr3::severityNumber($record['level_name']))
+            ->setSeverityNumber(Severity::fromPsr3($record['level_name']))
             ->setSeverityText($record['level_name'])
             ->setBody($formatted['message'])
         ;
