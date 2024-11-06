@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Curl;
 
 use CurlHandle;
 use CurlMultiHandle;
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
@@ -13,6 +14,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use WeakMap;
 use WeakReference;
@@ -23,7 +25,7 @@ class CurlInstrumentation
 
     public static function register(): void
     {
-        /** @var WeakMap<CurlHandle, array> */
+        /** @var WeakMap<CurlHandle, CurlHandleMetadata> */
         $curlHandleToAttributes = new WeakMap();
 
         /** @var WeakMap<CurlMultiHandle, array> >
@@ -38,6 +40,9 @@ class CurlInstrumentation
          */
         $curlMultiToHandle = new WeakMap();
 
+        /** @var bool */
+        $curlSetOptInstrumentationSuppressed = false;
+
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.curl',
             null,
@@ -50,9 +55,9 @@ class CurlInstrumentation
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if ($retVal instanceof CurlHandle) {
-                    $curlHandleToAttributes[$retVal] = [TraceAttributes::HTTP_REQUEST_METHOD => 'GET'];
-                    if (($handle = $params[0] ?? null) !== null) {
-                        $curlHandleToAttributes[$retVal][TraceAttributes::URL_FULL] = self::redactUrlString($handle);
+                    $curlHandleToAttributes[$retVal] = new CurlHandleMetadata();
+                    if (($fullUrl = $params[0] ?? null) !== null) {
+                        $curlHandleToAttributes[$retVal]->setAttribute(TraceAttributes::URL_FULL, CurlHandleMetadata::redactUrlString($fullUrl));
                     }
                 }
             }
@@ -62,15 +67,12 @@ class CurlInstrumentation
             null,
             'curl_setopt',
             pre: null,
-            post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
-                if ($retVal != true) {
+            post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes, &$curlSetOptInstrumentationSuppressed) {
+                if ($retVal != true || $curlSetOptInstrumentationSuppressed) {
                     return;
                 }
 
-                $attribute = self::getAttributeFromCurlOption($params[1], $params[2]);
-                if ($attribute) {
-                    $curlHandleToAttributes[$params[0]][$attribute[0]] = $attribute[1];
-                }
+                $curlHandleToAttributes[$params[0]]->updateFromCurlOption($params[1], $params[2]);
             }
         );
 
@@ -84,10 +86,7 @@ class CurlInstrumentation
                 }
 
                 foreach ($params[1] as $option => $value) {
-                    $attribute = self::getAttributeFromCurlOption($option, $value);
-                    if ($attribute) {
-                        $curlHandleToAttributes[$params[0]][$attribute[0]] = $attribute[1];
-                    }
+                    $curlHandleToAttributes[$params[0]]->updateFromCurlOption($option, $value);
                 }
             }
         );
@@ -119,7 +118,7 @@ class CurlInstrumentation
             'curl_reset',
             pre: static function ($obj, array $params) use ($curlHandleToAttributes) {
                 if (count($params) > 0 && $params[0] instanceof CurlHandle) {
-                    $curlHandleToAttributes[$params[0]] = [TraceAttributes::HTTP_REQUEST_METHOD => 'GET'];
+                    $curlHandleToAttributes[$params[0]] = new CurlHandleMetadata();
                 }
             },
             post: null
@@ -128,26 +127,56 @@ class CurlInstrumentation
         hook(
             null,
             'curl_exec',
-            pre: static function ($obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation, $curlHandleToAttributes) {
+            pre: static function ($obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation, $curlHandleToAttributes, &$curlSetOptInstrumentationSuppressed) {
                 if (!($params[0] instanceof CurlHandle)) {
                     return;
                 }
 
-                $spanName = $curlHandleToAttributes[$params[0]][TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_exec';
+                $spanName = $curlHandleToAttributes[$params[0]]->getAttributes()[TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_exec';
+
+                $propagator = Globals::propagator();
+                $parent = Context::getCurrent();
 
                 $builder = $instrumentation->tracer()
                     ->spanBuilder($spanName)
+                    ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
-                    ->setAttributes($curlHandleToAttributes[$params[0]]);
+                    ->setAttributes($curlHandleToAttributes[$params[0]]->getAttributes());
 
-                $parent = Context::getCurrent();
                 $span = $builder->startSpan();
-                Context::storage()->attach($span->storeInContext($parent));
+                $context = $span->storeInContext($parent);
+                $propagator->inject($curlHandleToAttributes[$params[0]], HeadersPropagator::instance(), $context);
+
+                Context::storage()->attach($context);
+
+                $curlSetOptInstrumentationSuppressed = true;
+
+                $headers = $curlHandleToAttributes[$params[0]]->getRequestHeadersToSend();
+                if ($headers) {
+                    curl_setopt($params[0], CURLOPT_HTTPHEADER, $headers);
+                }
+
+                if (self::isResponseHeadersCapturingEnabled()) {
+                    curl_setopt($params[0], CURLOPT_HEADERFUNCTION, $curlHandleToAttributes[$params[0]]->getResponseHeaderCaptureFunction());
+                }
+                if (self::isRequestHeadersCapturingEnabled()) {
+                    if (!$curlHandleToAttributes[$params[0]]->isVerboseEnabled()) { // we let go of captuing request headers because CURLINFO_HEADER_OUT is disabling CURLOPT_VERBOSE
+                        curl_setopt($params[0], CURLINFO_HEADER_OUT, true);
+                    }
+                    //TODO log?
+
+                }
+                $curlSetOptInstrumentationSuppressed = false;
+
             },
-            post: static function ($obj, array $params, mixed $retVal) {
+            post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
+                if (!($params[0] instanceof CurlHandle)) {
+                    return;
+                }
+
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -157,17 +186,20 @@ class CurlInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if ($retVal !== false) {
-                    if ($params[0] instanceof CurlHandle) {
-                        self::setAttributesFromCurlGetInfo($params[0], $span);
-                    }
+                    self::setAttributesFromCurlGetInfo($params[0], $span);
                 } else {
-                    if ($params[0] instanceof CurlHandle) {
-                        $errno = curl_errno($params[0]);
-                        if ($errno != 0) {
-                            $errorDescription = curl_strerror($errno) . ' (' . $errno . ')';
-                            $span->setStatus(StatusCode::STATUS_ERROR, $errorDescription);
-                        }
-                        $span->setAttribute(TraceAttributes::ERROR_TYPE, 'cURL error (' . $errno . ')');
+                    $errno = curl_errno($params[0]);
+                    if ($errno != 0) {
+                        $errorDescription = curl_strerror($errno) . ' (' . $errno . ')';
+                        $span->setStatus(StatusCode::STATUS_ERROR, $errorDescription);
+                    }
+                    $span->setAttribute(TraceAttributes::ERROR_TYPE, 'cURL error (' . $errno . ')');
+                }
+
+                $capturedHeaders = $curlHandleToAttributes[$params[0]]->getCapturedResponseHeaders();
+                foreach (self::getResponseHeadersToCapture() as $headerToCapture) {
+                    if (($value = $capturedHeaders[strtolower($headerToCapture)] ?? null) != null) {
+                        $span->setAttribute(sprintf('http.response.header.%s', strtolower(string: $headerToCapture)), $value);
                     }
                 }
 
@@ -227,7 +259,7 @@ class CurlInstrumentation
             null,
             'curl_multi_exec',
             pre: null,
-            post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle, $instrumentation, $curlHandleToAttributes) {
+            post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle, $instrumentation, $curlHandleToAttributes, &$curlSetOptInstrumentationSuppressed) {
                 if ($retVal == CURLM_OK) {
                     $mHandle = &$curlMultiToHandle[$params[0]];
 
@@ -235,16 +267,40 @@ class CurlInstrumentation
 
                     if (!$mHandle['started']) { // on first call to curl_multi_exec we're marking it's a transfer start for all curl handles attached to multi handle
                         $parent = Context::getCurrent();
+                        $propagator = Globals::propagator();
+
                         foreach ($handles as $cHandle => &$metadata) {
-                            $spanName = $curlHandleToAttributes[$cHandle][TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_multi_exec';
+                            $spanName = $curlHandleToAttributes[$cHandle]->getAttributes()[TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_multi_exec';
                             $builder = $instrumentation->tracer()
                                 ->spanBuilder($spanName)
+                                ->setParent($parent)
                                 ->setSpanKind(SpanKind::KIND_CLIENT)
                                 ->setAttribute(TraceAttributes::CODE_FUNCTION, 'curl_multi_exec')
-                                ->setAttributes($curlHandleToAttributes[$cHandle]);
+                                ->setAttributes($curlHandleToAttributes[$cHandle]->getAttributes());
 
                             $span = $builder->startSpan();
-                            Context::storage()->attach($span->storeInContext($parent));
+                            $context = $span->storeInContext($parent);
+                            $propagator->inject($curlHandleToAttributes[$cHandle], HeadersPropagator::instance(), $context);
+
+                            Context::storage()->attach($context);
+
+                            $curlSetOptInstrumentationSuppressed = true;
+                            $headers = $curlHandleToAttributes[$cHandle]->getRequestHeadersToSend();
+                            if ($headers) {
+                                curl_setopt($cHandle, CURLOPT_HTTPHEADER, $headers);
+                            }
+                            if (self::isResponseHeadersCapturingEnabled()) {
+                                curl_setopt($cHandle, CURLOPT_HEADERFUNCTION, $curlHandleToAttributes[$cHandle]->getResponseHeaderCaptureFunction());
+                            }
+                            if (self::isRequestHeadersCapturingEnabled()) {
+                                if (!$curlHandleToAttributes[$cHandle]->isVerboseEnabled()) { // we let go of captuing request headers because CURLINFO_HEADER_OUT is disabling CURLOPT_VERBOSE
+                                    curl_setopt($cHandle, CURLINFO_HEADER_OUT, true);
+                                }
+                                //TODO log?
+
+                            }
+                            $curlSetOptInstrumentationSuppressed = false;
+
                             $metadata['span'] = WeakReference::create($span);
                         }
                         $mHandle['started'] = true;
@@ -252,12 +308,11 @@ class CurlInstrumentation
 
                     $isRunning = $params[1];
                     if ($isRunning == 0) {
-
                         // it is the last call to multi - in case curl_multi_info_read might not not be called anytime, we need to finish all spans left
                         foreach ($handles as $cHandle => &$metadata) {
                             if ($metadata['finished'] == false) {
                                 $metadata['finished'] = true;
-                                self::finishMultiSpan(CURLE_OK, $cHandle, $metadata['span']->get()); // there is no way to get information if it was OK or not without calling curl_multi_info_read
+                                self::finishMultiSpan(CURLE_OK, $cHandle, $curlHandleToAttributes, $metadata['span']->get()); // there is no way to get information if it was OK or not without calling curl_multi_info_read
                             }
                         }
 
@@ -265,6 +320,7 @@ class CurlInstrumentation
                         // https://curl.se/libcurl/c/libcurl-multi.html If you want to reuse an easy handle that was added to the multi handle for transfer, you must first remove it from the multi stack and then re-add it again (possibly after having altered some options at your own choice).
                         unset($mHandle['handles']);
                         $mHandle['handles'] = new WeakMap();
+
                     }
                 }
             }
@@ -275,7 +331,7 @@ class CurlInstrumentation
             null,
             'curl_multi_info_read',
             pre: null,
-            post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle) {
+            post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle, $curlHandleToAttributes) {
                 $mHandle = &$curlMultiToHandle[$params[0]];
 
                 if ($retVal != false) {
@@ -290,15 +346,22 @@ class CurlInstrumentation
                         }
 
                         $currentHandle['finished'] = true;
-                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $currentHandle['span']->get());
+                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $currentHandle['span']->get());
                     }
                 }
             }
         );
     }
 
-    private static function finishMultiSpan(int $curlResult, CurlHandle $curlHandle, SpanInterface $span)
+    private static function finishMultiSpan(int $curlResult, CurlHandle $curlHandle, $curlHandleToAttributes, SpanInterface $span)
     {
+        $scope = Context::storage()->scope();
+        $scope?->detach();
+
+        if (!$scope || $scope->context() === Context::getCurrent()) {
+            return;
+        }
+
         if ($curlResult == CURLE_OK) {
             self::setAttributesFromCurlGetInfo($curlHandle, $span);
         } else {
@@ -306,54 +369,37 @@ class CurlInstrumentation
             $span->setStatus(StatusCode::STATUS_ERROR, $errorDescription);
             $span->setAttribute(TraceAttributes::ERROR_TYPE, 'cURL error (' . $curlResult . ')');
         }
+
+        $capturedHeaders = $curlHandleToAttributes[$curlHandle]->getCapturedResponseHeaders();
+        foreach (self::getResponseHeadersToCapture() as $headerToCapture) {
+            if (($value = $capturedHeaders[strtolower($headerToCapture)] ?? null) != null) {
+                $span->setAttribute(sprintf('http.response.header.%s', strtolower(string: $headerToCapture)), $value);
+            }
+        }
+
         $span->end();
     }
 
-    private static function redactUrlString(string $fullUrl)
+    private static function transformHeaderStringToArray(string $header): array
     {
-        $urlParts = parse_url($fullUrl);
-        if ($urlParts == false) {
-            return;
+        $lines = explode("\n", $header);
+        array_shift($lines); // skip request line
+
+        $headersResult = [];
+        foreach ($lines as $line) {
+            $line = trim($line, "\r");
+            if (empty($line)) {
+                continue;
+            }
+
+            if (strpos($line, ': ') !== false) {
+                /** @psalm-suppress PossiblyUndefinedArrayOffset */
+                [$key, $value] = explode(': ', $line, 2);
+                $headersResult[strtolower($key)] = $value;
+            }
         }
 
-        $scheme   = isset($urlParts['scheme']) ? $urlParts['scheme'] . '://' : '';
-        $host     = isset($urlParts['host']) ? $urlParts['host'] : '';
-        $port     = isset($urlParts['port']) ? ':' . $urlParts['port'] : '';
-        $user     = isset($urlParts['user']) ? 'REDACTED' : '';
-        $pass     = isset($urlParts['pass']) ? ':' . 'REDACTED'  : '';
-        $pass     = ($user || $pass) ? "$pass@" : '';
-        $path     = isset($urlParts['path']) ? $urlParts['path'] : '';
-        $query    = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
-        $fragment = isset($urlParts['fragment']) ? '#' . $urlParts['fragment'] : '';
-
-        return $scheme . $user . $pass . $host . $port . $path . $query . $fragment;
-    }
-
-    private static function getAttributeFromCurlOption(int $option, mixed $value): ?array
-    {
-        switch ($option) {
-            case CURLOPT_CUSTOMREQUEST:
-                return [TraceAttributes::HTTP_REQUEST_METHOD, $value];
-            case CURLOPT_HTTPGET:
-                // Based on https://github.com/curl/curl/blob/curl-7_73_0/lib/setopt.c#L841
-                return [TraceAttributes::HTTP_REQUEST_METHOD, 'GET'];
-            case CURLOPT_POST:
-                return [TraceAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'POST' : 'GET')];
-            case CURLOPT_POSTFIELDS:
-                // Based on https://github.com/curl/curl/blob/curl-7_73_0/lib/setopt.c#L269
-                return [TraceAttributes::HTTP_REQUEST_METHOD, 'POST'];
-            case CURLOPT_PUT:
-                return [TraceAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'PUT' : 'GET')];
-            case CURLOPT_NOBODY:
-                // Based on https://github.com/curl/curl/blob/curl-7_73_0/lib/setopt.c#L269
-                return [TraceAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'HEAD' : 'GET')];
-            case CURLOPT_URL:
-                return [TraceAttributes::URL_FULL, self::redactUrlString($value)];
-            case CURLOPT_USERAGENT:
-                return [TraceAttributes::USER_AGENT_ORIGINAL, $value];
-        }
-
-        return null;
+        return $headersResult;
     }
 
     private static function setAttributesFromCurlGetInfo(CurlHandle $handle, SpanInterface $span)
@@ -377,5 +423,51 @@ class CurlInstrumentation
         if (($value = $info['primary_port']) != 0) {
             $span->setAttribute(TraceAttributes::SERVER_PORT, $value);
         }
+
+        /** @phpstan-ignore-next-line */
+        if (($requestHeader = $info['request_header'] ?? null) != null) {
+            $capturedHeaders = self::transformHeaderStringToArray($requestHeader);
+            foreach (self::getRequestHeadersToCapture() as $headerToCapture) {
+                if (($value = $capturedHeaders[strtolower($headerToCapture)] ?? null) != null) {
+                    $span->setAttribute(sprintf('http.request.header.%s', strtolower(string: $headerToCapture)), $value);
+                }
+            }
+        }
+    }
+
+    private static function isRequestHeadersCapturingEnabled(): bool
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count(Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS', [])) > 0) {
+            return true;
+        }
+
+        return get_cfg_var('otel.instrumentation.http.request_headers') !== false;
+    }
+
+    private static function getRequestHeadersToCapture(): array
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS', [])) > 0) {
+            return $values;
+        }
+
+        return (array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []);
+    }
+
+    private static function isResponseHeadersCapturingEnabled(): bool
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count(Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS', [])) > 0) {
+            return true;
+        }
+
+        return get_cfg_var('otel.instrumentation.http.response_headers') !== false;
+    }
+
+    private static function getResponseHeadersToCapture(): array
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS', [])) > 0) {
+            return $values;
+        }
+
+        return (array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []);
     }
 }

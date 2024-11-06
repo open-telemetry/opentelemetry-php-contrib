@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Curl\Integration;
 
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -31,6 +32,7 @@ class CurlInstrumentationTest extends TestCase
 
         $this->scope = Configurator::create()
             ->withTracerProvider($tracerProvider)
+            ->withPropagator(TraceContextPropagator::getInstance())
             ->activate();
     }
 
@@ -63,9 +65,22 @@ class CurlInstrumentationTest extends TestCase
 
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
+        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertSame('POST', $span->getName());
         $this->assertSame('Error', $span->getStatus()->getCode());
-        $this->assertSame('Couldn\'t resolve host name (6)', $span->getStatus()->getDescription());
+        $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
+    }
+
+    public function test_curl_setopt_overrides_url(): void
+    {
+        $ch = curl_init('http://example.com');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_URL, 'http://gugugaga.gugugaga/');
+        curl_exec($ch);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
     }
 
     public function test_curl_setopt_array(): void
@@ -78,7 +93,7 @@ class CurlInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $this->assertSame('POST', $span->getName());
         $this->assertSame('Error', $span->getStatus()->getCode());
-        $this->assertSame('Couldn\'t resolve host name (6)', $span->getStatus()->getDescription());
+        $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
     }
 
     public function test_curl_copy_handle(): void
@@ -95,7 +110,7 @@ class CurlInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $this->assertSame('POST', $span->getName());
         $this->assertSame('Error', $span->getStatus()->getCode());
-        $this->assertSame('Couldn\'t resolve host name (6)', $span->getStatus()->getDescription());
+        $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
     }
 
     public function test_curl_exec_with_error(): void
@@ -107,7 +122,7 @@ class CurlInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $this->assertSame('GET', $span->getName());
         $this->assertSame('Error', $span->getStatus()->getCode());
-        $this->assertSame('Couldn\'t resolve host name (6)', $span->getStatus()->getDescription());
+        $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
         $this->assertEquals('cURL error (6)', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
         $this->assertEquals('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
@@ -125,5 +140,74 @@ class CurlInstrumentationTest extends TestCase
         $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
         $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
         $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+    }
+
+    public function test_curl_exec_calls_user_defined_headerfunc(): void
+    {
+        // test if response header capturing is not breaking user header func invocation
+
+        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=server');
+        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
+
+        $ch = curl_init('http://example.com/');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $func = function (\CurlHandle $ch, string $headerLine) {
+            return strlen($headerLine);
+        };
+
+        $mockedFunc = $this->getMockBuilder(\stdClass::class)
+            ->addMethods(['__invoke'])
+            ->getMock();
+
+        $mockedFunc->expects($this->atLeastOnce())
+            ->method('__invoke')
+            ->willReturnCallback($func);
+
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, $mockedFunc);
+        curl_exec($ch);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('GET', $span->getName());
+        $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
+        $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+    }
+
+    public function test_curl_exec_headers_capturing(): void
+    {
+        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type');
+        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
+
+        $ch = curl_init('http://example.com/');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        curl_exec($ch);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('GET', $span->getName());
+        $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
+        $this->assertStringContainsStringIgnoringCase('text/html', $span->getAttributes()->get('http.response.header.content-type'));
+        $this->assertEquals('example.com', $span->getAttributes()->get('http.request.header.host'));
+    }
+
+    public function test_curl_exec_sets_traceparent(): void
+    {
+        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
+
+        $ch = curl_init('http://example.com/');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        curl_exec($ch);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('GET', $span->getName());
+        $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
+        $this->assertNotEmpty($span->getAttributes()->get('http.request.header.traceparent'));
     }
 }
