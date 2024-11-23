@@ -82,6 +82,14 @@ class CurlInstrumentation
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if ($retVal != true) {
+                    if (curl_error($params[0])) {
+                        foreach ($params[1] as $option => $value) {
+                            if (!curl_setopt($params[0], $option, $value)) {
+                                break;
+                            }
+                        }
+                    }
+
                     return;
                 }
 

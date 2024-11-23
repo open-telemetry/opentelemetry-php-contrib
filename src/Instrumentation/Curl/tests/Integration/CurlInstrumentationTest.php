@@ -96,6 +96,19 @@ class CurlInstrumentationTest extends TestCase
         $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
     }
 
+    public function test_curl_setopt_array_partial_success(): void
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, [CURLOPT_POST => 1,  CURLOPT_URL => 'http://gugugaga.gugugaga/', CURLOPT_SSLVERSION => 1000 ]);
+        curl_exec($ch);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('POST', $span->getName());
+        $this->assertSame('Error', $span->getStatus()->getCode());
+        $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
+    }
+
     public function test_curl_copy_handle(): void
     {
         $ch = curl_init('http://gugugaga.gugugaga/');
