@@ -45,7 +45,9 @@ class Handler extends AbstractProcessingHandler
      */
     protected function write($record): void
     {
-        $formatted = $record['formatted'];
+        $formatted = ($this->getFormatter() instanceof JsonFormatter)
+            ? json_decode($record['formatted'], true)
+            : $record['formatted'];
         $logRecord = (new API\LogRecord())
             ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
             ->setSeverityNumber(API\Map\Psr3::severityNumber($record['level_name']))
