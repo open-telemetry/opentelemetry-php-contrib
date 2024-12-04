@@ -32,6 +32,7 @@ jobs:
           'Instrumentation/IO',
           'Instrumentation/Laravel',
           'Instrumentation/MongoDB',
+          'Instrumentation/MySqli',
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
           # Sort PSRs numerically.
@@ -91,6 +92,12 @@ jobs:
           - project: 'Instrumentation/Curl'
             php-version: 8.0
           - project: 'Instrumentation/Curl'
+            php-version: 8.1
+          - project: 'Instrumentation/MySqli'
+            php-version: 7.4
+          - project: 'Instrumentation/MySqli'
+            php-version: 8.0
+          - project: 'Instrumentation/MySqli'
             php-version: 8.1
           - project: 'Instrumentation/PDO'
             php-version: 7.4
