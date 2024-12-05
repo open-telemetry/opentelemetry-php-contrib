@@ -353,13 +353,12 @@ class MySqliInstrumentation
 
     private static function constructPostHook(int $paramsOffset, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
-
         $mysqliObject = null;
 
         if ($obj && $retVal !== false) { // even if constructor fails, we will get and temporary object which will be assigned (or not) alter in user code
             $mysqliObject = $obj;
         } elseif ($retVal instanceof mysqli) { // procedural mode
-            $mySqliObject = $retVal;
+            $mysqliObject = $retVal;
         } elseif ($paramsOffset == self::MYSQLI_REAL_CONNECT_ARG_OFFSET && $retVal !== false && $params[0] instanceof mysqli) { // real_connect procedural mode
             $mysqliObject = $params[0];
         }
@@ -369,7 +368,6 @@ class MySqliInstrumentation
         }
 
         self::endSpan([], $exception, ($retVal === false && !$exception) ? mysqli_connect_error() : null);
-
     }
 
     /** @param non-empty-string $spanName */
@@ -380,11 +378,11 @@ class MySqliInstrumentation
 
     private static function queryPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
-
         $mysqli = $obj ? $obj : $params[0];
         $query = $obj ? $params[0] : $params[1];
 
         $attributes = $tracker->getMySqliAttributes($mysqli);
+
         $attributes[TraceAttributes::DB_STATEMENT] = mb_convert_encoding($query, 'UTF-8');
         $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($query);
 

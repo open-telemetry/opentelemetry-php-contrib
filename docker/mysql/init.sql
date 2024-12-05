@@ -1,7 +1,10 @@
-CREATE DATABASE IF NOT EXISTS otel_db;
-CREATE USER IF NOT EXISTS 'otel_user'@'%' IDENTIFIED BY 'otel_passwd';
-GRANT ALL PRIVILEGES ON otel_db.* TO 'otel_user'@'%';
+-- CREATE DATABASE IF NOT EXISTS otel_db;
+-- DROP USER IF EXISTS 'otel_user'@'%';
+-- CREATE USER 'otel_user'@'%' IDENTIFIED BY 'otel_passwd';
+
+GRANT ALL PRIVILEGES ON *.* TO 'otel_user'@'%';
 FLUSH PRIVILEGES;
+
 
 USE otel_db;
 
