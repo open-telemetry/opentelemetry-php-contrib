@@ -46,7 +46,7 @@ class MySqliInstrumentationTest extends TestCase
             ->withPropagator(TraceContextPropagator::getInstance())
             ->activate();
 
-        $this->mysqlHost = getenv('MYSQL_HOST') ?: 'localhost';
+        $this->mysqlHost = getenv('MYSQL_HOST') ?: '127.0.0.1';
 
         $this->user = 'otel_user';
         $this->passwd = 'otel_passwd';
