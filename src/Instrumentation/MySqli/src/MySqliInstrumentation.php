@@ -338,8 +338,10 @@ class MySqliInstrumentation
         //TODO test to https://www.php.net/manual/en/mysqli.begin-transaction.php
     }
 
+    /** @param non-empty-string $spanName */
     private static function constructPreHook(string $spanName, int $paramsOffset, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
+        $attributes = [];
         $attributes[TraceAttributes::SERVER_ADDRESS] = $params[$paramsOffset + 0] ?? get_cfg_var('mysqli.default_host');
         $attributes[TraceAttributes::SERVER_PORT] = $params[$paramsOffset + 4] ?? get_cfg_var('mysqli.default_port');
         $attributes[TraceAttributes::DB_USER] = $params[$paramsOffset + 1] ?? get_cfg_var('mysqli.default_user');
@@ -370,6 +372,7 @@ class MySqliInstrumentation
 
     }
 
+    /** @param non-empty-string $spanName */
     private static function queryPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
@@ -421,6 +424,7 @@ class MySqliInstrumentation
 
     }
 
+    /** @param non-empty-string $spanName */
     private static function nextResultPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
@@ -545,6 +549,7 @@ class MySqliInstrumentation
         }
     }
 
+    /** @param non-empty-string $spanName */
     private static function stmtExecutePreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
@@ -568,6 +573,7 @@ class MySqliInstrumentation
 
     }
 
+    /** @param non-empty-string $spanName */
     private static function stmtNextResultPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
@@ -603,6 +609,7 @@ class MySqliInstrumentation
         self::endSpan($attributes, $exception, $errorStatus);
     }
 
+    /** @param non-empty-string $spanName */
     private static function startSpan(string $spanName, CachedInstrumentation $instrumentation, ?string $class, ?string $function, ?string $filename, ?int $lineno, iterable $attributes) : SpanInterface
     {
         $parent = Context::getCurrent();
@@ -624,7 +631,7 @@ class MySqliInstrumentation
         return $span;
     }
 
-    private static function endSpan(array $attributes, ?\Throwable $exception, ?string $errorStatus)
+    private static function endSpan(iterable $attributes, ?\Throwable $exception, ?string $errorStatus)
     {
         $scope = Context::storage()->scope();
         if (!$scope) {
@@ -661,6 +668,7 @@ class MySqliInstrumentation
     private static function extractQueryCommand($query) : ?string
     {
         $query = preg_replace("/\r\n|\n\r|\r/", "\n", $query);
+        /** @psalm-suppress PossiblyInvalidArgument */
         if (preg_match('/^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*([a-zA-Z_][a-zA-Z0-9_]*)/i', $query, $matches)) {
             return strtoupper($matches[1]);
         }

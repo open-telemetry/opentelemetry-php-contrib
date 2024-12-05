@@ -139,7 +139,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, amqp, grpc, opentelemetry, rdkafka
+        extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -198,6 +198,11 @@ jobs:
       if: ${{ matrix.project == 'Instrumentation/ExtRdKafka' }}
       run: |
         KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092 docker compose up  kafka -d --wait
+
+    - name: Start Mysql
+      if: ${{ matrix.project == 'Instrumentation/MySqli' }}
+      run: |
+        docker compose up  mysql -d --wait
 
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}

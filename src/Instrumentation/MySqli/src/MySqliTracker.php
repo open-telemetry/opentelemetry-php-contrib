@@ -48,6 +48,7 @@ final class MySqliTracker
 
     public function storeMySqliAttributes(mysqli $mysqli, ?string $hostname = null, ?string $username = null, ?string $database = null, ?int $port = null, ?string $socket = null)
     {
+        $attributes = [];
         $attributes[TraceAttributes::DB_SYSTEM] = 'mysql';
         $attributes[TraceAttributes::SERVER_ADDRESS] = $hostname ?? get_cfg_var('mysqli.default_host');
         $attributes[TraceAttributes::SERVER_PORT] = $port ?? get_cfg_var('mysqli.default_port');
@@ -66,7 +67,7 @@ final class MySqliTracker
         $this->mySqliToAttributes[$mysqli][$attribute] = $value;
     }
 
-    public function getMySqliAttributes(mysqli $mysqli) : iterable
+    public function getMySqliAttributes(mysqli $mysqli) : array
     {
         return $this->mySqliToAttributes[$mysqli] ?? [];
     }
@@ -76,7 +77,7 @@ final class MySqliTracker
         $this->statementToMySqli[$mysqli_stmt] = WeakReference::create($mysqli);
     }
 
-    public function getMySqliAttributesFromStatement(mysqli_stmt $stmt) : iterable
+    public function getMySqliAttributesFromStatement(mysqli_stmt $stmt) : array
     {
         $mysqli = ($this->statementToMySqli[$stmt] ?? null)?->get();
         if (!$mysqli) {
@@ -94,7 +95,7 @@ final class MySqliTracker
         $this->statementAttributes[$stmt][$attribute] = $value;
     }
 
-    public function getStatementAttributes(mysqli_stmt $stmt) : iterable
+    public function getStatementAttributes(mysqli_stmt $stmt) : array
     {
         if (!$this->statementAttributes->offsetExists($stmt)) {
             return [];
