@@ -18,8 +18,8 @@ Auto-instrumentation hooks are registered via composer, and client kind spans wi
 * `mysqli_connect`
 * `mysqli::__construct`
 * `mysqli::connect`
-* `mysqli::real_connect`
 * `mysqli_real_connect`
+* `mysqli::real_connect`
 
 * `mysqli_query`
 * `mysqli::query`
@@ -32,14 +32,17 @@ Auto-instrumentation hooks are registered via composer, and client kind spans wi
 * `mysqli_next_result`
 * `mysqli::next_result`
 
-* `mysqli_stmt::execute`
+* `mysqli_begin_transaction`
+* `mysqli::begin_transaction`
+* `mysqli_rollback`
+* `mysqli::rollback`
+* `mysqli_commit`
+* `mysqli::commit`
+*
 * `mysqli_stmt_execute`
-* `mysqli_stmt::next_result`
+* `mysqli_stmt::execute`
 * `mysqli_stmt_next_result`
-
-## Limitations
-
-Transactions are not fully supported yet
+* `mysqli_stmt::next_result`
 
 ## Configuration
 

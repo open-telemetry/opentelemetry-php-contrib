@@ -1,8 +1,9 @@
--- CREATE DATABASE IF NOT EXISTS otel_db;
--- DROP USER IF EXISTS 'otel_user'@'%';
--- CREATE USER 'otel_user'@'%' IDENTIFIED BY 'otel_passwd';
+CREATE DATABASE IF NOT EXISTS otel_db2;
+CREATE USER 'otel_user2'@'%' IDENTIFIED BY 'otel_passwd';
+
 
 GRANT ALL PRIVILEGES ON *.* TO 'otel_user'@'%';
+GRANT ALL PRIVILEGES ON *.* TO 'otel_user2'@'%';
 FLUSH PRIVILEGES;
 
 

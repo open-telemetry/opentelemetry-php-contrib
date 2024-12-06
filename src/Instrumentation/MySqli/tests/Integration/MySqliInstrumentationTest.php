@@ -8,6 +8,7 @@ use ArrayObject;
 use mysqli;
 use mysqli_result;
 use mysqli_sql_exception;
+use mysqli_stmt;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -423,6 +424,591 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertCount($offset, $this->storage);
         $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_multi_query_objective(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $query = 'SELECT CURRENT_USER();';
+        $query .= 'SELECT email FROM users ORDER BY id;';
+        $query .= 'SELECT name FROM products ORDER BY stock;';
+        $query .= 'SELECT test FROM unknown ORDER BY nothing;';
+
+        $result = $mysqli->multi_query($query);
+        do {
+            try {
+                if ($result = $mysqli->store_result()) {
+                    $result->free_result();
+                }
+
+                if (!$mysqli->next_result()) {
+                    break;
+                }
+            } catch (Throwable) {
+                break;
+            }
+        } while (true);
+
+        $offset++;
+        $this->assertSame('mysqli::multi_query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
+        ]);
+
+        mysqli_report(MYSQLI_REPORT_ERROR);
+
+        $result = $mysqli->multi_query($query);
+        do {
+            try {
+                if ($result = $mysqli->store_result()) {
+                    $result->free_result();
+                }
+
+                if (!$mysqli->next_result()) {
+                    break;
+                }
+            } catch (Throwable) {
+                break;
+            }
+        } while (true);
+
+        $offset++;
+        $this->assertSame('mysqli::multi_query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
+        ]);
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_multi_query_procedural(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        $mysqli = mysqli_connect($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli_connect', $this->storage->offsetGet($offset)->getName());
+
+        $query = 'SELECT CURRENT_USER();';
+        $query .= 'SELECT email FROM users ORDER BY id;';
+        $query .= 'SELECT name FROM products ORDER BY stock;';
+        $query .= 'SELECT test FROM unknown ORDER BY nothing;';
+
+        $result = mysqli_multi_query($mysqli, $query);
+        do {
+            try {
+                if ($result = mysqli_store_result($mysqli)) {
+                    mysqli_free_result($result);
+                }
+
+                if (!mysqli_next_result($mysqli)) {
+                    break;
+                }
+            } catch (Throwable) {
+                break;
+            }
+        } while (true);
+
+        $offset++;
+        $this->assertSame('mysqli_multi_query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
+        ]);
+
+        mysqli_report(MYSQLI_REPORT_ERROR);
+
+        $result = mysqli_multi_query($mysqli, $query);
+        do {
+            try {
+                if ($result = mysqli_store_result($mysqli)) {
+                    mysqli_free_result($result);
+                }
+
+                if (!mysqli_next_result($mysqli)) {
+                    break;
+                }
+            } catch (Throwable) {
+                break;
+            }
+        } while (true);
+
+        $offset++;
+        $this->assertSame('mysqli_multi_query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
+        ]);
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_stmt_execute_objective(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $stmt = new mysqli_stmt($mysqli, "SELECT email FROM users WHERE name='John Doe'");
+        $stmt->execute();
+        $stmt->fetch();
+        $stmt->close();
+
+        $offset++;
+        $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => "SELECT email FROM users WHERE name='John Doe'",
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $stmt = $mysqli->stmt_init();
+        $stmt->prepare("SELECT email FROM users WHERE name='John Doe'");
+        $stmt->execute();
+        $stmt->fetch();
+        $stmt->close();
+
+        $offset++;
+        $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => "SELECT email FROM users WHERE name='John Doe'",
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_stmt_execute_procedural(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $stmt = mysqli_stmt_init($mysqli);
+        mysqli_stmt_prepare($stmt, "SELECT email FROM users WHERE name='John Doe'");
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_fetch($stmt);
+        mysqli_stmt_close($stmt);
+
+        $offset++;
+        $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => "SELECT email FROM users WHERE name='John Doe'",
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_multiquery_with_calls(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $createProcedureSQL = "
+        DROP PROCEDURE IF EXISTS get_message;
+        CREATE PROCEDURE get_message()
+        BEGIN
+            -- first result
+            SELECT 'Result 1' AS message;
+            -- second result
+            SELECT 'Result 2' AS message;
+        END;
+        ";
+
+        $mysqli->multi_query($createProcedureSQL);
+
+        $offset++;
+        $this->assertSame('mysqli::multi_query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'DROP PROCEDURE IF EXISTS get_message;',
+            TraceAttributes::DB_OPERATION_NAME => 'DROP',
+        ]);
+
+        while ($mysqli->next_result()) {
+            if ($result = $mysqli->store_result()) {
+                $result->free();
+            }
+        }
+
+        $offset++;
+        $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_OPERATION_NAME => 'CREATE',
+        ]);
+        $span = $this->storage->offsetGet($offset);
+        $this->assertStringStartsWith('CREATE PROCEDURE', $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
+        $this->assertStringEndsWith('END;', $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
+
+        $stmt = $mysqli->prepare('CALL get_message();');
+        $stmt->execute();
+
+        $offset++;
+        $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_OPERATION_NAME => 'CALL',
+        ]);
+
+        do {
+            $result = $stmt->get_result();
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    // echo 'Result: ' . str_replace(PHP_EOL, '', print_r($row, true)) . PHP_EOL;
+                }
+                $result->free();
+            }
+        } while ($stmt->next_result());
+
+        $offset++;
+        $this->assertSame('mysqli_stmt::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_OPERATION_NAME => 'CALL',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_stmt::next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_OPERATION_NAME => 'CALL',
+        ]);
+
+        // the same but procedural
+
+        mysqli_stmt_execute($stmt);
+
+        $offset++;
+        $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_OPERATION_NAME => 'CALL',
+        ]);
+
+        do {
+            $result = mysqli_stmt_get_result($stmt);
+            if ($result) {
+                while ($row = mysqli_fetch_assoc($result)) {
+                    // echo 'Result: ' . str_replace(PHP_EOL, '', print_r($row, true)) . PHP_EOL;
+                }
+                mysqli_free_result($result);
+            }
+        } while (mysqli_stmt_next_result($stmt));
+
+        $offset++;
+        $this->assertSame('mysqli_stmt_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_OPERATION_NAME => 'CALL',
+        ]);
+
+        $offset++;
+        $this->assertSame('mysqli_stmt_next_result', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_OPERATION_NAME => 'CALL',
+        ]);
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_change_user(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR| MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $offset++;
+        $res = $mysqli->query('SELECT CURRENT_USER();');
+        if ($res instanceof mysqli_result) {
+            while ($res->fetch_object()) {
+            }
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => $this->user,
+            TraceAttributes::DB_NAMESPACE => $this->database,
+            TraceAttributes::DB_SYSTEM => 'mysql',
+        ]);
+
+        $mysqli->change_user('otel_user2', $this->passwd, 'otel_db2');
+
+        $offset++;
+        $res = $mysqli->query('SELECT CURRENT_USER();');
+        if ($res instanceof mysqli_result) {
+            while ($res->fetch_object()) {
+            }
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => 'otel_user2',
+            TraceAttributes::DB_NAMESPACE => 'otel_db2',
+            TraceAttributes::DB_SYSTEM => 'mysql',
+        ]);
+
+        mysqli_change_user($mysqli, $this->user, $this->passwd, $this->database);
+
+        $offset++;
+        $res = $mysqli->query('SELECT CURRENT_USER();');
+        if ($res instanceof mysqli_result) {
+            while ($res->fetch_object()) {
+            }
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => $this->user,
+            TraceAttributes::DB_NAMESPACE => $this->database,
+            TraceAttributes::DB_SYSTEM => 'mysql',
+        ]);
+
+        try {
+            mysqli_change_user($mysqli, 'blahh', $this->passwd, 'unknowndb');
+        } catch (Throwable) {
+        }
+
+        $offset++;
+
+        try {
+            $res = $mysqli->query('SELECT CURRENT_USER();');
+            if ($res instanceof mysqli_result) {
+                while ($res->fetch_object()) {
+                }
+            }
+        } catch (Throwable) {
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => $this->user,
+            TraceAttributes::DB_NAMESPACE => $this->database,
+            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
+        ]);
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+    }
+
+    public function test_mysqli_select_db(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR| MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $offset++;
+        $res = $mysqli->query('SELECT CURRENT_USER();');
+        if ($res instanceof mysqli_result) {
+            while ($res->fetch_object()) {
+            }
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => $this->user,
+            TraceAttributes::DB_NAMESPACE => $this->database,
+            TraceAttributes::DB_SYSTEM => 'mysql',
+        ]);
+
+        $mysqli->select_db('otel_db2');
+
+        $offset++;
+        $res = $mysqli->query('SELECT CURRENT_USER();');
+        if ($res instanceof mysqli_result) {
+            while ($res->fetch_object()) {
+            }
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => $this->user,
+            TraceAttributes::DB_NAMESPACE => 'otel_db2',
+            TraceAttributes::DB_SYSTEM => 'mysql',
+        ]);
+
+        mysqli_select_db($mysqli, $this->database);
+
+        $offset++;
+        $res = $mysqli->query('SELECT CURRENT_USER();');
+        if ($res instanceof mysqli_result) {
+            while ($res->fetch_object()) {
+            }
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => $this->user,
+            TraceAttributes::DB_NAMESPACE => $this->database,
+            TraceAttributes::DB_SYSTEM => 'mysql',
+        ]);
+
+        try {
+            mysqli_select_db($mysqli, 'unknown');
+        } catch (Throwable) {
+
+        }
+
+        $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
+            TraceAttributes::DB_USER => $this->user,
+            TraceAttributes::DB_NAMESPACE => $this->database,
+            TraceAttributes::DB_SYSTEM => 'mysql',
+        ]);
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
     }
 
 }

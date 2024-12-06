@@ -248,6 +248,69 @@ class MySqliInstrumentation
             }
         );
 
+        hook(
+            null,
+            'mysqli_begin_transaction',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::beginTransactionPreHook('mysqli_begin_transaction', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::beginTransactionPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+        hook(
+            mysqli::class,
+            'begin_transaction',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::beginTransactionPreHook('mysqli::begin_transaction', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::beginTransactionPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'mysqli_rollback',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPreHook('mysqli_rollback', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+        hook(
+            mysqli::class,
+            'rollback',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPreHook('mysqli::rollback', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'mysqli_commit',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPreHook('mysqli_commit', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+        hook(
+            mysqli::class,
+            'commit',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPreHook('mysqli::commit', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::transactionPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
         // Statement hooks
 
         hook(
@@ -373,7 +436,9 @@ class MySqliInstrumentation
     /** @param non-empty-string $spanName */
     private static function queryPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
-        self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+        $mysqli = $obj ? $obj : $params[0];
+        self::addTransactionLink($tracker, $span, $mysqli);
     }
 
     private static function queryPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
@@ -431,6 +496,7 @@ class MySqliInstrumentation
             $span->addLink($spanContext);
         }
 
+        self::addTransactionLink($tracker, $span, $mysqli);
     }
 
     private static function nextResultPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
@@ -509,6 +575,64 @@ class MySqliInstrumentation
 
     }
 
+    /** @param non-empty-string $spanName */
+    private static function beginTransactionPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    {
+        self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+    }
+
+    private static function beginTransactionPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $mysqli = $obj ? $obj : $params[0];
+        $transactionName = $params[$obj ? 1 : 2] ?? null;
+
+        $attributes = $tracker->getMySqliAttributes($mysqli);
+
+        if ($transactionName) {
+            $attributes['db.transaction.name'] = $transactionName;
+        }
+
+        if ($retVal === false || $exception) {
+            //TODO use constant from comment  after sem-conv update
+            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+        } else {
+            $tracker->trackMySqliTransaction($mysqli, Span::getCurrent()->getContext());
+        }
+
+        $errorStatus = ($retVal === false && !$exception) ? $mysqli->error : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    /** @param non-empty-string $spanName */
+    private static function transactionPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    {
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+        $mysqli = $obj ? $obj : $params[0];
+        self::addTransactionLink($tracker, $span, $mysqli);
+    }
+
+    private static function transactionPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $mysqli = $obj ? $obj : $params[0];
+        $transactionName = $params[$obj ? 1 : 2] ?? null;
+
+        $attributes = $tracker->getMySqliAttributes($mysqli);
+
+        if ($transactionName) {
+            $attributes['db.transaction.name'] = $transactionName;
+        }
+
+        if ($retVal === false || $exception) {
+            //TODO use constant from comment  after sem-conv update
+            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+        }
+
+        $tracker->untrackMySqliTransaction($mysqli);
+
+        $errorStatus = ($retVal === false && !$exception) ? $mysqli->error : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
     private static function stmtInitPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $mySqliObj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         if ($retVal !== false) {
@@ -550,7 +674,8 @@ class MySqliInstrumentation
     /** @param non-empty-string $spanName */
     private static function stmtExecutePreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
-        self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+        self::addTransactionLink($tracker, $span, $obj ? $obj : $params[0]);
     }
 
     private static function stmtExecutePostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
@@ -580,7 +705,7 @@ class MySqliInstrumentation
         if ($spanContext = $tracker->getStatementSpan($stmt)) {
             $span->addLink($spanContext);
         }
-
+        self::addTransactionLink($tracker, $span, $stmt);
     }
 
     private static function stmtNextResultPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
@@ -661,6 +786,19 @@ class MySqliInstrumentation
             return;
         }
         $scope->detach();
+    }
+
+    private static function addTransactionLink(MySqliTracker $tracker, SpanInterface $span, $mysqliOrStatement)
+    {
+        $mysqli = $mysqliOrStatement;
+
+        if ($mysqli instanceof mysqli_stmt) {
+            $mysqli = $tracker->getMySqliFromStatement($mysqli);
+        }
+
+        if ($mysqli instanceof mysqli && ($spanContext = $tracker->getMySqliTransaction($mysqli))) {
+            $span->addLink($spanContext);
+        }
     }
 
     private static function extractQueryCommand($query) : ?string

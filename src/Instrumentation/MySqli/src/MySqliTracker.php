@@ -20,6 +20,7 @@ final class MySqliTracker
     private WeakMap $statementAttributes;
     private WeakMap $statementSpan;
     private WeakMap $mySqliSpan;
+    private WeakMap $mySqliTransaction;
 
     public function __construct()
     {
@@ -30,6 +31,7 @@ final class MySqliTracker
         $this->statementAttributes = new WeakMap();
         $this->statementSpan = new WeakMap();
         $this->mySqliSpan = new WeakMap();
+        $this->mySqliTransaction = new WeakMap();
     }
 
     public function storeMySqliMultiQuery(mysqli $mysqli, string $query)
@@ -75,6 +77,12 @@ final class MySqliTracker
     public function trackMySqliFromStatement(mysqli $mysqli, mysqli_stmt $mysqli_stmt)
     {
         $this->statementToMySqli[$mysqli_stmt] = WeakReference::create($mysqli);
+    }
+
+    public function getMySqliFromStatement(mysqli_stmt $mysqli_stmt) : ?mysqli
+    {
+        return ($this->statementToMySqli[$mysqli_stmt] ?? null)?->get();
+        ;
     }
 
     public function getMySqliAttributesFromStatement(mysqli_stmt $stmt) : array
@@ -130,6 +138,27 @@ final class MySqliTracker
         }
 
         return $this->mySqliSpan[$mysqli]->get();
+    }
+
+    public function trackMySqliTransaction(mysqli $mysqli, SpanContextInterface $spanContext)
+    {
+        $this->mySqliTransaction[$mysqli] = WeakReference::create($spanContext);
+    }
+
+    public function getMySqliTransaction(mysqli $mysqli) : ?SpanContextInterface
+    {
+        if (!$this->mySqliTransaction->offsetExists($mysqli)) {
+            return null;
+        }
+
+        return $this->mySqliTransaction[$mysqli]->get();
+    }
+
+    public function untrackMySqliTransaction(mysqli $mysqli)
+    {
+        if ($this->mySqliTransaction->offsetExists($mysqli)) {
+            unset($this->mySqliTransaction[$mysqli]);
+        }
     }
 
     private function splitQueries(string $sql)
