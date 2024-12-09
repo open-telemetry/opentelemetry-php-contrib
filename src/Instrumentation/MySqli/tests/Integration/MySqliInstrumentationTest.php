@@ -648,6 +648,264 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertDatabaseAttributesForAllSpans($offset);
     }
 
+    public function test_mysqli_transaction_rollback_objective(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $mysqli->query('DROP TABLE IF EXISTS language;');
+        $offset++;
+
+        $mysqli->query('CREATE TABLE IF NOT EXISTS language ( Code text NOT NULL, Speakers int(11) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+        $offset++;
+
+        $mysqli->begin_transaction(name: 'supertransaction');
+        $offset++;
+        $this->assertSame('mysqli::begin_transaction', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            'db.transaction.name' => 'supertransaction',
+        ]);
+
+        try {
+            // Insert some values
+            $mysqli->query("INSERT INTO language(Code, Speakers) VALUES ('DE', 42000123)");
+
+            $offset++;
+            $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 42000123)",
+                TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            ]);
+
+            // Try to insert invalid values
+            $language_code = 'FR';
+            $native_speakers = 'Unknown';
+            $stmt = $mysqli->prepare('INSERT INTO language(Code, Speakers) VALUES (?,?)');
+
+            $stmt->bind_param('ss', $language_code, $native_speakers);
+            $stmt->execute(); // THROWS HERE
+
+            $this->fail('Should never reach this point');
+        } catch (mysqli_sql_exception $exception) {
+            $offset++;
+            $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            ]);
+
+            $mysqli->rollback(name: 'supertransaction');
+            $offset++;
+            $this->assertSame('mysqli::rollback', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                'db.transaction.name' => 'supertransaction',
+            ]);
+
+        }
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_transaction_rollback_procedural(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR);
+
+        $mysqli = mysqli_connect($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli_connect', $this->storage->offsetGet($offset)->getName());
+
+        mysqli_query($mysqli, 'DROP TABLE IF EXISTS language;');
+        $offset++;
+
+        mysqli_query($mysqli, 'CREATE TABLE IF NOT EXISTS language ( Code text NOT NULL, Speakers int(11) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+        $offset++;
+
+        mysqli_begin_transaction($mysqli, name: 'supertransaction');
+        $offset++;
+        $this->assertSame('mysqli_begin_transaction', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            'db.transaction.name' => 'supertransaction',
+        ]);
+
+        try {
+            // Insert some values
+            mysqli_query($mysqli, "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)");
+
+            $offset++;
+            $this->assertSame('mysqli_query', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
+                TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            ]);
+
+            // Try to insert invalid values
+            $language_code = 'FR';
+            $native_speakers = 'Unknown';
+            $stmt = mysqli_prepare($mysqli, 'INSERT INTO language(Code, Speakers) VALUES (?,?)');
+
+            mysqli_stmt_bind_param($stmt, 'ss', $language_code, $native_speakers);
+
+            try {
+                mysqli_stmt_execute($stmt);
+            } catch (\PHPUnit\Framework\Error\Warning $e) {
+                $offset++;
+                $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
+                $this->assertAttributes($offset, [
+                    TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                    TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+                ]);
+
+                mysqli_rollback($mysqli, name: 'supertransaction');
+                $offset++;
+                $this->assertSame('mysqli_rollback', $this->storage->offsetGet($offset)->getName());
+                $this->assertAttributes($offset, [
+                    'db.transaction.name' => 'supertransaction',
+                ]);
+            }
+        } catch (mysqli_sql_exception $exception) {
+            $this->fail('Should never reach this point');
+        }
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_transaction_commit_objective(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+        $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
+
+        $mysqli->query('DROP TABLE IF EXISTS language;');
+        $offset++;
+
+        $mysqli->query('CREATE TABLE IF NOT EXISTS language ( Code text NOT NULL, Speakers int(11) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+        $offset++;
+
+        $mysqli->begin_transaction(name: 'supertransaction');
+        $offset++;
+        $this->assertSame('mysqli::begin_transaction', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            'db.transaction.name' => 'supertransaction',
+        ]);
+
+        try {
+            // Insert some values
+            $mysqli->query("INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)");
+
+            $offset++;
+            $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
+                TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            ]);
+
+            // Try to insert invalid values
+            $language_code = 'FR';
+            $native_speakers = 66000002;
+            $stmt = $mysqli->prepare('INSERT INTO language(Code, Speakers) VALUES (?,?)');
+
+            $stmt->bind_param('ss', $language_code, $native_speakers);
+            $stmt->execute();
+
+            $offset++;
+            $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            ]);
+
+            $mysqli->commit(name: 'supertransaction');
+
+            $offset++;
+            $this->assertSame('mysqli::commit', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                'db.transaction.name' => 'supertransaction',
+            ]);
+        } catch (mysqli_sql_exception $exception) {
+            $this->fail('Unexpected exception was thrown: ' . $exception->getMessage());
+        }
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
+    public function test_mysqli_transaction_commit_procedural(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR);
+
+        $mysqli = mysqli_connect($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $offset = 0;
+        $this->assertSame('mysqli_connect', $this->storage->offsetGet($offset)->getName());
+
+        mysqli_query($mysqli, 'DROP TABLE IF EXISTS language;');
+        $offset++;
+
+        mysqli_query($mysqli, 'CREATE TABLE IF NOT EXISTS language ( Code text NOT NULL, Speakers int(11) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+        $offset++;
+
+        mysqli_begin_transaction($mysqli, name: 'supertransaction');
+        $offset++;
+        $this->assertSame('mysqli_begin_transaction', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            'db.transaction.name' => 'supertransaction',
+        ]);
+
+        try {
+            // Insert some values
+            mysqli_query($mysqli, "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)");
+
+            $offset++;
+            $this->assertSame('mysqli_query', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
+                TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            ]);
+
+            // Try to insert invalid values
+            $language_code = 'FR';
+            $native_speakers = 66000002;
+            $stmt = mysqli_prepare($mysqli, 'INSERT INTO language(Code, Speakers) VALUES (?,?)');
+
+            mysqli_stmt_bind_param($stmt, 'ss', $language_code, $native_speakers);
+            mysqli_stmt_execute($stmt);
+
+            $offset++;
+            $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            ]);
+
+            mysqli_commit($mysqli, name: 'supertransaction');
+
+            $offset++;
+            $this->assertSame('mysqli_commit', $this->storage->offsetGet($offset)->getName());
+            $this->assertAttributes($offset, [
+                'db.transaction.name' => 'supertransaction',
+            ]);
+        } catch (mysqli_sql_exception $exception) {
+            $this->fail('Unexpected exception was thrown: ' . $exception->getMessage());
+        }
+
+        $offset++;
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
     public function test_mysqli_stmt_execute_objective(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
