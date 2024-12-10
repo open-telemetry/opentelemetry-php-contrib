@@ -233,7 +233,9 @@ class MySqliInstrumentation
         hook(
             null,
             'mysqli_prepare',
-            pre: null,
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::preparePreHook('mysqli_prepare', $instrumentation, $tracker, ...$args);
+            },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::preparePostHook($instrumentation, $tracker, ...$args);
             }
@@ -242,7 +244,9 @@ class MySqliInstrumentation
         hook(
             mysqli::class,
             'prepare',
-            pre: null,
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::preparePreHook('mysqli::prepare', $instrumentation, $tracker, ...$args);
+            },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::preparePostHook($instrumentation, $tracker, ...$args);
             }
@@ -397,8 +401,6 @@ class MySqliInstrumentation
                 self::stmtNextResultPostHook($instrumentation, $tracker, ...$args);
             }
         );
-
-        //TODO test to https://www.php.net/manual/en/mysqli.begin-transaction.php
     }
 
     /** @param non-empty-string $spanName */
@@ -533,9 +535,8 @@ class MySqliInstrumentation
 
     private static function changeUserPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
-
         if ($retVal != true) {
-            return; //TODO create error span?
+            return;
         }
 
         $mysqli = $obj ? $obj : $params[0];
@@ -549,30 +550,46 @@ class MySqliInstrumentation
 
     private static function selectDbPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
-
         if ($retVal != true) {
-            return; //TODO create error span?
+            return;
         }
         $tracker->addMySqliAttribute($obj ? $obj : $params[0], TraceAttributes::DB_NAMESPACE, $params[$obj ? 0 : 1]);
     }
 
+    /** @param non-empty-string $spanName */
+    private static function preparePreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    {
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+        $mysqli = $obj ? $obj : $params[0];
+        self::addTransactionLink($tracker, $span, $mysqli);
+    }
+
     private static function preparePostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $stmtRetVal, ?\Throwable $exception)
     {
-
-        if ($exception || !$stmtRetVal instanceof mysqli_stmt) {
-            self::logDebug('mysqli::prepare failed', ['exception' => $exception, 'obj' => $obj, 'retVal' => $stmtRetVal, 'params' => $params]);
-
-            return;
-        }
-
         $mysqli = $obj ? $obj : $params[0];
         $query = $params[$obj ? 0 : 1];
 
-        $tracker->trackMySqliFromStatement($mysqli, $stmtRetVal);
+        $errorStatus = null;
 
-        $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_STATEMENT, mb_convert_encoding($query, 'UTF-8'));
-        $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_OPERATION_NAME, self::extractQueryCommand($query));
+        $query = mb_convert_encoding($query, 'UTF-8');
+        $operation = self::extractQueryCommand($query);
 
+        $attributes = $tracker->getMySqliAttributes($mysqli);
+        $attributes[TraceAttributes::DB_STATEMENT] = $query;
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = $operation;
+
+        if (!$exception && $stmtRetVal instanceof mysqli_stmt) {
+            $tracker->trackMySqliFromStatement($mysqli, $stmtRetVal);
+            $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_STATEMENT, $query);
+            $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_OPERATION_NAME, $operation);
+
+        } else {
+            //TODO use constant from comment  after sem-conv update
+            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+            $errorStatus = !$exception ? $mysqli->error : null;
+        }
+
+        self::endSpan($attributes, $exception, $errorStatus);
     }
 
     /** @param non-empty-string $spanName */
