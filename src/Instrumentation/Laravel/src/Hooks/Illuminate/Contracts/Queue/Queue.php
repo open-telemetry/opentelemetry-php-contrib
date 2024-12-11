@@ -51,7 +51,7 @@ class Queue implements LaravelHook
                     ->spanBuilder(vsprintf('%s %s', [
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
-                        TraceAttributeValues::MESSAGING_OPERATION_PUBLISH,
+                    TraceAttributeValues::MESSAGING_OPERATION_TYPE_PUBLISH,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
@@ -125,7 +125,7 @@ class Queue implements LaravelHook
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
                         $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
-                        TraceAttributeValues::MESSAGING_OPERATION_CREATE,
+                    TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)

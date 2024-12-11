@@ -70,7 +70,7 @@ class Serializer
         }
 
         // In some cases (for example when using LUA scripts) arrays are valid parameters
-        $paramsToSerialize = array_map(function($param) { return is_array($param) ? json_encode($param) : $param; }, $paramsToSerialize);
+        $paramsToSerialize = array_map(function ($param) { return is_array($param) ? json_encode($param) : $param; }, $paramsToSerialize);
         
         return $command . ' ' . implode(' ', $paramsToSerialize);
     }
