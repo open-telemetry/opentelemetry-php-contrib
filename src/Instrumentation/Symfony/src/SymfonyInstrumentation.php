@@ -82,6 +82,30 @@ final class SymfonyInstrumentation
                 ?\Throwable $exception
             ): void {
                 $scope = Context::storage()->scope();
+                if (null === $scope || null === $exception) {
+                    return;
+                }
+
+                $span = Span::fromContext($scope->context());
+                $scope->detach();
+                $span->recordException($exception, [
+                    TraceAttributes::EXCEPTION_ESCAPED => true,
+                ]);
+                if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+            }
+        );
+
+        hook(
+            HttpKernel::class,
+            'terminate',
+            post: static function (
+                HttpKernel $kernel,
+                array $params,
+                ?\Throwable $exception
+            ): void {
+                $scope = Context::storage()->scope();
                 if (null === $scope) {
                     return;
                 }
@@ -89,6 +113,7 @@ final class SymfonyInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
+                $response = ($params[1] instanceof Response) ? $params[1] : null;
                 if (null !== $request) {
                     $routeName = $request->attributes->get('_route', '');
 
