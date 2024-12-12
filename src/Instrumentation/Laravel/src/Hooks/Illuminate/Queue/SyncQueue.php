@@ -5,35 +5,44 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Queue\SyncQueue as LaravelSyncQueue;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
-class SyncQueue implements LaravelHook
+class SyncQueue implements Hook
 {
     use AttributesBuilder;
-    use LaravelHookTrait;
     use PostHookTrait;
 
-    public function instrument(): void
-    {
-        $this->hookPush();
+    public function instrument(
+        LaravelInstrumentation $instrumentation,
+        HookManagerInterface $hookManager,
+        InstrumentationContext $context,
+    ): void {
+        $tracer = $context->tracerProvider->getTracer(
+            $instrumentation->buildProviderName('queue', 'sync'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        );
+
+        $this->hookPush($hookManager, $tracer);
     }
 
-    protected function hookPush(): bool
+    protected function hookPush(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             LaravelSyncQueue::class,
             'push',
-            pre: function (LaravelSyncQueue $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            preHook: function (LaravelSyncQueue $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span = $this->instrumentation
-                    ->tracer()
+                $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
                         $queue->getConnectionName(),
                         'process',
@@ -49,7 +58,7 @@ class SyncQueue implements LaravelHook
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
-            post: function (LaravelSyncQueue $queue, array $params, mixed $returnValue, ?Throwable $exception) {
+            postHook: function (LaravelSyncQueue $queue, array $params, mixed $returnValue, ?Throwable $exception) {
                 $this->endSpan($exception);
             },
         );
