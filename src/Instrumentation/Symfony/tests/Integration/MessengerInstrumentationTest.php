@@ -12,7 +12,7 @@ use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Messenger\Transport\InMemoryTransport as LegacyInMemoryTransport;
-use Symfony\Component\Messenger\Transport\TransportInterface;
+use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
 
 final class SendEmailMessage
 {
@@ -35,14 +35,26 @@ final class MessengerInstrumentationTest extends AbstractTest
     {
         return new MessageBus();
     }
+
     protected function getTransport()
     {
-        // Symfony 6+
+        // Symfony 6+ version of the transport
         if (class_exists(InMemoryTransport::class)) {
             return new InMemoryTransport();
         }
 
-        // Symfony 5+
+        // Symfony 5+ fallback
+        return new LegacyInMemoryTransport();
+    }
+
+    protected function getReceiver()
+    {
+        // Symfony 6+ version of the receiver
+        if (class_exists(ReceiverInterface::class)) {
+            return new InMemoryTransport(); // Example transport acting as a receiver
+        }
+
+        // Symfony 5+ fallback
         return new LegacyInMemoryTransport();
     }
 
@@ -56,8 +68,7 @@ final class MessengerInstrumentationTest extends AbstractTest
     public function test_dispatch_message($message, string $spanName, int $kind, array $attributes)
     {
         $bus = $this->getMessenger();
-
-        $bus->dispatch($message);
+        $bus->dispatch($message); // Target the correct interface (MessageBusInterface)
 
         $this->assertCount(1, $this->storage);
 
@@ -71,6 +82,36 @@ final class MessengerInstrumentationTest extends AbstractTest
             $this->assertTrue($span->getAttributes()->has($key), sprintf('Attribute %s not found', $key));
             $this->assertEquals($value, $span->getAttributes()->get($key));
         }
+    }
+
+    /**
+     * Test consumer span when processing a message
+     */
+    public function test_consume_message()
+    {
+        $transport = $this->getReceiver(); // Use the correct receiver interface
+        $message = new SendEmailMessage('Hello Consumer');
+        $envelope = new Envelope($message);
+
+        // Simulate receiving the message via ReceiverInterface::get
+        $transport->get();
+
+        // Simulate message consumption (processing)
+        $bus = $this->getMessenger();
+        $bus->dispatch($message);
+
+        // After message is consumed, we expect a consumer span
+        $this->assertCount(1, $this->storage);
+
+        /** @var ImmutableSpan $span */
+        $span = $this->storage[0];
+
+        // We expect this to be a consumer span
+        $this->assertEquals('CONSUME OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage', $span->getName());
+        $this->assertEquals(SpanKind::KIND_CONSUMER, $span->getKind());
+
+        $this->assertTrue($span->getAttributes()->has(MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE));
+        $this->assertEquals('OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage', $span->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE));
     }
 
     /**
@@ -172,7 +213,7 @@ final class MessengerInstrumentationTest extends AbstractTest
             [
                 new SendEmailMessage('Hello Again'),
                 'DISPATCH OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-                SpanKind::KIND_PRODUCER,
+                SpanKind::KIND_PROCESS, // Correct SpanKind for dispatching
                 [
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS => 'Symfony\Component\Messenger\MessageBus',
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
