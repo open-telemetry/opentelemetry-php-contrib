@@ -34,6 +34,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         $response = $kernel->handle(new Request());
+        $kernel->terminate(new Request(), $response);
 
         $this->assertArrayHasKey(
             TraceResponsePropagator::TRACERESPONSE,
@@ -51,6 +52,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         $response = $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->terminate(new Request(), $response);
 
         $this->assertCount(1, $this->storage);
         $this->assertSame(500, $this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
@@ -72,6 +74,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request->attributes->set('_route', 'test_route');
 
         $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
@@ -106,6 +109,8 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         $response = $kernel->handle(new Request());
+        $kernel->terminate(new Request(), $response);
+
         $this->assertCount(1, $this->storage);
         $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
 
@@ -128,6 +133,8 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         $response = $kernel->handle(new Request());
+        $kernel->terminate(new Request(), $response);
+
         $this->assertCount(1, $this->storage);
         $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
 
@@ -152,6 +159,8 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request->attributes->set('_route', '');
 
         $response = $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->terminate(new Request(), $response);
+
         $this->assertCount(1, $this->storage);
         $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
 
@@ -174,6 +183,8 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         $response = $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->terminate(new Request(), $response);
+
         $this->assertCount(1, $this->storage);
         $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
 
@@ -197,7 +208,9 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request = new Request();
         $request->attributes->set('_controller', 'ErrorController');
 
-        $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
+
         $this->assertCount(1, $this->storage);
 
         /** @var ImmutableSpan $span */
