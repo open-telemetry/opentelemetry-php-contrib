@@ -11,6 +11,9 @@ use OpenTelemetry\Context\ContextStorageInterface;
 use OpenTelemetry\Context\ContextStorageScopeInterface;
 use OpenTelemetry\Context\ExecutionContextAwareInterface;
 
+/**
+ * @todo add type-hints (string|int) when 7.4+8.0 support dropped
+ */
 final class SwooleContextStorage implements ContextStorageInterface, ExecutionContextAwareInterface
 {
     /** @var ContextStorageInterface&ExecutionContextAwareInterface */

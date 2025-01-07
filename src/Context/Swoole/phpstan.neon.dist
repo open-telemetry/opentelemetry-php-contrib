@@ -7,3 +7,8 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        -
+            message: "#.*with no type specified.#"
+            paths:
+                - src/SwooleContextStorage.php
