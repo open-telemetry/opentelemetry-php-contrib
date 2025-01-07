@@ -114,6 +114,10 @@ jobs:
             php-version: 7.4
           - project: 'Instrumentation/OpenAIPHP'
             php-version: 8.0
+          - project: 'Logs/Monolog'
+            php-version: 7.4
+          - project: 'Logs/Monolog'
+            php-version: 8.0
           - project: 'Instrumentation/CakePHP'
             php-version: 7.4
           - project: 'Propagation/ServerTiming'

@@ -10,7 +10,7 @@
   "prefer-stable": true,
   "require": {
     "monolog/monolog": "^1.1|^2|^3",
-    "open-telemetry/api": "^1.0"
+    "open-telemetry/api": "^1.1"
   },
   "autoload": {
     "psr-4": {
@@ -34,7 +34,8 @@
   },
   "config": {
     "allow-plugins": {
-      "php-http/discovery": false
+      "php-http/discovery": false,
+      "tbachert/spi": true
     }
   }
 }
