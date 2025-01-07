@@ -7,3 +7,8 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        -
+            message: "#Call to an undefined method .*#"
+            paths:
+                - src/MongoDBInstrumentationSubscriber.php
