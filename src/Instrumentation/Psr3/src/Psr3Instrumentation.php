@@ -76,7 +76,7 @@ class Psr3Instrumentation
                     }
 
                     $record = (new API\LogRecord($body))
-                        ->setSeverityNumber(API\Map\Psr3::severityNumber($level));
+                        ->setSeverityNumber(API\Severity::fromPsr3($level));
                     foreach (Formatter::format($context) as $key => $value) {
                         $record->setAttribute((string) $key, $value);
                     }

@@ -16,9 +16,9 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^8.0",
+    "php": "^8.1",
     "ext-opentelemetry": "*",
-    "open-telemetry/api": "^1.0",
+    "open-telemetry/api": "^1.1",
     "open-telemetry/sem-conv": "^1.24",
     "psr/log": "^1 || ^2 || ^3"
   },
@@ -48,7 +48,8 @@
   },
   "config": {
     "allow-plugins": {
-      "php-http/discovery": false
+      "php-http/discovery": false,
+      "tbachert/spi": true
     }
   }
 }
