@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Resources;
 
 use OpenTelemetry\API;
+use OpenTelemetry\API\Common\Time\SystemClock;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Ids;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ConfigHelper;
@@ -12,7 +13,6 @@ use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServicesConfiguratorHelper;
 use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
-use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;
