@@ -10,17 +10,17 @@
             "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
         }
     ],
-    "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "php": "^7.4 || ^8.0",
-        "open-telemetry/sdk-contrib": "self.version",
-        "open-telemetry/sdk": "self.version",
+        "php": "^8.1",
+        "open-telemetry/sdk": "^1.1",
+        "open-telemetry/exporter-otlp": "^1.0",
+        "open-telemetry/exporter-zipkin": "^1.0",
+        "open-telemetry/transport-grpc": "^1.0",
         "php-http/message": "^1.12",
         "php-http/discovery": "^1.14",
         "symfony/config": "^4.4|^5.3|^6.0",
         "symfony/options-resolver": "^4.4|^5.3|^6.0",
-        "symfony/polyfill-php80": "^1.16",
         "symfony/dependency-injection": "^4.4|^5.3|^6.0"
     },
     "autoload": {

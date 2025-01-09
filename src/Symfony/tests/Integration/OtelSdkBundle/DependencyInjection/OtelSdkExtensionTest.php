@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\DependencyInjection;
 
 use Exception;
+use OpenTelemetry\API\Common\Time\SystemClock;
 use OpenTelemetry\Contrib\Otlp\SpanExporterFactory as OtlpExporterFactory;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
@@ -15,7 +16,6 @@ use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\Contrib\Zipkin\SpanExporterFactory as ZipkinSpanExporterFactory;
 use OpenTelemetry\SDK;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
-use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Trace\SpanProcessor;
 use OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock;
 use OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Mock\SpanExporterFactory as MockSpanExporterFactory;
