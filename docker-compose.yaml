@@ -14,6 +14,8 @@ services:
       PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-''}
       RABBIT_HOST: ${RABBIT_HOST:-rabbitmq}
       KAFKA_HOST: ${KAFKA_HOST:-kafka}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+
 
   zipkin:
     image: openzipkin/zipkin-slim
@@ -61,4 +63,20 @@ services:
     volumes:
       - ./docker/kafka/update_run.sh:/tmp/update_run.sh
 
-
+  mysql:
+    image: mysql:8.0
+    hostname: mysql
+    ports:
+      - "3306:3306/tcp"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: otel_db
+      MYSQL_USER: otel_user
+      MYSQL_PASSWORD: otel_passwd
+    healthcheck:
+      test: mysql -uotel_user -potel_passwd -e "USE otel_db;"
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
