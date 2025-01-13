@@ -55,6 +55,28 @@ class MySqliTrackerTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
+    public function test_split_queries_with_binding(): void
+    {
+        $query = '
+            INSERT INTO `tableA` (columnA) VALUES (\'hello; world\'); SELECT LAST_INSERT_ID();
+            INSERT INTO `tableA` (columnA) VALUES (?); SELECT LAST_INSERT_ID();
+            INSERT INTO `tableA` (columnA) VALUES (\'hel\\\'lo; \\"world\'); SELECT LAST_INSERT_ID();
+        ';
+
+        $result = $this->splitQueries->invoke($this->tracker, $query);
+
+        $expected = [
+            "INSERT INTO `tableA` (columnA) VALUES ('hello; world');",
+            'SELECT LAST_INSERT_ID();',
+            'INSERT INTO `tableA` (columnA) VALUES (?);',
+            'SELECT LAST_INSERT_ID();',
+            "INSERT INTO `tableA` (columnA) VALUES ('hel\'lo; \\\"world');",
+            'SELECT LAST_INSERT_ID();',
+        ];
+
+        $this->assertEquals($expected, $result);
+    }
+
     public function test_split_queries_with_begin_end(): void
     {
         $query = "

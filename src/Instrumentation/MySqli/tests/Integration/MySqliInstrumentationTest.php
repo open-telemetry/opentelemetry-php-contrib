@@ -1374,7 +1374,6 @@ class MySqliInstrumentationTest extends TestCase
             ]);
         }
 
-
         mysqli_select_db($mysqli, $this->database);
 
         $res = $mysqli->query('SELECT * FROM users;');

@@ -171,13 +171,22 @@ final class MySqliTracker
         $blockDepth = 0;
         $tokens = preg_split('/(;)/', $sql, -1, PREG_SPLIT_DELIM_CAPTURE); // Keep semicolons as separate tokens
 
+        $singleQuotes = 0;
+        $doubleQuotes = 0;
+
         foreach ($tokens as $token) {
             if ($token === '') {
                 continue;
             }
 
-            if ($blockDepth === 0) {
-                $token = trim($token);
+            $tokenLen = strlen($token);
+            for ($i = 0; $i < $tokenLen; $i++) {
+                if ($token[$i] == "'" && ($token[$i - 1] ?? false) !== '\\') {
+                    $singleQuotes++;
+                }
+                if ($token[$i] == '"' && ($token[$i - 1] ?? false) !== '\\') {
+                    $doubleQuotes++;
+                }
             }
 
             $buffer .= $token;
@@ -192,6 +201,11 @@ final class MySqliTracker
                 $blockDepth--;
             }
 
+            // we're somewhere inside qoutes
+            if (($singleQuotes % 2) != 0 || ($doubleQuotes % 2) != 0) {
+                continue;
+            }
+
             // If we are outside a block and encounter a semicolon, split the query
             if ($blockDepth === 0 && $token === ';') {
                 $trimmedQuery = trim($buffer);
@@ -199,6 +213,8 @@ final class MySqliTracker
                     $queries[] = $trimmedQuery;
                 }
                 $buffer = '';
+                $singleQuotes = 0;
+                $doubleQuotes = 0;
             }
         }
 
