@@ -197,7 +197,6 @@ final class MySqliTracker
                 $trimmedQuery = trim($buffer);
                 if ($trimmedQuery !== ';') { // Ignore empty queries
                     $queries[] = $trimmedQuery;
-                    //substr($trimmedQuery, 0, -1); // Remove the trailing semicolon
                 }
                 $buffer = '';
             }
