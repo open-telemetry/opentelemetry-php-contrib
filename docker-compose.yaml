@@ -16,6 +16,7 @@ services:
       KAFKA_HOST: ${KAFKA_HOST:-kafka}
       MONGODB_HOST: ${MONGODB_HOST:-mongodb}
       MONGODB_PORT: ${MONGODB_PORT:-27017}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
 
   zipkin:
     image: openzipkin/zipkin-slim
@@ -62,9 +63,27 @@ services:
     command: "bash -c '/tmp/update_run.sh && /etc/confluent/docker/run'"
     volumes:
       - ./docker/kafka/update_run.sh:/tmp/update_run.sh
+
   mongodb:
     image: mongo:4
     hostname: mongodb
     ports:
       - "27017:27017/tcp"
 
+  mysql:
+    image: mysql:8.0
+    hostname: mysql
+    ports:
+      - "3306:3306/tcp"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: otel_db
+      MYSQL_USER: otel_user
+      MYSQL_PASSWORD: otel_passwd
+    healthcheck:
+      test: mysql -uotel_user -potel_passwd -e "USE otel_db;"
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Debug;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DataCollector\OtelDataCollector;
 use OpenTelemetry\SDK\Common\Future\CancellationInterface;
+use OpenTelemetry\SDK\Common\InstrumentationScope\Configurator;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 
 /** @phan-file-suppress PhanUndeclaredInterface */
@@ -39,5 +40,9 @@ class TraceableTracerProvider implements TracerProviderInterface
     public function getTracer(string $name, ?string $version = null, ?string $schemaUrl = null, iterable $attributes = []): TracerInterface
     {
         return $this->tracerProvider->getTracer($name, $version, $schemaUrl, $attributes);
+    }
+
+    public function updateConfigurator(Configurator $configurator): void
+    {
     }
 }
