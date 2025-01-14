@@ -136,6 +136,9 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
         $span->end();
     }
 
+    /**
+     * @todo In a load-balanced scenario, the hello response may be empty.
+     */
     public function serverChanged(ServerChangedEvent $event): void
     {
         $host = $event->getHost();
