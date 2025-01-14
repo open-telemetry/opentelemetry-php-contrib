@@ -14,8 +14,9 @@ services:
       PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-''}
       RABBIT_HOST: ${RABBIT_HOST:-rabbitmq}
       KAFKA_HOST: ${KAFKA_HOST:-kafka}
+      MONGODB_HOST: ${MONGODB_HOST:-mongodb}
+      MONGODB_PORT: ${MONGODB_PORT:-27017}
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
-
 
   zipkin:
     image: openzipkin/zipkin-slim
@@ -62,6 +63,12 @@ services:
     command: "bash -c '/tmp/update_run.sh && /etc/confluent/docker/run'"
     volumes:
       - ./docker/kafka/update_run.sh:/tmp/update_run.sh
+
+  mongodb:
+    image: mongo:4
+    hostname: mongodb
+    ports:
+      - "27017:27017/tcp"
 
   mysql:
     image: mysql:8.0
