@@ -94,7 +94,7 @@ make phpdoc
 - Join our discussions on the CNCF Slack in the [`#opentelemetry-php`](https://cloud-native.slack.com/archives/C01NFPCV44V) channel.
 - Check the [public meeting notes](https://docs.google.com/document/d/1i1E4-_y4uJ083lCutKGDhkpi3n4_e774SBLi9hPLocw/edit) for past updates.
 
-Thank you for contributing to OpenTelemetry PHP Contrib! 
+Thank you for contributing to OpenTelemetry PHP Contrib
 
 
 
