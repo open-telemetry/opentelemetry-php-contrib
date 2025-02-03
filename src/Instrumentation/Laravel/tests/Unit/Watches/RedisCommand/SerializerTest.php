@@ -31,5 +31,8 @@ class SerializerTest extends TestCase
 
         // Serialize all params
         yield ['DEL', ['param1', 'param2', 'param3', 'param4'], 'DEL param1 param2 param3 param4'];
+
+        // Parameters of array type
+        yield ['EVAL', ['param1', 'param2', ['arg1', 'arg2']], 'EVAL param1 param2 ["arg1","arg2"]'];
     }
 }

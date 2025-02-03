@@ -22,6 +22,9 @@ class MongoDBInstrumentationTest extends TestCase
 {
     private const DATABASE_NAME = 'db';
     private const COLLECTION_NAME = 'coll';
+    private string $host;
+    private int $port;
+    private string $uri;
     private ScopeInterface $scope;
     /** @var ArrayObject<int,ImmutableSpan> */
     private ArrayObject $storage;
@@ -29,6 +32,9 @@ class MongoDBInstrumentationTest extends TestCase
 
     public function setUp(): void
     {
+        $this->host = $_SERVER['MONGODB_HOST'] ?? '127.0.0.1';
+        $this->port = (int) ($_SERVER['MONGODB_PORT'] ?? 27017);
+        $this->uri = "mongodb://$this->host:$this->port";
         /** @psalm-suppress MixedPropertyTypeCoercion */
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -49,7 +55,7 @@ class MongoDBInstrumentationTest extends TestCase
 
     public function test_mongodb_find_one(): void
     {
-        $manager = new Manager('mongodb://127.0.0.1:27017');
+        $manager = new Manager($this->uri);
 
         $find = new FindOne(self::DATABASE_NAME, self::COLLECTION_NAME, ['a' => 'b']);
 
@@ -67,8 +73,8 @@ class MongoDBInstrumentationTest extends TestCase
         self::assertSame(self::DATABASE_NAME, $attributes->get(TraceAttributes::DB_NAME));
         self::assertSame('find', $attributes->get(TraceAttributes::DB_OPERATION));
         self::assertSame(self::COLLECTION_NAME, $attributes->get(TraceAttributes::DB_MONGODB_COLLECTION));
-        self::assertSame('127.0.0.1', $attributes->get(TraceAttributes::SERVER_ADDRESS));
-        self::assertSame(27017, $attributes->get(TraceAttributes::SERVER_PORT));
+        self::assertSame($this->host, $attributes->get(TraceAttributes::SERVER_ADDRESS));
+        self::assertSame($this->port, $attributes->get(TraceAttributes::SERVER_PORT));
         self::assertSame('tcp', $attributes->get(TraceAttributes::NETWORK_TRANSPORT));
         self::assertTrue($attributes->get(MongoDBTraceAttributes::DB_MONGODB_MASTER));
         self::assertFalse($attributes->get(MongoDBTraceAttributes::DB_MONGODB_READ_ONLY));

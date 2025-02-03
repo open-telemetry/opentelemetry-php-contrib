@@ -1,4 +1,3 @@
-
 name: PHP QA
 
 on:
@@ -19,28 +18,32 @@ jobs:
       fail-fast: false
       matrix:
         php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+        # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
         project: [
           'Aws',
           'Context/Swoole',
+          'Instrumentation/CakePHP',
+          'Instrumentation/CodeIgniter',
+          'Instrumentation/Curl',
           'Instrumentation/ExtAmqp',
           'Instrumentation/ExtRdKafka',
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
-          'Instrumentation/Slim',
-          'Instrumentation/CakePHP',
+          'Instrumentation/IO',
+          'Instrumentation/Laravel',
+          'Instrumentation/MongoDB',
+          'Instrumentation/MySqli',
+          'Instrumentation/OpenAIPHP',
+          'Instrumentation/PDO',
+          # Sort PSRs numerically.
           'Instrumentation/Psr3',
           'Instrumentation/Psr6',
           'Instrumentation/Psr14',
           'Instrumentation/Psr15',
           'Instrumentation/Psr16',
           'Instrumentation/Psr18',
-          'Instrumentation/IO',
-          'Instrumentation/PDO',
+          'Instrumentation/Slim',
           'Instrumentation/Symfony',
-          'Instrumentation/OpenAIPHP',
-          'Instrumentation/Laravel',
-          'Instrumentation/MongoDB',
-          'Instrumentation/CodeIgniter',
           'Instrumentation/Yii',
           'Logs/Monolog',
           'Propagation/ServerTiming',
@@ -49,7 +52,7 @@ jobs:
           'ResourceDetectors/Container',
           'Sampler/RuleBased',
           'Shims/OpenTracing',
-          'Symfony'
+          'Symfony',
         ]
         exclude:
           - project: 'Instrumentation/Guzzle'
@@ -84,6 +87,18 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/IO'
             php-version: 8.1
+          - project: 'Instrumentation/Curl'
+            php-version: 7.4
+          - project: 'Instrumentation/Curl'
+            php-version: 8.0
+          - project: 'Instrumentation/Curl'
+            php-version: 8.1
+          - project: 'Instrumentation/MySqli'
+            php-version: 7.4
+          - project: 'Instrumentation/MySqli'
+            php-version: 8.0
+          - project: 'Instrumentation/MySqli'
+            php-version: 8.1
           - project: 'Instrumentation/PDO'
             php-version: 7.4
           - project: 'Instrumentation/PDO'
@@ -116,6 +131,10 @@ jobs:
             php-version: 7.4
           - project: 'Sampler/RuleBased'
             php-version: 8.0
+          - project: 'Symfony'
+            php-version: 7.4
+          - project: 'Symfony'
+            php-version: 8.0
     steps:
     - uses: actions/checkout@v4
 
@@ -124,7 +143,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, amqp, grpc, opentelemetry, rdkafka
+        extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -183,6 +202,11 @@ jobs:
       if: ${{ matrix.project == 'Instrumentation/ExtRdKafka' }}
       run: |
         KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092 docker compose up  kafka -d --wait
+
+    - name: Start Mysql
+      if: ${{ matrix.project == 'Instrumentation/MySqli' }}
+      run: |
+        docker compose up  mysql -d --wait
 
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
