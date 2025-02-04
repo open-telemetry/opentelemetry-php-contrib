@@ -8,12 +8,10 @@ use Aws\Middleware;
 use Aws\ResultInterface;
 use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
-use OpenTelemetry\Context\ScopeInterface;
 
 /**
  * @experimental
@@ -28,10 +26,6 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     private TextMapPropagatorInterface $propagator;
     private TracerProviderInterface $tracerProvider;
     private $clients = [] ;
-    private string $clientName;
-    private string $region;
-    private SpanInterface $span;
-    private ScopeInterface $scope;
 
     public function getName(): string
     {
@@ -87,52 +81,55 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     public function activate(): bool
     {
         try {
-            $middleware = Middleware::tap(function ($cmd, $req) {
-                $tracer = $this->getTracer();
-                $propagator = $this->getPropagator();
+            foreach ($this->clients as $client) {
+                $clientName = $client->getApi()->getServiceName();
+                $region = $client->getRegion();
+                $span = null;
+                $scope = null;
 
-                $carrier = [];
-                /** @phan-suppress-next-line PhanTypeMismatchArgument */
-                $this->span = $tracer->spanBuilder($this->clientName)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
-                $this->scope = $this->span->activate();
+                $client->getHandlerList()->prependInit(Middleware::tap(function ($cmd, $req) use ($clientName, $region, &$span, &$scope) {
+                    $tracer = $this->getTracer();
+                    $propagator = $this->getPropagator();
 
-                $propagator->inject($carrier);
+                    $carrier = [];
+                    /** @phan-suppress-next-line PhanTypeMismatchArgument */
+                    $span = $tracer->spanBuilder($clientName)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
+                    $scope = $span->activate();
+
+                    $propagator->inject($carrier);
+
+                    /** @psalm-suppress PossiblyInvalidArgument */
+                    $span->setAttributes([
+                        'rpc.method' => $cmd->getName(),
+                        'rpc.service' => $clientName,
+                        'rpc.system' => 'aws-api',
+                        'aws.region' => $region,
+                    ]);
+                }), 'instrumentation');
 
                 /** @psalm-suppress PossiblyInvalidArgument */
-                $this->span->setAttributes([
-                    'rpc.method' => $cmd->getName(),
-                    'rpc.service' => $this->clientName,
-                    'rpc.system' => 'aws-api',
-                    'aws.region' => $this->region,
-                    ]);
-            });
+                $client->getHandlerList()->appendSign(Middleware::mapResult(function (ResultInterface $result) use (&$span, &$scope) {
+                    if (null === $span || null === $scope) {
+                        return $result;
+                    }
 
-            /** @psalm-suppress PossiblyInvalidArgument */
-            $end_middleware = Middleware::mapResult(function (ResultInterface $result) {
-                /**
-                 * Some AWS SDK Funtions, such as S3Client->getObjectUrl() do not actually perform on the wire comms
-                 * with AWS Servers, and therefore do not return with a populated AWS\Result object with valid @metadata
-                 * Check for the presence of @metadata before extracting status code as these calls are still
-                 * instrumented.
-                 */
-                if (isset($result['@metadata'])) {
-                    $this->span->setAttributes([
-                        'http.status_code' => $result['@metadata']['statusCode'], //@phan-suppress-current-line PhanTypeMismatchDimFetch
-                    ]);
-                }
+                    /**
+                     * Some AWS SDK Functions, such as S3Client->getObjectUrl() do not actually perform on the wire comms
+                     * with AWS Servers, and therefore do not return with a populated AWS\Result object with valid @metadata
+                     * Check for the presence of @metadata before extracting status code as these calls are still
+                     * instrumented.
+                     */
+                    if (isset($result['@metadata'])) {
+                        $span->setAttributes([
+                            'http.status_code' => $result['@metadata']['statusCode'], //@phan-suppress-current-line PhanTypeMismatchDimFetch
+                        ]);
+                    }
 
-                $this->span->end();
-                $this->scope->detach();
+                    $span->end();
+                    $scope->detach();
 
-                return $result;
-            });
-
-            foreach ($this->clients as $client) {
-                $this->clientName = $client->getApi()->getServiceName();
-                $this->region = $client->getRegion();
-
-                $client->getHandlerList()->prependInit($middleware, 'instrumentation');
-                $client->getHandlerList()->appendSign($end_middleware, 'end_instrumentation');
+                    return $result;
+                }), 'end_instrumentation');
             }
         } catch (\Throwable $e) {
             return false;
