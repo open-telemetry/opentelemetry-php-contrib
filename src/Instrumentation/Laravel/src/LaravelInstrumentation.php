@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
+use OpenTelemetry\SemConv\Version;
 
 class LaravelInstrumentation
 {
@@ -16,7 +17,7 @@ class LaravelInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.laravel',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            Version::VERSION_1_30_0->url(),
         );
 
         Hooks\Illuminate\Console\Command::hook($instrumentation);

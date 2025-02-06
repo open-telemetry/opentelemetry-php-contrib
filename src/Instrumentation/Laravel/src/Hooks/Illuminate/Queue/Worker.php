@@ -99,7 +99,7 @@ class Worker implements LaravelHook
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
                         $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
-                        TraceAttributeValues::MESSAGING_OPERATION_RECEIVE,
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_RECEIVE,
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes)

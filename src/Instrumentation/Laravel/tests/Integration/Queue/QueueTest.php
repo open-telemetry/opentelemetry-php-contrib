@@ -86,7 +86,7 @@ class QueueTest extends TestCase
         /** @psalm-suppress PossiblyUndefinedMethod */
         $mockQueue->bulk($jobs);
 
-        $this->assertEquals('dummy-queue publish', $this->storage[0]->getName());
+        $this->assertEquals('dummy-queue send', $this->storage[0]->getName());
         $this->assertEquals(10, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
     }
 
@@ -107,7 +107,7 @@ class QueueTest extends TestCase
             new DummyJob('B'),
         ]);
 
-        $this->assertEquals('queues:default publish', $this->storage[0]->getName());
+        $this->assertEquals('queues:default send', $this->storage[0]->getName());
         $this->assertEquals(2, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
         $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
     }
