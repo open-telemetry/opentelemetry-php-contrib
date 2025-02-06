@@ -72,11 +72,11 @@ jobs:
           - project: 'Instrumentation/MySqli'
             php-version: 8.1
           - project: 'Instrumentation/PDO'
-            php-version: 7.4
-          - project: 'Instrumentation/PDO'
             php-version: 8.0
           - project: 'Instrumentation/PDO'
             php-version: 8.1
+          - project: 'Instrumentation/Psr3'
+            php-version: 8.0
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.0
           - project: 'Instrumentation/ExtAmqp'
@@ -88,6 +88,8 @@ jobs:
           - project: 'Instrumentation/ExtRdKafka'
             php-version: 8.1
           - project: 'Instrumentation/OpenAIPHP'
+            php-version: 8.0
+          - project: 'Logs/Monolog'
             php-version: 8.0
           - project: 'Sampler/RuleBased'
             php-version: 8.0

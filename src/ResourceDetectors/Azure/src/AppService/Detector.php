@@ -60,7 +60,7 @@ class Detector implements ResourceDetectorInterface
             ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
             ResourceAttributes::CLOUD_REGION => getenv(self::ENV_REGION_NAME_KEY),
             ResourceAttributes::CLOUD_RESOURCE_ID => self::generateAzureResourceUri($name, $groupName, $subscriptionId),
-            ResourceAttributes::DEPLOYMENT_ENVIRONMENT => getenv(self::ENV_WEBSITE_SLOT_NAME_KEY),
+            ResourceAttributes::DEPLOYMENT_ENVIRONMENT_NAME => getenv(self::ENV_WEBSITE_SLOT_NAME_KEY),
             ResourceAttributes::HOST_ID => getenv(self::ENV_WEBSITE_HOSTNAME_KEY),
             ResourceAttributes::SERVICE_INSTANCE_ID => getenv(self::ENV_WEBSITE_INSTANCE_ID_KEY),
             ResourceAttributes::SERVICE_NAME => $name,
