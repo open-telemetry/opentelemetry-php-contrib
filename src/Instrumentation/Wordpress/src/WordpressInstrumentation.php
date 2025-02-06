@@ -17,6 +17,9 @@ use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
+/**
+ * @phan-file-suppress PhanUndeclaredFunction
+ */
 class WordpressInstrumentation
 {
     public const NAME = 'wordpress';
@@ -26,7 +29,7 @@ class WordpressInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.wordpress',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.30.0'
         );
 
         self::_hook($instrumentation, 'WP', 'main', 'WP.main');
@@ -48,9 +51,9 @@ class WordpressInstrumentation
             function: '__construct',
             pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = self::builder($instrumentation, 'wpdb.__connect', $function, $class, $filename, $lineno)
-                    ->setAttribute(TraceAttributes::DB_USER, $params[0] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_NAME, $params[2] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_SYSTEM, 'mysql')
+                    //->setAttribute(TraceAttributes::DB_USER, $params[0] ?? 'unknown') //deprecated, no replacement
+                    ->setAttribute(TraceAttributes::DB_NAMESPACE, $params[2] ?? 'unknown')
+                    ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, 'mysql')
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
@@ -68,7 +71,7 @@ class WordpressInstrumentation
             pre: static function ($object, ?array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = self::builder($instrumentation, 'wpdb.query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_STATEMENT, $params[0] ?? 'undefined')
+                    ->setAttribute(TraceAttributes::DB_QUERY_TEXT, $params[0] ?? 'undefined')
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
@@ -157,10 +160,10 @@ class WordpressInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
             ->spanBuilder($name)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
     }
 
     private static function end(?Throwable $exception): void
@@ -172,7 +175,7 @@ class WordpressInstrumentation
         $scope->detach();
         $span = Span::fromContext($scope->context());
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

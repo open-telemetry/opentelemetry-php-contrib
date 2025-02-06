@@ -12,4 +12,11 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <ArgumentTypeCoercion>
+            <errorLevel type="suppress">
+                <directory name="./src"/>
+            </errorLevel>
+        </ArgumentTypeCoercion>
+    </issueHandlers>
 </psalm>
