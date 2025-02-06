@@ -10,6 +10,7 @@ use OpenTelemetry\API\Logs as API;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\Version;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 
@@ -63,7 +64,7 @@ class Psr3Instrumentation
                     $instrumentation ??= new CachedInstrumentation(
                         'io.opentelemetry.contrib.php.psr3',
                         null,
-                        'https://opentelemetry.io/schemas/1.24.0'
+                        Version::VERSION_1_30_0->url(),
                     );
                     if ($function === 'log') {
                         $level = $params[0];
@@ -76,7 +77,7 @@ class Psr3Instrumentation
                     }
 
                     $record = (new API\LogRecord($body))
-                        ->setSeverityNumber(API\Map\Psr3::severityNumber($level));
+                        ->setSeverityNumber(API\Severity::fromPsr3($level));
                     foreach (Formatter::format($context) as $key => $value) {
                         $record->setAttribute((string) $key, $value);
                     }
