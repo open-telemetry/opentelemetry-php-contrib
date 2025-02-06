@@ -13,6 +13,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Psr\SimpleCache\CacheInterface;
 use Throwable;
 
@@ -28,7 +29,7 @@ class Psr16Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr16',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr16'),
-            'https://opentelemetry.io/schemas/1.24.0',
+            Version::VERSION_1_30_0->url(),
         );
 
         $pre = static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
@@ -68,10 +69,10 @@ class Psr16Instrumentation
         return $instrumentation->tracer()
             ->spanBuilder($name)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttribute('cache.operation', $name);
     }
 
@@ -86,7 +87,7 @@ class Psr16Instrumentation
         $span = Span::fromContext($scope->context());
 
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 
