@@ -16,7 +16,11 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 
+/**
+ * @phan-file-suppress PhanParamTooFewUnpack
+ */
 class MySqliInstrumentation
 {
     use LogsMessagesTrait;
@@ -33,7 +37,7 @@ class MySqliInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.mysqli',
             null,
-            'https://opentelemetry.io/schemas/1.27.1'
+            Version::VERSION_1_30_0->url(),
         );
 
         $tracker = new MySqliTracker();
@@ -409,9 +413,9 @@ class MySqliInstrumentation
         $attributes = [];
         $attributes[TraceAttributes::SERVER_ADDRESS] = $params[$paramsOffset + 0] ?? get_cfg_var('mysqli.default_host');
         $attributes[TraceAttributes::SERVER_PORT] = $params[$paramsOffset + 4] ?? get_cfg_var('mysqli.default_port');
-        $attributes[TraceAttributes::DB_USER] = $params[$paramsOffset + 1] ?? get_cfg_var('mysqli.default_user');
+        //$attributes[TraceAttributes::DB_USER] = $params[$paramsOffset + 1] ?? get_cfg_var('mysqli.default_user');
         $attributes[TraceAttributes::DB_NAMESPACE] = $params[$paramsOffset + 3] ?? null;
-        $attributes[TraceAttributes::DB_SYSTEM] =  'mysql';
+        $attributes[TraceAttributes::DB_SYSTEM_NAME] =  'mysql';
 
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, $attributes);
     }
@@ -450,12 +454,11 @@ class MySqliInstrumentation
 
         $attributes = $tracker->getMySqliAttributes($mysqli);
 
-        $attributes[TraceAttributes::DB_STATEMENT] = mb_convert_encoding($query, 'UTF-8');
+        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
         $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($query);
 
         if ($retVal === false || $exception) {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         }
 
         $errorStatus = ($retVal === false && !$exception) ? $mysqli->error : null;
@@ -473,13 +476,12 @@ class MySqliInstrumentation
 
         $tracker->storeMySqliMultiQuery($mysqli, $query);
         if ($currentQuery = $tracker->getNextMySqliMultiQuery($mysqli)) {
-            $attributes[TraceAttributes::DB_STATEMENT] = mb_convert_encoding($currentQuery, 'UTF-8');
+            $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($currentQuery, 'UTF-8');
             $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($currentQuery);
         }
 
         if ($retVal === false || $exception) {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         } else {
             $tracker->trackMySqliSpan($mysqli, Span::getCurrent()->getContext());
         }
@@ -521,13 +523,12 @@ class MySqliInstrumentation
         }
 
         if ($currentQuery) {
-            $attributes[TraceAttributes::DB_STATEMENT] = mb_convert_encoding($currentQuery, 'UTF-8');
+            $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($currentQuery, 'UTF-8');
             $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($currentQuery);
         }
 
         if ($retVal === false || $exception) {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         }
 
         self::endSpan($attributes, $exception, $errorStatus);
@@ -541,7 +542,7 @@ class MySqliInstrumentation
 
         $mysqli = $obj ? $obj : $params[0];
 
-        $tracker->addMySqliAttribute($mysqli, TraceAttributes::DB_USER, $params[$obj ? 0 : 1]);
+        //$tracker->addMySqliAttribute($mysqli, TraceAttributes::DB_USER, $params[$obj ? 0 : 1]); //deprecated, no replacment at this time
         if (($database = $params[$obj ? 2 : 3] ?? null) !== null) {
             $tracker->addMySqliAttribute($mysqli, TraceAttributes::DB_NAMESPACE, $database);
         }
@@ -575,17 +576,16 @@ class MySqliInstrumentation
         $operation = self::extractQueryCommand($query);
 
         $attributes = $tracker->getMySqliAttributes($mysqli);
-        $attributes[TraceAttributes::DB_STATEMENT] = $query;
+        $attributes[TraceAttributes::DB_QUERY_TEXT] = $query;
         $attributes[TraceAttributes::DB_OPERATION_NAME] = $operation;
 
         if (!$exception && $stmtRetVal instanceof mysqli_stmt) {
             $tracker->trackMySqliFromStatement($mysqli, $stmtRetVal);
-            $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_STATEMENT, $query);
+            $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_QUERY_TEXT, $query);
             $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_OPERATION_NAME, $operation);
 
         } else {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
             $errorStatus = !$exception ? $mysqli->error : null;
         }
 
@@ -610,8 +610,7 @@ class MySqliInstrumentation
         }
 
         if ($retVal === false || $exception) {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         } else {
             $tracker->trackMySqliTransaction($mysqli, Span::getCurrent()->getContext());
         }
@@ -640,8 +639,7 @@ class MySqliInstrumentation
         }
 
         if ($retVal === false || $exception) {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $mysqli->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         }
 
         $tracker->untrackMySqliTransaction($mysqli);
@@ -667,7 +665,7 @@ class MySqliInstrumentation
         }
 
         $query = $obj ? $params[0] : $params[1];
-        $tracker->addStatementAttribute($obj ? $obj : $params[0], TraceAttributes::DB_STATEMENT, mb_convert_encoding($query, 'UTF-8'));
+        $tracker->addStatementAttribute($obj ? $obj : $params[0], TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($query, 'UTF-8'));
         $tracker->addStatementAttribute($obj ? $obj : $params[0], TraceAttributes::DB_OPERATION_NAME, self::extractQueryCommand($query));
     }
 
@@ -683,7 +681,7 @@ class MySqliInstrumentation
         $tracker->trackMySqliFromStatement($params[0], $stmt);
 
         if ($params[1] ?? null) {
-            $tracker->addStatementAttribute($stmt, TraceAttributes::DB_STATEMENT, mb_convert_encoding($params[1], 'UTF-8'));
+            $tracker->addStatementAttribute($stmt, TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[1], 'UTF-8'));
             $tracker->addStatementAttribute($stmt, TraceAttributes::DB_OPERATION_NAME, self::extractQueryCommand($params[1]));
         }
     }
@@ -701,8 +699,7 @@ class MySqliInstrumentation
         $attributes = array_merge($tracker->getMySqliAttributesFromStatement($stmt), $tracker->getStatementAttributes($stmt));
 
         if ($retVal === false || $exception) {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $stmt->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $stmt->errno;
         }
 
         $errorStatus = ($retVal === false && !$exception) ? $stmt->error : null;
@@ -740,8 +737,7 @@ class MySqliInstrumentation
         }
 
         if ($retVal === false || $exception) {
-            //TODO use constant from comment  after sem-conv update
-            $attributes[/*TraceAttributes::DB_RESPONSE_STATUS_CODE*/ 'db.response.status_code'] =  $stmt->errno;
+            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $stmt->errno;
         }
 
         $errorStatus = ($retVal === false && !$exception) ? $stmt->error : null;
@@ -757,10 +753,10 @@ class MySqliInstrumentation
             ->spanBuilder($spanName)
             ->setParent($parent)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttributes($attributes);
 
         $span = $builder->startSpan();
@@ -788,7 +784,7 @@ class MySqliInstrumentation
         }
 
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setAttribute(TraceAttributes::EXCEPTION_TYPE, $exception::class);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
