@@ -76,6 +76,5 @@ class CodeIgniterInstrumentationTest extends AbstractTest
         $this->assertEquals('Exception', $eventAttributes->get('exception.type'));
         $this->assertEquals('Threw', $eventAttributes->get('exception.message'));
         $this->assertNotNull($eventAttributes->get('exception.stacktrace'));
-        $this->assertTrue($eventAttributes->get('exception.escaped'));
     }
 }

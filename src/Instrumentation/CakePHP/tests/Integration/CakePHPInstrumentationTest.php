@@ -45,7 +45,7 @@ class CakePHPInstrumentationTest extends TestCase
         $this->assertSame(SpanKind::KIND_SERVER, $serverSpan->getKind());
         $this->assertGreaterThan(0, $serverSpan->getAttributes()->count());
         $attributes = $serverSpan->getAttributes()->toArray();
-        $this->assertSame('run', $attributes['code.function']);
+        $this->assertSame('run', $attributes['code.function.name']);
         $this->assertSame('GET', $attributes['http.request.method']);
         $this->assertSame(200, $attributes['http.response.status_code']);
         $this->assertSame(self::TRACE_ID, $serverSpan->getParentContext()->getTraceId());
@@ -58,7 +58,7 @@ class CakePHPInstrumentationTest extends TestCase
         $this->assertSame(SpanKind::KIND_INTERNAL, $controllerSpan->getKind());
         $this->assertGreaterThan(0, $controllerSpan->getAttributes()->count());
         $attributes = $controllerSpan->getAttributes()->toArray();
-        $this->assertSame('invokeAction', $attributes['code.function']);
+        $this->assertSame('invokeAction', $attributes['code.function.name']);
         $this->assertSame($serverSpan->getTraceId(), $controllerSpan->getParentContext()->getTraceId());
         $this->assertSame($serverSpan->getSpanId(), $controllerSpan->getParentContext()->getSpanId());
     }
