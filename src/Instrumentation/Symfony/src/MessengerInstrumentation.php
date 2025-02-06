@@ -11,6 +11,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
@@ -34,7 +35,11 @@ final class MessengerInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_messenger');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.symfony_messenger',
+            null,
+            Version::VERSION_1_30_0->url(),
+        );
 
         /**
          * MessageBusInterface dispatches messages to the handlers.
@@ -59,10 +64,10 @@ final class MessengerInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_BUS, $class)
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
@@ -93,9 +98,7 @@ final class MessengerInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 
@@ -126,10 +129,10 @@ final class MessengerInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('SEND %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_TRANSPORT, $class)
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
@@ -162,9 +165,7 @@ final class MessengerInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

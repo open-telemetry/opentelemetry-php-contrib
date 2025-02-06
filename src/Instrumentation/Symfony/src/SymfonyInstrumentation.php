@@ -13,6 +13,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
@@ -24,7 +25,11 @@ final class SymfonyInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.symfony',
+            null,
+            Version::VERSION_1_30_0->url(),
+        );
 
         hook(
             HttpKernel::class,
@@ -48,10 +53,10 @@ final class SymfonyInstrumentation
                     ->tracer()
                     ->spanBuilder($name)
                     ->setSpanKind(($type === HttpKernelInterface::SUB_REQUEST) ? SpanKind::KIND_INTERNAL : SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 if ($request) {
@@ -101,9 +106,7 @@ final class SymfonyInstrumentation
                 }
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
                         $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     }
@@ -159,9 +162,7 @@ final class SymfonyInstrumentation
                 $throwable = $params[0];
 
                 Span::getCurrent()
-                    ->recordException($throwable, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    ->recordException($throwable);
 
                 return $params;
             },
