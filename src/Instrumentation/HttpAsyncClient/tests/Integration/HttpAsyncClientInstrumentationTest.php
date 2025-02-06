@@ -94,7 +94,7 @@ class HttpAsyncClientInstrumentationTest extends TestCase
                 $this->response = $response;
             }
 
-            public function then(callable $onFulfilled = null, callable $onRejected = null): Promise
+            public function then(?callable $onFulfilled = null, ?callable $onRejected = null): Promise
             {
                 $this->onFulfilled = $onFulfilled;
                 $this->onRejected = $onRejected;
