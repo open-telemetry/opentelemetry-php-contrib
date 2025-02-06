@@ -7,3 +7,8 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        -
+            message: "#Right side of .* is always false.#"
+            paths:
+                - src/CurlInstrumentation.php
