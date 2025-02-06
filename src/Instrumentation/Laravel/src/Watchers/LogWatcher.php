@@ -56,7 +56,7 @@ class LogWatcher extends Watcher
 
         $logger = $this->instrumentation->logger();
 
-        /* @phan-suppressPhanUndeclaredClassMethod */
+        // @phan-suppressPhanUndeclaredClassMethod
         $record = (new LogRecord($log->message))
             ->setSeverityText($log->level)
             ->setSeverityNumber(Psr3::severityNumber($log->level))
