@@ -30,7 +30,7 @@ class Psr6Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr6',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr6'),
-            Version::VERSION_1_30_0->url(),
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
         $pre = static function (CacheItemPoolInterface $pool, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {

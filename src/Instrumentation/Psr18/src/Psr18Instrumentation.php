@@ -30,7 +30,7 @@ class Psr18Instrumentation
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr18',
-            schemaUrl: Version::VERSION_1_30_0->url(),
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
         hook(

@@ -33,7 +33,7 @@ class SlimInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.slim',
             null,
-            Version::VERSION_1_30_0->url(),
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
         /**

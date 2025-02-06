@@ -27,7 +27,7 @@ class CodeIgniterInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.codeigniter',
             null,
-            Version::VERSION_1_30_0->url(),
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
         // The method that creates request/response/controller objects is in the same class as the method

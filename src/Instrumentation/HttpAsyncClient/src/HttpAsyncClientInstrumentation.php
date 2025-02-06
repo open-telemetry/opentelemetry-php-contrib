@@ -27,7 +27,7 @@ class HttpAsyncClientInstrumentation
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.http-async-client',
-            schemaUrl: Version::VERSION_1_30_0->url()
+            schemaUrl: 'https://opentelemetry.io/schemas/1.30.0',
         );
 
         hook(

@@ -20,7 +20,7 @@ final class MongoDBInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.mongodb',
             null,
-            Version::VERSION_1_30_0->url(),
+            'https://opentelemetry.io/schemas/1.30.0',
         );
         $commandSerializer ??= self::defaultCommandSerializer();
         /** @psalm-suppress UnusedFunctionCall */
