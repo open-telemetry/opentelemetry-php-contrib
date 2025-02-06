@@ -6,7 +6,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\MongoDB;
 
 use function MongoDB\Driver\Monitoring\addSubscriber;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
-use OpenTelemetry\SemConv\Version;
 
 final class MongoDBInstrumentation
 {

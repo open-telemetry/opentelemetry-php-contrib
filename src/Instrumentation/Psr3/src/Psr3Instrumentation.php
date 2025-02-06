@@ -10,7 +10,6 @@ use OpenTelemetry\API\Logs as API;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\Version;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 

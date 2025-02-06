@@ -6,7 +6,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
-use OpenTelemetry\SemConv\Version;
 
 class LaravelInstrumentation
 {

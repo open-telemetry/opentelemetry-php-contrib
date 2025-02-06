@@ -16,7 +16,6 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\Version;
 
 class CodeIgniterInstrumentation
 {

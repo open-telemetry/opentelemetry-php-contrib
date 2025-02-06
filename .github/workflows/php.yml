@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+        php-version: ['8.0', '8.1', '8.2', '8.3']
         # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
         project: [
           'Aws',
@@ -55,34 +55,6 @@ jobs:
           'Symfony',
         ]
         exclude:
-          - project: 'Instrumentation/Guzzle'
-            php-version: 7.4
-          - project: 'Instrumentation/HttpAsyncClient'
-            php-version: 7.4
-          - project: 'Instrumentation/Slim'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr3'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr6'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr14'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr15'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr16'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr18'
-            php-version: 7.4
-          - project: 'Instrumentation/IO'
-            php-version: 7.4
-          - project: 'Instrumentation/Symfony'
-            php-version: 7.4
-          - project: 'Instrumentation/Laravel'
-            php-version: 7.4
-          - project: 'Instrumentation/CodeIgniter'
-            php-version: 7.4
-          - project: 'Instrumentation/Yii'
-            php-version: 7.4
           - project: 'Instrumentation/IO'
             php-version: 8.0
           - project: 'Instrumentation/IO'
@@ -105,8 +77,6 @@ jobs:
             php-version: 8.0
           - project: 'Instrumentation/PDO'
             php-version: 8.1
-          - project: 'Instrumentation/ExtAmqp'
-            php-version: 7.4
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.0
           - project: 'Instrumentation/ExtAmqp'
@@ -118,21 +88,9 @@ jobs:
           - project: 'Instrumentation/ExtRdKafka'
             php-version: 8.1
           - project: 'Instrumentation/OpenAIPHP'
-            php-version: 7.4
-          - project: 'Instrumentation/OpenAIPHP'
             php-version: 8.0
-          - project: 'Instrumentation/CakePHP'
-            php-version: 7.4
-          - project: 'Propagation/ServerTiming'
-            php-version: 7.4
-          - project: 'ResourceDetectors/Container'
-            php-version: 7.4
-          - project: 'Sampler/RuleBased'
-            php-version: 7.4
           - project: 'Sampler/RuleBased'
             php-version: 8.0
-          - project: 'Symfony'
-            php-version: 7.4
           - project: 'Symfony'
             php-version: 8.0
     steps:
