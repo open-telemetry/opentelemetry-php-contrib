@@ -69,10 +69,10 @@ class MongoDBInstrumentationTest extends TestCase
         self::assertSame('MongoDB coll.find', $this->span->getName());
         self::assertSame(SpanKind::KIND_CLIENT, $this->span->getKind());
         $attributes = $this->span->getAttributes();
-        self::assertSame('mongodb', $attributes->get(TraceAttributes::DB_SYSTEM));
-        self::assertSame(self::DATABASE_NAME, $attributes->get(TraceAttributes::DB_NAME));
-        self::assertSame('find', $attributes->get(TraceAttributes::DB_OPERATION));
-        self::assertSame(self::COLLECTION_NAME, $attributes->get(TraceAttributes::DB_MONGODB_COLLECTION));
+        self::assertSame('mongodb', $attributes->get(TraceAttributes::DB_SYSTEM_NAME));
+        self::assertSame(self::DATABASE_NAME, $attributes->get(TraceAttributes::DB_NAMESPACE));
+        self::assertSame('find', $attributes->get(TraceAttributes::DB_OPERATION_NAME));
+        self::assertSame(self::COLLECTION_NAME, $attributes->get(TraceAttributes::DB_COLLECTION_NAME));
         self::assertSame($this->host, $attributes->get(TraceAttributes::SERVER_ADDRESS));
         self::assertSame($this->port, $attributes->get(TraceAttributes::SERVER_PORT));
         self::assertSame('tcp', $attributes->get(TraceAttributes::NETWORK_TRANSPORT));

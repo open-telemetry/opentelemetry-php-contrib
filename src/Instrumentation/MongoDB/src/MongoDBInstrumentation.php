@@ -6,20 +6,21 @@ namespace OpenTelemetry\Contrib\Instrumentation\MongoDB;
 
 use function MongoDB\Driver\Monitoring\addSubscriber;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\SemConv\Version;
 
 final class MongoDBInstrumentation
 {
     public const NAME = 'mongodb';
 
     /**
-     * @param callable(object):?string $commandSerializer
+     * @param ?callable(object):string $commandSerializer
      */
-    public static function register(callable $commandSerializer = null): void
+    public static function register(?callable $commandSerializer = null): void
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.mongodb',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            Version::VERSION_1_30_0->url(),
         );
         $commandSerializer ??= self::defaultCommandSerializer();
         /** @psalm-suppress UnusedFunctionCall */
@@ -27,7 +28,7 @@ final class MongoDBInstrumentation
     }
 
     /**
-     * @return callable(object):?string
+     * @return callable(object): string
      */
     private static function defaultCommandSerializer(): callable
     {
