@@ -9,7 +9,7 @@ use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Logs\LogRecord;
-use OpenTelemetry\API\Logs\Severity;
+use OpenTelemetry\API\Logs\Map\Psr3;
 use TypeError;
 
 class LogWatcher extends Watcher
@@ -56,9 +56,10 @@ class LogWatcher extends Watcher
 
         $logger = $this->instrumentation->logger();
 
+        /* @phan-suppressPhanUndeclaredClassMethod */
         $record = (new LogRecord($log->message))
             ->setSeverityText($log->level)
-            ->setSeverityNumber(Severity::fromPsr3($log->level))
+            ->setSeverityNumber(Psr3::severityNumber($log->level))
             ->setAttributes($attributes);
 
         $logger->emit($record);
