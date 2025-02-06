@@ -13,6 +13,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -28,7 +29,11 @@ class Psr15Instrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr15');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.psr15',
+            null,
+            Version::VERSION_1_30_0->url(),
+        );
 
         /**
          * Create a span for each psr-15 middleware that is executed.
@@ -38,10 +43,10 @@ class Psr15Instrumentation
             'process',
             pre: static function (MiddlewareInterface $middleware, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = $instrumentation->tracer()->spanBuilder(sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->startSpan();
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
@@ -54,7 +59,7 @@ class Psr15Instrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 $span->end();
@@ -79,10 +84,10 @@ class Psr15Instrumentation
                     : sprintf('%s', $request?->getMethod() ?? 'unknown')
                 )
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 $parent = Context::getCurrent();
                 if (!$root && $request) {
                     //create http root span
@@ -114,7 +119,7 @@ class Psr15Instrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {
