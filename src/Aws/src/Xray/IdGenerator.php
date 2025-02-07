@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright The OpenTelemetry Authors
  *

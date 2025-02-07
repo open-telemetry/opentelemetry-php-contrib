@@ -49,10 +49,10 @@ class YiiInstrumentation
                     ->spanBuilder(sprintf('%s', $request->getMethod()))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(TraceAttributes::URL_FULL, $request->getAbsoluteUrl())
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaders()->get('Content-Length', null, true))
@@ -166,7 +166,7 @@ class YiiInstrumentation
     protected static function normalizeRouteName(string $controllerClassName, string $actionName): string
     {
         $lastSegment = strrchr($controllerClassName, '\\');
-        
+
         if ($lastSegment === false) {
             return $controllerClassName . '.' . $actionName;
         }

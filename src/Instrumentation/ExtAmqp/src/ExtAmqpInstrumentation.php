@@ -49,10 +49,10 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder(sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey) . ' publish')
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, 'publish')
@@ -162,10 +162,10 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder($queueName . ' ' . $method)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, $method)

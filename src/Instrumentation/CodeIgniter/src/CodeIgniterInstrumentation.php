@@ -21,6 +21,7 @@ class CodeIgniterInstrumentation
 {
     public const NAME = 'codeigniter';
 
+    /** @psalm-api */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
@@ -34,12 +35,16 @@ class CodeIgniterInstrumentation
         // properties, thus reflection is required to read them.
         $reflectedIgniter = new \ReflectionClass(CodeIgniter::class);
         $requestProperty = $reflectedIgniter->getProperty('request');
+        /** @psalm-suppress UnusedMethodCall */
         $requestProperty->setAccessible(true);
         $controllerProperty = $reflectedIgniter->getProperty('controller');
+        /** @psalm-suppress UnusedMethodCall */
         $controllerProperty->setAccessible(true);
         $controllerMethodProperty = $reflectedIgniter->getProperty('method');
+        /** @psalm-suppress UnusedMethodCall */
         $controllerMethodProperty->setAccessible(true);
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             CodeIgniter::class,
             'handleRequest',
@@ -60,13 +65,13 @@ class CodeIgniterInstrumentation
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
                     ->spanBuilder(\sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
-                
+
                 if ($request) {
                     $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
 
@@ -135,7 +140,7 @@ class CodeIgniterInstrumentation
                         $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                     }
                 }
-                
+
                 $controller = $controllerProperty->getValue($igniter);
                 $controllerClassName = CodeIgniterInstrumentation::getControllerClassName($controller);
                 $controllerMethod = $controllerMethodProperty->getValue($igniter);
@@ -169,7 +174,7 @@ class CodeIgniterInstrumentation
     protected static function normalizeRouteName(string $controllerClassName, string $controllerMethod): string
     {
         $lastSegment = strrchr($controllerClassName, '\\');
-        
+
         if ($lastSegment === false) {
             return $controllerClassName . '.' . $controllerMethod;
         }

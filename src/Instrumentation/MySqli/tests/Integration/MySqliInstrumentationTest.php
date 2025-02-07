@@ -310,6 +310,9 @@ class MySqliInstrumentationTest extends TestCase
 
     }
 
+    /**
+     * @requires PHP >= 8.2
+     */
     public function test_mysqli_execute_query_objective(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -368,11 +371,16 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertDatabaseAttributesForAllSpans($offset);
     }
 
+    /**
+     * @requires PHP >= 8.2
+     */
     public function test_mysqli_execute_query_procedural(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
         $mysqli = mysqli_connect($this->mysqlHost, $this->user, $this->passwd, $this->database);
+
+        $this->assertInstanceOf(mysqli::class, $mysqli);
 
         $offset = 0;
         $this->assertSame('mysqli_connect', $this->storage->offsetGet($offset)->getName());
@@ -542,6 +550,7 @@ class MySqliInstrumentationTest extends TestCase
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
         $mysqli = mysqli_connect($this->mysqlHost, $this->user, $this->passwd, $this->database);
+        $this->assertInstanceOf(mysqli::class, $mysqli);
 
         $offset = 0;
         $this->assertSame('mysqli_connect', $this->storage->offsetGet($offset)->getName());
@@ -709,12 +718,14 @@ class MySqliInstrumentationTest extends TestCase
         mysqli_report(MYSQLI_REPORT_ERROR);
 
         $mysqli = new mysqli($this->mysqlHost, $this->user, $this->passwd, $this->database);
+        $this->assertInstanceOf(mysqli::class, $mysqli);
 
         $offset = 0;
         $this->assertSame('mysqli::__construct', $this->storage->offsetGet($offset)->getName());
 
         try {
             $stmt = mysqli_prepare($mysqli, 'SELECT * FROM otel_db.users');
+            $this->assertInstanceOf(mysqli_stmt::class, $stmt);
 
             $offset++;
             $this->assertSame('mysqli_prepare', $this->storage->offsetGet($offset)->getName());
@@ -833,6 +844,7 @@ class MySqliInstrumentationTest extends TestCase
         mysqli_report(MYSQLI_REPORT_ERROR);
 
         $mysqli = mysqli_connect($this->mysqlHost, $this->user, $this->passwd, $this->database);
+        $this->assertInstanceOf(mysqli::class, $mysqli);
 
         $offset = 0;
         $this->assertSame('mysqli_connect', $this->storage->offsetGet($offset)->getName());
@@ -865,6 +877,8 @@ class MySqliInstrumentationTest extends TestCase
             $language_code = 'FR';
             $native_speakers = 'Unknown';
             $stmt = mysqli_prepare($mysqli, 'INSERT INTO language(Code, Speakers) VALUES (?,?)');
+            $this->assertInstanceOf(mysqli_stmt::class, $stmt);
+
             $offset++;
             $this->assertSame('mysqli_prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
@@ -976,6 +990,7 @@ class MySqliInstrumentationTest extends TestCase
         mysqli_report(MYSQLI_REPORT_ERROR);
 
         $mysqli = mysqli_connect($this->mysqlHost, $this->user, $this->passwd, $this->database);
+        $this->assertInstanceOf(mysqli::class, $mysqli);
 
         $offset = 0;
         $this->assertSame('mysqli_connect', $this->storage->offsetGet($offset)->getName());
@@ -1008,6 +1023,8 @@ class MySqliInstrumentationTest extends TestCase
             $language_code = 'FR';
             $native_speakers = 66000002;
             $stmt = mysqli_prepare($mysqli, 'INSERT INTO language(Code, Speakers) VALUES (?,?)');
+            $this->assertInstanceOf(mysqli_stmt::class, $stmt);
+
             $offset++;
             $this->assertSame('mysqli_prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [

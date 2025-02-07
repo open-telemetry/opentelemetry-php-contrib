@@ -45,7 +45,7 @@ packages-composer: ## Validate all composer packages
 bash: ## Bash shell
 	$(DC_RUN_PHP) bash
 style: ## Run php-cs-fixer
-	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no -vvv
+	$(DC_RUN_PHP) env XDEBUG_MODE=off PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no -vvv
 split: ## git-split dry run
 	${DOCKER_COMPOSE} -f docker/gitsplit/docker-compose.yaml --env-file ./.env up
 FORCE:

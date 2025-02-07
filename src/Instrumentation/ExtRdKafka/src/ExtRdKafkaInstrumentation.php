@@ -76,10 +76,10 @@ class ExtRdKafkaInstrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('%s %s', $exchange->getName(), TraceAttributeValues::MESSAGING_OPERATION_TYPE_PUBLISH))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, TraceAttributeValues::MESSAGING_SYSTEM_KAFKA)
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, TraceAttributeValues::MESSAGING_OPERATION_TYPE_PUBLISH)
                 ;

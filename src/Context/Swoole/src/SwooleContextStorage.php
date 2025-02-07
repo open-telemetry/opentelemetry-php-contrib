@@ -11,6 +11,7 @@ use OpenTelemetry\Context\ContextStorageInterface;
 use OpenTelemetry\Context\ContextStorageScopeInterface;
 use OpenTelemetry\Context\ExecutionContextAwareInterface;
 
+/** @psalm-api */
 final class SwooleContextStorage implements ContextStorageInterface, ExecutionContextAwareInterface
 {
     /** @var ContextStorageInterface&ExecutionContextAwareInterface */

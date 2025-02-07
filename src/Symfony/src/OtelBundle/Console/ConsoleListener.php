@@ -60,7 +60,7 @@ final class ConsoleListener implements EventSubscriberInterface
 
         $span = $this->tracer
             ->spanBuilder($name ?? 'command')
-            ->setAttribute(TraceAttributes::CODE_FUNCTION, 'run')
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, 'run')
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->startSpan();
 

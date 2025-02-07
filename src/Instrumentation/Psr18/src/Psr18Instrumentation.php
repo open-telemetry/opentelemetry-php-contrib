@@ -56,10 +56,10 @@ class Psr18Instrumentation
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
                     ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                 ;
 
                 foreach ($propagator->fields() as $field) {

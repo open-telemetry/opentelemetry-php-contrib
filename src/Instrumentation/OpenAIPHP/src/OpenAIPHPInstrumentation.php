@@ -74,6 +74,7 @@ final class OpenAIPHPInstrumentation
 
     private static function hookApi(CachedInstrumentation $instrumentation, $class, string $resource, string $operation)
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             $class,
             $operation,
@@ -91,10 +92,10 @@ final class OpenAIPHPInstrumentation
                     ->spanBuilder(sprintf('openai %s', $resource . '/' . $operation))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // openai
                     ->setAttribute(OpenAIAttributes::OPENAI_RESOURCE, $resource . '/' . $operation)
                 ;

@@ -33,7 +33,7 @@ class Psr16Instrumentation
 
         $pre = static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
             $builder = self::makeSpanBuilder($instrumentation, $function, $function, $class, $filename, $lineno);
-            
+
             if (isset($params[0]) && is_string($params[0])) {
                 $builder->setAttribute('cache.key', $params[0]);
             }
@@ -68,10 +68,10 @@ class Psr16Instrumentation
         return $instrumentation->tracer()
             ->spanBuilder($name)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttribute('cache.operation', $name);
     }
 

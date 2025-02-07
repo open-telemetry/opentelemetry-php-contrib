@@ -33,15 +33,16 @@ class Psr15Instrumentation
         /**
          * Create a span for each psr-15 middleware that is executed.
          */
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             MiddlewareInterface::class,
             'process',
             pre: static function (MiddlewareInterface $middleware, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = $instrumentation->tracer()->spanBuilder(sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->startSpan();
 
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
@@ -65,6 +66,7 @@ class Psr15Instrumentation
          * Create a span to wrap RequestHandlerInterface::handle. The first execution is assumed to be the root span, which
          * is stored as a request attribute which may be accessed by later hooks.
          */
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             RequestHandlerInterface::class,
             'handle',
@@ -79,10 +81,10 @@ class Psr15Instrumentation
                     : sprintf('%s', $request?->getMethod() ?? 'unknown')
                 )
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 $parent = Context::getCurrent();
                 if (!$root && $request) {
                     //create http root span

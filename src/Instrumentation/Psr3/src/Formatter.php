@@ -15,7 +15,7 @@ class Formatter
             if ($key === 'exception' && $value instanceof Throwable) {
                 $formatted[$key] = self::formatThrowable($value);
             } else {
-                $formatted[$key] = json_decode(json_encode($value));
+                $formatted[$key] = json_decode(json_encode($value) ?: '');
             }
         }
 

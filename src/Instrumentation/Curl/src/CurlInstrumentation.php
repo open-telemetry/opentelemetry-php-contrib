@@ -149,9 +149,9 @@ class CurlInstrumentation
                     ->spanBuilder($spanName)
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttributes($curlHandleToAttributes[$params[0]]->getAttributes());
 
                 $span = $builder->startSpan();
@@ -283,7 +283,7 @@ class CurlInstrumentation
                                 ->spanBuilder($spanName)
                                 ->setParent($parent)
                                 ->setSpanKind(SpanKind::KIND_CLIENT)
-                                ->setAttribute(TraceAttributes::CODE_FUNCTION, 'curl_multi_exec')
+                                ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, 'curl_multi_exec')
                                 ->setAttributes($curlHandleToAttributes[$cHandle]->getAttributes());
 
                             $span = $builder->startSpan();

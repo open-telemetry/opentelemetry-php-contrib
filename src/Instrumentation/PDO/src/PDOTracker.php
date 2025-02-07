@@ -54,7 +54,7 @@ final class PDOTracker
             return [];
         }
 
-        return $this->pdoToAttributesMap[$pdo] ?? [];
+        return $this->pdoToAttributesMap[$pdo] ?: [];
     }
 
     /**
@@ -88,11 +88,15 @@ final class PDOTracker
      */
     public function trackedAttributesForPdo(PDO $pdo): iterable
     {
-        return $this->pdoToAttributesMap[$pdo] ?? [];
+        return $this->pdoToAttributesMap[$pdo] ?: [];
     }
 
     public function getSpanForPreparedStatement(PDOStatement $statement): ?SpanContextInterface
     {
+        if (!$this->preparedStatementToSpanMap->offsetExists($statement)) {
+            return null;
+        }
+
         return ($this->preparedStatementToSpanMap[$statement] ?? null)?->get();
     }
 
