@@ -395,7 +395,7 @@ class TestedDefaultNullClass
     private $fooBar;
     private $fooBaz;
 
-    public function __construct(string $fooBar, stdClass $fooBaz = null)
+    public function __construct(string $fooBar, ?stdClass $fooBaz = null)
     {
         $this->fooBar = $fooBar;
         $this->fooBaz = $fooBaz;

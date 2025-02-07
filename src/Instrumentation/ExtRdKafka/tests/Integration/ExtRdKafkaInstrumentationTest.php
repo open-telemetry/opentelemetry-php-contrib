@@ -136,7 +136,7 @@ class ExtRdKafkaInstrumentationTest extends TestCase
     private function produceMessage(
         string $message,
         ?string $key = null,
-        array $headers = null,
+        ?array $headers = null,
         bool $produceWithoutHeaders = false
     ): void {
         $conf = new Conf();
@@ -163,7 +163,7 @@ class ExtRdKafkaInstrumentationTest extends TestCase
     {
         $conf = new Conf();
 
-        $conf->setRebalanceCb(function (KafkaConsumer $kafka, $err, array $partitions = null) {
+        $conf->setRebalanceCb(function (KafkaConsumer $kafka, $err, ?array $partitions = null) {
             switch ($err) {
                 case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
                     $kafka->assign($partitions);
