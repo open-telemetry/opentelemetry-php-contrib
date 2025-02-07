@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Symfony\Integration\OtelSdkBundle\Resources;
 
 use Exception;
+use OpenTelemetry\API\Common\Time\SystemClock;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\OtelSdkExtension;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DependencyInjection\Parameters;
 use OpenTelemetry\Contrib\Symfony\OtelSdkBundle\Util\ServiceHelper;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
-use OpenTelemetry\SDK\Common\Time\SystemClock;
 use OpenTelemetry\SDK\Resource;
 use OpenTelemetry\SDK\Trace;
 use OpenTelemetry\SDK\Trace\Sampler;

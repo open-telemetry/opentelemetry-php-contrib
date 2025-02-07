@@ -14,7 +14,7 @@ final class MongoDBInstrumentation
     /**
      * @param callable(object):?string $commandSerializer
      */
-    public static function register(callable $commandSerializer = null): void
+    public static function register(?callable $commandSerializer = null): void
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.mongodb',

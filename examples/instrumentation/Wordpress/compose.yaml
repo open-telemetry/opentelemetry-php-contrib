@@ -42,12 +42,12 @@ services:
   # OpenTelemetry collector. Make sure you set USERID and GOOGLE_APPLICATION_CREDENTIALS
   # environment variables for your container to authenticate correctly
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.79.0
+    image: otel/opentelemetry-collector-contrib:0.91.0
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
-  
+
   jaeger:
-    image: jaegertracing/all-in-one:1.46
+    image: jaegertracing/all-in-one
     ports:
       - 16686:16686
     environment:

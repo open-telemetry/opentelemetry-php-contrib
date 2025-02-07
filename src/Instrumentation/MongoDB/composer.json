@@ -6,10 +6,9 @@
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
   "license": "Apache-2.0",
-  "minimum-stability": "dev",
   "require": {
     "php": ">=7.4",
-    "ext-mongodb": "*",
+    "ext-mongodb": "^1.13",
     "ext-json": "*",
     "mongodb/mongodb": "^1.15",
     "open-telemetry/api": "^1.0",
@@ -40,7 +39,8 @@
   },
   "config": {
     "allow-plugins": {
-      "php-http/discovery": false
+      "php-http/discovery": false,
+      "tbachert/spi": false
     }
   }
 }

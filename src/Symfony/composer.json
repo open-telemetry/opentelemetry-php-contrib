@@ -5,10 +5,9 @@
     "license": "Apache-2.0",
     "authors": [
     ],
-    "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "php": "^7.4 || ^8.0",
+        "php": "^8.1",
         "ext-json": "*",
         "open-telemetry/api": "^1",
         "open-telemetry/context": "^1",
@@ -35,14 +34,14 @@
         "friendsofphp/php-cs-fixer": "^3.0",
         "google/protobuf": "^3.23",
         "guzzlehttp/guzzle": "^7.3",
-        "guzzlehttp/psr7": "^2.0@RC",
+        "guzzlehttp/psr7": "^2.0",
         "jangregor/phpstan-prophecy": "^1.0",
         "kriswallsmith/buzz": "^1.2",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3",
         "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.4",
         "open-telemetry/dev-tools": "dev-main",
-        "open-telemetry/sdk": "^1",
+        "open-telemetry/sdk": "^1.1",
         "phan/phan": "^4.1 || ^5",
         "phpspec/prophecy-phpunit": "^2.0",
         "phpstan/phpstan": "^1.4",
@@ -54,7 +53,6 @@
         "symfony/http-client": "^5.3",
         "symfony/http-kernel": "^4.4|^5.3|^6.0",
         "symfony/options-resolver": "^4.4|^5.3|^6.0",
-        "symfony/polyfill-php80": "^1.16",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
         "vimeo/psalm": "^5.0"
@@ -76,8 +74,9 @@
         "sort-packages": true,
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
+            "php-http/discovery": false,
             "symfony/runtime": true,
-            "php-http/discovery": false
+            "tbachert/spi": true
         }
     }
 }
