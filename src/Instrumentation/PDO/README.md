@@ -23,3 +23,14 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=pdo
 ```
+                     
+In case UI used to view telemetry data does not support links between spans (for example newrelic),
+you can optionally enable setting db statements attribute to `fetchAll` and `execute` spans using 
+configuration directive:
+```
+otel.instrumentation.pdo.distribute_statement_to_linked_spans = true
+```
+or environment variable:
+```shell
+OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
+```
