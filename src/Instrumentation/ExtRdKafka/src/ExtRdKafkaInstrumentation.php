@@ -75,7 +75,7 @@ class ExtRdKafkaInstrumentation
                 /** @var CachedInstrumentation $instrumentation */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s %s', $exchange->getName(), TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND))
+                    ->spanBuilder(sprintf('%s %s', TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND, $exchange->getName()))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -148,7 +148,7 @@ class ExtRdKafkaInstrumentation
                 $builder = $instrumentation
                     ->tracer()
                     // @phan-suppress-next-line PhanTypeMismatchArgumentInternal - Doesn't seem to know this has to be a string
-                    ->spanBuilder(sprintf('%s %s', $message->topic_name, TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND))
+                    ->spanBuilder(sprintf('%s %s', TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND, $message->topic_name))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, TraceAttributeValues::MESSAGING_SYSTEM_KAFKA)
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS)
