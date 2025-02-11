@@ -10,6 +10,7 @@ use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use PDO;
@@ -200,6 +201,9 @@ class PDOInstrumentation
             'fetchAll',
             pre: static function (PDOStatement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
                 $attributes = $pdoTracker->trackedAttributesForStatement($statement);
+                if (self::isDistributeStatementToLinkedSpansEnabled()) {
+                    $attributes[TraceAttributes::DB_STATEMENT] = $statement->queryString;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDOStatement::fetchAll', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -221,6 +225,11 @@ class PDOInstrumentation
             'execute',
             pre: static function (PDOStatement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
                 $attributes = $pdoTracker->trackedAttributesForStatement($statement);
+
+                if (self::isDistributeStatementToLinkedSpansEnabled()) {
+                    $attributes[TraceAttributes::DB_STATEMENT] = $statement->queryString;
+                }
+                
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDOStatement::execute', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -267,5 +276,14 @@ class PDOInstrumentation
         }
 
         $span->end();
+    }
+
+    private static function isDistributeStatementToLinkedSpansEnabled(): bool
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
+            return Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS', false);
+        }
+
+        return get_cfg_var('otel.instrumentation.pdo.distribute_statement_to_linked_spans');
     }
 }

@@ -1,1 +1,6 @@
+composer.lock
+
 .phpunit.cache
+
+var
+vendor
