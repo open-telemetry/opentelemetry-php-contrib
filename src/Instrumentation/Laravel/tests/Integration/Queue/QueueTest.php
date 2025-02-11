@@ -55,17 +55,17 @@ class QueueTest extends TestCase
         $this->queue->later(new DateInterval('PT10M'), new DummyJob('DateInterval'));
         $this->queue->later(new DateTimeImmutable('2024-04-15 22:29:00.123Z'), new DummyJob('DateTime'));
 
-        $this->assertEquals('sync create', $this->storage[2]->getName());
+        $this->assertEquals('create sync', $this->storage[2]->getName());
         $this->assertIsInt(
             $this->storage[2]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
-        $this->assertEquals('sync create', $this->storage[5]->getName());
+        $this->assertEquals('create sync', $this->storage[5]->getName());
         $this->assertIsInt(
             $this->storage[5]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
-        $this->assertEquals('sync create', $this->storage[8]->getName());
+        $this->assertEquals('create sync', $this->storage[8]->getName());
         $this->assertIsInt(
             $this->storage[8]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );

@@ -51,8 +51,8 @@ class Worker implements LaravelHook
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS,
                         $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
-                        'process',
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setParent($parent)
