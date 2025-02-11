@@ -49,7 +49,7 @@ class Server implements CakeHook
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
                 }
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {

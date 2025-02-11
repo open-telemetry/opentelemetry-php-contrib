@@ -32,6 +32,7 @@ class LogWatcher extends Watcher
 
     /**
      * Record a log.
+     * @phan-suppress PhanDeprecatedFunction
      */
     public function recordLog(MessageLogged $log): void
     {

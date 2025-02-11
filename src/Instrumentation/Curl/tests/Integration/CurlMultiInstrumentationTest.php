@@ -93,7 +93,7 @@ class CurlMultiInstrumentationTest extends TestCase
 
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
-        $this->assertEquals('curl_multi_exec', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION));
+        $this->assertEquals('curl_multi_exec', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION_NAME));
         $this->assertEquals('unknown://scheme.com/', actual: $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertSame('GET', $span->getName());
     }

@@ -38,10 +38,10 @@ class Queue implements LaravelHook
             'bulk',
             pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $attributes = array_merge([
-                    TraceAttributes::CODE_FUNCTION => $function,
+                    TraceAttributes::CODE_FUNCTION_NAME => $function,
                     TraceAttributes::CODE_NAMESPACE => $class,
                     TraceAttributes::CODE_FILEPATH => $filename,
-                    TraceAttributes::CODE_LINENO => $lineno,
+                    TraceAttributes::CODE_LINE_NUMBER => $lineno,
                     TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
                 ], $this->contextualMessageSystemAttributes($queue, []));
 
@@ -49,9 +49,9 @@ class Queue implements LaravelHook
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND,
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
-                        TraceAttributeValues::MESSAGING_OPERATION_PUBLISH,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
@@ -81,10 +81,10 @@ class Queue implements LaravelHook
                 };
 
                 $attributes = [
-                    TraceAttributes::CODE_FUNCTION => $function,
+                    TraceAttributes::CODE_FUNCTION_NAME => $function,
                     TraceAttributes::CODE_NAMESPACE => $class,
                     TraceAttributes::CODE_FILEPATH => $filename,
-                    TraceAttributes::CODE_LINENO => $lineno,
+                    TraceAttributes::CODE_LINE_NUMBER => $lineno,
                     'messaging.message.delivery_timestamp' => $estimateDeliveryTimestamp,
                 ];
 
@@ -92,9 +92,9 @@ class Queue implements LaravelHook
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
-                        'create',
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
@@ -124,8 +124,8 @@ class Queue implements LaravelHook
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
                         $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
-                        TraceAttributeValues::MESSAGING_OPERATION_CREATE,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)

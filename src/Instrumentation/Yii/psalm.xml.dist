@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <psalm
     errorLevel="3"
+    findUnusedBaselineEntry="false"
+    findUnusedCode="false"
     cacheDirectory="var/cache/psalm"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"

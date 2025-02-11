@@ -11,6 +11,9 @@ use PDOStatement;
 use WeakMap;
 use WeakReference;
 
+/**
+ * @phan-file-suppress PhanNonClassMethodCall,PhanTypeArraySuspicious
+ */
 final class PDOTracker
 {
     /**
@@ -70,11 +73,11 @@ final class PDOTracker
             /** @var string $dbSystem */
             $dbSystem = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
             /** @psalm-suppress InvalidArrayAssignment */
-            $attributes[TraceAttributes::DB_SYSTEM] = self::mapDriverNameToAttribute($dbSystem);
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = self::mapDriverNameToAttribute($dbSystem);
         } catch (\Error) {
-            // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+            // if we caught an exception, the driver is likely not supporting the operation, default to "other"
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $attributes[TraceAttributes::DB_SYSTEM] = 'other_sql';
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'other_sql';
         }
 
         $this->pdoToAttributesMap[$pdo] = $attributes;
@@ -126,39 +129,39 @@ final class PDOTracker
     {
         $attributes = [];
         if (str_starts_with($dsn, 'sqlite::memory:')) {
-            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAME] = 'memory';
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAMESPACE] = 'memory';
 
             return $attributes;
         } elseif (str_starts_with($dsn, 'sqlite:')) {
-            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAME] = substr($dsn, 7);
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAMESPACE] = substr($dsn, 7);
 
             return $attributes;
         } elseif (str_starts_with($dsn, 'sqlite')) {
-            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAME] = $dsn;
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAMESPACE] = $dsn;
 
             return $attributes;
         }
 
-        if (preg_match('/user=([^;]*)/', $dsn, $matches)) {
+        //deprecated, no replacement at this time
+        /*if (preg_match('/user=([^;]*)/', $dsn, $matches)) {
             $user = $matches[1];
             if ($user !== '') {
                 $attributes[TraceAttributes::DB_USER] = $user;
             }
-        }
+        }*/
         if (preg_match('/host=([^;]*)/', $dsn, $matches)) {
             $host = $matches[1];
             if ($host !== '') {
-                $attributes[TraceAttributes::NET_PEER_NAME] = $host;
                 $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
             }
         }
         if (preg_match('/dbname=([^;]*)/', $dsn, $matches)) {
             $dbname = $matches[1];
             if ($dbname !== '') {
-                $attributes[TraceAttributes::DB_NAME] = $dbname;
+                $attributes[TraceAttributes::DB_NAMESPACE] = $dbname;
             }
         }
 

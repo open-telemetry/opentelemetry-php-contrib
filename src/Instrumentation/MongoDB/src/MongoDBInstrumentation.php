@@ -12,14 +12,14 @@ final class MongoDBInstrumentation
     public const NAME = 'mongodb';
 
     /**
-     * @param callable(object):?string $commandSerializer
+     * @param ?callable(object):string $commandSerializer
      */
     public static function register(?callable $commandSerializer = null): void
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.mongodb',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.30.0',
         );
         $commandSerializer ??= self::defaultCommandSerializer();
         /** @psalm-suppress UnusedFunctionCall */
@@ -27,7 +27,7 @@ final class MongoDBInstrumentation
     }
 
     /**
-     * @return callable(object):?string
+     * @return callable(object): string
      */
     private static function defaultCommandSerializer(): callable
     {
