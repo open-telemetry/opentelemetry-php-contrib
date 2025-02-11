@@ -124,8 +124,8 @@ class Queue implements LaravelHook
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                         TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
+                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
