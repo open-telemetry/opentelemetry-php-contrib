@@ -28,7 +28,7 @@ class DataProvider
             return null;
         }
 
-        return 'Bearer' . file_get_contents($this->k8sTokenPath) ?: '';
+        return 'Bearer' . (file_get_contents($this->k8sTokenPath) ?: '');
     }
 
     // Check if there exists a k8s certification file
