@@ -23,6 +23,7 @@ final class SendEmailMessage
         $this->message = $message;
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function getMessage(): string
     {
         return $this->message;
@@ -61,7 +62,6 @@ final class MessengerInstrumentationTest extends AbstractTest
 
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
 
         $this->assertEquals($spanName, $span->getName());
@@ -87,7 +87,6 @@ final class MessengerInstrumentationTest extends AbstractTest
 
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
 
         $this->assertEquals($spanName, $span->getName());

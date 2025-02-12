@@ -200,7 +200,6 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
         $this->assertSame('GET ErrorController', $span->getName());
         $this->assertSame(SpanKind::KIND_INTERNAL, $span->getKind());

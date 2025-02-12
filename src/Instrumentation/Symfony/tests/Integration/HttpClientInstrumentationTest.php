@@ -38,7 +38,6 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $response->getStatusCode();
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
 
         $this->assertStringContainsString($method, $span->getName());
@@ -74,9 +73,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
 
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        /** @var EventInterface $event */
         $event = $span->getEvents()[0];
 
         $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));

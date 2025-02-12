@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Monolog\Logger;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 
+/** @psalm-suppress UnusedClass */
 class LoggingBench
 {
     private array $loggers = [];
