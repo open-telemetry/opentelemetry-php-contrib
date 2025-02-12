@@ -24,10 +24,11 @@ class Application implements LaravelHook
 
     public function instrument(): void
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             FoundationalApplication::class,
             '__construct',
-            post: function (FoundationalApplication $application, array $params, mixed $returnValue, ?Throwable $exception) {
+            post: function (FoundationalApplication $application, array $_params, mixed $_returnValue, ?Throwable $_exception) {
                 $this->registerWatchers($application, new CacheWatcher());
                 $this->registerWatchers($application, new ClientRequestWatcher($this->instrumentation));
                 $this->registerWatchers($application, new ExceptionWatcher());

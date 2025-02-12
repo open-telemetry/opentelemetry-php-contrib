@@ -21,12 +21,13 @@ class Queue implements LaravelHook
         $this->hookAbstractQueueCreatePayloadArray();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue */
     protected function hookAbstractQueueCreatePayloadArray(): bool
     {
         return hook(
             AbstractQueue::class,
             'createPayloadArray',
-            post: function (AbstractQueue $queue, array $params, array $payload, ?Throwable $exception): array {
+            post: function (AbstractQueue $_queue, array $_params, array $payload, ?Throwable $_exception): array {
                 TraceContextPropagator::getInstance()->inject($payload);
 
                 return $payload;

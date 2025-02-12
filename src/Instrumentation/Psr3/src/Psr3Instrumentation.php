@@ -7,7 +7,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Psr3;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs as API;
-use OpenTelemetry\API\Logs\Severity;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;

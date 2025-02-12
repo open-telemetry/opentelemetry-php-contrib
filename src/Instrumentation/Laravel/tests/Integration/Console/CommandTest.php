@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Kernel;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
+/** @psalm-suppress UnusedClass */
 class CommandTest extends TestCase
 {
     public function test_command_tracing(): void

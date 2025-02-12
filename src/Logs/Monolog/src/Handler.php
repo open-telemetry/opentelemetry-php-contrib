@@ -9,7 +9,6 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use OpenTelemetry\API\Logs as API;
-use OpenTelemetry\API\Logs\Severity;
 
 class Handler extends AbstractProcessingHandler
 {

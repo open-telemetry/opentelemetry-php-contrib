@@ -12,7 +12,8 @@ final class SampleEventClass
     /** @psalm-suppress PossiblyUnusedProperty */
     public string $item;
 
-    public function __construct(string $item = 'test') {
+    public function __construct(string $item = 'test')
+    {
         $this->item = $item;
     }
 }
