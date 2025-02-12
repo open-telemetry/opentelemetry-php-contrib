@@ -112,9 +112,7 @@ final class MessengerInstrumentationTest extends AbstractTest
             $bus->dispatch(new SendEmailMessage('Hello Again'));
         } catch (\Throwable $e) {
             $this->assertCount(1, $this->storage);
-
-            /** @var ImmutableSpan $span */
-            $span = $this->storage[0];
+            $this->assertArrayHasKey(0, $this->storage);
         }
     }
 
@@ -146,8 +144,7 @@ final class MessengerInstrumentationTest extends AbstractTest
             $transport->send(new Envelope(new SendEmailMessage('Hello Again')));
         } catch (\Throwable $e) {
             $this->assertCount(1, $this->storage);
-
-            $span = $this->storage[0];
+            $this->assertArrayHasKey(0, $this->storage);
         }
     }
 

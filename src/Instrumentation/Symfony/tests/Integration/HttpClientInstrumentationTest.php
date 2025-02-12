@@ -21,7 +21,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         TestHttpServer::start();
     }
 
-    protected function getHttpClient(string $testCase): HttpClientInterface
+    protected function getHttpClient(string $_testCase): HttpClientInterface
     {
         return new CurlHttpClient(['verify_peer' => false, 'verify_host' => false]);
     }
@@ -65,7 +65,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         try {
-            $response = $client->request('GET', 'http://localhost:8057', [
+            $client->request('GET', 'http://localhost:8057', [
                 'bindto' => '127.0.0.1:9876',
                 'auth_ntlm' => [],
             ]);

@@ -21,6 +21,7 @@ use Throwable;
 
 /**
  * @psalm-suppress ArgumentTypeCoercion
+ * @psalm-suppress UnusedClass
  */
 class Psr15Instrumentation
 {

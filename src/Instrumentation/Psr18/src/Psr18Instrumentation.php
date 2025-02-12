@@ -20,6 +20,7 @@ use function sprintf;
 use function strtolower;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class Psr18Instrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
@@ -32,6 +33,7 @@ class Psr18Instrumentation
             'https://opentelemetry.io/schemas/1.30.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             ClientInterface::class,
             'sendRequest',

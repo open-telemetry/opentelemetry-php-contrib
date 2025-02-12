@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\IO\tests\Integration;
 
 use ArrayObject;
+use CurlHandle;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -41,6 +42,7 @@ class IOInstrumentationTest extends TestCase
     public function test_io_calls(): void
     {
         $resource = fopen('php://memory', 'r');
+        $this->assertIsResource($resource);
         $this->assertCount(1, $this->storage);
         $this->span = $this->storage->offsetGet(0);
         $this->assertSame('fopen', $this->span->getName());
@@ -52,8 +54,8 @@ class IOInstrumentationTest extends TestCase
         $this->span = $this->storage->offsetGet(1);
         $this->assertSame('file_put_contents', $this->span->getName());
         $this->assertSame('php://memory', $this->span->getAttributes()->get('code.params.filename'));
-        
-        $str = file_get_contents('php://memory');
+
+        file_get_contents('php://memory');
         $this->assertCount(3, $this->storage);
         $this->span = $this->storage->offsetGet(2);
         $this->assertSame('file_get_contents', $this->span->getName());
@@ -70,6 +72,7 @@ class IOInstrumentationTest extends TestCase
         $this->assertSame('fread', $this->span->getName());
 
         $ch = curl_init('foo');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         $this->assertCount(6, $this->storage);
         $this->span = $this->storage->offsetGet(5);
         $this->assertSame('curl_init', $this->span->getName());

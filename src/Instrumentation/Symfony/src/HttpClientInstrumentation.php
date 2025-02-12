@@ -18,6 +18,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * @phan-file-suppress PhanTypeInvalidCallableArraySize
+ * @psalm-suppress UnusedClass
  */
 final class HttpClientInstrumentation
 {
@@ -43,6 +44,7 @@ final class HttpClientInstrumentation
             'https://opentelemetry.io/schemas/1.30.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpClientInterface::class,
             'request',

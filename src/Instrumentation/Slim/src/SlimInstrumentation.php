@@ -22,6 +22,7 @@ use Slim\Middleware\RoutingMiddleware;
 use Slim\Routing\RouteContext;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class SlimInstrumentation
 {
     public const NAME = 'slim';
@@ -39,8 +40,10 @@ class SlimInstrumentation
          * requires extension >= 1.0.2beta2
          * @see https://github.com/open-telemetry/opentelemetry-php-instrumentation/pull/136
          */
-        self::$supportsResponsePropagation = version_compare(phpversion('opentelemetry'), '1.0.2beta2') >= 0;
+        $otelVersion = phpversion('opentelemetry');
+        self::$supportsResponsePropagation = $otelVersion !== false && version_compare($otelVersion, '1.0.2beta2') >= 0;
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             App::class,
             'handle',
@@ -122,6 +125,7 @@ class SlimInstrumentation
          * If routing fails (eg 404/not found), then the root span name will not be updated.
          *
          * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress UnusedFunctionCall
          */
         hook(
             RoutingMiddleware::class,
@@ -148,6 +152,7 @@ class SlimInstrumentation
          * Create a span for Slim route's action/controller/callable
          *
          * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress UnusedFunctionCall
          */
         hook(
             InvocationStrategyInterface::class,

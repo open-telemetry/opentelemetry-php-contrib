@@ -53,6 +53,7 @@ class Psr16Instrumentation
         };
 
         foreach (['get', 'set', 'delete', 'clear', 'getMultiple', 'setMultiple', 'deleteMultiple', 'has'] as $f) {
+            /** @psalm-suppress UnusedFunctionCall */
             hook(class: CacheInterface::class, function: $f, pre: $pre, post: $post);
         }
     }
