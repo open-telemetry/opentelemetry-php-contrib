@@ -62,7 +62,7 @@ class ExtRdKafkaInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(0);
-        $this->assertEquals('test process', $span->getName());
+        $this->assertEquals('send test', $span->getName());
     }
 
     public function test_context_propagated_on_consumption(): void
@@ -91,7 +91,7 @@ class ExtRdKafkaInstrumentationTest extends TestCase
         $this->assertCount(3, $this->storage);
         /** @var ImmutableSpan $span */
         $span = $this->storage->offsetGet(2);
-        $this->assertEquals('test process', $span->getName());
+        $this->assertEquals('send test', $span->getName());
         $this->assertEquals($expectedTraceId, $span->getContext()->getTraceId());
     }
 
@@ -130,7 +130,7 @@ class ExtRdKafkaInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
 
         $span = $this->storage->offsetGet(0);
-        $this->assertEquals('test publish', $span->getName());
+        $this->assertEquals('send test', $span->getName());
     }
 
     private function produceMessage(

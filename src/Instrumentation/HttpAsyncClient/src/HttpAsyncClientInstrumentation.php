@@ -24,7 +24,10 @@ class HttpAsyncClientInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.http-async-client', schemaUrl: TraceAttributes::SCHEMA_URL);
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.http-async-client',
+            schemaUrl: 'https://opentelemetry.io/schemas/1.30.0',
+        );
 
         hook(
             HttpAsyncClient::class,
@@ -89,7 +92,7 @@ class HttpAsyncClientInstrumentation
 
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
                 }
@@ -114,7 +117,7 @@ class HttpAsyncClientInstrumentation
                         return $response;
                     },
                     onRejected: function (\Throwable $t) use ($span) {
-                        $span->recordException($t, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                        $span->recordException($t);
                         $span->setStatus(StatusCode::STATUS_ERROR, $t->getMessage());
                         $span->end();
 

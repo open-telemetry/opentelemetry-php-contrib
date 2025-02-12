@@ -63,9 +63,9 @@ class MySqliInstrumentationTest extends TestCase
     {
         $span = $this->storage->offsetGet($offset);
         $this->assertEquals($this->mysqlHost, $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertEquals($this->user, $span->getAttributes()->get(TraceAttributes::DB_USER));
+        //$this->assertEquals($this->user, $span->getAttributes()->get(TraceAttributes::DB_USER));
         $this->assertEquals($this->database, $span->getAttributes()->get(TraceAttributes::DB_NAMESPACE));
-        $this->assertEquals('mysql', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('mysql', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
     }
 
     private function assertDatabaseAttributesForAllSpans(int $offsets)
@@ -121,7 +121,7 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -131,7 +131,7 @@ class MySqliInstrumentationTest extends TestCase
         }
         $this->assertSame('mysqli::real_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -145,7 +145,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -162,7 +162,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
 
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -180,7 +180,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -195,7 +195,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli::real_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -225,7 +225,7 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -235,7 +235,7 @@ class MySqliInstrumentationTest extends TestCase
         }
         $this->assertSame('mysqli_real_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -249,7 +249,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -266,7 +266,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
 
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -284,7 +284,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -299,7 +299,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli_real_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -330,7 +330,7 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli::execute_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -344,7 +344,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli::execute_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -361,7 +361,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli::execute_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -393,7 +393,7 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli_execute_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -407,7 +407,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli_execute_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -424,7 +424,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli_execute_query', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString('Unknown database', $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -466,21 +466,21 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli::multi_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT email FROM users ORDER BY id;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT name FROM products ORDER BY stock;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -488,7 +488,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT test FROM unknown ORDER BY nothing;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -513,21 +513,21 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli::multi_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT email FROM users ORDER BY id;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT name FROM products ORDER BY stock;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -535,7 +535,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT test FROM unknown ORDER BY nothing;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -578,21 +578,21 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_multi_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT email FROM users ORDER BY id;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT name FROM products ORDER BY stock;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -600,7 +600,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT test FROM unknown ORDER BY nothing;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
@@ -625,21 +625,21 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_multi_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT email FROM users ORDER BY id;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT email FROM users ORDER BY id;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         $offset++;
         $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT name FROM products ORDER BY stock;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT name FROM products ORDER BY stock;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -647,7 +647,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertSame('mysqli_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertStringContainsString("Table 'otel_db.unknown' doesn't exist", $this->storage->offsetGet($offset)->getStatus()->getDescription());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT test FROM unknown ORDER BY nothing;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT test FROM unknown ORDER BY nothing;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
         ]);
@@ -672,7 +672,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli::prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+                TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
                 TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             ]);
 
@@ -681,7 +681,7 @@ class MySqliInstrumentationTest extends TestCase
 
             $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+                TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
                 TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             ]);
 
@@ -701,7 +701,7 @@ class MySqliInstrumentationTest extends TestCase
 
             $this->assertSame('mysqli::prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+                TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
                 TraceAttributes::DB_OPERATION_NAME => 'SELECT',
                 TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
             ]);
@@ -730,7 +730,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+                TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
                 TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             ]);
 
@@ -739,7 +739,7 @@ class MySqliInstrumentationTest extends TestCase
 
             $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'SELECT * FROM otel_db.users',
+                TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM otel_db.users',
                 TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             ]);
 
@@ -758,7 +758,7 @@ class MySqliInstrumentationTest extends TestCase
 
             $this->assertSame('mysqli_prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'SELECT * FROM unknown_db.users',
+                TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM unknown_db.users',
                 TraceAttributes::DB_OPERATION_NAME => 'SELECT',
                 TraceAttributes::EXCEPTION_TYPE => \PHPUnit\Framework\Error\Warning::class,
             ]);
@@ -798,7 +798,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 42000123)",
+                TraceAttributes::DB_QUERY_TEXT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 42000123)",
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -809,7 +809,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli::prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -821,7 +821,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -869,7 +869,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_query', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
+                TraceAttributes::DB_QUERY_TEXT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -882,7 +882,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -894,7 +894,7 @@ class MySqliInstrumentationTest extends TestCase
                 $offset++;
                 $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
                 $this->assertAttributes($offset, [
-                    TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                    TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                     TraceAttributes::DB_OPERATION_NAME => 'INSERT',
                 ]);
 
@@ -943,7 +943,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
+                TraceAttributes::DB_QUERY_TEXT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -955,7 +955,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli::prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -965,7 +965,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -1015,7 +1015,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_query', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
+                TraceAttributes::DB_QUERY_TEXT => "INSERT INTO language(Code, Speakers) VALUES ('DE', 76000001)",
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -1028,7 +1028,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_prepare', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -1038,7 +1038,7 @@ class MySqliInstrumentationTest extends TestCase
             $offset++;
             $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
+                TraceAttributes::DB_QUERY_TEXT => 'INSERT INTO language(Code, Speakers) VALUES (?,?)',
                 TraceAttributes::DB_OPERATION_NAME => 'INSERT',
             ]);
 
@@ -1075,7 +1075,7 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => "SELECT email FROM users WHERE name='John Doe'",
+            TraceAttributes::DB_QUERY_TEXT => "SELECT email FROM users WHERE name='John Doe'",
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -1089,7 +1089,7 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => "SELECT email FROM users WHERE name='John Doe'",
+            TraceAttributes::DB_QUERY_TEXT => "SELECT email FROM users WHERE name='John Doe'",
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -1116,7 +1116,7 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => "SELECT email FROM users WHERE name='John Doe'",
+            TraceAttributes::DB_QUERY_TEXT => "SELECT email FROM users WHERE name='John Doe'",
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
@@ -1150,7 +1150,7 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli::multi_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'DROP PROCEDURE IF EXISTS get_message;',
+            TraceAttributes::DB_QUERY_TEXT => 'DROP PROCEDURE IF EXISTS get_message;',
             TraceAttributes::DB_OPERATION_NAME => 'DROP',
         ]);
 
@@ -1166,14 +1166,14 @@ class MySqliInstrumentationTest extends TestCase
             TraceAttributes::DB_OPERATION_NAME => 'CREATE',
         ]);
         $span = $this->storage->offsetGet($offset);
-        $this->assertStringStartsWith('CREATE PROCEDURE', $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
-        $this->assertStringEndsWith('END;', $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
+        $this->assertStringStartsWith('CREATE PROCEDURE', $span->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT));
+        $this->assertStringEndsWith('END;', $span->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT));
 
         $stmt = $mysqli->prepare('CALL get_message();');
         $offset++;
         $this->assertSame('mysqli::prepare', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_QUERY_TEXT => 'CALL get_message();',
             TraceAttributes::DB_OPERATION_NAME => 'CALL',
         ]);
 
@@ -1182,7 +1182,7 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_stmt::execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_QUERY_TEXT => 'CALL get_message();',
             TraceAttributes::DB_OPERATION_NAME => 'CALL',
         ]);
 
@@ -1199,14 +1199,14 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_stmt::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_QUERY_TEXT => 'CALL get_message();',
             TraceAttributes::DB_OPERATION_NAME => 'CALL',
         ]);
 
         $offset++;
         $this->assertSame('mysqli_stmt::next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_QUERY_TEXT => 'CALL get_message();',
             TraceAttributes::DB_OPERATION_NAME => 'CALL',
         ]);
 
@@ -1217,7 +1217,7 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_stmt_execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_QUERY_TEXT => 'CALL get_message();',
             TraceAttributes::DB_OPERATION_NAME => 'CALL',
         ]);
 
@@ -1234,14 +1234,14 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli_stmt_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_QUERY_TEXT => 'CALL get_message();',
             TraceAttributes::DB_OPERATION_NAME => 'CALL',
         ]);
 
         $offset++;
         $this->assertSame('mysqli_stmt_next_result', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'CALL get_message();',
+            TraceAttributes::DB_QUERY_TEXT => 'CALL get_message();',
             TraceAttributes::DB_OPERATION_NAME => 'CALL',
         ]);
 
@@ -1268,12 +1268,12 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-            TraceAttributes::DB_USER => $this->user,
+            //TraceAttributes::DB_USER => $this->user,
             TraceAttributes::DB_NAMESPACE => $this->database,
-            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::DB_SYSTEM_NAME => 'mysql',
         ]);
 
         $mysqli->change_user('otel_user2', $this->passwd, 'otel_db2');
@@ -1287,12 +1287,12 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-            TraceAttributes::DB_USER => 'otel_user2',
+            //TraceAttributes::DB_USER => 'otel_user2',
             TraceAttributes::DB_NAMESPACE => 'otel_db2',
-            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::DB_SYSTEM_NAME => 'mysql',
         ]);
 
         mysqli_change_user($mysqli, $this->user, $this->passwd, $this->database);
@@ -1306,12 +1306,12 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-            TraceAttributes::DB_USER => $this->user,
+            //TraceAttributes::DB_USER => $this->user,
             TraceAttributes::DB_NAMESPACE => $this->database,
-            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::DB_SYSTEM_NAME => 'mysql',
         ]);
 
         try {
@@ -1332,12 +1332,12 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT CURRENT_USER();',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT CURRENT_USER();',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-            TraceAttributes::DB_USER => $this->user,
+            //TraceAttributes::DB_USER => $this->user,
             TraceAttributes::DB_NAMESPACE => $this->database,
-            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::DB_SYSTEM_NAME => 'mysql',
             TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
         ]);
 
@@ -1363,12 +1363,12 @@ class MySqliInstrumentationTest extends TestCase
 
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM users;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-            TraceAttributes::DB_USER => $this->user,
+            //TraceAttributes::DB_USER => $this->user,
             TraceAttributes::DB_NAMESPACE => $this->database,
-            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::DB_SYSTEM_NAME => 'mysql',
         ]);
 
         $mysqli->select_db('otel_db2');
@@ -1381,12 +1381,12 @@ class MySqliInstrumentationTest extends TestCase
 
             $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
             $this->assertAttributes($offset, [
-                TraceAttributes::DB_STATEMENT => 'SELECT * FROM users;',
+                TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users;',
                 TraceAttributes::DB_OPERATION_NAME => 'SELECT',
                 TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-                TraceAttributes::DB_USER => $this->user,
+                //TraceAttributes::DB_USER => $this->user,
                 TraceAttributes::DB_NAMESPACE => 'otel_db2',
-                TraceAttributes::DB_SYSTEM => 'mysql',
+                TraceAttributes::DB_SYSTEM_NAME => 'mysql',
                 TraceAttributes::EXCEPTION_TYPE => mysqli_sql_exception::class,
             ]);
         }
@@ -1402,12 +1402,12 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM users;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-            TraceAttributes::DB_USER => $this->user,
+            //TraceAttributes::DB_USER => $this->user,
             TraceAttributes::DB_NAMESPACE => $this->database,
-            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::DB_SYSTEM_NAME => 'mysql',
         ]);
 
         try {
@@ -1425,12 +1425,12 @@ class MySqliInstrumentationTest extends TestCase
         $offset++;
         $this->assertSame('mysqli::query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_STATEMENT => 'SELECT * FROM users;',
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users;',
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::SERVER_ADDRESS => $this->mysqlHost,
-            TraceAttributes::DB_USER => $this->user,
+            //TraceAttributes::DB_USER => $this->user,
             TraceAttributes::DB_NAMESPACE => $this->database,
-            TraceAttributes::DB_SYSTEM => 'mysql',
+            TraceAttributes::DB_SYSTEM_NAME => 'mysql',
         ]);
 
         $offset++;

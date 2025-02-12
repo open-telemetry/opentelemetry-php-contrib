@@ -29,7 +29,7 @@ class Psr6Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr6',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr6'),
-            'https://opentelemetry.io/schemas/1.24.0',
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
         $pre = static function (CacheItemPoolInterface $pool, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
@@ -92,7 +92,7 @@ class Psr6Instrumentation
         $span = Span::fromContext($scope->context());
 
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

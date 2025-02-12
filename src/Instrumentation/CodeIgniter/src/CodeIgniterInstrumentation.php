@@ -27,7 +27,7 @@ class CodeIgniterInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.codeigniter',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
         // The method that creates request/response/controller objects is in the same class as the method
@@ -151,7 +151,7 @@ class CodeIgniterInstrumentation
                 }
 
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

@@ -49,7 +49,7 @@ class Handler extends AbstractProcessingHandler
         $formatted = $record['formatted'];
         $logRecord = (new API\LogRecord())
             ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
-            ->setSeverityNumber(Severity::fromPsr3($record['level_name']))
+            ->setSeverityNumber(API\Severity::fromPsr3($record['level_name']))
             ->setSeverityText($record['level_name'])
             ->setBody($formatted['message'])
         ;

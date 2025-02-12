@@ -27,7 +27,10 @@ class Psr18Instrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr18', schemaUrl: TraceAttributes::SCHEMA_URL);
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.psr18',
+            'https://opentelemetry.io/schemas/1.30.0',
+        );
 
         hook(
             ClientInterface::class,
@@ -110,7 +113,7 @@ class Psr18Instrumentation
                     }
                 }
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

@@ -19,9 +19,9 @@ build: ## Build image
 install: ## Install dependencies
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer install
 update: ## Update dependencies
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update
+	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-plugins
 update-lowest: ## Update dependencies to lowest supported versions
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --prefer-lowest
+	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-plugins --prefer-lowest
 test: ## Run all tests
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testdox --colors=always
 test-unit: ## Run unit tests
@@ -39,7 +39,7 @@ psalm-info: ## Run psalm with info
 phpstan: ## Run phpstan
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=256M
 validate: ## Validate composer file
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer validate
+	$(DC_RUN_PHP) env XDEBUG_MODE=off composer validate --no-plugins
 packages-composer: ## Validate all composer packages
 	$(DC_RUN) php env XDEBUG_MODE=off vendor/bin/otel packages:composer:validate
 bash: ## Bash shell

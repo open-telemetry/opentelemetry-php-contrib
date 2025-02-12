@@ -12,6 +12,9 @@ class CommandTest extends TestCase
 
     public function test_command_tracing(): void
     {
+        if (PHP_VERSION_ID < 80100) {
+            $this->markTestSkipped();
+        }
         $this->assertCount(0, $this->storage);
 
         $this->exec('dummy');

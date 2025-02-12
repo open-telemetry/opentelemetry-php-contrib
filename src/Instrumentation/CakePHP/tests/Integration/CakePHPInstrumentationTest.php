@@ -58,7 +58,7 @@ class CakePHPInstrumentationTest extends TestCase
         $this->assertSame(SpanKind::KIND_INTERNAL, $controllerSpan->getKind());
         $this->assertGreaterThan(0, $controllerSpan->getAttributes()->count());
         $attributes = $controllerSpan->getAttributes()->toArray();
-        $this->assertSame('invokeAction', $attributes['code.function']);
+        $this->assertSame('invokeAction', $attributes['code.function.name']);
         $this->assertSame($serverSpan->getTraceId(), $controllerSpan->getParentContext()->getTraceId());
         $this->assertSame($serverSpan->getSpanId(), $controllerSpan->getParentContext()->getSpanId());
     }

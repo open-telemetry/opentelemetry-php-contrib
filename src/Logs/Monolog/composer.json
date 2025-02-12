@@ -9,6 +9,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
+    "php": "^8.1",
     "monolog/monolog": "^1.1|^2|^3",
     "open-telemetry/api": "^1.0"
   },

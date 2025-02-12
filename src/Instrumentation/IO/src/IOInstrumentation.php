@@ -11,6 +11,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
 class IOInstrumentation
@@ -22,7 +23,7 @@ class IOInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.io',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            Version::VERSION_1_30_0->url(),
         );
 
         self::_hook($instrumentation, null, 'fopen', 'fopen');
@@ -80,7 +81,7 @@ class IOInstrumentation
         $scope->detach();
         $span = Span::fromContext($scope->context());
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

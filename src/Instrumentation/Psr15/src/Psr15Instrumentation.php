@@ -28,7 +28,11 @@ class Psr15Instrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.psr15');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.psr15',
+            null,
+            'https://opentelemetry.io/schemas/1.30.0',
+        );
 
         /**
          * Create a span for each psr-15 middleware that is executed.
@@ -55,7 +59,7 @@ class Psr15Instrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 $span->end();
@@ -116,7 +120,7 @@ class Psr15Instrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {

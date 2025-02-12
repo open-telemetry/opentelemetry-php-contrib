@@ -26,7 +26,7 @@ class YiiInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.yii',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.30.0'
         );
 
         hook(
@@ -113,7 +113,7 @@ class YiiInstrumentation
                 }
 
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

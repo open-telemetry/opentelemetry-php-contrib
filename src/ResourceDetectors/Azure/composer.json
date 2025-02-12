@@ -15,7 +15,8 @@
     "require": {
         "php": "^8.1",
         "open-telemetry/api": "^1.0",
-        "open-telemetry/sdk": "^1.0"
+        "open-telemetry/sdk": "^1.0",
+        "open-telemetry/sem-conv": "^1.30"
     },
     "require-dev": {
         "assertwell/phpunit-global-state": "^0.2.2",

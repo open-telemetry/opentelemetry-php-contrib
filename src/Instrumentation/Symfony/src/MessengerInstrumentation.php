@@ -34,7 +34,11 @@ final class MessengerInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_messenger');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.symfony_messenger',
+            null,
+            'https://opentelemetry.io/schemas/1.30.0',
+        );
 
         /**
          * MessageBusInterface dispatches messages to the handlers.
@@ -93,9 +97,7 @@ final class MessengerInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 
@@ -162,9 +164,7 @@ final class MessengerInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

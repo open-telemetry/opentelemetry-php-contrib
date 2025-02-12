@@ -14,4 +14,11 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <TypeDoesNotContainType>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+            </errorLevel>
+        </TypeDoesNotContainType>
+    </issueHandlers>
 </psalm>

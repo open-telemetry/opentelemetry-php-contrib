@@ -13,7 +13,7 @@
     "ext-opentelemetry": "*",
     "ext-reflection": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.24",
+    "open-telemetry/sem-conv": "^1.30",
     "slim/slim": "^4"
   },
   "require-dev": {

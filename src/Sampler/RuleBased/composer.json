@@ -5,9 +5,9 @@
     "license": "Apache-2.0",
     "require": {
         "php": "^8.1",
-        "open-telemetry/api": "dev-main as 1.1.0",
-        "open-telemetry/sdk": "dev-main as 1.1.0",
-        "open-telemetry/sdk-configuration": "dev-main as 0.99"
+        "open-telemetry/api": "^1.1.0",
+        "open-telemetry/sdk": "^1.1.0",
+        "open-telemetry/sdk-configuration": "^0.0.5"
     },
     "require-dev": {
         "symfony/config": "^5.4 || ^6.4 || ^7.0",
@@ -32,7 +32,6 @@
         "spi": {
             "OpenTelemetry\\Config\\SDK\\Configuration\\ComponentProvider": [
                 "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplerRuleBased",
-
                 "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleAttribute",
                 "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleLink",
                 "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleParent",

@@ -23,6 +23,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
 final class OpenAIPHPInstrumentation
@@ -39,7 +40,7 @@ final class OpenAIPHPInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.openaiphp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-openai-php'),
-            'https://opentelemetry.io/schemas/1.24.0',
+            Version::VERSION_1_30_0->url(),
         );
 
         self::$totalTokensCounter = $instrumentation->meter()->createCounter(

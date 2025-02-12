@@ -11,6 +11,9 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use WeakMap;
 use WeakReference;
 
+/**
+ * @phan-file-suppress PhanNonClassMethodCall
+ */
 final class MySqliTracker
 {
 
@@ -51,10 +54,10 @@ final class MySqliTracker
     public function storeMySqliAttributes(mysqli $mysqli, ?string $hostname = null, ?string $username = null, ?string $database = null, ?int $port = null, ?string $socket = null)
     {
         $attributes = [];
-        $attributes[TraceAttributes::DB_SYSTEM] = 'mysql';
+        $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'mysql';
         $attributes[TraceAttributes::SERVER_ADDRESS] = $hostname ?? get_cfg_var('mysqli.default_host');
         $attributes[TraceAttributes::SERVER_PORT] = $port ?? get_cfg_var('mysqli.default_port');
-        $attributes[TraceAttributes::DB_USER] = $username ?? get_cfg_var('mysqli.default_user');
+        //$attributes[TraceAttributes::DB_USER] = $username ?? get_cfg_var('mysqli.default_user'); //deprecated, no replacment at this time
         if ($database) {
             $attributes[TraceAttributes::DB_NAMESPACE] = $database;
         }
@@ -82,7 +85,6 @@ final class MySqliTracker
     public function getMySqliFromStatement(mysqli_stmt $mysqli_stmt) : ?mysqli
     {
         return ($this->statementToMySqli[$mysqli_stmt] ?? null)?->get();
-        ;
     }
 
     public function getMySqliAttributesFromStatement(mysqli_stmt $stmt) : array

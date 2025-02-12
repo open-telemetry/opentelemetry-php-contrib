@@ -44,11 +44,10 @@ class QueryWatcher extends Watcher
             ->startSpan();
 
         $attributes = [
-            TraceAttributes::DB_SYSTEM => $query->connection->getDriverName(),
+            TraceAttributes::DB_SYSTEM_NAME => $query->connection->getDriverName(),
             TraceAttributes::DB_NAMESPACE => $query->connection->getDatabaseName(),
             TraceAttributes::DB_OPERATION_NAME => $operationName,
-            /** @phan-suppress-next-line PhanDeprecatedClassConstant */
-            TraceAttributes::DB_USER => $query->connection->getConfig('username'),
+            //TraceAttributes::DB_USER => $query->connection->getConfig('username'),
         ];
 
         $attributes[TraceAttributes::DB_QUERY_TEXT] = $query->sql;
