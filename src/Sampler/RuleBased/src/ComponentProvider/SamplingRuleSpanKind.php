@@ -39,6 +39,8 @@ final class SamplingRuleSpanKind implements ComponentProvider
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
         $node = new ArrayNodeDefinition('span_kind');
+
+        /** @psalm-suppress PossiblyNullReference */
         $node
             ->children()
                 ->enumNode('kind')
