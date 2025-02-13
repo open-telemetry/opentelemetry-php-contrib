@@ -57,6 +57,7 @@ class CurlInstrumentation
                 if ($retVal instanceof CurlHandle) {
                     $curlHandleToAttributes[$retVal] = new CurlHandleMetadata();
                     if (($fullUrl = $params[0] ?? null) !== null) {
+                        /** @psalm-suppress PossiblyNullReference */
                         $curlHandleToAttributes[$retVal]->setAttribute(TraceAttributes::URL_FULL, CurlHandleMetadata::redactUrlString($fullUrl));
                     }
                 }
@@ -67,11 +68,12 @@ class CurlInstrumentation
             null,
             'curl_setopt',
             pre: null,
-            post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes, &$curlSetOptInstrumentationSuppressed) {
+            post: static function ($_obj, array $params, mixed $retVal) use ($curlHandleToAttributes, &$curlSetOptInstrumentationSuppressed) {
                 if ($retVal != true || $curlSetOptInstrumentationSuppressed) {
                     return;
                 }
 
+                /** @psalm-suppress PossiblyNullReference */
                 $curlHandleToAttributes[$params[0]]->updateFromCurlOption($params[1], $params[2]);
             }
         );
@@ -80,7 +82,7 @@ class CurlInstrumentation
             null,
             'curl_setopt_array',
             pre: null,
-            post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
+            post: static function ($_obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if ($retVal != true) {
                     if (curl_error($params[0])) {
                         foreach ($params[1] as $option => $value) {
@@ -94,6 +96,7 @@ class CurlInstrumentation
                 }
 
                 foreach ($params[1] as $option => $value) {
+                    /** @psalm-suppress PossiblyNullReference */
                     $curlHandleToAttributes[$params[0]]->updateFromCurlOption($option, $value);
                 }
             }
@@ -116,6 +119,9 @@ class CurlInstrumentation
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if ($params[0] instanceof CurlHandle && $retVal instanceof CurlHandle) {
+                    /** @psalm-suppress PossiblyNullReference
+                     *  @psalm-suppress PossiblyNullArgument
+                     */
                     $curlHandleToAttributes[$retVal] = $curlHandleToAttributes[$params[0]];
                 }
             }
@@ -140,11 +146,13 @@ class CurlInstrumentation
                     return;
                 }
 
+                /** @psalm-suppress PossiblyNullReference */
                 $spanName = $curlHandleToAttributes[$params[0]]->getAttributes()[TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_exec';
 
                 $propagator = Globals::propagator();
                 $parent = Context::getCurrent();
 
+                /** @psalm-suppress PossiblyNullReference */
                 $builder = $instrumentation->tracer()
                     ->spanBuilder($spanName)
                     ->setParent($parent)
@@ -162,15 +170,19 @@ class CurlInstrumentation
 
                 $curlSetOptInstrumentationSuppressed = true;
 
+                /** @psalm-suppress PossiblyNullReference */
                 $headers = $curlHandleToAttributes[$params[0]]->getRequestHeadersToSend();
                 if ($headers) {
                     curl_setopt($params[0], CURLOPT_HTTPHEADER, $headers);
                 }
 
                 if (self::isResponseHeadersCapturingEnabled()) {
+                    /** @psalm-suppress PossiblyNullReference */
                     curl_setopt($params[0], CURLOPT_HEADERFUNCTION, $curlHandleToAttributes[$params[0]]->getResponseHeaderCaptureFunction());
                 }
+
                 if (self::isRequestHeadersCapturingEnabled()) {
+                    /** @psalm-suppress PossiblyNullReference */
                     if (!$curlHandleToAttributes[$params[0]]->isVerboseEnabled()) { // we let go of captuing request headers because CURLINFO_HEADER_OUT is disabling CURLOPT_VERBOSE
                         curl_setopt($params[0], CURLINFO_HEADER_OUT, true);
                     }
@@ -204,6 +216,7 @@ class CurlInstrumentation
                     $span->setAttribute(TraceAttributes::ERROR_TYPE, 'cURL error (' . $errno . ')');
                 }
 
+                /** @psalm-suppress PossiblyNullReference */
                 $capturedHeaders = $curlHandleToAttributes[$params[0]]->getCapturedResponseHeaders();
                 foreach (self::getResponseHeadersToCapture() as $headerToCapture) {
                     if (($value = $capturedHeaders[strtolower($headerToCapture)] ?? null) != null) {
@@ -233,6 +246,7 @@ class CurlInstrumentation
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle) {
                 if ($retVal == 0) {
+                    /** @psalm-suppress PossiblyNullArrayAssignment */
                     $curlMultiToHandle[$params[0]]['handles'][$params[1]] = ['finished' => false, 'span' => null];
                 }
             }
@@ -245,6 +259,9 @@ class CurlInstrumentation
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle) {
                 if ($retVal == 0) {
+                    /** @psalm-suppress PossiblyNullArrayAccess
+                     *  @psalm-suppress PossiblyNullReference
+                     */
                     $curlMultiToHandle[$params[0]]['handles']->offsetUnset($params[1]);
                 }
             }
@@ -271,14 +288,19 @@ class CurlInstrumentation
                 if ($retVal == CURLM_OK) {
                     $mHandle = &$curlMultiToHandle[$params[0]];
 
+                    /** @psalm-suppress PossiblyNullArrayAccess */
                     $handles = &$mHandle['handles'];
 
+                    /** @psalm-suppress PossiblyNullArrayAccess */
                     if (!$mHandle['started']) { // on first call to curl_multi_exec we're marking it's a transfer start for all curl handles attached to multi handle
                         $parent = Context::getCurrent();
                         $propagator = Globals::propagator();
 
+                        /** @psalm-suppress PossiblyNullIterator */
                         foreach ($handles as $cHandle => &$metadata) {
+                            /** @psalm-suppress PossiblyNullReference */
                             $spanName = $curlHandleToAttributes[$cHandle]->getAttributes()[TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_multi_exec';
+                            /** @psalm-suppress PossiblyNullReference */
                             $builder = $instrumentation->tracer()
                                 ->spanBuilder($spanName)
                                 ->setParent($parent)
@@ -304,8 +326,6 @@ class CurlInstrumentation
                                 if (!$curlHandleToAttributes[$cHandle]->isVerboseEnabled()) { // we let go of captuing request headers because CURLINFO_HEADER_OUT is disabling CURLOPT_VERBOSE
                                     curl_setopt($cHandle, CURLINFO_HEADER_OUT, true);
                                 }
-                                //TODO log?
-
                             }
                             $curlSetOptInstrumentationSuppressed = false;
 
@@ -317,6 +337,7 @@ class CurlInstrumentation
                     $isRunning = $params[1];
                     if ($isRunning == 0) {
                         // it is the last call to multi - in case curl_multi_info_read might not not be called anytime, we need to finish all spans left
+                        /** @psalm-suppress PossiblyNullIterator */
                         foreach ($handles as $cHandle => &$metadata) {
                             if ($metadata['finished'] == false) {
                                 $metadata['finished'] = true;
@@ -344,15 +365,21 @@ class CurlInstrumentation
 
                 if ($retVal != false) {
                     if ($retVal['msg'] == CURLMSG_DONE) {
+                        /** @psalm-suppress PossiblyNullArrayAccess
+                         *  @psalm-suppress PossiblyNullReference
+                         */
                         if (!$mHandle['handles']->offsetExists($retVal['handle'])) {
                             return;
                         }
 
+                        /** @psalm-suppress PossiblyNullArrayAccess */
                         $currentHandle = &$mHandle['handles'][$retVal['handle']];
+                        /** @psalm-suppress PossiblyNullArrayAccess */
                         if ($currentHandle['finished']) {
                             return;
                         }
 
+                        /** @psalm-suppress PossiblyNullArrayAccess */
                         $currentHandle['finished'] = true;
                         self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $currentHandle['span']->get());
                     }
