@@ -1,5 +1,7 @@
 --TEST--
 Test generating OTLP from yii logger
+--INI--
+error_reporting = E_ALL & ~E_DEPRECATED
 --FILE--
 
 <?php
