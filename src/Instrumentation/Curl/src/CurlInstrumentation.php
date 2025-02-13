@@ -84,11 +84,9 @@ class CurlInstrumentation
             pre: null,
             post: static function ($_obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if ($retVal != true) {
-                    if (curl_error($params[0])) {
-                        foreach ($params[1] as $option => $value) {
-                            if (!curl_setopt($params[0], $option, $value)) {
-                                break;
-                            }
+                    foreach ($params[1] as $option => $value) {
+                        if (!curl_setopt($params[0], $option, $value)) {
+                            break;
                         }
                     }
 
@@ -341,7 +339,7 @@ class CurlInstrumentation
                         foreach ($handles as $cHandle => &$metadata) {
                             if ($metadata['finished'] == false) {
                                 $metadata['finished'] = true;
-                                self::finishMultiSpan(CURLE_OK, $cHandle, $curlHandleToAttributes, $metadata['span']->get()); // there is no way to get information if it was OK or not without calling curl_multi_info_read
+                                self::finishMultiSpan(CURLE_OK, $cHandle, $curlHandleToAttributes, $metadata['span']?->get()); // there is no way to get information if it was OK or not without calling curl_multi_info_read
                             }
                         }
 
@@ -381,15 +379,19 @@ class CurlInstrumentation
 
                         /** @psalm-suppress PossiblyNullArrayAccess */
                         $currentHandle['finished'] = true;
-                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $currentHandle['span']->get());
+                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $currentHandle['span']?->get());
                     }
                 }
             }
         );
     }
 
-    private static function finishMultiSpan(int $curlResult, CurlHandle $curlHandle, $curlHandleToAttributes, SpanInterface $span)
+    private static function finishMultiSpan(int $curlResult, CurlHandle $curlHandle, $curlHandleToAttributes, ?SpanInterface $span)
     {
+        if ($span === null) {
+            return;
+        }
+
         $scope = Context::storage()->scope();
         $scope?->detach();
 
