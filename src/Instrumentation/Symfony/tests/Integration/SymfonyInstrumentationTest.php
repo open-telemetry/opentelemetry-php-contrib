@@ -204,7 +204,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertSame(SpanKind::KIND_INTERNAL, $span->getKind());
     }
 
-    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = []): HttpKernel
+    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
     {
         $controller ??= fn () => new Response('Hello');
 

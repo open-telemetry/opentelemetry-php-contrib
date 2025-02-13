@@ -28,7 +28,7 @@ class ServiceHelperTest extends TestCase
             ServiceHelper::floatToString(0.5)
         );
         $this->assertSame(
-            '2.1234567890124',
+            PHP_VERSION_ID < 80400 ? '2.1234567890124' : '2.1234567890123',
             ServiceHelper::floatToString(2.12345678901234567890)
         );
     }
