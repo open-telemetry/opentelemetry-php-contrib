@@ -30,7 +30,7 @@
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "6.4.0",
     "symfony/http-client": "^5.4|^6.0",
-    "guzzlehttp/promises": "^1.5",
+    "guzzlehttp/promises": "^1.5|^2",
     "php-http/message-factory": "^1.0",
     "nyholm/psr7": "^1.5"
   },
