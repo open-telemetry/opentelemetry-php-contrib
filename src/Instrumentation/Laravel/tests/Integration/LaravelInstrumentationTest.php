@@ -58,10 +58,10 @@ class LaravelInstrumentationTest extends TestCase
 
         $span = $this->storage[1];
         $this->assertSame('sql SELECT', $span->getName());
-        $this->assertSame('SELECT', $span->getAttributes()->get('db.operation'));
-        $this->assertSame(':memory:', $span->getAttributes()->get('db.name'));
-        $this->assertSame('select 1', $span->getAttributes()->get('db.statement'));
-        $this->assertSame('sqlite', $span->getAttributes()->get('db.system'));
+        $this->assertSame('SELECT', $span->getAttributes()->get('db.operation.name'));
+        $this->assertSame(':memory:', $span->getAttributes()->get('db.namespace'));
+        $this->assertSame('select 1', $span->getAttributes()->get('db.query.text'));
+        $this->assertSame('sqlite', $span->getAttributes()->get('db.system.name'));
 
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord */
         $logRecord = $this->storage[0];

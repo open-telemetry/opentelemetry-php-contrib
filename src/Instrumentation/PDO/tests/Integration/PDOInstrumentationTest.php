@@ -69,7 +69,7 @@ class PDOInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('PDO::__construct', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
     }
 
     public function test_constructor_exception(): void
@@ -87,32 +87,32 @@ class PDOInstrumentationTest extends TestCase
         $db->exec($statement);
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::exec', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertFalse($db->inTransaction());
         $this->assertCount(2, $this->storage);
 
         $sth = $db->prepare('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(2);
         $this->assertSame('PDO::prepare', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(3, $this->storage);
 
         $sth->execute();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('PDOStatement::execute', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(4, $this->storage);
 
         $sth->fetchAll();
         $span = $this->storage->offsetGet(4);
         $this->assertSame('PDOStatement::fetchAll', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(5, $this->storage);
 
         $db->query('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(5);
         $this->assertSame('PDO::query', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(6, $this->storage);
     }
 
@@ -122,7 +122,7 @@ class PDOInstrumentationTest extends TestCase
         $result = $db->beginTransaction();
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::beginTransaction', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(2, $this->storage);
         $this->assertSame($result, true);
 
@@ -131,7 +131,7 @@ class PDOInstrumentationTest extends TestCase
         $result = $db->commit();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('PDO::commit', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(4, $this->storage);
         $this->assertTrue($result);
 
@@ -143,7 +143,7 @@ class PDOInstrumentationTest extends TestCase
         $result = $db->rollback();
         $span = $this->storage->offsetGet(6);
         $this->assertSame('PDO::rollBack', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(7, $this->storage);
         $this->assertTrue($result);
         $this->assertFalse($db->inTransaction());
@@ -201,17 +201,17 @@ class PDOInstrumentationTest extends TestCase
 
         $db->prepare("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
         $span_db_prepare = $this->storage->offsetGet(2);
-        $this->assertTrue(mb_check_encoding($span_db_prepare->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertTrue(mb_check_encoding($span_db_prepare->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(3, $this->storage);
 
         $db->query("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
         $span_db_query = $this->storage->offsetGet(3);
-        $this->assertTrue(mb_check_encoding($span_db_query->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertTrue(mb_check_encoding($span_db_query->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(4, $this->storage);
 
         $db->exec("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
         $span_db_exec = $this->storage->offsetGet(4);
-        $this->assertTrue(mb_check_encoding($span_db_exec->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertTrue(mb_check_encoding($span_db_exec->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(5, $this->storage);
     }
 }

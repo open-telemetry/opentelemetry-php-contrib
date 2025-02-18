@@ -18,6 +18,11 @@ use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
+/**
+ * This uses SemConv 1.24, until messaging SemConv becomes stable.
+ * @see https://opentelemetry.io/docs/specs/semconv/messaging/rabbitmq/
+ * @phan-file-suppress PhanDeprecatedClassConstant
+ */
 final class ExtAmqpInstrumentation
 {
     public const NAME = 'ext_amqp';
@@ -57,14 +62,14 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, 'publish')
 
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION, $routingKey)
+                    ->setAttribute('messaging.destination', $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey))
+                    ->setAttribute('messaging.destination_publish.name', sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey))
 
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, $exchange->getType() !== '' ? $exchange->getType() : 'unknown')
+                    ->setAttribute('messaging.destination.kind', $exchange->getType() !== '' ? $exchange->getType() : 'unknown')
 
-                    ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_ROUTING_KEY, $routingKey)
-                    ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $routingKey)
+                    ->setAttribute('messaging.rabbitmq.routing.key', $routingKey)
+                    ->setAttribute('messaging.rabbitmq.destination.routing.key', $routingKey)
 
                     // network
                     ->setAttribute(TraceAttributes::NET_PROTOCOL_NAME, 'amqp')
@@ -170,11 +175,11 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, $method)
 
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_KIND, 'queue')
+                    ->setAttribute('messaging.destination.kind', 'queue')
 
-                    ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_ROUTING_KEY, $queueName)
-                    ->setAttribute(TraceAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $queueName)
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME, $queueName)
+                    ->setAttribute('messaging.rabbitmq.routing.key', $queueName)
+                    ->setAttribute('messaging.rabbitmq.destination.routing_key', $queueName)
+                    ->setAttribute('messaging.destination_publish.name', $queueName)
 
                     ->setAttribute(TraceAttributes::MESSAGING_CLIENT_ID, $queue->getConsumerTag())
 

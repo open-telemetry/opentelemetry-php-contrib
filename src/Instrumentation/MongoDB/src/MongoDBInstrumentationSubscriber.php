@@ -28,11 +28,14 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
+/**
+ * @phan-file-suppress PhanTypeMismatchDeclaredParamNullable
+ */
 final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMSubscriber
 {
     private CachedInstrumentation $instrumentation;
     /**
-     * @var Closure(object):?string
+     * @var Closure(object): string
      */
     private Closure $commandSerializer;
     /**
@@ -41,22 +44,23 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
     private array $serverAttributes = [];
 
     /**
-     * @param (callable(object):?string) $commandSerializer
+     * @param callable(object):string $commandSerializer
      */
     public function __construct(CachedInstrumentation $instrumentation, callable $commandSerializer)
     {
         $this->instrumentation = $instrumentation;
-        $this->commandSerializer = static function (object $command) use ($commandSerializer): ?string {
+        $this->commandSerializer = static function (object $command) use ($commandSerializer): string {
             try {
                 return $commandSerializer($command);
             } catch (Throwable $exception) {
-                return null;
+                return '';
             }
         };
     }
 
     /**
      * @psalm-suppress MixedAssignment,MixedArrayTypeCoercion,MixedArrayOffset,MixedArgument
+     * @phan-suppress PhanDeprecatedFunctionInternal
      */
     public function commandStarted(CommandStartedEvent $event): void
     {
@@ -81,14 +85,14 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
 
         $builder = self::startSpan($this->instrumentation, 'MongoDB ' . $scopedCommand)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(TraceAttributes::DB_SYSTEM, 'mongodb')
-            ->setAttribute(TraceAttributes::DB_NAME, $databaseName)
-            ->setAttribute(TraceAttributes::DB_OPERATION, $commandName)
+            ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, 'mongodb')
+            ->setAttribute(TraceAttributes::DB_NAMESPACE, $databaseName)
+            ->setAttribute(TraceAttributes::DB_OPERATION_NAME, $commandName)
             ->setAttribute(TraceAttributes::SERVER_ADDRESS, $isSocket ? null : $host)
             ->setAttribute(TraceAttributes::SERVER_PORT, $isSocket ? null : $port)
             ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, $isSocket ? 'unix' : 'tcp')
-            ->setAttribute(TraceAttributes::DB_STATEMENT, ($this->commandSerializer)($command))
-            ->setAttribute(TraceAttributes::DB_MONGODB_COLLECTION, $collectionName)
+            ->setAttribute(TraceAttributes::DB_QUERY_TEXT, ($this->commandSerializer)($command))
+            ->setAttribute(TraceAttributes::DB_COLLECTION_NAME, $collectionName)
             ->setAttribute(MongoDBTraceAttributes::DB_MONGODB_REQUEST_ID, $event->getRequestId())
             ->setAttribute(MongoDBTraceAttributes::DB_MONGODB_OPERATION_ID, $event->getOperationId())
             ->setAttributes($attributes)
@@ -127,9 +131,7 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
         $scope->detach();
         $span = Span::fromContext($scope->context());
         if ($exception) {
-            $span->recordException($exception, [
-                TraceAttributes::EXCEPTION_ESCAPED => true,
-            ]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

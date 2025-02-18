@@ -27,7 +27,7 @@ class Psr14Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr14',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr14'),
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
         /**
@@ -40,10 +40,10 @@ class Psr14Instrumentation
                 $event = is_object($params[0]) ? $params[0] : null;
                 $builder = $instrumentation->tracer()
                    ->spanBuilder(sprintf('event %s', $event ? $event::class : 'unknown'))
-                   ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                   ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                   ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                   ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 if ($event) {
                     $builder->setAttribute('psr14.event.name', $event::class);
@@ -63,7 +63,7 @@ class Psr14Instrumentation
                 $span = Span::fromContext($scope->context());
 
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

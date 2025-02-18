@@ -16,6 +16,7 @@ use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use WeakMap;
 use WeakReference;
 
@@ -28,7 +29,7 @@ class CurlInstrumentation
         /** @var WeakMap<CurlHandle, CurlHandleMetadata> */
         $curlHandleToAttributes = new WeakMap();
 
-        /** @var WeakMap<CurlMultiHandle, array> >
+        /** @var WeakMap<CurlMultiHandle, array> $curlMultiToHandle
          *
          * curlMultiToHandle -> array('started'=>bool,
          *                         'handles'=>
@@ -40,13 +41,12 @@ class CurlInstrumentation
          */
         $curlMultiToHandle = new WeakMap();
 
-        /** @var bool */
         $curlSetOptInstrumentationSuppressed = false;
 
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.curl',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            Version::VERSION_1_30_0->url(),
         );
 
         hook(
@@ -149,9 +149,9 @@ class CurlInstrumentation
                     ->spanBuilder($spanName)
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttributes($curlHandleToAttributes[$params[0]]->getAttributes());
 
                 $span = $builder->startSpan();
@@ -283,7 +283,7 @@ class CurlInstrumentation
                                 ->spanBuilder($spanName)
                                 ->setParent($parent)
                                 ->setSpanKind(SpanKind::KIND_CLIENT)
-                                ->setAttribute(TraceAttributes::CODE_FUNCTION, 'curl_multi_exec')
+                                ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, 'curl_multi_exec')
                                 ->setAttributes($curlHandleToAttributes[$cHandle]->getAttributes());
 
                             $span = $builder->startSpan();
@@ -417,7 +417,7 @@ class CurlInstrumentation
             $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $value);
         }
         if (($value = $info['download_content_length']) > -1) {
-            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_CONTENT_LENGTH, $value);
+            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_HEADER . '.content_length', $value);
         }
         if (($value = $info['upload_content_length']) > -1) {
             $span->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $value);

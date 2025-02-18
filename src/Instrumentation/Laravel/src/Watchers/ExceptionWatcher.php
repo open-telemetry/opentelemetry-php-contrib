@@ -9,7 +9,6 @@ use Illuminate\Log\Events\MessageLogged;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
 class ExceptionWatcher extends Watcher
@@ -37,7 +36,7 @@ class ExceptionWatcher extends Watcher
             return;
         }
         $span = Span::fromContext($scope->context());
-        $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+        $span->recordException($exception);
         $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
     }
 }

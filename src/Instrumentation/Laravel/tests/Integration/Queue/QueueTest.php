@@ -55,17 +55,17 @@ class QueueTest extends TestCase
         $this->queue->later(new DateInterval('PT10M'), new DummyJob('DateInterval'));
         $this->queue->later(new DateTimeImmutable('2024-04-15 22:29:00.123Z'), new DummyJob('DateTime'));
 
-        $this->assertEquals('sync create', $this->storage[2]->getName());
+        $this->assertEquals('create sync', $this->storage[2]->getName());
         $this->assertIsInt(
             $this->storage[2]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
-        $this->assertEquals('sync create', $this->storage[5]->getName());
+        $this->assertEquals('create sync', $this->storage[5]->getName());
         $this->assertIsInt(
             $this->storage[5]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
-        $this->assertEquals('sync create', $this->storage[8]->getName());
+        $this->assertEquals('create sync', $this->storage[8]->getName());
         $this->assertIsInt(
             $this->storage[8]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
@@ -86,7 +86,7 @@ class QueueTest extends TestCase
         /** @psalm-suppress PossiblyUndefinedMethod */
         $mockQueue->bulk($jobs);
 
-        $this->assertEquals('dummy-queue publish', $this->storage[0]->getName());
+        $this->assertEquals('send dummy-queue', $this->storage[0]->getName());
         $this->assertEquals(10, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
     }
 
@@ -107,7 +107,7 @@ class QueueTest extends TestCase
             new DummyJob('B'),
         ]);
 
-        $this->assertEquals('queues:default publish', $this->storage[0]->getName());
+        $this->assertEquals('send queues:default', $this->storage[0]->getName());
         $this->assertEquals(2, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
         $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
     }
