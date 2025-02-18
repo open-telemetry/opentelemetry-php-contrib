@@ -1,47 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Tests\Aws\Integration;
 
+use Aws\Api\Service;
 use Aws\AwsClientInterface;
 use Aws\CommandInterface;
 use Aws\Exception\AwsException;
 use Aws\MockHandler;
 use Aws\Result;
 use Aws\Sdk;
-use Aws\Api\Service;
+use GuzzleHttp\Promise\PromiseInterface;
 
 trait UsesServiceTrait
 {
-    private $_mock_handler;
+    private MockHandler $_mock_handler;
 
     /**
      * Creates an instance of the AWS SDK for a test
-     *
-     * @param array $args
-     *
-     * @return Sdk
      */
-    private function getTestSdk(array $args = [])
+    private function getTestSdk(array $args = []): Sdk
     {
         return new Sdk($args + [
             'region' => 'us-east-1',
             'version' => 'latest',
             'credentials' => false,
-            'retries' => 0
+            'retries' => 0,
         ]);
     }
 
     /**
      * Creates an instance of a service client for a test
-     *
-     * @param string $service
-     * @param array  $args
-     *
-     * @return AwsClientInterface
      */
-    private function getTestClient($service, array $args = [])
+    private function getTestClient(string $service, array $args = []): AwsClientInterface
     {
-        $this->_mock_handler = $args['handler'] = new MockHandler([]);
+        $this->_mock_handler = new MockHandler([]);
 
         return $this->getTestSdk($args)->createClient($service);
     }
@@ -49,19 +43,14 @@ trait UsesServiceTrait
     /**
      * Queues up mock Result objects for a client
      *
-     * @param AwsClientInterface $client
-     * @param Result[]|array[]   $results
-     * @param callable $onFulfilled Callback to invoke when the return value is fulfilled.
-     * @param callable $onRejected  Callback to invoke when the return value is rejected.
-     *
-     * @return AwsClientInterface
+     * @param Result[]|array[] $results
      */
     private function addMockResults(
         AwsClientInterface $client,
         array $results,
         ?callable $onFulfilled = null,
         ?callable $onRejected = null
-    ) {
+    ): AwsClientInterface {
         foreach ($results as &$res) {
             if (is_array($res)) {
                 $res = new Result($res);
@@ -74,25 +63,20 @@ trait UsesServiceTrait
         return $client;
     }
 
-    private function mockQueueEmpty()
+    private function mockQueueEmpty(): bool
     {
         return 0 === count($this->_mock_handler);
     }
 
     /**
      * Creates a mock CommandException with a given error code
-     *
-     * @param string $code
-     * @param string $type
-     * @param string|null $message
-     *
-     * @return AwsException
+     * @psalm-suppress MoreSpecificReturnType
      */
     private function createMockAwsException(
-        $code = null,
-        $type = null,
-        $message = null
-    ) {
+        ?string $code = null,
+        ?string $type = null,
+        ?string $message = null
+    ): AwsException {
         $code = $code ?: 'ERROR';
         $type = $type ?: AwsException::class;
 
@@ -100,46 +84,44 @@ trait UsesServiceTrait
             ->setMethods(['getApi'])
             ->getMockForAbstractClass();
 
+        /** @psalm-suppress InternalMethod */
         $client->expects($this->any())
             ->method('getApi')
-            ->will($this->returnValue(
-                new Service(
-                    [
-                        'metadata' => [
-                            'endpointPrefix' => 'foo',
-                            'apiVersion' => 'version'
-                        ]
+            ->willReturn(new Service(
+                [
+                    'metadata' => [
+                        'endpointPrefix' => 'foo',
+                        'apiVersion' => 'version',
                     ],
-                    function () { return []; }
-                )));
+                ],
+                function () {
+                    return [];
+                }
+            ));
 
         return new $type(
             $message ?: 'Test error',
             $this->getMockBuilder(CommandInterface::class)->getMock(),
             [
                 'message' => $message ?: 'Test error',
-                'code'    => $code
+                'code'    => $code,
             ]
         );
     }
 
     /**
      * Verifies an operation alias returns the expected types
-     *
-     * @param AwsClientInterface $client
-     * @param string $operation
-     * @param array $params
      */
     private function verifyOperationAlias(
-        $client,
-        $operation,
-        $params
+        AwsClientInterface $client,
+        string $operation,
+        array $params
     ) {
         $this->addMockResults($client, [new Result()]);
         $output = $client->{$operation}($params);
         if (substr($operation, -5) === 'Async') {
             $this->assertFalse($this->mockQueueEmpty());
-            $this->assertInstanceOf('GuzzleHttp\\Promise\\PromiseInterface', $output);
+            $this->assertInstanceOf(PromiseInterface::class, $output);
             $output = $output->wait();
             $this->assertTrue($this->mockQueueEmpty());
         }

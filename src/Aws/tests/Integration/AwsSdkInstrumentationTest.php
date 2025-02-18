@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Aws\Integration;
 
+use Aws\EventBridge\EventBridgeClient;
+use Aws\S3\S3Client;
+use Aws\Sqs\SqsClient;
 use OpenTelemetry\Aws\AwsSdkInstrumentation;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
@@ -23,9 +26,12 @@ class AwsSdkInstrumentationTest extends TestCase
 
     public function testProperClientNameAndRegionIsPassedToSpanForSingleClientCall()
     {
+        /** @var SqsClient $sqsClient */
         $sqsClient = $this->getTestClient('SQS', ['region' => 'eu-west-1']);
+        /** @var S3Client $s3Client */
         $s3Client = $this->getTestClient('S3', ['region' => 'us-east-1']);
         $this->addMockResults($s3Client, [[]]);
+        /** @var EventBridgeClient $eventBridgeClient */
         $eventBridgeClient = $this->getTestClient('EventBridge', ['region' => 'ap-southeast-2']);
 
         $spanProcessor = new CollectingSpanProcessor();
@@ -53,9 +59,12 @@ class AwsSdkInstrumentationTest extends TestCase
 
     public function testProperClientNameAndRegionIsPassedToSpanForDoubleCallToSameClient()
     {
+        /** @var SqsClient $sqsClient */
         $sqsClient = $this->getTestClient('SQS', ['region' => 'eu-west-1']);
+        /** @var S3Client $s3Client */
         $s3Client = $this->getTestClient('S3', ['region' => 'us-east-1']);
         $this->addMockResults($s3Client, [[], []]);
+        /** @var EventBridgeClient $eventBridgeClient */
         $eventBridgeClient = $this->getTestClient('EventBridge', ['region' => 'ap-southeast-2']);
 
         $spanProcessor = new CollectingSpanProcessor();
@@ -84,9 +93,12 @@ class AwsSdkInstrumentationTest extends TestCase
 
     public function testProperClientNameAndRegionIsPassedToSpanForDoubleCallToDifferentClients()
     {
+        /** @var SqsClient $sqsClient */
         $sqsClient = $this->getTestClient('SQS', ['region' => 'eu-west-1']);
+        /** @var S3Client $s3Client */
         $s3Client = $this->getTestClient('S3', ['region' => 'us-east-1']);
         $this->addMockResults($s3Client, [[]]);
+        /** @var EventBridgeClient $eventBridgeClient */
         $eventBridgeClient = $this->getTestClient('EventBridge', ['region' => 'ap-southeast-2']);
         $this->addMockResults($eventBridgeClient, [[]]);
 
@@ -104,9 +116,9 @@ class AwsSdkInstrumentationTest extends TestCase
                     'EventBusName' => 'foo',
                     'Source' => 'bar',
                     'DetailType' => 'type',
-                    'Detail' => '{}'
-                ]
-            ]
+                    'Detail' => '{}',
+                ],
+            ],
         ]);
         $s3Client->listBuckets();
 
