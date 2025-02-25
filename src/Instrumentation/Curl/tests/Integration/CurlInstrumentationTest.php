@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Curl\Integration;
 
 use ArrayObject;
+use CurlHandle;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
@@ -44,6 +45,7 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_reset(): void
     {
         $ch = curl_init();
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_URL, 'http://gugugaga.gugugaga/');
         curl_reset($ch);
@@ -59,6 +61,7 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_setopt(): void
     {
         $ch = curl_init();
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_URL, 'http://gugugaga.gugugaga/');
         curl_exec($ch);
@@ -74,6 +77,7 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_setopt_overrides_url(): void
     {
         $ch = curl_init('http://example.com');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_URL, 'http://gugugaga.gugugaga/');
         curl_exec($ch);
@@ -86,6 +90,7 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_setopt_array(): void
     {
         $ch = curl_init();
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt_array($ch, [CURLOPT_POST => 1,  CURLOPT_URL => 'http://gugugaga.gugugaga/']);
         curl_exec($ch);
 
@@ -99,6 +104,7 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_setopt_array_partial_success(): void
     {
         $ch = curl_init();
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt_array($ch, [CURLOPT_POST => 1,  CURLOPT_URL => 'http://gugugaga.gugugaga/', CURLOPT_SSLVERSION => 1000 ]);
         curl_exec($ch);
 
@@ -112,9 +118,11 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_copy_handle(): void
     {
         $ch = curl_init('http://gugugaga.gugugaga/');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_POST, 1);
 
         $ch_copy = curl_copy_handle($ch);
+        $this->assertInstanceOf(CurlHandle::class, $ch_copy);
         curl_close($ch);
 
         curl_exec($ch_copy);
@@ -129,6 +137,7 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_exec_with_error(): void
     {
         $ch = curl_init('http://gugugaga.gugugaga/');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_exec($ch);
 
         $this->assertCount(1, $this->storage);
@@ -144,6 +153,7 @@ class CurlInstrumentationTest extends TestCase
     public function test_curl_exec(): void
     {
         $ch = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_exec($ch);
 
@@ -163,6 +173,7 @@ class CurlInstrumentationTest extends TestCase
         putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
 
         $ch = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
         $func = function (\CurlHandle $ch, string $headerLine) {
@@ -194,6 +205,7 @@ class CurlInstrumentationTest extends TestCase
         putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
 
         $ch = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
         curl_exec($ch);
@@ -212,6 +224,7 @@ class CurlInstrumentationTest extends TestCase
         putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
 
         $ch = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
         curl_exec($ch);

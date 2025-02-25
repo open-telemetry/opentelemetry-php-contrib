@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\SDK\Trace\EventInterface;
-use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpClient\CurlHttpClient;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
@@ -21,7 +19,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         TestHttpServer::start();
     }
 
-    protected function getHttpClient(string $testCase): HttpClientInterface
+    protected function getHttpClient(string $_testCase): HttpClientInterface
     {
         return new CurlHttpClient(['verify_peer' => false, 'verify_host' => false]);
     }
@@ -38,7 +36,6 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $response->getStatusCode();
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
 
         $this->assertStringContainsString($method, $span->getName());
@@ -65,7 +62,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         try {
-            $response = $client->request('GET', 'http://localhost:8057', [
+            $client->request('GET', 'http://localhost:8057', [
                 'bindto' => '127.0.0.1:9876',
                 'auth_ntlm' => [],
             ]);
@@ -74,9 +71,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
 
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        /** @var EventInterface $event */
         $event = $span->getEvents()[0];
 
         $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));

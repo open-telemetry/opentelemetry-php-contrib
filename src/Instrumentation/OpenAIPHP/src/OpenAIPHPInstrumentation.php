@@ -75,6 +75,7 @@ final class OpenAIPHPInstrumentation
 
     private static function hookApi(CachedInstrumentation $instrumentation, $class, string $resource, string $operation)
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             $class,
             $operation,

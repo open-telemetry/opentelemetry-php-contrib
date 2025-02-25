@@ -48,9 +48,9 @@ final class SwooleContextHandler
         }
     }
 
-    private function isForked(int $cid): bool
+    private function isForked(int $_cid): bool
     {
-        return isset(Coroutine::getContext($cid)[__CLASS__]);
+        return isset(Coroutine::getContext($_cid)[__CLASS__]);
     }
 
     private function forkCoroutine(int $cid): void

@@ -12,11 +12,13 @@ class DummyJob implements ShouldQueue
 {
     use Queueable;
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function __construct(
         private string $name,
     ) {
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function handle(LoggerInterface $logger): void
     {
         $logger->info("Task: {$this->name}");

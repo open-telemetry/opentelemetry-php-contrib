@@ -13,6 +13,7 @@ use OpenTelemetry\SDK\Trace\StatusData;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
+/** @psalm-suppress UnusedClass */
 class ClientTest extends TestCase
 {
     public function test_it_records_requests(): void

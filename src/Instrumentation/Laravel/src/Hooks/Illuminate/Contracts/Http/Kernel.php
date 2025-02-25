@@ -33,6 +33,7 @@ class Kernel implements LaravelHook
         $this->hookHandle();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookHandle(): bool
     {
         return hook(

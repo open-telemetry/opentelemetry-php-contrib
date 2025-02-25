@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Curl\Integration;
 
 use ArrayObject;
+use CurlHandle;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\ScopeInterface;
@@ -45,9 +46,11 @@ class CurlMultiInstrumentationTest extends TestCase
     {
         $mh = curl_multi_init();
         $ch1 = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch1);
         curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
 
         $ch2 = curl_copy_handle($ch1);
+        $this->assertInstanceOf(CurlHandle::class, $ch2);
 
         curl_multi_add_handle($mh, $ch1);
         curl_multi_add_handle($mh, $ch2);
@@ -78,6 +81,7 @@ class CurlMultiInstrumentationTest extends TestCase
     {
         $mh = curl_multi_init();
         $ch1 = curl_init('unknown://scheme.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch1);
 
         curl_multi_add_handle($mh, $ch1);
 
@@ -103,6 +107,8 @@ class CurlMultiInstrumentationTest extends TestCase
         $mh = curl_multi_init();
         $ch1 = curl_init('unknown://scheme.com/');
         $ch2 = curl_init('other://scheme.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch1);
+        $this->assertInstanceOf(CurlHandle::class, $ch2);
 
         curl_multi_add_handle($mh, $ch1);
         curl_multi_add_handle($mh, $ch2);
@@ -131,6 +137,7 @@ class CurlMultiInstrumentationTest extends TestCase
 
         $mh = curl_multi_init();
         $ch1 = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch1);
         curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
 
         $func = function (\CurlHandle $ch, string $headerLine) {
@@ -148,6 +155,7 @@ class CurlMultiInstrumentationTest extends TestCase
         curl_setopt($ch1, CURLOPT_HEADERFUNCTION, $mockedFunc);
 
         $ch2 = curl_copy_handle($ch1);
+        $this->assertInstanceOf(CurlHandle::class, $ch2);
 
         curl_multi_add_handle($mh, $ch1);
         curl_multi_add_handle($mh, $ch2);
@@ -181,9 +189,11 @@ class CurlMultiInstrumentationTest extends TestCase
 
         $mh = curl_multi_init();
         $ch1 = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch1);
         curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
 
         $ch2 = curl_copy_handle($ch1);
+        $this->assertInstanceOf(CurlHandle::class, $ch2);
 
         curl_multi_add_handle($mh, $ch1);
         curl_multi_add_handle($mh, $ch2);
@@ -218,9 +228,11 @@ class CurlMultiInstrumentationTest extends TestCase
 
         $mh = curl_multi_init();
         $ch1 = curl_init('http://example.com/');
+        $this->assertInstanceOf(CurlHandle::class, $ch1);
         curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
 
         $ch2 = curl_copy_handle($ch1);
+        $this->assertInstanceOf(CurlHandle::class, $ch2);
 
         curl_multi_add_handle($mh, $ch1);
         curl_multi_add_handle($mh, $ch2);

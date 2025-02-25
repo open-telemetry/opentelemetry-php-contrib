@@ -18,12 +18,4 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
-    <issueHandlers>
-        <UndefinedDocblockClass>
-            <errorLevel type="suppress">
-                <file name="src/OtelSdkBundle/DependencyInjection/OtelSdkExtension.php" />
-                <referencedClass name="Symfony\Component\DependencyInjection\ContainerBuilder" />
-            </errorLevel>
-        </UndefinedDocblockClass>
-    </issueHandlers>
 </psalm>

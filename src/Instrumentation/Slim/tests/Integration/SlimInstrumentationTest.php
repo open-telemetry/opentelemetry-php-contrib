@@ -136,7 +136,8 @@ class SlimInstrumentationTest extends TestCase
 
     public function test_response_propagation(): void
     {
-        if (version_compare(phpversion('opentelemetry'), '1.0.2beta2') < 0) {
+        $otelVersion = phpversion('opentelemetry');
+        if ($otelVersion == false || version_compare($otelVersion, '1.0.2beta2') < 0) {
             $this->markTestSkipped('response propagation requires opentelemetry extension >= 1.0.2beta2');
         }
         $request = (new ServerRequest('GET', 'https://example.com/foo'));

@@ -48,14 +48,14 @@
         "phpstan/phpstan-phpunit": "^1.0",
         "phpstan/phpstan-symfony": "^1.1",
         "phpunit/phpunit": "^9.5",
-        "psalm/plugin-phpunit": "^0.18.4",
+        "psalm/plugin-phpunit": "^0.19.2",
         "symfony/config": "^4.4|^5.0|^6.0",
         "symfony/http-client": "^5.3",
         "symfony/http-kernel": "^4.4|^5.3|^6.0",
         "symfony/options-resolver": "^4.4|^5.3|^6.0",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
-        "vimeo/psalm": "^5.0"
+        "vimeo/psalm": "6.4.0"
     },
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use OpenTelemetry\SemConv\TraceAttributes;
 
+/** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
 {
     public function test_request_response(): void

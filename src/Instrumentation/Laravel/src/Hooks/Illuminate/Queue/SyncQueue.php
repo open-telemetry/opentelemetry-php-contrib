@@ -25,6 +25,7 @@ class SyncQueue implements LaravelHook
         $this->hookPush();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue */
     protected function hookPush(): bool
     {
         return hook(

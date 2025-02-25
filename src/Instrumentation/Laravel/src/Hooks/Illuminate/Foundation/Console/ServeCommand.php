@@ -18,15 +18,16 @@ class ServeCommand implements LaravelHook
 
     public function instrument(): void
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             FoundationServeCommand::class,
             'handle',
-            pre: static function (FoundationServeCommand $serveCommand, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            pre: static function (FoundationServeCommand $_serveCommand, array $_params, string $_class, string $_function, ?string $_filename, ?int $_lineno) {
                 if (!property_exists(FoundationServeCommand::class, 'passthroughVariables')) {
                     return;
                 }
 
-                foreach ($_ENV as $key => $value) {
+                foreach ($_ENV as $key => $_value) {
                     if (str_starts_with($key, 'OTEL_') && !in_array($key, FoundationServeCommand::$passthroughVariables)) {
                         FoundationServeCommand::$passthroughVariables[] = $key;
                     }

@@ -21,6 +21,7 @@ use Throwable;
 
 /**
  * @psalm-suppress ArgumentTypeCoercion
+ * @psalm-suppress UnusedClass
  */
 class Psr15Instrumentation
 {
@@ -37,6 +38,7 @@ class Psr15Instrumentation
         /**
          * Create a span for each psr-15 middleware that is executed.
          */
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             MiddlewareInterface::class,
             'process',
@@ -69,6 +71,7 @@ class Psr15Instrumentation
          * Create a span to wrap RequestHandlerInterface::handle. The first execution is assumed to be the root span, which
          * is stored as a request attribute which may be accessed by later hooks.
          */
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             RequestHandlerInterface::class,
             'handle',

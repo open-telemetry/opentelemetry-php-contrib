@@ -34,6 +34,8 @@ final class SamplingRuleSpanName implements ComponentProvider
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
         $node = new ArrayNodeDefinition('span_name');
+
+        /** @psalm-suppress PossiblyNullReference */
         $node
             ->children()
                 ->scalarNode('pattern')

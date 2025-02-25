@@ -1,5 +1,7 @@
 --TEST--
 Test generating OTLP from apix logger
+--INI--
+error_reporting = E_ALL & ~E_DEPRECATED
 --FILE--
 
 <?php

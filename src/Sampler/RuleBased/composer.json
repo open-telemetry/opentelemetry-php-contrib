@@ -16,9 +16,9 @@
         "phan/phan": "^5.0",
         "phpstan/phpstan": "^1.1",
         "phpstan/phpstan-phpunit": "^1.0",
-        "psalm/plugin-phpunit": "^0.18.4",
+        "psalm/plugin-phpunit": "^0.19.2",
         "phpunit/phpunit": "^10 || ^11",
-        "vimeo/psalm": "^4|^5"
+        "vimeo/psalm": "^4|^5|6.4.0"
     },
     "autoload": {
         "psr-4": {

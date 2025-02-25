@@ -139,7 +139,7 @@ class GuzzleInstrumentationTest extends TestCase
             'two'   => $this->client->getAsync('www.example.com/two'),
         ];
         $this->assertCount(0, $this->storage);
-        $responses = Utils::unwrap($promises);
+        $_responses = Utils::unwrap($promises);
         $this->assertCount(2, $this->storage);
 
         $spanOne = $this->storage->offsetGet(0);

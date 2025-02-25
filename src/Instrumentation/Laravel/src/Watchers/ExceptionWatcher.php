@@ -21,7 +21,8 @@ class ExceptionWatcher extends Watcher
     }
     /**
      * Record an exception.
-     */
+     * @psalm-suppress PossiblyUnusedMethod
+    */
     public function recordException(MessageLogged $log): void
     {
         if (! isset($log->context['exception']) ||

@@ -18,6 +18,7 @@ use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
+/** @psalm-suppress UnusedClass */
 abstract class TestCase extends BaseTestCase
 {
     protected ScopeInterface $scope;

@@ -37,8 +37,8 @@ class RedisCommandWatcher extends Watcher
 
     /**
      * Record a Redis command.
+     * @psalm-suppress PossiblyUnusedMethod
      */
-    /** @psalm-suppress UndefinedThisPropertyFetch */
     public function recordRedisCommand(CommandExecuted $event): void
     {
         $nowInNs = (int) (microtime(true) * 1E9);

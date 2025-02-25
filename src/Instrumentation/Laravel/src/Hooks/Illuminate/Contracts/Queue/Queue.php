@@ -31,6 +31,7 @@ class Queue implements LaravelHook
         $this->hookPushRaw();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookBulk(): bool
     {
         return hook(
@@ -67,6 +68,7 @@ class Queue implements LaravelHook
         );
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookLater(): bool
     {
         return hook(
@@ -110,12 +112,13 @@ class Queue implements LaravelHook
         );
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookPushRaw(): bool
     {
         return hook(
             QueueContract::class,
             'pushRaw',
-            pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            pre: function (QueueContract $queue, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) {
                 /** @phan-suppress-next-line PhanParamTooFewUnpack */
                 $attributes = $this->buildMessageAttributes($queue, ...$params);
 

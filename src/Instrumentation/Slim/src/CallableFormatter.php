@@ -22,8 +22,8 @@ class CallableFormatter
         if ($callable instanceof Closure || (is_string($callable) && function_exists($callable))) {
             $reflection = new ReflectionFunction($callable);
             $name = $reflection->getShortName();
-            if ($name === '{closure}') {
-                return $name;
+            if ((PHP_VERSION_ID < 80400 && $name === '{closure}') || (PHP_VERSION_ID >= 80400 && str_contains($name, '{closure:'))) {
+                return '{closure}';
             }
             $class = $reflection->getClosureScopeClass()?->getName() ?? '';
             if ($reflection->getClosureScopeClass()?->isAnonymous()) {

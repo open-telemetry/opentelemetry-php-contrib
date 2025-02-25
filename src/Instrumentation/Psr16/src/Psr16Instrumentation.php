@@ -33,7 +33,7 @@ class Psr16Instrumentation
 
         $pre = static function (CacheInterface $cacheItem, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
             $builder = self::makeSpanBuilder($instrumentation, $function, $function, $class, $filename, $lineno);
-            
+
             if (isset($params[0]) && is_string($params[0])) {
                 $builder->setAttribute('cache.key', $params[0]);
             }
@@ -53,6 +53,7 @@ class Psr16Instrumentation
         };
 
         foreach (['get', 'set', 'delete', 'clear', 'getMultiple', 'setMultiple', 'deleteMultiple', 'has'] as $f) {
+            /** @psalm-suppress UnusedFunctionCall */
             hook(class: CacheInterface::class, function: $f, pre: $pre, post: $post);
         }
     }

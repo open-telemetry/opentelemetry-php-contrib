@@ -166,7 +166,7 @@ class YiiInstrumentation
     protected static function normalizeRouteName(string $controllerClassName, string $actionName): string
     {
         $lastSegment = strrchr($controllerClassName, '\\');
-        
+
         if ($lastSegment === false) {
             return $controllerClassName . '.' . $actionName;
         }

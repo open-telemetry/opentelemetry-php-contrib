@@ -34,6 +34,8 @@ final class SamplingRuleParent implements ComponentProvider
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
         $node = new ArrayNodeDefinition('parent');
+
+        /** @psalm-suppress PossiblyNullReference */
         $node
             ->children()
                 ->booleanNode('sampled')->isRequired()->end()

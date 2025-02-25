@@ -17,6 +17,7 @@ use Throwable;
 
 /**
  * @psalm-suppress ArgumentTypeCoercion
+ * @psalm-suppress UnusedClass
  */
 class Psr14Instrumentation
 {
@@ -32,6 +33,7 @@ class Psr14Instrumentation
 
         /**
          * Create a span for each PSR-14 event that is dispatched.
+         * @psalm-suppress UnusedFunctionCall
          */
         hook(
             EventDispatcherInterface::class,

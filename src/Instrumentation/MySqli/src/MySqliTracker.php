@@ -167,6 +167,9 @@ final class MySqliTracker
     {
         // Normalize line endings to \n
         $sql = preg_replace("/\r\n|\n\r|\r/", "\n", $sql);
+        if ($sql === null) {
+            return [];
+        }
 
         $queries = [];
         $buffer = '';
@@ -175,6 +178,10 @@ final class MySqliTracker
 
         $singleQuotes = 0;
         $doubleQuotes = 0;
+
+        if (empty($tokens)) {
+            return [];
+        }
 
         foreach ($tokens as $token) {
             if ($token === '') {

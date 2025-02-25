@@ -1,5 +1,7 @@
 --TEST--
 Test generating OTLP from multiple psr3 loggers
+--INI--
+error_reporting = E_ALL & ~E_DEPRECATED
 --FILE--
 
 <?php

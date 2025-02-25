@@ -11,6 +11,7 @@ class LaravelInstrumentation
 {
     public const NAME = 'laravel';
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(

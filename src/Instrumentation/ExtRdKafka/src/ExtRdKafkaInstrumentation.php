@@ -9,6 +9,7 @@ use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -22,6 +23,7 @@ use RdKafka\ProducerTopic;
 
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class ExtRdKafkaInstrumentation
 {
     public const NAME = 'ext_rdkafka';
@@ -44,6 +46,7 @@ class ExtRdKafkaInstrumentation
 
     private static function addCommitHooks($functionName)
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             KafkaConsumer::class,
             $functionName,
@@ -61,6 +64,7 @@ class ExtRdKafkaInstrumentation
 
     private static function addProductionHooks($instrumentation)
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             ProducerTopic::class,
             'producev',
@@ -120,6 +124,10 @@ class ExtRdKafkaInstrumentation
 
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
+                if ($exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
                 $span->end();
 
                 return $returnValue;
@@ -129,6 +137,7 @@ class ExtRdKafkaInstrumentation
 
     private static function addConsumeHooks($instrumentation)
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             KafkaConsumer::class,
             'consume',
@@ -136,7 +145,7 @@ class ExtRdKafkaInstrumentation
                 ?KafkaConsumer $exchange,
                 array $params,
                 ?Message $message,
-                ?Throwable $exception
+                ?Throwable $_exception
             ) use ($instrumentation) : void {
                 // This is to ensure that there is data. Packages periodically poll this method in order to
                 // determine if there is a message there. If there is not, we don't want to create a span.

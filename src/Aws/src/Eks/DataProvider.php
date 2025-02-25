@@ -28,7 +28,7 @@ class DataProvider
             return null;
         }
 
-        return 'Bearer' . file_get_contents($this->k8sTokenPath);
+        return 'Bearer' . (file_get_contents($this->k8sTokenPath) ?: '');
     }
 
     // Check if there exists a k8s certification file
@@ -43,6 +43,6 @@ class DataProvider
             return null;
         }
 
-        return  file($this->cGroupPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        return  file($this->cGroupPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: null;
     }
 }

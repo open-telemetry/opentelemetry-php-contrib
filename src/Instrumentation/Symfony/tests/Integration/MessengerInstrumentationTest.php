@@ -6,7 +6,6 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
-use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -23,6 +22,7 @@ final class SendEmailMessage
         $this->message = $message;
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function getMessage(): string
     {
         return $this->message;
@@ -61,7 +61,6 @@ final class MessengerInstrumentationTest extends AbstractTest
 
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
 
         $this->assertEquals($spanName, $span->getName());
@@ -87,7 +86,6 @@ final class MessengerInstrumentationTest extends AbstractTest
 
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
 
         $this->assertEquals($spanName, $span->getName());
@@ -112,9 +110,7 @@ final class MessengerInstrumentationTest extends AbstractTest
             $bus->dispatch(new SendEmailMessage('Hello Again'));
         } catch (\Throwable $e) {
             $this->assertCount(1, $this->storage);
-
-            /** @var ImmutableSpan $span */
-            $span = $this->storage[0];
+            $this->assertArrayHasKey(0, $this->storage);
         }
     }
 
@@ -146,8 +142,7 @@ final class MessengerInstrumentationTest extends AbstractTest
             $transport->send(new Envelope(new SendEmailMessage('Hello Again')));
         } catch (\Throwable $e) {
             $this->assertCount(1, $this->storage);
-
-            $span = $this->storage[0];
+            $this->assertArrayHasKey(0, $this->storage);
         }
     }
 

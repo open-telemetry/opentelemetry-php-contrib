@@ -27,8 +27,8 @@ class QueryWatcher extends Watcher
 
     /**
      * Record a query.
+     * @psalm-suppress PossiblyUnusedMethod
      */
-    /** @psalm-suppress UndefinedThisPropertyFetch */
     public function recordQuery(QueryExecuted $query): void
     {
         $nowInNs = (int) (microtime(true) * 1E9);
