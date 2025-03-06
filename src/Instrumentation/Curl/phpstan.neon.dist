@@ -1,0 +1,14 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+    tmpDir: var/cache/phpstan
+    level: 5
+    paths:
+        - src
+        - tests
+    ignoreErrors:
+        -
+            message: "#Right side of .* is always false.#"
+            paths:
+                - src/CurlInstrumentation.php

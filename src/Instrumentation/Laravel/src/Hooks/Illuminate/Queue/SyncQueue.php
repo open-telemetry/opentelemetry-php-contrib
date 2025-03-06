@@ -25,6 +25,7 @@ class SyncQueue implements LaravelHook
         $this->hookPush();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue */
     protected function hookPush(): bool
     {
         return hook(
@@ -40,10 +41,10 @@ class SyncQueue implements LaravelHook
                     ]))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttributes([
-                        TraceAttributes::CODE_FUNCTION => $function,
+                        TraceAttributes::CODE_FUNCTION_NAME => $function,
                         TraceAttributes::CODE_NAMESPACE => $class,
                         TraceAttributes::CODE_FILEPATH => $filename,
-                        TraceAttributes::CODE_LINENO => $lineno,
+                        TraceAttributes::CODE_LINE_NUMBER => $lineno,
                     ])
                     ->startSpan();
 

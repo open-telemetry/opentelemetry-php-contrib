@@ -6,7 +6,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^7.4 || ^8.0",
+    "php": "^8.1",
     "ext-json": "*"
   },
   "require-dev": {
@@ -17,12 +17,14 @@
     "psr-4": {
       "OpenTelemetry\\Contrib\\Aws\\": "src/Aws/src",
       "OpenTelemetry\\Contrib\\Context\\Swoole\\": "src/Context/Swoole/src",
+      "OpenTelemetry\\Contrib\\Instrumentation\\Curl\\": "src/Instrumentation/Curl/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\ExtAmqp\\": "src/Instrumentation/ExtAmqp/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\ExtRdKafka\\": "src/Instrumentation/ExtRdKafka/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\": "src/Instrumentation/Laravel/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\HttpAsyncClient\\": "src/Instrumentation/HttpAsyncClient/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\IO\\": "src/Instrumentation/IO/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\MongoDB\\": "src/Instrumentation/MongoDB/src",
+      "OpenTelemetry\\Contrib\\Instrumentation\\MySqli\\": "src/Instrumentation/MySqli/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\PDO\\": "src/Instrumentation/PDO/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Psr3\\": "src/Instrumentation/Psr3/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Psr15\\": "src/Instrumentation/Psr15/src",
@@ -39,12 +41,14 @@
       "OpenTelemetry\\Contrib\\Symfony\\": "src/Symfony/src"
     },
     "files": [
+      "src/Instrumentation/Curl/_register.php",
       "src/Instrumentation/ExtAmqp/_register.php",
       "src/Instrumentation/ExtRdKafka/_register.php",
       "src/Instrumentation/HttpAsyncClient/_register.php",
       "src/Instrumentation/IO/_register.php",
       "src/Instrumentation/Laravel/_register.php",
       "src/Instrumentation/MongoDB/_register.php",
+      "src/Instrumentation/MySqli/_register.php",
       "src/Instrumentation/PDO/_register.php",
       "src/Instrumentation/Psr3/_register.php",
       "src/Instrumentation/Psr15/_register.php",
@@ -59,10 +63,12 @@
     "open-telemetry/contrib-aws": "self.version",
     "open-telemetry/contrib-sdk-bundle": "self.version",
     "open-telemetry/context-swoole": "self.version",
+    "open-telemetry/opentelemetry-auto-curl": "self.version",
     "open-telemetry/opentelemetry-auto-laravel": "self.version",
     "open-telemetry/opentelemetry-auto-http-async": "self.version",
     "open-telemetry/opentelemetry-auto-io": "self.version",
     "open-telemetry/opentelemetry-auto-mongodb": "self.version",
+    "open-telemetry/opentelemetry-auto-mysqli": "self.version",
     "open-telemetry/opentelemetry-auto-pdo": "self.version",
     "open-telemetry/opentelemetry-auto-psr3": "self.version",
     "open-telemetry/opentelemetry-auto-psr15": "self.version",

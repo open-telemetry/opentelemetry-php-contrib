@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Guzzle;
 
 use function get_cfg_var;
-use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -21,6 +21,7 @@ use function sprintf;
 use function strtolower;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class GuzzleInstrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
@@ -31,13 +32,14 @@ class GuzzleInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.guzzle',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.30.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
-            ClientInterface::class,
+            Client::class,
             'transfer',
-            pre: static function (ClientInterface $client, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): array {
+            pre: static function (Client $client, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): array {
                 $request = $params[0];
                 assert($request instanceof RequestInterface);
 
@@ -58,10 +60,10 @@ class GuzzleInstrumentation
                     ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                     ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                 ;
 
                 foreach ($propagator->fields() as $field) {
@@ -84,7 +86,7 @@ class GuzzleInstrumentation
 
                 return [$request];
             },
-            post: static function (ClientInterface $client, array $params, PromiseInterface $promise, ?Throwable $exception): void {
+            post: static function (Client $client, array $params, PromiseInterface $promise, ?Throwable $exception): void {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
@@ -94,7 +96,7 @@ class GuzzleInstrumentation
 
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
                 }
@@ -119,7 +121,7 @@ class GuzzleInstrumentation
                         return $response;
                     },
                     onRejected: function (\Throwable $t) use ($span) {
-                        $span->recordException($t, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                        $span->recordException($t);
                         $span->setStatus(StatusCode::STATUS_ERROR, $t->getMessage());
                         $span->end();
 

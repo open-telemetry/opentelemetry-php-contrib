@@ -33,6 +33,7 @@ class Kernel implements LaravelHook
         $this->hookHandle();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookHandle(): bool
     {
         return hook(
@@ -45,10 +46,10 @@ class Kernel implements LaravelHook
                     ->tracer()
                     ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
                     /** @phan-suppress-next-line PhanAccessMethodInternal */

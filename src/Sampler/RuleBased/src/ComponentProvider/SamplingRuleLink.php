@@ -34,6 +34,8 @@ final class SamplingRuleLink implements ComponentProvider
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
         $node = new ArrayNodeDefinition('link');
+
+        /** @psalm-suppress PossiblyNullReference */
         $node
             ->children()
                 ->booleanNode('sampled')->isRequired()->end()

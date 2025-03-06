@@ -17,6 +17,7 @@ trait LaravelHookTrait
 
     abstract public function instrument(): void;
 
+    /** @psalm-suppress PossiblyUnusedReturnValue */
     public static function hook(CachedInstrumentation $instrumentation): LaravelHook
     {
         /** @psalm-suppress RedundantPropertyInitializationCheck */

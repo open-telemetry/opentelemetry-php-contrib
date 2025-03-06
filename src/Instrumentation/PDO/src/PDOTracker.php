@@ -11,10 +11,13 @@ use PDOStatement;
 use WeakMap;
 use WeakReference;
 
+/**
+ * @phan-file-suppress PhanNonClassMethodCall,PhanTypeArraySuspicious
+ */
 final class PDOTracker
 {
     /**
-     * @var WeakMap<PDO, iterable<non-empty-string, bool|int|float|string|array|null>>
+     * @var WeakMap<PDO, array<non-empty-string, bool|int|float|string|array|null>>
      */
     private WeakMap $pdoToAttributesMap;
     /**
@@ -45,24 +48,24 @@ final class PDOTracker
      * Maps a statement back to the connection attributes.
      *
      * @param PDOStatement $statement
-     * @return iterable<non-empty-string, bool|int|float|string|array|null>
+     * @return array<non-empty-string, bool|int|float|string|array|null>
      */
-    public function trackedAttributesForStatement(PDOStatement $statement): iterable
+    public function trackedAttributesForStatement(PDOStatement $statement): array
     {
         $pdo = ($this->statementMapToPdoMap[$statement] ?? null)?->get();
         if ($pdo === null) {
             return [];
         }
 
-        return $this->pdoToAttributesMap[$pdo] ?? [];
+        return $this->pdoToAttributesMap[$pdo] ?: [];
     }
 
     /**
      * @param PDO $pdo
      * @param string $dsn
-     * @return iterable<non-empty-string, bool|int|float|string|array|null>
+     * @return array<non-empty-string, bool|int|float|string|array|null>
      */
-    public function trackPdoAttributes(PDO $pdo, string $dsn): iterable
+    public function trackPdoAttributes(PDO $pdo, string $dsn): array
     {
         $attributes = self::extractAttributesFromDSN($dsn);
 
@@ -70,11 +73,11 @@ final class PDOTracker
             /** @var string $dbSystem */
             $dbSystem = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
             /** @psalm-suppress InvalidArrayAssignment */
-            $attributes[TraceAttributes::DB_SYSTEM] = self::mapDriverNameToAttribute($dbSystem);
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = self::mapDriverNameToAttribute($dbSystem);
         } catch (\Error) {
-            // if we catched an exception, the driver is likely not supporting the operation, default to "other"
+            // if we caught an exception, the driver is likely not supporting the operation, default to "other"
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $attributes[TraceAttributes::DB_SYSTEM] = 'other_sql';
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'other_sql';
         }
 
         $this->pdoToAttributesMap[$pdo] = $attributes;
@@ -84,15 +87,19 @@ final class PDOTracker
 
     /**
      * @param PDO $pdo
-     * @return iterable<non-empty-string, bool|int|float|string|array|null>
+     * @return array<non-empty-string, bool|int|float|string|array|null>
      */
-    public function trackedAttributesForPdo(PDO $pdo): iterable
+    public function trackedAttributesForPdo(PDO $pdo): array
     {
-        return $this->pdoToAttributesMap[$pdo] ?? [];
+        return $this->pdoToAttributesMap[$pdo] ?: [];
     }
 
     public function getSpanForPreparedStatement(PDOStatement $statement): ?SpanContextInterface
     {
+        if (!$this->preparedStatementToSpanMap->offsetExists($statement)) {
+            return null;
+        }
+
         return ($this->preparedStatementToSpanMap[$statement] ?? null)?->get();
     }
 
@@ -120,45 +127,45 @@ final class PDOTracker
      * Extracts attributes from a DSN string
      *
      * @param string $dsn
-     * @return iterable<non-empty-string, bool|int|float|string|array|null>
+     * @return array<non-empty-string, bool|int|float|string|array|null>
      */
-    private static function extractAttributesFromDSN(string $dsn): iterable
+    private static function extractAttributesFromDSN(string $dsn): array
     {
         $attributes = [];
         if (str_starts_with($dsn, 'sqlite::memory:')) {
-            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAME] = 'memory';
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAMESPACE] = 'memory';
 
             return $attributes;
         } elseif (str_starts_with($dsn, 'sqlite:')) {
-            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAME] = substr($dsn, 7);
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAMESPACE] = substr($dsn, 7);
 
             return $attributes;
         } elseif (str_starts_with($dsn, 'sqlite')) {
-            $attributes[TraceAttributes::DB_SYSTEM] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAME] = $dsn;
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[TraceAttributes::DB_NAMESPACE] = $dsn;
 
             return $attributes;
         }
 
-        if (preg_match('/user=([^;]*)/', $dsn, $matches)) {
+        //deprecated, no replacement at this time
+        /*if (preg_match('/user=([^;]*)/', $dsn, $matches)) {
             $user = $matches[1];
             if ($user !== '') {
                 $attributes[TraceAttributes::DB_USER] = $user;
             }
-        }
+        }*/
         if (preg_match('/host=([^;]*)/', $dsn, $matches)) {
             $host = $matches[1];
             if ($host !== '') {
-                $attributes[TraceAttributes::NET_PEER_NAME] = $host;
                 $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
             }
         }
         if (preg_match('/dbname=([^;]*)/', $dsn, $matches)) {
             $dbname = $matches[1];
             if ($dbname !== '') {
-                $attributes[TraceAttributes::DB_NAME] = $dbname;
+                $attributes[TraceAttributes::DB_NAMESPACE] = $dbname;
             }
         }
 

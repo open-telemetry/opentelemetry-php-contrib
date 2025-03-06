@@ -20,5 +20,5 @@ interface ResponsePropagator
      *
      * @param mixed $carrier
      */
-    public function inject(&$carrier, PropagationSetterInterface $setter = null, ContextInterface $context = null): void;
+    public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void;
 }

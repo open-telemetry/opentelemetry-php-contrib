@@ -175,7 +175,7 @@ class Detector implements ResourceDetectorInterface
 
         $containerMetadata = json_decode($containerResponse->getBody()->getContents(), true);
         $taskMetadata = json_decode($taskResponse->getBody()->getContents(), true);
-        
+
         $launchType = isset($taskMetadata['LaunchType']) ? strtolower($taskMetadata['LaunchType']) : null;
         $taskFamily = isset($taskMetadata['Family']) ? $taskMetadata['Family'] : null;
         $taskRevision = isset($taskMetadata['Revision']) ? $taskMetadata['Revision'] : null;
@@ -208,7 +208,7 @@ class Detector implements ResourceDetectorInterface
         }
 
         $containerArn = isset($containerMetadata['ContainerARN']) ? $containerMetadata['ContainerARN'] : null;
-    
+
         $logResource = ResourceInfoFactory::emptyResource();
         if (isset($containerMetadata['LogOptions']) && isset($containerMetadata['LogDriver']) && $containerMetadata['LogDriver'] === 'awslogs') {
             $logOptions = $containerMetadata['LogOptions'];
@@ -218,7 +218,7 @@ class Detector implements ResourceDetectorInterface
             $logsGroupArns = [];
             $logsStreamArns = [];
             if (isset($containerMetadata['ContainerARN']) && preg_match('/arn:aws:ecs:([^:]+):([^:]+):.*/', $containerMetadata['ContainerARN'], $matches)) {
-                [$arn, $awsRegion, $awsAccount] = $matches;
+                [$_arn, $awsRegion, $awsAccount] = $matches;
 
                 $logsGroupArns = ['arn:aws:logs:' . $awsRegion . ':' . $awsAccount . ':log-group:' . $logsGroupName];
                 $logsStreamArns = ['arn:aws:logs:' . $awsRegion . ':' . $awsAccount . ':log-group:' . $logsGroupName . ':log-stream:' . $logsStreamName];

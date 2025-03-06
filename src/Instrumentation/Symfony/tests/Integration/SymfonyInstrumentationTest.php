@@ -8,7 +8,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
-use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -200,13 +199,12 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
         $this->assertSame('GET ErrorController', $span->getName());
         $this->assertSame(SpanKind::KIND_INTERNAL, $span->getKind());
     }
 
-    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = []): HttpKernel
+    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
     {
         $controller ??= fn () => new Response('Hello');
 

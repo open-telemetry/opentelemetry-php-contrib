@@ -1,5 +1,7 @@
 --TEST--
 Test generating OTLP from multiple psr3 loggers
+--INI--
+error_reporting = E_ALL & ~E_DEPRECATED
 --FILE--
 
 <?php
@@ -54,7 +56,7 @@ Message context:
             "version": null,
             "attributes": [],
             "dropped_attributes_count": 0,
-            "schema_url": "https:\/\/opentelemetry.io\/schemas\/1.24.0",
+            "schema_url": "https:\/\/opentelemetry.io\/schemas\/%s",
             "logs": [
                 {
                     "timestamp": null,

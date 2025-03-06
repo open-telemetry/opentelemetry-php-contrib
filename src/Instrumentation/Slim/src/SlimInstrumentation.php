@@ -22,6 +22,7 @@ use Slim\Middleware\RoutingMiddleware;
 use Slim\Routing\RouteContext;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class SlimInstrumentation
 {
     public const NAME = 'slim';
@@ -32,14 +33,17 @@ class SlimInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.slim',
             null,
-            'https://opentelemetry.io/schemas/1.25.0'
+            'https://opentelemetry.io/schemas/1.30.0',
         );
+
         /**
          * requires extension >= 1.0.2beta2
          * @see https://github.com/open-telemetry/opentelemetry-php-instrumentation/pull/136
          */
-        self::$supportsResponsePropagation = version_compare(phpversion('opentelemetry'), '1.0.2beta2') >= 0;
+        $otelVersion = phpversion('opentelemetry');
+        self::$supportsResponsePropagation = $otelVersion !== false && version_compare($otelVersion, '1.0.2beta2') >= 0;
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             App::class,
             'handle',
@@ -49,10 +53,10 @@ class SlimInstrumentation
                 $builder = $instrumentation->tracer()
                     ->spanBuilder(sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
                     $parent = Globals::propagator()->extract($request->getHeaders());
@@ -83,7 +87,7 @@ class SlimInstrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {
@@ -121,6 +125,7 @@ class SlimInstrumentation
          * If routing fails (eg 404/not found), then the root span name will not be updated.
          *
          * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress UnusedFunctionCall
          */
         hook(
             RoutingMiddleware::class,
@@ -147,6 +152,7 @@ class SlimInstrumentation
          * Create a span for Slim route's action/controller/callable
          *
          * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress UnusedFunctionCall
          */
         hook(
             InvocationStrategyInterface::class,
@@ -155,10 +161,10 @@ class SlimInstrumentation
                 $callable = $params[0];
                 $name = CallableFormatter::format($callable);
                 $builder = $instrumentation->tracer()->spanBuilder($name)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
@@ -170,7 +176,7 @@ class SlimInstrumentation
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 $span->end();

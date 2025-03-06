@@ -24,6 +24,7 @@ class Command implements LaravelHook
         $this->hookExecute();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookExecute(): bool
     {
         return hook(
@@ -34,10 +35,10 @@ class Command implements LaravelHook
                 $builder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();

@@ -83,9 +83,11 @@ class TestClass
     public function __invoke()
     {
     }
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function method()
     {
     }
+    /** @psalm-suppress PossiblyUnusedMethod */
     public static function staticMethod()
     {
     }

@@ -12,6 +12,7 @@ class ServiceHelper
      */
     public static function classToId(string $class): string
     {
+        /** @psalm-suppress PossiblyNullArgument */
         return str_replace(
             '\_',
             '.',

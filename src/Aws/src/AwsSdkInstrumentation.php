@@ -78,6 +78,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
     }
 
+    /** @psalm-api */
     public function instrumentClients($clientsArray) : void
     {
         $this->clients = $clientsArray;
@@ -87,7 +88,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     public function activate(): bool
     {
         try {
-            $middleware = Middleware::tap(function ($cmd, $req) {
+            $middleware = Middleware::tap(function ($cmd, $_req) {
                 $tracer = $this->getTracer();
                 $propagator = $this->getPropagator();
 
@@ -109,9 +110,17 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
             /** @psalm-suppress PossiblyInvalidArgument */
             $end_middleware = Middleware::mapResult(function (ResultInterface $result) {
-                $this->span->setAttributes([
-                    'http.status_code' => $result['@metadata']['statusCode'], //@phan-suppress-current-line PhanTypeMismatchDimFetch
-                ]);
+                /**
+                 * Some AWS SDK Funtions, such as S3Client->getObjectUrl() do not actually perform on the wire comms
+                 * with AWS Servers, and therefore do not return with a populated AWS\Result object with valid @metadata
+                 * Check for the presence of @metadata before extracting status code as these calls are still
+                 * instrumented.
+                 */
+                if (isset($result['@metadata'])) {
+                    $this->span->setAttributes([
+                        'http.status_code' => $result['@metadata']['statusCode'], //@phan-suppress-current-line PhanTypeMismatchDimFetch
+                    ]);
+                }
 
                 $this->span->end();
                 $this->scope->detach();

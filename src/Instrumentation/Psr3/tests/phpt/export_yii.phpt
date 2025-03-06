@@ -1,5 +1,7 @@
 --TEST--
 Test generating OTLP from yii logger
+--INI--
+error_reporting = E_ALL & ~E_DEPRECATED
 --FILE--
 
 <?php
@@ -59,7 +61,7 @@ Stack trace:
             "version": null,
             "attributes": [],
             "dropped_attributes_count": 0,
-            "schema_url": "https:\/\/opentelemetry.io\/schemas\/1.24.0",
+            "schema_url": "https:\/\/opentelemetry.io\/schemas\/%s",
             "logs": [
                 {
                     "timestamp": null,

@@ -18,14 +18,20 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+/** @psalm-suppress UnusedClass */
 final class SymfonyInstrumentation
 {
     public const NAME = 'symfony';
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.symfony',
+            null,
+            'https://opentelemetry.io/schemas/1.30.0',
+        );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'handle',
@@ -48,10 +54,10 @@ final class SymfonyInstrumentation
                     ->tracer()
                     ->spanBuilder($name)
                     ->setSpanKind(($type === HttpKernelInterface::SUB_REQUEST) ? SpanKind::KIND_INTERNAL : SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 if ($request) {
@@ -101,10 +107,10 @@ final class SymfonyInstrumentation
                 }
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    $span->recordException($exception);
+                    if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+                        $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    }
                 }
 
                 if (null === $response) {
@@ -142,25 +148,23 @@ final class SymfonyInstrumentation
             }
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'handleThrowable',
             pre: static function (
-                HttpKernel $kernel,
+                HttpKernel $_kernel,
                 array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
+                string $_class,
+                string $_function,
+                ?string $_filename,
+                ?int $_lineno,
             ): array {
                 /** @var \Throwable $throwable */
                 $throwable = $params[0];
 
                 Span::getCurrent()
-                    ->recordException($throwable, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ])
-                    ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage());
+                    ->recordException($throwable);
 
                 return $params;
             },

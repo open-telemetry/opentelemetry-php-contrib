@@ -32,13 +32,20 @@ final class MessengerInstrumentation
     const ATTRIBUTE_MESSENGER_MESSAGE = 'symfony.messenger.message';
     const ATTRIBUTE_MESSENGER_TRANSPORT = 'symfony.messenger.transport';
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_messenger');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.symfony_messenger',
+            null,
+            'https://opentelemetry.io/schemas/1.30.0',
+        );
 
         /**
          * MessageBusInterface dispatches messages to the handlers.
-         */
+         *
+         * @psalm-suppress UnusedFunctionCall
+        */
         hook(
             MessageBusInterface::class,
             'dispatch',
@@ -58,11 +65,11 @@ final class MessengerInstrumentation
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setSpanKind(SpanKind::KIND_PRODUCER)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_BUS, $class)
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
@@ -93,9 +100,7 @@ final class MessengerInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 
@@ -105,7 +110,9 @@ final class MessengerInstrumentation
 
         /**
          * SenderInterface sends messages to a transport.
-         */
+         *
+         * @psalm-suppress UnusedFunctionCall
+        */
         hook(
             SenderInterface::class,
             'send',
@@ -125,11 +132,11 @@ final class MessengerInstrumentation
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('SEND %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setSpanKind(SpanKind::KIND_PRODUCER)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_TRANSPORT, $class)
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
@@ -162,9 +169,7 @@ final class MessengerInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 

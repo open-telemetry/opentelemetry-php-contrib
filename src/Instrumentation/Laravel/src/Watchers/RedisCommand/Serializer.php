@@ -69,6 +69,19 @@ class Serializer
             $paramsToSerialize[] = '[' . (count($params) - $paramsToSerializeNum) . ' other arguments]';
         }
 
+        // In some cases (for example when using LUA scripts) arrays are valid parameters
+        // In additional cases, Closure are also valid parameters (Pipeline command)
+        $paramsToSerialize = array_map(
+            static function ($param) {
+                return match (true) {
+                    is_array($param) => json_encode($param),
+                    is_callable($param) => 'Callable',
+                    default => $param,
+                };
+            },
+            $paramsToSerialize
+        );
+        
         return $command . ' ' . implode(' ', $paramsToSerialize);
     }
 }

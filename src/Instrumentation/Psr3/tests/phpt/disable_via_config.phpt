@@ -3,6 +3,8 @@ Test disabling the psr3 instrumentation
 --DESCRIPTION--
 No otlp logs should be generated, but logging from the psr-3 logger should still be emitted.
 No context will be injected into the log message.
+--INI--
+error_reporting = E_ALL & ~E_DEPRECATED
 --FILE--
 
 <?php

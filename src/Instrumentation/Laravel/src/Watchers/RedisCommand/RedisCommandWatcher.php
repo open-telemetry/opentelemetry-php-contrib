@@ -37,8 +37,8 @@ class RedisCommandWatcher extends Watcher
 
     /**
      * Record a Redis command.
+     * @psalm-suppress PossiblyUnusedMethod
      */
-    /** @psalm-suppress UndefinedThisPropertyFetch */
     public function recordRedisCommand(CommandExecuted $event): void
     {
         $nowInNs = (int) (microtime(true) * 1E9);
@@ -54,10 +54,10 @@ class RedisCommandWatcher extends Watcher
 
         // See https://opentelemetry.io/docs/specs/semconv/database/redis/
         $attributes = [
-            TraceAttributes::DB_SYSTEM => TraceAttributeValues::DB_SYSTEM_REDIS,
-            TraceAttributes::DB_NAME => $this->fetchDbIndex($event->connection),
-            TraceAttributes::DB_OPERATION => $operationName,
-            TraceAttributes::DB_STATEMENT => Serializer::serializeCommand($event->command, $event->parameters),
+            TraceAttributes::DB_SYSTEM_NAME => TraceAttributeValues::DB_SYSTEM_REDIS,
+            TraceAttributes::DB_NAMESPACE => $this->fetchDbIndex($event->connection),
+            TraceAttributes::DB_OPERATION_NAME => $operationName,
+            TraceAttributes::DB_QUERY_TEXT => Serializer::serializeCommand($event->command, $event->parameters),
             TraceAttributes::SERVER_ADDRESS => $this->fetchDbHost($event->connection),
         ];
 

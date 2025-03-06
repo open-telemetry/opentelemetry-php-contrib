@@ -27,8 +27,8 @@ class QueryWatcher extends Watcher
 
     /**
      * Record a query.
+     * @psalm-suppress PossiblyUnusedMethod
      */
-    /** @psalm-suppress UndefinedThisPropertyFetch */
     public function recordQuery(QueryExecuted $query): void
     {
         $nowInNs = (int) (microtime(true) * 1E9);
@@ -44,13 +44,13 @@ class QueryWatcher extends Watcher
             ->startSpan();
 
         $attributes = [
-            TraceAttributes::DB_SYSTEM => $query->connection->getDriverName(),
-            TraceAttributes::DB_NAME => $query->connection->getDatabaseName(),
-            TraceAttributes::DB_OPERATION => $operationName,
-            TraceAttributes::DB_USER => $query->connection->getConfig('username'),
+            TraceAttributes::DB_SYSTEM_NAME => $query->connection->getDriverName(),
+            TraceAttributes::DB_NAMESPACE => $query->connection->getDatabaseName(),
+            TraceAttributes::DB_OPERATION_NAME => $operationName,
+            //TraceAttributes::DB_USER => $query->connection->getConfig('username'),
         ];
 
-        $attributes[TraceAttributes::DB_STATEMENT] = $query->sql;
+        $attributes[TraceAttributes::DB_QUERY_TEXT] = $query->sql;
         /** @psalm-suppress PossiblyInvalidArgument */
         $span->setAttributes($attributes);
         $span->end($nowInNs);
