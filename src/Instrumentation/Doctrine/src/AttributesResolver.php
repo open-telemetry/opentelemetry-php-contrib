@@ -133,7 +133,7 @@ final class AttributesResolver
 
         // Fetch target name
         $matches = [];
-        preg_match_all('/(from|into|update|join)\s*([a-zA-Z0-9`"[\]_]+)/i', $query, $matches);
+        preg_match_all('/( from| into| update| join)\s*([a-zA-Z0-9`"[\]_]+)/i', $query, $matches);
 
         $targetName = null;
         if (strtolower($operationName) == 'select') {
