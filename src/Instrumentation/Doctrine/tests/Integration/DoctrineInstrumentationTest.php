@@ -102,18 +102,18 @@ class DoctrineInstrumentationTest extends TestCase
 
         $connection->executeStatement($statement);
         $span = $this->storage->offsetGet(1);
-        $this->assertSame('Doctrine\DBAL\Driver\Connection::exec', $span->getName());
+        $this->assertSame('CREATE technology', $span->getName());
         $this->assertFalse($connection->isTransactionActive());
         $this->assertCount(2, $this->storage);
 
         $connection->prepare('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(2);
-        $this->assertSame('Doctrine\DBAL\Driver\Connection::prepare', $span->getName());
+        $this->assertSame('SELECT `technology`', $span->getName());
         $this->assertCount(3, $this->storage);
 
         $connection->executeQuery('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(3);
-        $this->assertSame('Doctrine\DBAL\Driver\Connection::query', $span->getName());
+        $this->assertSame('SELECT `technology`', $span->getName());
         $this->assertCount(4, $this->storage);
     }
 
@@ -128,7 +128,7 @@ class DoctrineInstrumentationTest extends TestCase
         $statement = self::fillDB();
         $connection->executeStatement($statement);
         $span = $this->storage->offsetGet(2);
-        $this->assertSame('Doctrine\DBAL\Driver\Connection::exec', $span->getName());
+        $this->assertSame('CREATE technology', $span->getName());
         $connection->commit();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('Doctrine\DBAL\Driver\Connection::commit', $span->getName());

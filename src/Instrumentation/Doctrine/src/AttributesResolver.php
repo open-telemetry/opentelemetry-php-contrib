@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Doctrine;
 
-use Doctrine\DBAL\SQL\Parser;
 use Exception;
 
 final class AttributesResolver
@@ -72,11 +71,11 @@ final class AttributesResolver
     /**
      * Resolve attribute `db.system`
      */
-    private static function getDbSystem(array $params): string
+    private static function getDbSystem(array $params)
     {
         $dbSystem = $params[1][0]['driver'] ?? null;
 
-        if (strpos($dbSystem, 'pdo_') !== false) {
+        if ($dbSystem && strpos($dbSystem, 'pdo_') !== false) {
             // Remove pdo_ word to ignore it while searching well-known db.system
             $dbSystem = ltrim($dbSystem, 'pdo_');
         }
@@ -89,6 +88,7 @@ final class AttributesResolver
         if (isset(self::DB_SYSTEMS_KNOWN[$dbSystem])) {
             return self::DB_SYSTEMS_KNOWN[$dbSystem];
         }
+
         return 'other_sql';
     }
 
@@ -133,16 +133,17 @@ final class AttributesResolver
 
         // Fetch target name
         $matches = [];
-        preg_match_all('/(from|into|update|join)\s*([a-zA-Z0-9[\]_]+)/i', $query, $matches);
+        preg_match_all('/(from|into|update|join)\s*([a-zA-Z0-9`"[\]_]+)/i', $query, $matches);
 
         $targetName = null;
         if (strtolower($operationName) == 'select') {
-            if ($matches && isset($matches[2]) && $matches[2]) {
+            if ($matches[2]) {
                 $targetName = implode(' ', $matches[2]);
             }
         } elseif ($matches) {
             $targetName = $matches[2][0] ?? '';
         }
+
         return $operationName . ($targetName ? ' ' . $targetName : '');
     }
 }
