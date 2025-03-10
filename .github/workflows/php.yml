@@ -25,6 +25,7 @@ jobs:
           'Instrumentation/CakePHP',
           'Instrumentation/CodeIgniter',
           'Instrumentation/Curl',
+          'Instrumentation/Doctrine',
           'Instrumentation/ExtAmqp',
           'Instrumentation/ExtRdKafka',
           'Instrumentation/Guzzle',
@@ -45,7 +46,6 @@ jobs:
           'Instrumentation/Slim',
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
-          'Instrumentation/Doctrine',
           'Logs/Monolog',
           'Propagation/ServerTiming',
           'Propagation/TraceResponse',
@@ -56,19 +56,20 @@ jobs:
           'Symfony',
         ]
         exclude:
-          - project: 'Instrumentation/IO'
-            php-version: 8.1
+
           - project: 'Instrumentation/Curl'
             php-version: 8.1
-          - project: 'Instrumentation/MySqli'
-            php-version: 8.1
-          - project: 'Instrumentation/PDO'
+          - project: 'Instrumentation/Doctrine'
             php-version: 8.1
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.1
           - project: 'Instrumentation/ExtRdKafka'
             php-version: 8.1
-          - project: 'Instrumentation/Doctrine'
+          - project: 'Instrumentation/IO'
+            php-version: 8.1
+          - project: 'Instrumentation/MySqli'
+            php-version: 8.1
+          - project: 'Instrumentation/PDO'
             php-version: 8.1
     steps:
     - uses: actions/checkout@v4
