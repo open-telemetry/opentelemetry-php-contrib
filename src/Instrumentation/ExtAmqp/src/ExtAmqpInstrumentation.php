@@ -22,6 +22,7 @@ use Throwable;
  * This uses SemConv 1.24, until messaging SemConv becomes stable.
  * @see https://opentelemetry.io/docs/specs/semconv/messaging/rabbitmq/
  * @phan-file-suppress PhanDeprecatedClassConstant
+ * @psalm-suppress UnusedClass
  */
 final class ExtAmqpInstrumentation
 {
@@ -35,6 +36,7 @@ final class ExtAmqpInstrumentation
             'https://opentelemetry.io/schemas/1.24.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             AMQPExchange::class,
             'publish',
@@ -54,10 +56,10 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder(sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey) . ' publish')
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, 'publish')
@@ -148,6 +150,7 @@ final class ExtAmqpInstrumentation
 
     protected static function createInteractionWithQueueSpan(CachedInstrumentation $instrumentation, $class, string $method)
     {
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             $class,
             $method,
@@ -167,10 +170,10 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder($queueName . ' ' . $method)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION, $method)

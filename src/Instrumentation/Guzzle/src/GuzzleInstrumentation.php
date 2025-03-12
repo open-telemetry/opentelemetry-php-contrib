@@ -21,6 +21,7 @@ use function sprintf;
 use function strtolower;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class GuzzleInstrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
@@ -34,6 +35,7 @@ class GuzzleInstrumentation
             'https://opentelemetry.io/schemas/1.30.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             Client::class,
             'transfer',

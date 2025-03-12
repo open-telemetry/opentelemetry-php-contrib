@@ -30,12 +30,13 @@ class Worker implements LaravelHook
         $this->hookWorkerGetNextJob();
     }
 
+    /** @psalm-suppress UnusedReturnValue */
     private function hookWorkerProcess(): bool
     {
         return hook(
             QueueWorker::class,
             'process',
-            pre: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            pre: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) {
                 $connectionName = $params[0];
                 /** @var Job $job */
                 $job = $params[1];
@@ -82,12 +83,13 @@ class Worker implements LaravelHook
         );
     }
 
+    /** @psalm-suppress UnusedReturnValue */
     private function hookWorkerGetNextJob(): bool
     {
         return hook(
             QueueWorker::class,
             'getNextJob',
-            pre: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            pre: function (QueueWorker $_worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) {
                 /** @var \Illuminate\Contracts\Queue\Queue $connection */
                 $connection = $params[0];
                 $queue = $params[1];
@@ -109,7 +111,7 @@ class Worker implements LaravelHook
 
                 return $params;
             },
-            post: function (QueueWorker $worker, array $params, ?Job $job, ?Throwable $exception) {
+            post: function (QueueWorker $_worker, array $params, ?Job $job, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;

@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\CakePHP\Integration;
 
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 
+/** @psalm-suppress UnusedClass */
 class CommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;

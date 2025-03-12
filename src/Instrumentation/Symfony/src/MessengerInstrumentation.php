@@ -32,6 +32,7 @@ final class MessengerInstrumentation
     const ATTRIBUTE_MESSENGER_MESSAGE = 'symfony.messenger.message';
     const ATTRIBUTE_MESSENGER_TRANSPORT = 'symfony.messenger.transport';
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
@@ -42,7 +43,9 @@ final class MessengerInstrumentation
 
         /**
          * MessageBusInterface dispatches messages to the handlers.
-         */
+         *
+         * @psalm-suppress UnusedFunctionCall
+        */
         hook(
             MessageBusInterface::class,
             'dispatch',
@@ -107,7 +110,9 @@ final class MessengerInstrumentation
 
         /**
          * SenderInterface sends messages to a transport.
-         */
+         *
+         * @psalm-suppress UnusedFunctionCall
+        */
         hook(
             SenderInterface::class,
             'send',

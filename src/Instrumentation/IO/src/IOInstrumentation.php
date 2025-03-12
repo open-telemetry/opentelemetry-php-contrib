@@ -14,6 +14,7 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class IOInstrumentation
 {
     public const NAME = 'io';
@@ -38,6 +39,7 @@ class IOInstrumentation
 
     /**
      * Simple generic hook function which starts and ends a minimal span
+     * @psalm-suppress UnusedFunctionCall
      */
     private static function _hook(CachedInstrumentation $instrumentation, ?string $class, string $function, string $name): void
     {

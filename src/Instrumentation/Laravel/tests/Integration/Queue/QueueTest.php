@@ -19,6 +19,7 @@ use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 use Psr\Log\LoggerInterface;
 
+/** @psalm-suppress UnusedClass */
 class QueueTest extends TestCase
 {
     private Queue $queue;

@@ -75,6 +75,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
     }
 
+    /** @psalm-api */
     public function instrumentClients($clientsArray): void
     {
         $this->clients = $clientsArray;
@@ -92,7 +93,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                 $clientName = $client->getApi()->getServiceName();
                 $region = $client->getRegion();
 
-                $client->getHandlerList()->prependInit(Middleware::tap(function ($cmd, $req) use ($clientName, $region, $hash) {
+                $client->getHandlerList()->prependInit(Middleware::tap(function ($cmd, $_req) use ($clientName, $region, $hash) {
                     $tracer = $this->getTracer();
                     $propagator = $this->getPropagator();
 

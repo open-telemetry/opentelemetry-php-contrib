@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+/** @psalm-suppress UnusedClass */
 final class SymfonyInstrumentation
 {
     public const NAME = 'symfony';
@@ -30,6 +31,7 @@ final class SymfonyInstrumentation
             'https://opentelemetry.io/schemas/1.30.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'handle',
@@ -146,16 +148,17 @@ final class SymfonyInstrumentation
             }
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'handleThrowable',
             pre: static function (
-                HttpKernel $kernel,
+                HttpKernel $_kernel,
                 array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
+                string $_class,
+                string $_function,
+                ?string $_filename,
+                ?int $_lineno,
             ): array {
                 /** @var \Throwable $throwable */
                 $throwable = $params[0];

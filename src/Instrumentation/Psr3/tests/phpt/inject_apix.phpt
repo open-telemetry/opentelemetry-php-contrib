@@ -1,5 +1,7 @@
 --TEST--
 Test inject context to symfony logger
+--INI--
+error_reporting = E_ALL & ~E_DEPRECATED
 --FILE--
 
 <?php

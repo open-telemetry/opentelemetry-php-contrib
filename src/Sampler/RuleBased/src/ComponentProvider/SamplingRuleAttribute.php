@@ -36,6 +36,8 @@ final class SamplingRuleAttribute implements ComponentProvider
     public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
     {
         $node = new ArrayNodeDefinition('attribute');
+
+        /** @psalm-suppress PossiblyNullReference */
         $node
             ->children()
                 ->scalarNode('key')

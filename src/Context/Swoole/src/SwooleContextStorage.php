@@ -11,6 +11,7 @@ use OpenTelemetry\Context\ContextStorageInterface;
 use OpenTelemetry\Context\ContextStorageScopeInterface;
 use OpenTelemetry\Context\ExecutionContextAwareInterface;
 
+/** @psalm-api */
 final class SwooleContextStorage implements ContextStorageInterface, ExecutionContextAwareInterface
 {
     /** @var ContextStorageInterface&ExecutionContextAwareInterface */
@@ -26,21 +27,21 @@ final class SwooleContextStorage implements ContextStorageInterface, ExecutionCo
         $this->handler = new SwooleContextHandler($storage);
     }
 
-    public function fork($id): void
+    public function fork(int|string $id): void
     {
         $this->handler->switchToActiveCoroutine();
 
         $this->storage->fork($id);
     }
 
-    public function switch($id): void
+    public function switch(int|string $id): void
     {
         $this->handler->switchToActiveCoroutine();
 
         $this->storage->switch($id);
     }
 
-    public function destroy($id): void
+    public function destroy(int|string $id): void
     {
         $this->handler->switchToActiveCoroutine();
 

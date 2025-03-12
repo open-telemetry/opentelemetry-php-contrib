@@ -58,6 +58,7 @@ class Psr6Instrumentation
         };
 
         foreach (['getItem', 'getItems', 'hasItem', 'clear', 'deleteItem', 'deleteItems', 'save', 'saveDeferred', 'commit'] as $f) {
+            /** @psalm-suppress UnusedFunctionCall */
             hook(class: CacheItemPoolInterface::class, function: $f, pre: $pre, post: $post);
         }
     }

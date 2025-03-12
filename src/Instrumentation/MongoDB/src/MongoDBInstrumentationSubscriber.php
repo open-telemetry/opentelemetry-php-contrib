@@ -68,8 +68,9 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
         $collectionName = MongoDBCollectionExtractor::extract($command);
         $databaseName = $event->getDatabaseName();
         $commandName = $event->getCommandName();
-        /** @phpstan-ignore-next-line */
-        if (version_compare(phpversion('mongodb'), '1.20.0', '>=')) {
+
+        $version = phpversion('mongodb');
+        if ($version !== false && version_compare($version, '1.20.0', '>=')) {
             $host = $event->getHost();
             $port = $event->getPort();
         } else {

@@ -43,6 +43,7 @@ class SpanContext implements API\SpanContext
         return new self($this->context, [$key => $value] + $this->baggageItems);
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function getContext(): ContextInterface
     {
         return $this->context;

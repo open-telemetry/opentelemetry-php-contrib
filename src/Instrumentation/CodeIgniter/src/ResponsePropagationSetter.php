@@ -20,7 +20,9 @@ final class ResponsePropagationSetter implements PropagationSetterInterface
         return $instance ??= new self();
     }
 
-    /** @psalm-suppress InvalidReturnType */
+    /** @psalm-suppress InvalidReturnType
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function keys($carrier): array
     {
         assert($carrier instanceof MessageInterface);

@@ -9,7 +9,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^8.0",
+    "php": "^8.1",
     "ext-opentelemetry": "*",
     "cakephp/cakephp": "^4 || ^5",
     "open-telemetry/api": "^1.0",
@@ -23,10 +23,10 @@
     "phpstan/phpstan-mockery": "^1.1.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.18.4",
+    "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5|^10.5",
-    "vimeo/psalm": "^5.24",
+    "vimeo/psalm": "6.4.0",
     "symfony/http-client": "^6 || ^7"
   },
   "suggest": {

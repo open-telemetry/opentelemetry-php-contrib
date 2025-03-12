@@ -1,0 +1,55 @@
+{
+    "name": "open-telemetry/opentelemetry-auto-doctrine",
+    "description": "OpenTelemetry auto-instrumentation for Doctrine",
+    "keywords": [
+        "opentelemetry",
+        "otel",
+        "open-telemetry",
+        "tracing",
+        "doctrine",
+        "instrumentation"
+    ],
+    "type": "library",
+    "homepage": "https://opentelemetry.io/docs/php",
+    "readme": "./README.md",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2",
+        "ext-opentelemetry": "*",
+        "doctrine/dbal": "^3 || ^4 || ^5",
+        "open-telemetry/api": "^1.0",
+        "open-telemetry/sem-conv": "^1.24"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3",
+        "phan/phan": "^5.0",
+        "php-http/mock-client": "*",
+        "phpstan/phpstan": "^1.1",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "psalm/plugin-phpunit": "^0.18.4",
+        "open-telemetry/sdk": "^1.0",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Instrumentation\\Doctrine\\": "src/"
+        },
+        "files": [
+            "_register.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Tests\\Instrumentation\\Doctrine\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false,
+            "tbachert/spi": true
+        }
+    }
+}

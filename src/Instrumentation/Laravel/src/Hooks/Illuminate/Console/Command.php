@@ -24,6 +24,7 @@ class Command implements LaravelHook
         $this->hookExecute();
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookExecute(): bool
     {
         return hook(

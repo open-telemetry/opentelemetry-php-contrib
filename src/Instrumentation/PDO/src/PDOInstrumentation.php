@@ -10,8 +10,8 @@ use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use PDO;
@@ -203,7 +203,8 @@ class PDOInstrumentation
             pre: static function (PDOStatement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
                 $attributes = $pdoTracker->trackedAttributesForStatement($statement);
                 if (self::isDistributeStatementToLinkedSpansEnabled()) {
-                    $attributes[TraceAttributes::DB_STATEMENT] = $statement->queryString;
+                    /** @psalm-suppress InvalidArrayAssignment */
+                    $attributes[TraceAttributes::DB_QUERY_TEXT] = $statement->queryString;
                 }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDOStatement::fetchAll', $function, $class, $filename, $lineno)
@@ -228,9 +229,10 @@ class PDOInstrumentation
                 $attributes = $pdoTracker->trackedAttributesForStatement($statement);
 
                 if (self::isDistributeStatementToLinkedSpansEnabled()) {
-                    $attributes[TraceAttributes::DB_STATEMENT] = $statement->queryString;
+                    /** @psalm-suppress InvalidArrayAssignment */
+                    $attributes[TraceAttributes::DB_QUERY_TEXT] = $statement->queryString;
                 }
-                
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDOStatement::execute', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -285,6 +287,6 @@ class PDOInstrumentation
             return Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS', false);
         }
 
-        return get_cfg_var('otel.instrumentation.pdo.distribute_statement_to_linked_spans');
+        return filter_var(get_cfg_var('otel.instrumentation.pdo.distribute_statement_to_linked_spans'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     }
 }

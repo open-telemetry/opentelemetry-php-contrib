@@ -18,6 +18,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class HttpAsyncClientInstrumentation
 {
     public const NAME = 'http-async-client';
@@ -29,6 +30,7 @@ class HttpAsyncClientInstrumentation
             schemaUrl: 'https://opentelemetry.io/schemas/1.30.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpAsyncClient::class,
             'sendAsyncRequest',
