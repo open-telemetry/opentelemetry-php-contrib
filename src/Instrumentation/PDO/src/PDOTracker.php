@@ -57,7 +57,8 @@ final class PDOTracker
             return [];
         }
 
-        return $this->pdoToAttributesMap[$pdo] ?: [];
+        /** @psalm-var array<non-empty-string, bool|int|float|string|array|null> */
+        return $this->pdoToAttributesMap[$pdo] ?? [];
     }
 
     /**
@@ -91,7 +92,8 @@ final class PDOTracker
      */
     public function trackedAttributesForPdo(PDO $pdo): array
     {
-        return $this->pdoToAttributesMap[$pdo] ?: [];
+        /** @psalm-var array<non-empty-string, bool|int|float|string|array|null> */
+        return $this->pdoToAttributesMap[$pdo] ?? [];
     }
 
     public function getSpanForPreparedStatement(PDOStatement $statement): ?SpanContextInterface
