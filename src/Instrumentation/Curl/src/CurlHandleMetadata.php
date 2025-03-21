@@ -137,7 +137,7 @@ class CurlHandleMetadata
 
                 break;
             case CURLOPT_VERBOSE:
-                $this->verboseEnabled = $value;
+                $this->verboseEnabled = (bool) $value;
 
                 break;
         }
@@ -162,5 +162,4 @@ class CurlHandleMetadata
 
         return $scheme . $user . $pass . $host . $port . $path . $query . $fragment;
     }
-
 }
