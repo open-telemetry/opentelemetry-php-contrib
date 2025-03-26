@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Routing;
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
@@ -24,11 +25,8 @@ class OptionsRequestsTest extends TestCase
 
     public function test_it_handles_options_request_to_registered_route(): void
     {
-        // Skip test as the instrumentation doesn't seem to be active yet
-        $this->markTestSkipped('OPTIONS instrumentation not active in test environment');
-        
         // Define a test route with multiple HTTP methods
-        Route::match(['GET', 'POST', 'PUT'], '/api/test-route', function () {
+        $this->router()->match(['GET', 'POST', 'PUT'], '/api/test-route', function () {
             return 'Regular Route Response';
         });
 
@@ -70,16 +68,9 @@ class OptionsRequestsTest extends TestCase
     
     public function test_it_handles_options_request_to_nonexistent_route(): void
     {
-        // Skip test as the instrumentation doesn't seem to be active yet
-        $this->markTestSkipped('OPTIONS instrumentation not active in test environment');
-        
         // Make an OPTIONS request to a nonexistent route
         $this->assertCount(0, $this->storage);
         $response = $this->call('OPTIONS', '/nonexistent-route');
-        
-        // The actual behavior may depend on the Laravel routing setup
-        // Our enhancement might not be handling this yet
-        // It might return 404 instead of the expected 200
         
         // Find the span for the request
         $this->assertGreaterThan(0, count($this->storage));
@@ -98,15 +89,8 @@ class OptionsRequestsTest extends TestCase
     
     public function test_it_handles_cors_preflight_requests(): void
     {
-        // Skip test as the instrumentation doesn't seem to be active yet
-        $this->markTestSkipped('OPTIONS instrumentation not active in test environment');
-        
-        // This test needs to be adjusted based on the actual implementation
-        // CORS handling might be done by a separate package in the user's application
-        // Our hook may not be handling this directly
-        
         // Define a test route that would be the target of a CORS preflight
-        Route::post('/api/cors-endpoint', function () {
+        $this->router()->post('/api/cors-endpoint', function () {
             return 'CORS Target Route';
         });
 
@@ -168,5 +152,11 @@ class OptionsRequestsTest extends TestCase
         if (isset($attributes['http.method'])) {
             $this->assertEquals('OPTIONS', $attributes['http.method']);
         }
+    }
+
+    private function router(): Router
+    {
+        /** @psalm-suppress PossiblyNullReference */
+        return $this->app->make(Router::class);
     }
 } 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Middleware;
 
 use Exception;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
@@ -25,19 +26,17 @@ class MiddlewareTest extends TestCase
     }
 
     public function test_it_creates_span_for_middleware(): void
-    {
-        // Skip test as the middleware instrumentation doesn't seem to be active yet
-        $this->markTestSkipped('Middleware instrumentation not active in test environment');
-        
+    {   
+        $router = $this->router();
         // Define a test middleware
-        $this->app->make('router')->aliasMiddleware('test-middleware', function ($request, $next) {
+        $router->aliasMiddleware('test-middleware', function ($request, $next) {
             // Do something in the middleware
             $request->attributes->set('middleware_was_here', true);
             return $next($request);
         });
         
         // Define a route with the middleware
-        Route::middleware(['test-middleware'])->get('/middleware-test', function () {
+        $router->middleware(['test-middleware'])->get('/middleware-test', function () {
             return 'Middleware Test Route';
         });
 
@@ -63,8 +62,8 @@ class MiddlewareTest extends TestCase
                 $middlewareSpanFound = true;
                 
                 // Additional assertions for the middleware span
-                $this->assertArrayHasKey('name', $attributes);
-                $this->assertStringContainsString('test-middleware', $attributes['name']);
+                $this->assertArrayHasKey('laravel.middleware.class', $attributes);
+                $this->assertStringContainsString('Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull', $attributes['laravel.middleware.class']);
                 break;
             }
         }
@@ -74,17 +73,16 @@ class MiddlewareTest extends TestCase
     
     public function test_it_adds_response_attributes_when_middleware_returns_response(): void
     {
-        // Skip test as the middleware instrumentation doesn't seem to be active yet
-        $this->markTestSkipped('Middleware instrumentation not active in test environment');
-        
+        $router = $this->router();
+
         // Define a middleware that returns a response
-        $this->app->make('router')->aliasMiddleware('response-middleware', function ($request, $next) {
+        $router->aliasMiddleware('response-middleware', function ($request, $next) {
             // Return a response directly from middleware
             return response('Response from middleware', 403);
         });
         
         // Define a route with the middleware
-        Route::middleware(['response-middleware'])->get('/middleware-response', function () {
+        $router->middleware(['response-middleware'])->get('/middleware-response', function () {
             return 'This should not be reached';
         });
 
@@ -110,12 +108,12 @@ class MiddlewareTest extends TestCase
                 $middlewareSpanFound = true;
                 
                 // Additional assertions for the middleware span
-                $this->assertArrayHasKey('name', $attributes);
-                $this->assertStringContainsString('response-middleware', $attributes['name']);
+                $this->assertArrayHasKey('laravel.middleware.class', $attributes);
+                $this->assertStringContainsString('Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull', $attributes['laravel.middleware.class']);
                 
                 // Check for response attributes
-                $this->assertArrayHasKey('http.status_code', $attributes);
-                $this->assertEquals(403, $attributes['http.status_code']);
+                $this->assertArrayHasKey('http.response.status_code', $attributes);
+                $this->assertEquals(403, $attributes['http.response.status_code']);
                 break;
             }
         }
@@ -125,6 +123,8 @@ class MiddlewareTest extends TestCase
     
     public function test_it_records_exceptions_in_middleware(): void
     {
+        $router = $this->router();
+
         // Make a request first to populate storage
         $this->call('GET', '/');
         
@@ -140,12 +140,12 @@ class MiddlewareTest extends TestCase
         }
         
         // Define a middleware that throws an exception
-        $this->app->make('router')->aliasMiddleware('exception-middleware', function ($request, $next) {
+        $router->aliasMiddleware('exception-middleware', function ($request, $next) {
             throw new Exception('Middleware Exception');
         });
         
         // Define a route with the middleware
-        Route::middleware(['exception-middleware'])->get('/middleware-exception', function () {
+        $router->middleware(['exception-middleware'])->get('/middleware-exception', function () {
             return 'This should not be reached';
         });
 
@@ -201,28 +201,27 @@ class MiddlewareTest extends TestCase
     
     public function test_it_handles_middleware_groups(): void
     {
-        // Skip test as the middleware instrumentation doesn't seem to be active yet
-        $this->markTestSkipped('Middleware instrumentation not active in test environment');
-        
+        $router = $this->router();
+
         // Define test middlewares
-        $this->app->make('router')->aliasMiddleware('middleware-1', function ($request, $next) {
+        $router->aliasMiddleware('middleware-1', function ($request, $next) {
             $request->attributes->set('middleware_1_ran', true);
             return $next($request);
         });
         
-        $this->app->make('router')->aliasMiddleware('middleware-2', function ($request, $next) {
+        $router->aliasMiddleware('middleware-2', function ($request, $next) {
             $request->attributes->set('middleware_2_ran', true);
             return $next($request);
         });
         
         // Define a middleware group
-        $this->app['router']->middlewareGroup('test-group', [
+        $router->middlewareGroup('test-group', [
             'middleware-1',
             'middleware-2',
         ]);
         
         // Define a route with the middleware group
-        Route::middleware(['test-group'])->get('/middleware-group', function () {
+        $router->middleware(['test-group'])->get('/middleware-group', function () {
             return 'Middleware Group Test';
         });
 
@@ -255,17 +254,11 @@ class MiddlewareTest extends TestCase
     
     public function test_it_handles_middleware_terminate_method(): void
     {
-        // Skip test as the middleware instrumentation doesn't seem to be active yet
-        $this->markTestSkipped('Middleware instrumentation not active in test environment');
-        
-        // This test is more complex and might need a custom middleware class
-        // with a terminate method, which isn't easily definable as a closure
-        
         // For now, we'll just check that a request with Laravel's built-in
         // middleware (which has terminate methods) works properly
         
         // Define a basic route (Laravel will apply its default middleware)
-        Route::get('/middleware-terminate', function () {
+        $this->router()->get('/middleware-terminate', function () {
             return 'Testing terminate middleware';
         });
 
@@ -283,5 +276,11 @@ class MiddlewareTest extends TestCase
         // The actual assertions here would depend on how terminate middleware is instrumented
         // We're mainly checking that the request completes successfully
         $this->assertGreaterThan(0, count($this->storage), 'No spans were recorded');
+    }
+
+    private function router(): Router
+    {
+        /** @psalm-suppress PossiblyNullReference */
+        return $this->app->make(Router::class);
     }
 } 
