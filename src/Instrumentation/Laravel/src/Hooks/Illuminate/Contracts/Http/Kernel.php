@@ -61,11 +61,12 @@ class Kernel implements LaravelHook
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                        ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $request->ip())
+                        ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $request->server('REMOTE_ADDR'))
                         ->setAttribute(TraceAttributes::URL_PATH, $this->httpTarget($request))
                         ->setAttribute(TraceAttributes::SERVER_ADDRESS, $this->httpHostName($request))
                         ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
                         ->setAttribute(TraceAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
+                        ->setAttribute(TraceAttributes::CLIENT_ADDRESS, $request->ip())
                         ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->userAgent())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
