@@ -159,6 +159,7 @@ class Middleware implements LaravelHook
                     }
                 }
 
+                $scope->detach();
                 // End the span
                 $span->end();
             }
