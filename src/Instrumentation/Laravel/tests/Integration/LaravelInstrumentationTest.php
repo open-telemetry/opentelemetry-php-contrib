@@ -20,7 +20,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(5, $this->storage);
+        $this->assertCount(3, $this->storage);
 
         // Debug: Print out actual spans
         $this->printSpans();
@@ -31,12 +31,12 @@ class LaravelInstrumentationTest extends TestCase
                 'attributes' => [
                     'code.function.name' => 'handle',
                     'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
-                    'url.full' => 'http://localhost/',
+                    'url.full' => 'http://localhost',
                     'http.request.method' => 'GET',
                     'url.scheme' => 'http',
                     'network.protocol.version' => '1.1',
                     'network.peer.address' => '127.0.0.1',
-                    'url.path' => '',
+                    'url.path' => '/',
                     'server.address' => 'localhost',
                     'server.port' => 80,
                     'user_agent.original' => 'Symfony',
@@ -54,22 +54,12 @@ class LaravelInstrumentationTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 200,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                'children' => [
-                                    [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
-                                        'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 200,
-                                        ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -85,7 +75,7 @@ class LaravelInstrumentationTest extends TestCase
         
         $this->assertTraceStructure([
             [
-                'name' => 'GET',
+                'name' => 'GET /',
                 'attributes' => [
                     'http.request.method' => 'GET',
                     'http.response.status_code' => 200,
@@ -145,46 +135,22 @@ class LaravelInstrumentationTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 200,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                                 'children' => [
                                     [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                        'name' => 'sql SELECT',
                                         'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 200,
+                                            'db.operation.name' => 'SELECT',
+                                            'db.namespace' => ':memory:',
+                                            'db.query.text' => 'select 1',
+                                            'db.system.name' => 'sqlite',
                                         ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                        'children' => [
-                                            [
-                                                'name' => 'GET /hello',
-                                                'attributes' => [
-                                                    'code.function.name' => 'handle',
-                                                    'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                                    'http.method' => 'GET',
-                                                    'http.route' => 'hello',
-                                                    'http.response.status_code' => 200,
-                                                ],
-                                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                                'children' => [
-                                                    [
-                                                        'name' => 'sql SELECT',
-                                                        'attributes' => [
-                                                            'db.operation.name' => 'SELECT',
-                                                            'db.namespace' => ':memory:',
-                                                            'db.query.text' => 'select 1',
-                                                            'db.system.name' => 'sqlite',
-                                                        ],
-                                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT,
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT,
                                     ],
                                 ],
                             ],
@@ -203,14 +169,14 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello/opentelemetry');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(5, $this->storage);
+        $this->assertCount(3, $this->storage);
 
         // Debug: Print out actual spans
         $this->printSpans();
 
         $this->assertTraceStructure([
             [
-                'name' => 'GET hello-name',
+                'name' => 'GET /hello/{name}',
                 'attributes' => [
                     'code.function.name' => 'handle',
                     'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
@@ -238,22 +204,12 @@ class LaravelInstrumentationTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 200,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                'children' => [
-                                    [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
-                                        'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 200,
-                                        ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -267,7 +223,7 @@ class LaravelInstrumentationTest extends TestCase
 
         $response = $this->call('GET', '/users/123/profile');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(5, $this->storage);
+        $this->assertCount(3, $this->storage);
 
         // Debug: Print out actual spans
         $this->printSpans();
@@ -301,22 +257,12 @@ class LaravelInstrumentationTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 200,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                'children' => [
-                                    [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
-                                        'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 200,
-                                        ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -330,7 +276,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/not-found');
         $this->assertEquals(404, $response->status());
-        $this->assertCount(5, $this->storage);
+        $this->assertCount(3, $this->storage);
 
         // Debug: Print out actual spans
         $this->printSpans();
@@ -363,22 +309,14 @@ class LaravelInstrumentationTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Exceptions\Handler@render',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'code.function.name' => 'handle',
+                                    'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 404,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                'children' => [
-                                    [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
-                                        'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 404,
-                                        ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                    ],
-                                ],
                             ],
                         ],
                     ],

@@ -124,9 +124,13 @@ class Middleware implements LaravelHook
             'handle',
             pre: function (object $middleware, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($group) {
                 $spanName = $class . '::' . $function;
+                $parent = Context::getCurrent();
+                $parentSpan = Span::fromContext($parent);
+
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder($spanName)
+                    ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
@@ -139,7 +143,7 @@ class Middleware implements LaravelHook
                 }
 
                 $newSpan = $span->startSpan();
-                $context = $newSpan->storeInContext(Context::getCurrent());
+                $context = $newSpan->storeInContext($parent);
                 Context::storage()->attach($context);
             },
             post: function (object $middleware, array $params, $response, ?Throwable $exception) {

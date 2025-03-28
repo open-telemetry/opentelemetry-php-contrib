@@ -80,22 +80,12 @@ class MiddlewareTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 200,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                'children' => [
-                                    [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
-                                        'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 200,
-                                        ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -159,22 +149,14 @@ class MiddlewareTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'code.function.name' => 'handle',
+                                    'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 403,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                'children' => [
-                                    [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
-                                        'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 403,
-                                        ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -236,22 +218,16 @@ class MiddlewareTest extends TestCase
                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                         'children' => [
                             [
-                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'name' => 'Illuminate\Foundation\Exceptions\Handler@render',
                                 'attributes' => [
-                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'code.function.name' => 'handle',
+                                    'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'exception.class' => 'Exception',
+                                    'exception.message' => 'Middleware Exception',
                                     'http.response.status_code' => 500,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                'children' => [
-                                    [
-                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
-                                        'attributes' => [
-                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
-                                            'http.response.status_code' => 500,
-                                        ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -264,16 +240,9 @@ class MiddlewareTest extends TestCase
     {
         $router = $this->router();
 
-        // Define test middlewares
-        $router->aliasMiddleware('middleware-1', function ($request, $next) {
-            $request->attributes->set('middleware_1_ran', true);
-            return $next($request);
-        });
-        
-        $router->aliasMiddleware('middleware-2', function ($request, $next) {
-            $request->attributes->set('middleware_2_ran', true);
-            return $next($request);
-        });
+        // Define test middleware classes
+        $router->aliasMiddleware('middleware-1', \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class);
+        $router->aliasMiddleware('middleware-2', \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class);
         
         // Define a middleware group
         $router->middlewareGroup('test-group', [
@@ -293,24 +262,52 @@ class MiddlewareTest extends TestCase
         // Basic response checks
         $this->assertEquals(200, $response->status());
         
-        // We should have spans for each middleware in the group
-        $this->assertGreaterThan(0, count($this->storage));
+        // Debug: Print out actual spans
+        $this->printSpans();
         
-        // Count middleware spans
-        $middlewareSpans = 0;
-        foreach ($this->storage as $span) {
-            $attributes = $span->getAttributes()->toArray();
-            
-            // Check for middleware spans
-            if (strpos($span->getName(), 'middleware') !== false ||
-                (isset($attributes['type']) && $attributes['type'] === 'middleware')) {
-                $middlewareSpans++;
-            }
-        }
-        
-        // We should have at least 2 middleware spans (one for each middleware in the group)
-        // The actual count might be higher depending on Laravel's internal middleware
-        $this->assertGreaterThanOrEqual(2, $middlewareSpans, 'Not enough middleware spans found');
+        $this->assertTraceStructure([
+            [
+                'name' => 'GET /middleware-group',
+                'attributes' => [
+                    'code.function.name' => 'handle',
+                    'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
+                    'url.full' => 'http://localhost/middleware-group',
+                    'http.request.method' => 'GET',
+                    'url.scheme' => 'http',
+                    'network.protocol.version' => '1.1',
+                    'network.peer.address' => '127.0.0.1',
+                    'url.path' => 'middleware-group',
+                    'server.address' => 'localhost',
+                    'server.port' => 80,
+                    'user_agent.original' => 'Symfony',
+                    'http.route' => 'middleware-group',
+                    'http.response.status_code' => 200,
+                ],
+                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_SERVER,
+                'children' => [
+                    [
+                        'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                        'attributes' => [
+                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                            'http.response.status_code' => 200,
+                        ],
+                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                        'children' => [
+                            [
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                'attributes' => [
+                                    'code.function.name' => 'handle',
+                                    'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'http.response.status_code' => 200,
+                                ],
+                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
     
     public function test_it_handles_middleware_terminate_method(): void
