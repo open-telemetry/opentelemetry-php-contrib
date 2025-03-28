@@ -21,13 +21,78 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('GET', '/');
         $this->assertEquals(200, $response->status());
         $this->assertCount(5, $this->storage);
-        $span = $this->storage[0];
-        $this->assertSame('GET /', $span->getName());
+
+        // Debug: Print out actual spans
+        $this->printSpans();
+
+        $this->assertTraceStructure([
+            [
+                'name' => 'GET /',
+                'attributes' => [
+                    'code.function.name' => 'handle',
+                    'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
+                    'url.full' => 'http://localhost/',
+                    'http.request.method' => 'GET',
+                    'url.scheme' => 'http',
+                    'network.protocol.version' => '1.1',
+                    'network.peer.address' => '127.0.0.1',
+                    'url.path' => '',
+                    'server.address' => 'localhost',
+                    'server.port' => 80,
+                    'user_agent.original' => 'Symfony',
+                    'http.route' => '/',
+                    'http.response.status_code' => 200,
+                ],
+                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_SERVER,
+                'children' => [
+                    [
+                        'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                        'attributes' => [
+                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                            'http.response.status_code' => 200,
+                        ],
+                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                        'children' => [
+                            [
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'attributes' => [
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'http.response.status_code' => 200,
+                                ],
+                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                        'attributes' => [
+                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                            'http.response.status_code' => 200,
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
 
         $response = Http::get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
-        $span = $this->storage[1];
-        $this->assertSame('GET', $span->getName());
+        
+        // Debug: Print out actual spans
+        $this->printSpans();
+        
+        $this->assertTraceStructure([
+            [
+                'name' => 'GET',
+                'attributes' => [
+                    'http.request.method' => 'GET',
+                    'http.response.status_code' => 200,
+                ],
+                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT,
+            ],
+        ]);
     }
 
     public function test_cache_log_db(): void
@@ -49,17 +114,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
 
         // Debug: Print out actual spans
-        foreach ($this->getSpans() as $index => $span) {
-            echo sprintf(
-                "Span %d: [TraceId: %s, SpanId: %s, ParentId: %s] %s (attributes: %s)\n",
-                $index,
-                $span->getTraceId(),
-                $span->getSpanId(),
-                $span->getParentSpanId() ?: 'null',
-                $span->getName(),
-                json_encode($span->getAttributes()->toArray())
-            );
-        }
+        $this->printSpans();
 
         $this->assertTraceStructure([
             [
@@ -150,11 +205,61 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertCount(5, $this->storage);
 
-        $span = $this->storage[0];
-        $this->assertSame('GET hello-name', $span->getName());
-        $this->assertArrayHasKey('laravel.route.name', $span->getAttributes()->toArray());
-        $this->assertSame('hello-name', $span->getAttributes()->get('laravel.route.name'));
-        $this->assertSame('hello/{name}', $span->getAttributes()->get('http.route'));
+        // Debug: Print out actual spans
+        $this->printSpans();
+
+        $this->assertTraceStructure([
+            [
+                'name' => 'GET hello-name',
+                'attributes' => [
+                    'code.function.name' => 'handle',
+                    'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
+                    'url.full' => 'http://localhost/hello/opentelemetry',
+                    'http.request.method' => 'GET',
+                    'url.scheme' => 'http',
+                    'network.protocol.version' => '1.1',
+                    'network.peer.address' => '127.0.0.1',
+                    'url.path' => 'hello/opentelemetry',
+                    'server.address' => 'localhost',
+                    'server.port' => 80,
+                    'user_agent.original' => 'Symfony',
+                    'http.route' => 'hello/{name}',
+                    'laravel.route.name' => 'hello-name',
+                    'http.response.status_code' => 200,
+                ],
+                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_SERVER,
+                'children' => [
+                    [
+                        'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                        'attributes' => [
+                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                            'http.response.status_code' => 200,
+                        ],
+                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                        'children' => [
+                            [
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'attributes' => [
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'http.response.status_code' => 200,
+                                ],
+                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                        'attributes' => [
+                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                            'http.response.status_code' => 200,
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
 
         // Test with an unnamed route - should use the URI pattern
         $this->storage->exchangeArray([]);
@@ -164,10 +269,60 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertCount(5, $this->storage);
 
-        $span = $this->storage[0];
-        $this->assertSame('GET /users/{id}/profile', $span->getName());
-        $this->assertArrayNotHasKey('laravel.route.name', $span->getAttributes()->toArray());
-        $this->assertSame('users/{id}/profile', $span->getAttributes()->get('http.route'));
+        // Debug: Print out actual spans
+        $this->printSpans();
+
+        $this->assertTraceStructure([
+            [
+                'name' => 'GET /users/{id}/profile',
+                'attributes' => [
+                    'code.function.name' => 'handle',
+                    'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
+                    'url.full' => 'http://localhost/users/123/profile',
+                    'http.request.method' => 'GET',
+                    'url.scheme' => 'http',
+                    'network.protocol.version' => '1.1',
+                    'network.peer.address' => '127.0.0.1',
+                    'url.path' => 'users/123/profile',
+                    'server.address' => 'localhost',
+                    'server.port' => 80,
+                    'user_agent.original' => 'Symfony',
+                    'http.route' => 'users/{id}/profile',
+                    'http.response.status_code' => 200,
+                ],
+                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_SERVER,
+                'children' => [
+                    [
+                        'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                        'attributes' => [
+                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                            'http.response.status_code' => 200,
+                        ],
+                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                        'children' => [
+                            [
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'attributes' => [
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'http.response.status_code' => 200,
+                                ],
+                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                        'attributes' => [
+                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                            'http.response.status_code' => 200,
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     public function test_route_span_name_if_not_found(): void
@@ -176,16 +331,60 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('GET', '/not-found');
         $this->assertEquals(404, $response->status());
         $this->assertCount(5, $this->storage);
-        $span = $this->storage[0];
-        
-        $spanName = $span->getName();
-        
-        $this->assertTrue(
-            $spanName === 'GET' || 
-            strpos($spanName, 'Handler@render') !== false || 
-            strpos($spanName, 'not-found') !== false,
-            "Span name should be 'GET' or contain 'Handler@render' or 'not-found'"
-        );
+
+        // Debug: Print out actual spans
+        $this->printSpans();
+
+        $this->assertTraceStructure([
+            [
+                'name' => 'GET',
+                'attributes' => [
+                    'code.function.name' => 'handle',
+                    'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
+                    'url.full' => 'http://localhost/not-found',
+                    'http.request.method' => 'GET',
+                    'url.scheme' => 'http',
+                    'network.protocol.version' => '1.1',
+                    'network.peer.address' => '127.0.0.1',
+                    'url.path' => 'not-found',
+                    'server.address' => 'localhost',
+                    'server.port' => 80,
+                    'user_agent.original' => 'Symfony',
+                    'http.response.status_code' => 404,
+                ],
+                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_SERVER,
+                'children' => [
+                    [
+                        'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                        'attributes' => [
+                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                            'http.response.status_code' => 404,
+                        ],
+                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                        'children' => [
+                            [
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                'attributes' => [
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                    'http.response.status_code' => 404,
+                                ],
+                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                        'attributes' => [
+                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                            'http.response.status_code' => 404,
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     private function router(): Router

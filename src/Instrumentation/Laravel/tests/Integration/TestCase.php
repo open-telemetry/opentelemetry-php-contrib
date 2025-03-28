@@ -204,12 +204,25 @@ abstract class TestCase extends BaseTestCase
      */
     protected function getLogRecords(): array
     {
-        return array_filter(
-            iterator_to_array($this->storage),
-            function ($item) {
-                return $item instanceof \OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
-            }
-        );
+        return array_values($this->loggerStorage->getArrayCopy());
+    }
+
+    /**
+     * Print out all spans in a readable format for debugging.
+     */
+    protected function printSpans(): void
+    {
+        foreach ($this->getSpans() as $index => $span) {
+            echo sprintf(
+                "Span %d: [TraceId: %s, SpanId: %s, ParentId: %s] %s (attributes: %s)\n",
+                $index,
+                $span->getTraceId(),
+                $span->getSpanId(),
+                $span->getParentSpanId() ?: 'null',
+                $span->getName(),
+                json_encode($span->getAttributes()->toArray())
+            );
+        }
     }
 
     /**
