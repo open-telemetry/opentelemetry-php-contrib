@@ -47,9 +47,6 @@ class MiddlewareTest extends TestCase
         // Basic response checks
         $this->assertEquals(200, $response->status());
         $this->assertEquals('Middleware Test Route', $response->getContent());
-
-        // Debug: Print out actual spans
-        $this->printSpans();
         
         $this->assertTraceStructure([
             [
@@ -116,9 +113,6 @@ class MiddlewareTest extends TestCase
         // Check that the middleware response was returned
         $this->assertEquals(403, $response->status());
         $this->assertEquals('Response from middleware', $response->getContent());
-
-        // Debug: Print out actual spans
-        $this->printSpans();
         
         $this->assertTraceStructure([
             [
@@ -185,9 +179,6 @@ class MiddlewareTest extends TestCase
         
         // Laravel should catch the exception and return a 500 response
         $this->assertEquals(500, $response->status());
-
-        // Debug: Print out actual spans
-        $this->printSpans();
         
         $this->assertTraceStructure([
             [
@@ -261,9 +252,6 @@ class MiddlewareTest extends TestCase
         
         // Basic response checks
         $this->assertEquals(200, $response->status());
-        
-        // Debug: Print out actual spans
-        $this->printSpans();
         
         $this->assertTraceStructure([
             [
