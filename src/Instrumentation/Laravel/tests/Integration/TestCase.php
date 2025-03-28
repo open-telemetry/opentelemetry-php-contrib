@@ -301,6 +301,37 @@ abstract class TestCase extends BaseTestCase
         $actualStructure = $this->getTraceStructure();
         $spans = $this->getSpans();
 
+        // Helper function to count total spans in expected structure
+        $countExpectedSpans = function (array $structure) use (&$countExpectedSpans): int {
+            $count = 1; // Count current span
+            if (isset($structure['children'])) {
+                foreach ($structure['children'] as $child) {
+                    $count += $countExpectedSpans($child);
+                }
+            }
+            return $count;
+        };
+
+        // Count total expected spans
+        $totalExpectedSpans = 0;
+        foreach ($expectedStructure as $root) {
+            $totalExpectedSpans += $countExpectedSpans($root);
+        }
+
+        // Count actual spans
+        $totalActualSpans = count($spans);
+
+        // Verify total span count
+        $this->assertEquals(
+            $totalExpectedSpans,
+            $totalActualSpans,
+            $message ?: sprintf(
+                'Expected %d total spans, got %d',
+                $totalExpectedSpans,
+                $totalActualSpans
+            )
+        );
+
         // Helper function to recursively verify span structure
         $verifySpan = function (array $expected, ImmutableSpan $actual, array $actualStructure, string $message) use (&$verifySpan): void {
             // Verify span properties

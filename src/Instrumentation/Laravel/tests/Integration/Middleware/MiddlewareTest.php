@@ -252,7 +252,7 @@ class MiddlewareTest extends TestCase
         
         // Basic response checks
         $this->assertEquals(200, $response->status());
-        
+
         $this->assertTraceStructure([
             [
                 'name' => 'GET /middleware-group',
@@ -284,12 +284,32 @@ class MiddlewareTest extends TestCase
                             [
                                 'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
                                 'attributes' => [
-                                    'code.function.name' => 'handle',
-                                    'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 200,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                                        'attributes' => [
+                                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                                            'http.response.status_code' => 200,
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                        'children' => [
+                                            [
+                                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                                'attributes' => [
+                                                    'code.function.name' => 'handle',
+                                                    'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                                    'http.response.status_code' => 200,
+                                                ],
+                                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                     ],

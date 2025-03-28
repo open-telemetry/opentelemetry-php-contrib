@@ -57,6 +57,22 @@ class LaravelInstrumentationTest extends TestCase
                                     'http.response.status_code' => 200,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'HTTP GET',
+                                        'attributes' => [
+                                            'http.request.method' => 'GET',
+                                            'url.full' => 'https://opentelemetry.io/',
+                                            'url.path' => '/',
+                                            'url.scheme' => 'https',
+                                            'server.address' => 'opentelemetry.io',
+                                            'server.port' => '',
+                                            'http.response.status_code' => 200,
+                                            'http.response.body.size' => '21765'
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT
+                                    ]
+                                ]
                             ],
                         ],
                     ],
