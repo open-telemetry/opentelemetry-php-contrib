@@ -222,6 +222,20 @@ abstract class TestCase extends BaseTestCase
                 $span->getName(),
                 json_encode($span->getAttributes()->toArray())
             );
+
+            // Print events
+            $events = $span->getEvents();
+            if (count($events) > 0) {
+                echo "  Events:\n";
+                foreach ($events as $eventIndex => $event) {
+                    echo sprintf(
+                        "    Event %d: %s (attributes: %s)\n",
+                        $eventIndex,
+                        $event->getName(),
+                        json_encode($event->getAttributes()->toArray())
+                    );
+                }
+            }
         }
     }
 
