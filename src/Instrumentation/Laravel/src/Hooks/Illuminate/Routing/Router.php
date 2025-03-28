@@ -75,13 +75,20 @@ class Router implements LaravelHook
                 if (method_exists($route, 'getName') && $route->getName() && strpos($route->getName(), 'generated::') !== 0) {
                     $span->updateName("{$request->method()} " . $route->getName());
                     $span->setAttribute('laravel.route.name', $route->getName());
-                } elseif (method_exists($route, 'uri')) {
+                }
+
+                // Always set the HTTP route attribute from the URI pattern
+                if (method_exists($route, 'uri')) {
                     $path = $route->uri();
-                    $span->updateName("{$request->method()} /" . ltrim($path, '/'));
+                    if (!$route->getName() || strpos($route->getName(), 'generated::') === 0) {
+                        $span->updateName("HTTP {$request->method()}");
+                    }
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $path);
                 } elseif (method_exists($route, 'getPath')) {
                     $path = $route->getPath();
-                    $span->updateName("{$request->method()} /" . ltrim($path, '/'));
+                    if (!$route->getName() || strpos($route->getName(), 'generated::') === 0) {
+                        $span->updateName("HTTP{$request->method()}");
+                    }
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $path);
                 }
 
