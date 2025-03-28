@@ -367,6 +367,48 @@ abstract class TestCase extends BaseTestCase
                 );
             }
 
+            // Verify events if present
+            if (isset($expected['events'])) {
+                $actualEvents = $actual->getEvents();
+                $this->assertCount(
+                    count($expected['events']),
+                    $actualEvents,
+                    $message ?: sprintf('Expected %d events for span %s, got %d', 
+                        count($expected['events']), 
+                        $actual->getSpanId(),
+                        count($actualEvents)
+                    )
+                );
+
+                foreach ($expected['events'] as $index => $expectedEvent) {
+                    $actualEvent = $actualEvents[$index];
+                    
+                    if (isset($expectedEvent['name'])) {
+                        $this->assertEquals(
+                            $expectedEvent['name'],
+                            $actualEvent->getName(),
+                            $message ?: sprintf('Event name mismatch for event %d in span %s', $index, $actual->getSpanId())
+                        );
+                    }
+
+                    if (isset($expectedEvent['attributes'])) {
+                        $actualAttributes = $actualEvent->getAttributes()->toArray();
+                        foreach ($expectedEvent['attributes'] as $key => $value) {
+                            $this->assertArrayHasKey(
+                                $key,
+                                $actualAttributes,
+                                $message ?: sprintf('Missing attribute %s for event %d in span %s', $key, $index, $actual->getSpanId())
+                            );
+                            $this->assertEquals(
+                                $value,
+                                $actualAttributes[$key],
+                                $message ?: sprintf('Attribute %s mismatch for event %d in span %s', $key, $index, $actual->getSpanId())
+                            );
+                        }
+                    }
+                }
+            }
+
             // Verify children if present
             if (isset($expected['children'])) {
                 $children = $actualStructure['spanMap'][$actual->getSpanId()]['children'] ?? [];
