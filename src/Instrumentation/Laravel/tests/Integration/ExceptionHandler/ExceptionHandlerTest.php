@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\ExceptionHandler;
 
 use Exception;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
@@ -28,11 +29,6 @@ class ExceptionHandlerTest extends TestCase
     {
         // Make a request first to ensure storage is populated
         $this->call('GET', '/');
-        
-        // Skip test if storage isn't populated 
-        if (count($this->storage) === 0) {
-            $this->markTestSkipped('Storage not populated, instrumentation may not be active');
-        }
         
         // Check what type of object we're working with
         $recordType = get_class($this->storage[0]);
@@ -92,11 +88,6 @@ class ExceptionHandlerTest extends TestCase
         // Make a request first to ensure storage is populated
         $this->call('GET', '/');
         
-        // Skip test if storage isn't populated 
-        if (count($this->storage) === 0) {
-            $this->markTestSkipped('Storage not populated, instrumentation may not be active');
-        }
-        
         // Check what type of object we're working with
         $recordType = get_class($this->storage[0]);
         if (strpos($recordType, 'LogRecord') !== false) {
@@ -109,7 +100,7 @@ class ExceptionHandlerTest extends TestCase
         });
         
         // Define a route with the exception-throwing middleware
-        Route::middleware(['throw-exception'])->get('/middleware-exception', function () {
+        $this->router()->middleware(['throw-exception'])->get('/middleware-exception', function () {
             return 'This will not be reached';
         });
 
@@ -180,7 +171,7 @@ class ExceptionHandlerTest extends TestCase
         };
         
         // Define a route that throws the custom exception
-        Route::get('/custom-exception', function () use ($customException) {
+        $this->router()->get('/custom-exception', function () use ($customException) {
             throw $customException;
         });
 
@@ -221,11 +212,8 @@ class ExceptionHandlerTest extends TestCase
 
     public function test_it_adds_exception_to_active_span(): void
     {
-        // Skip test as this requires getActiveSpan which isn't available in our version
-        $this->markTestSkipped('getActiveSpan not available in this version');
-        
         // Define a route that throws an exception
-        Route::get('/active-span-exception', function () {
+        $this->router()->get('/active-span-exception', function () {
             throw new Exception('Active Span Exception');
         });
 
@@ -238,5 +226,11 @@ class ExceptionHandlerTest extends TestCase
         
         // The active span should have the exception recorded
         // But we can't test this without getActiveSpan
+    }
+
+    private function router(): Router
+    {
+        /** @psalm-suppress PossiblyNullReference */
+        return $this->app->make(Router::class);
     }
 } 
