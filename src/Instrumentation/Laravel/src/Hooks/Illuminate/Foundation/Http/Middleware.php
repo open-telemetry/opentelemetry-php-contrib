@@ -24,6 +24,8 @@ class Middleware implements LaravelHook
 {
     use LaravelHookTrait;
 
+    private $middlewareClasses = [];
+
     public function instrument(): void
     {
         $this->setupMiddlewareHooks();
@@ -70,7 +72,10 @@ class Middleware implements LaravelHook
                     if (is_array($middleware)) {
                         foreach ($middleware as $middlewareClass) {
                             if (is_string($middlewareClass) && class_exists($middlewareClass)) {
-                                $this->hookMiddlewareClass($middlewareClass);
+                                if (!in_array($middlewareClass, $this->middlewareClasses)) {
+                                    $this->middlewareClasses[] = $middlewareClass;
+                                    $this->hookMiddlewareClass($middlewareClass);
+                                }
                             }
                         }
                     }
@@ -86,7 +91,10 @@ class Middleware implements LaravelHook
                                 if (is_array($middlewareList)) {
                                     foreach ($middlewareList as $middlewareItem) {
                                         if (is_string($middlewareItem) && class_exists($middlewareItem)) {
-                                            $this->hookMiddlewareClass($middlewareItem, $groupName);
+                                            if (!in_array($middlewareItem, $this->middlewareClasses)) {
+                                                $this->middlewareClasses[] = $middlewareItem;
+                                                $this->hookMiddlewareClass($middlewareItem, $groupName);
+                                            }
                                         }
                                     }
                                 }
