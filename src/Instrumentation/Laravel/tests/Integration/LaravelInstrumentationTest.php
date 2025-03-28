@@ -142,21 +142,32 @@ class LaravelInstrumentationTest extends TestCase
 
     public function test_low_cardinality_route_span_name(): void
     {
+        // Test with a named route - should use the route name
         $this->router()->get('/hello/{name}', fn () => null)->name('hello-name');
 
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello/opentelemetry');
         $this->assertEquals(200, $response->status());
         $this->assertCount(5, $this->storage);
+
         $span = $this->storage[0];
-        
-        $spanName = $span->getName();
-        $this->assertStringContainsString('GET', $spanName, "Span name should contain 'GET'");
-        
-        $this->assertTrue(
-            strpos($spanName, '/hello/{name}') !== false || strpos($spanName, 'hello-name') !== false,
-            "Span name should contain either the route pattern '/hello/{name}' or the route name 'hello-name'"
-        );
+        $this->assertSame('GET hello-name', $span->getName());
+        $this->assertArrayHasKey('laravel.route.name', $span->getAttributes()->toArray());
+        $this->assertSame('hello-name', $span->getAttributes()->get('laravel.route.name'));
+        $this->assertSame('hello/{name}', $span->getAttributes()->get('http.route'));
+
+        // Test with an unnamed route - should use the URI pattern
+        $this->storage->exchangeArray([]);
+        $this->router()->get('/users/{id}/profile', fn () => null);
+
+        $response = $this->call('GET', '/users/123/profile');
+        $this->assertEquals(200, $response->status());
+        $this->assertCount(5, $this->storage);
+
+        $span = $this->storage[0];
+        $this->assertSame('GET /users/{id}/profile', $span->getName());
+        $this->assertArrayNotHasKey('laravel.route.name', $span->getAttributes()->toArray());
+        $this->assertSame('users/{id}/profile', $span->getAttributes()->get('http.route'));
     }
 
     public function test_route_span_name_if_not_found(): void
