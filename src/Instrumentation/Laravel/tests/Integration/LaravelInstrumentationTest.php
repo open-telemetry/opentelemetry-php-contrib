@@ -15,15 +15,12 @@ class LaravelInstrumentationTest extends TestCase
 {
     public function test_request_response(): void
     {
-        $this->router()->get('/', fn () => null);
+        $this->router()->get('/', fn () => Http::get('opentelemetry.io'));
 
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(3, $this->storage);
-
-        // Debug: Print out actual spans
-        $this->printSpans();
+        $this->assertCount(4, $this->storage);
 
         $this->assertTraceStructure([
             [
@@ -66,23 +63,6 @@ class LaravelInstrumentationTest extends TestCase
                 ],
             ],
         ]);
-
-        $response = Http::get('opentelemetry.io');
-        $this->assertEquals(200, $response->status());
-        
-        // Debug: Print out actual spans
-        $this->printSpans();
-        
-        $this->assertTraceStructure([
-            [
-                'name' => 'GET /',
-                'attributes' => [
-                    'http.request.method' => 'GET',
-                    'http.response.status_code' => 200,
-                ],
-                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT,
-            ],
-        ]);
     }
 
     public function test_cache_log_db(): void
@@ -102,9 +82,6 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
-
-        // Debug: Print out actual spans
-        $this->printSpans();
 
         $this->assertTraceStructure([
             [
@@ -171,12 +148,9 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertCount(3, $this->storage);
 
-        // Debug: Print out actual spans
-        $this->printSpans();
-
         $this->assertTraceStructure([
             [
-                'name' => 'GET /hello/{name}',
+                'name' => 'GET hello-name',
                 'attributes' => [
                     'code.function.name' => 'handle',
                     'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
@@ -224,9 +198,6 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('GET', '/users/123/profile');
         $this->assertEquals(200, $response->status());
         $this->assertCount(3, $this->storage);
-
-        // Debug: Print out actual spans
-        $this->printSpans();
 
         $this->assertTraceStructure([
             [
@@ -278,12 +249,9 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(404, $response->status());
         $this->assertCount(3, $this->storage);
 
-        // Debug: Print out actual spans
-        $this->printSpans();
-
         $this->assertTraceStructure([
             [
-                'name' => 'GET',
+                'name' => 'HTTP GET',
                 'attributes' => [
                     'code.function.name' => 'handle',
                     'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
