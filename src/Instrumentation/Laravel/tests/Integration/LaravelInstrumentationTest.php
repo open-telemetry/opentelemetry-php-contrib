@@ -309,6 +309,83 @@ class LaravelInstrumentationTest extends TestCase
         ]);
     }
 
+    public function test_controller_execution(): void
+    {
+        // Define the controller class if it doesn't exist
+        if (!class_exists('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestController')) {
+            eval('
+                namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
+                
+                class TestController
+                {
+                    public function index()
+                    {
+                        return "Hello from controller";
+                    }
+                }
+            ');
+        }
+
+        $this->router()->get('/controller', [TestController::class, 'index']);
+
+        $this->assertCount(0, $this->storage);
+        $response = $this->call('GET', '/controller');
+        $this->assertEquals(200, $response->status());
+        $this->assertCount(4, $this->storage);
+
+        $this->assertTraceStructure([
+            [
+                'name' => 'GET /controller',
+                'attributes' => [
+                    'code.function.name' => 'handle',
+                    'code.namespace' => 'Illuminate\Foundation\Http\Kernel',
+                    'url.full' => 'http://localhost/controller',
+                    'http.request.method' => 'GET',
+                    'url.scheme' => 'http',
+                    'network.protocol.version' => '1.1',
+                    'network.peer.address' => '127.0.0.1',
+                    'url.path' => 'controller',
+                    'server.address' => 'localhost',
+                    'server.port' => 80,
+                    'user_agent.original' => 'Symfony',
+                    'http.route' => 'controller',
+                    'http.response.status_code' => 200,
+                ],
+                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_SERVER,
+                'children' => [
+                    [
+                        'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
+                        'attributes' => [
+                            'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                            'http.response.status_code' => 200,
+                        ],
+                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                        'children' => [
+                            [
+                                'name' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::handle',
+                                'attributes' => [
+                                    'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'http.response.status_code' => 200,
+                                ],
+                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'Controller::index',
+                                        'attributes' => [
+                                            'code.function.name' => 'index',
+                                            'code.namespace' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestController',
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
     private function router(): Router
     {
         /** @psalm-suppress PossiblyNullReference */
