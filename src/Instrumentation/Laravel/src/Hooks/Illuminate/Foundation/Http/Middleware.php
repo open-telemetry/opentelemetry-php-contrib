@@ -182,4 +182,4 @@ class Middleware implements LaravelHook
             }
         );
     }
-} 
+}

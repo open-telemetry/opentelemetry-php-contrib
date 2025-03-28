@@ -13,7 +13,6 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
 /**
@@ -111,4 +110,4 @@ class Route implements LaravelHook
             }
         );
     }
-} 
+}

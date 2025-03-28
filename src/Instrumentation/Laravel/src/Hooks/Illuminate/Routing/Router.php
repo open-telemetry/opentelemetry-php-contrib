@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Routing;
 
-use Illuminate\Routing\Router as LaravelRouter;
 use Illuminate\Routing\RouteCollection;
+use Illuminate\Routing\Router as LaravelRouter;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
@@ -130,4 +130,4 @@ class Router implements LaravelHook
             }
         );
     }
-} 
+}

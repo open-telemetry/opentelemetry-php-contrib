@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\View;
 
 use Illuminate\View\View as LaravelView;
-use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
@@ -60,4 +58,4 @@ class View implements LaravelHook
             }
         );
     }
-} 
+}

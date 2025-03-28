@@ -7,7 +7,6 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Middle
 use Exception;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
 /** @psalm-suppress UnusedClass */
@@ -26,12 +25,13 @@ class MiddlewareTest extends TestCase
     }
 
     public function test_it_creates_span_for_middleware(): void
-    {   
+    {
         $router = $this->router();
         // Define a test middleware
         $router->aliasMiddleware('test-middleware', function ($request, $next) {
             // Do something in the middleware
             $request->attributes->set('middleware_was_here', true);
+
             return $next($request);
         });
         
@@ -375,7 +375,7 @@ class MiddlewareTest extends TestCase
         $this->assertEquals(200, $response->status());
         $this->assertEquals('Testing terminate middleware', $response->getContent());
         
-        // We should have spans now 
+        // We should have spans now
         $this->assertGreaterThan(0, count($this->storage));
         
         // The actual assertions here would depend on how terminate middleware is instrumented
@@ -388,4 +388,4 @@ class MiddlewareTest extends TestCase
         /** @psalm-suppress PossiblyNullReference */
         return $this->app->make(Router::class);
     }
-} 
+}

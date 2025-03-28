@@ -54,6 +54,7 @@ class ViewTest extends TestCase
 
         // Attempt to render the view
         $this->storage->exchangeArray([]);
+
         try {
             $view->render();
             $this->fail('Expected ViewException was not thrown');
@@ -163,4 +164,4 @@ class ViewTest extends TestCase
         /** @psalm-suppress PossiblyNullReference */
         return $this->app->make(Router::class);
     }
-} 
+}

@@ -71,6 +71,7 @@ class ExceptionHandlerTest extends TestCase
                         $this->assertEquals('Test Exception', $attributes['exception.message']);
                         $this->assertArrayHasKey('exception.type', $attributes);
                         $this->assertEquals(Exception::class, $attributes['exception.type']);
+
                         break;
                     }
                 }
@@ -134,6 +135,7 @@ class ExceptionHandlerTest extends TestCase
                         $this->assertEquals('Middleware Exception', $attributes['exception.message']);
                         $this->assertArrayHasKey('exception.type', $attributes);
                         $this->assertEquals(Exception::class, $attributes['exception.type']);
+
                         break;
                     }
                 }
@@ -199,6 +201,7 @@ class ExceptionHandlerTest extends TestCase
                     $this->assertArrayHasKey('exception.type', $attributes);
                     // The class name will be anonymous, so just check it extends Exception
                     $this->assertStringContainsString('Exception', $attributes['exception.type']);
+
                     break;
                 }
             }
@@ -233,4 +236,4 @@ class ExceptionHandlerTest extends TestCase
         /** @psalm-suppress PossiblyNullReference */
         return $this->app->make(Router::class);
     }
-} 
+}

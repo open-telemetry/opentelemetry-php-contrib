@@ -323,6 +323,7 @@ abstract class TestCase extends BaseTestCase
                     $count += $countExpectedSpans($child);
                 }
             }
+
             return $count;
         };
 
@@ -387,8 +388,9 @@ abstract class TestCase extends BaseTestCase
                 $this->assertCount(
                     count($expected['events']),
                     $actualEvents,
-                    $message ?: sprintf('Expected %d events for span %s, got %d', 
-                        count($expected['events']), 
+                    $message ?: sprintf(
+                        'Expected %d events for span %s, got %d',
+                        count($expected['events']),
                         $actual->getSpanId(),
                         count($actualEvents)
                     )
@@ -429,8 +431,9 @@ abstract class TestCase extends BaseTestCase
                 $this->assertCount(
                     count($expected['children']),
                     $children,
-                    $message ?: sprintf('Expected %d children for span %s, got %d', 
-                        count($expected['children']), 
+                    $message ?: sprintf(
+                        'Expected %d children for span %s, got %d',
+                        count($expected['children']),
                         $actual->getSpanId(),
                         count($children)
                     )

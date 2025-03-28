@@ -8,7 +8,6 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use OpenTelemetry\SemConv\TraceAttributes;
 
 /** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
@@ -68,11 +67,11 @@ class LaravelInstrumentationTest extends TestCase
                                             'server.address' => 'opentelemetry.io',
                                             'server.port' => '',
                                             'http.response.status_code' => 200,
-                                            'http.response.body.size' => '21765'
+                                            'http.response.body.size' => '21765',
                                         ],
-                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT
-                                    ]
-                                ]
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT,
+                                    ],
+                                ],
                             ],
                         ],
                     ],

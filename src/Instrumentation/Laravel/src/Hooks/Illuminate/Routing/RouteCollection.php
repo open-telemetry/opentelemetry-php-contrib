@@ -6,12 +6,10 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Routing
 
 use Illuminate\Routing\RouteCollection as LaravelRouteCollection;
 use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
 /**
@@ -79,4 +77,4 @@ class RouteCollection implements LaravelHook
             }
         );
     }
-} 
+}
