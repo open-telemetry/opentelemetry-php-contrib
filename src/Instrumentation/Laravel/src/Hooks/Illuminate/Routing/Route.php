@@ -95,6 +95,16 @@ class Route implements LaravelHook
                             }
                         );
                     }
+                } elseif ($action instanceof \Closure) {
+                    // Add closure information to the existing span
+                    $scope = Context::storage()->scope();
+                    if (!$scope) {
+                        return $params;
+                    }
+                    
+                    $span = Span::fromContext($scope->context());
+                    $span->setAttribute('code.function.name', '{closure}');
+                    $span->setAttribute('code.namespace', '');
                 }
 
                 return $params;

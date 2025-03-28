@@ -127,6 +127,11 @@ class Middleware implements LaravelHook
                 $parent = Context::getCurrent();
                 $parentSpan = Span::fromContext($parent);
 
+                // Don't create a new span if we're handling an exception
+                if ($params[0] instanceof Throwable) {
+                    return;
+                }
+
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder($spanName)

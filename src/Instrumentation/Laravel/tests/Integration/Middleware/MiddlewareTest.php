@@ -180,6 +180,11 @@ class MiddlewareTest extends TestCase
         // Laravel should catch the exception and return a 500 response
         $this->assertEquals(500, $response->status());
         
+        // Verify that we have 6 spans
+        $this->assertCount(6, $this->storage);
+        
+        $this->printSpans();
+        
         $this->assertTraceStructure([
             [
                 'name' => 'GET /middleware-exception',
@@ -203,6 +208,10 @@ class MiddlewareTest extends TestCase
                     [
                         'name' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize::handle',
                         'attributes' => [
+                            'code.function.name' => 'handle',
+                            'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
+                            'code.filepath' => '/usr/src/myapp/src/Instrumentation/Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ValidatePostSize.php',
+                            'code.line.number' => 19,
                             'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ValidatePostSize',
                             'http.response.status_code' => 500,
                         ],
@@ -213,12 +222,42 @@ class MiddlewareTest extends TestCase
                                 'attributes' => [
                                     'code.function.name' => 'handle',
                                     'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'code.filepath' => '/usr/src/myapp/src/Instrumentation/Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php',
+                                    'code.line.number' => 23,
                                     'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'exception.class' => 'Exception',
                                     'exception.message' => 'Middleware Exception',
+                                    'exception.file' => '/usr/src/myapp/src/Instrumentation/Laravel/tests/Integration/Middleware/MiddlewareTest.php',
+                                    'exception.line' => 168,
                                     'http.response.status_code' => 500,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'laravel.view.render',
+                                        'attributes' => [
+                                            'code.function.name' => 'render',
+                                            'code.namespace' => 'Illuminate\View\View',
+                                            'code.filepath' => '/usr/src/myapp/src/Instrumentation/Laravel/vendor/laravel/framework/src/Illuminate/View/View.php',
+                                            'code.line.number' => 156,
+                                            'view.name' => 'errors::500',
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                        'children' => [
+                                            [
+                                                'name' => 'laravel.view.render',
+                                                'attributes' => [
+                                                    'code.function.name' => 'render',
+                                                    'code.namespace' => 'Illuminate\View\View',
+                                                    'code.filepath' => '/usr/src/myapp/src/Instrumentation/Laravel/vendor/laravel/framework/src/Illuminate/View/View.php',
+                                                    'code.line.number' => 156,
+                                                    'view.name' => 'errors::minimal',
+                                                ],
+                                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                     ],

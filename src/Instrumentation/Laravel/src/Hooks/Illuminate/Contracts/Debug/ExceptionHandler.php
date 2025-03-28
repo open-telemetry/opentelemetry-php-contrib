@@ -46,23 +46,12 @@ class ExceptionHandler implements LaravelHook
                 // Try to get the current span
                 $scope = Context::storage()->scope();
                 if (!$scope) {
-                    // If no span exists, create a new one for the exception handler
-                    $span = $this->instrumentation
-                        ->tracer()
-                        ->spanBuilder($spanName)
-                        ->setSpanKind(SpanKind::KIND_INTERNAL)
-                        ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                        ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                        ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                        ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                        ->startSpan();
-                    
-                    Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-                } else {
-                    // If a span exists, update its name
-                    $span = Span::fromContext($scope->context());
-                    $span->updateName($spanName);
+                    return;
                 }
+                
+                // Get the current span
+                $span = Span::fromContext($scope->context());
+                $span->updateName($spanName);
                 
                 // Record exception information
                 if ($exception instanceof Throwable) {
@@ -103,20 +92,10 @@ class ExceptionHandler implements LaravelHook
                 // Get the current span (or create a new one)
                 $scope = Context::storage()->scope();
                 if (!$scope) {
-                    $span = $this->instrumentation
-                        ->tracer()
-                        ->spanBuilder($class . '@' . $function)
-                        ->setSpanKind(SpanKind::KIND_INTERNAL)
-                        ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                        ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                        ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                        ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                        ->startSpan();
-                    
-                    Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-                } else {
-                    $span = Span::fromContext($scope->context());
+                    return;
                 }
+
+                $span = Span::fromContext($scope->context());
 
                 // Record the exception details
                 $span->recordException($exception);

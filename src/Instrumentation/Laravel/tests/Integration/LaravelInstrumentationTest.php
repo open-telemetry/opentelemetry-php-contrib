@@ -99,6 +99,8 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
 
+        $this->printSpans();
+
         $this->assertTraceStructure([
             [
                 'name' => 'GET /hello',
@@ -144,6 +146,15 @@ class LaravelInstrumentationTest extends TestCase
                                             'db.system.name' => 'sqlite',
                                         ],
                                         'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_CLIENT,
+                                    ],
+                                    [
+                                        'name' => 'laravel.view.render',
+                                        'attributes' => [
+                                            'code.function.name' => 'render',
+                                            'code.namespace' => 'Illuminate\View\View',
+                                            'view.name' => 'welcome',
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
                                     ],
                                 ],
                             ],
@@ -263,7 +274,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/not-found');
         $this->assertEquals(404, $response->status());
-        $this->assertCount(3, $this->storage);
+        $this->assertCount(5, $this->storage);
 
         $this->assertTraceStructure([
             [
@@ -297,10 +308,38 @@ class LaravelInstrumentationTest extends TestCase
                                 'attributes' => [
                                     'code.function.name' => 'handle',
                                     'code.namespace' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
+                                    'code.filepath' => '/usr/src/myapp/src/Instrumentation/Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php',
+                                    'code.line.number' => 23,
                                     'laravel.middleware.class' => 'Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull',
                                     'http.response.status_code' => 404,
                                 ],
                                 'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                'children' => [
+                                    [
+                                        'name' => 'laravel.view.render',
+                                        'attributes' => [
+                                            'code.function.name' => 'render',
+                                            'code.namespace' => 'Illuminate\View\View',
+                                            'code.filepath' => '/usr/src/myapp/src/Instrumentation/Laravel/vendor/laravel/framework/src/Illuminate/View/View.php',
+                                            'code.line.number' => 156,
+                                            'view.name' => 'errors::404',
+                                        ],
+                                        'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                        'children' => [
+                                            [
+                                                'name' => 'laravel.view.render',
+                                                'attributes' => [
+                                                    'code.function.name' => 'render',
+                                                    'code.namespace' => 'Illuminate\View\View',
+                                                    'code.filepath' => '/usr/src/myapp/src/Instrumentation/Laravel/vendor/laravel/framework/src/Illuminate/View/View.php',
+                                                    'code.line.number' => 156,
+                                                    'view.name' => 'errors::minimal',
+                                                ],
+                                                'kind' => \OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL,
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                     ],
