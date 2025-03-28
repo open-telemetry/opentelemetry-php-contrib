@@ -90,6 +90,8 @@ class Kernel implements LaravelHook
                     if (method_exists($route, 'getName') && $route->getName() && strpos($route->getName(), 'generated::') !== 0) {
                         $span->updateName("{$request->method()} " . $route->getName());
                         $span->setAttribute('laravel.route.name', $route->getName());
+                    } elseif (method_exists($route, 'uri')) {
+                        $span->updateName("{$request->method()} /" . ltrim($route->uri, '/'));
                     } else {
                         $span->updateName("HTTP {$request->method()}");
                     }
