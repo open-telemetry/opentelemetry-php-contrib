@@ -93,7 +93,12 @@ class PDOInstrumentationTest extends TestCase
         }
 
         $this->assertCount(0, $this->storage);
-        /** @var Pdo\Sqlite $db */
+        /**
+         * Need to suppress because of different casing of the class name
+         * 
+         * @psalm-suppress UndefinedClass
+         * @var Pdo\Sqlite $db 
+         */
         $db = self::createDBWithNewSubclass();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
