@@ -32,6 +32,7 @@ class PDOInstrumentationTest extends TestCase
             $this->markTestSkipped('Pdo\Sqlite class is not available in this PHP version');
         }
 
+        /** @psalm-suppress UndefinedMethod */
         return PDO::connect('sqlite::memory:');
     }
 
@@ -86,6 +87,11 @@ class PDOInstrumentationTest extends TestCase
      */
     public function test_pdo_sqlite_subclass(): void
     {
+        // skip if php version is less than 8.4
+        if (version_compare(PHP_VERSION, '8.4', '<')) {
+            $this->markTestSkipped('Pdo\Sqlite class is not available in this PHP version');
+        }
+
         $this->assertCount(0, $this->storage);
         /** @var Pdo\Sqlite $db */
         $db = self::createDBWithNewSubclass();
