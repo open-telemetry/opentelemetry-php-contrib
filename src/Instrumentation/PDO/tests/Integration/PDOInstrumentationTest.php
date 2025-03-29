@@ -84,6 +84,7 @@ class PDOInstrumentationTest extends TestCase
 
     /**
      * @psalm-suppress UndefinedClass
+     * @psalm-suppress InvalidClass
      */
     public function test_pdo_sqlite_subclass(): void
     {
@@ -98,6 +99,7 @@ class PDOInstrumentationTest extends TestCase
          * Need to suppress because of different casing of the class name
          *
          * @psalm-suppress UndefinedClass
+         * @psalm-suppress InvalidClass
          * @var Pdo\Sqlite $db
          */
         $db = self::createDBWithNewSubclass();
