@@ -87,7 +87,7 @@ class PDOInstrumentationTest extends TestCase
     public function test_pdo_sqlite_subclass(): void
     {
         $this->assertCount(0, $this->storage);
-        /** @var PDO\Sqlite $db */
+        /** @var Pdo\Sqlite $db */
         $db = self::createDBWithNewSubclass();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
