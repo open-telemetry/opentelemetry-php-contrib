@@ -26,7 +26,7 @@ class PDOInstrumentationTest extends TestCase
         return new PDO('sqlite::memory:');
     }
 
-    private function createDBWithNewSubclass(): PDO\Sqlite
+    private function createDBWithNewSubclass(): PDO
     {
         if (!class_exists('Pdo\Sqlite')) {
             $this->markTestSkipped('Pdo\Sqlite class is not available in this PHP version');
@@ -81,9 +81,13 @@ class PDOInstrumentationTest extends TestCase
         $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
     }
 
+    /**
+     * @psalm-suppress UndefinedClass
+     */
     public function test_pdo_sqlite_subclass(): void
     {
         $this->assertCount(0, $this->storage);
+        /** @var PDO\Sqlite $db */
         $db = self::createDBWithNewSubclass();
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
