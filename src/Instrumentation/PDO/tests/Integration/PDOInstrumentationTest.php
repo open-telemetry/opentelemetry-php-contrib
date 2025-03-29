@@ -6,6 +6,9 @@ namespace OpenTelemetry\Tests\Instrumentation\PDO\Integration;
 
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
+use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -18,7 +21,7 @@ use PHPUnit\Framework\TestCase;
 class PDOInstrumentationTest extends TestCase
 {
     private ScopeInterface $scope;
-    /** @var ArrayObject<int, ImmutableSpan> */
+    /** @var ArrayObject<array-key, mixed> */
     private ArrayObject $storage;
 
     private function createDB(): PDO
@@ -268,5 +271,75 @@ class PDOInstrumentationTest extends TestCase
         $span_db_exec = $this->storage->offsetGet(4);
         $this->assertTrue(mb_check_encoding($span_db_exec->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(5, $this->storage);
+    }
+
+    public function test_span_hierarchy_with_pdo_operations(): void
+    {
+        $this->assertCount(0, $this->storage);
+
+        // Create a server span
+        $tracerProvider = new TracerProvider(
+            new SimpleSpanProcessor(
+                new InMemoryExporter($this->storage)
+            )
+        );
+        $tracer = $tracerProvider->getTracer('test');
+        /** @var SpanInterface $serverSpan */
+        $serverSpan = $tracer->spanBuilder('HTTP GET /api/users')
+            ->setSpanKind(SpanKind::KIND_SERVER)
+            ->startSpan();
+        
+        // Create scope for server span
+        $serverScope = Context::storage()->attach($serverSpan->storeInContext(Context::getCurrent()));
+
+        // Create an internal span (simulating business logic)
+        /** @var SpanInterface $internalSpan */
+        $internalSpan = $tracer->spanBuilder('processUserData')
+            ->setSpanKind(SpanKind::KIND_INTERNAL)
+            ->startSpan();
+        
+        // Create scope for internal span
+        $internalScope = Context::storage()->attach($internalSpan->storeInContext(Context::getCurrent()));
+
+        // Perform PDO operations within the internal span context
+        $db = self::createDB();
+        $this->assertCount(1, $this->storage); // PDO constructor span
+
+        // Create and populate test table
+        $db->exec($this->fillDB());
+        $this->assertCount(2, $this->storage); // PDO exec span
+
+        // Query data
+        $stmt = $db->prepare('SELECT * FROM technology WHERE name = ?');
+        $this->assertCount(3, $this->storage); // PDO prepare span
+
+        $stmt->execute(['PHP']);
+        $this->assertCount(4, $this->storage); // PDOStatement execute span
+
+        $result = $stmt->fetchAll();
+        $this->assertCount(5, $this->storage); // PDOStatement fetchAll span
+
+        // Verify span hierarchy
+        /** @var ImmutableSpan $pdoSpan */
+        $pdoSpan = $this->storage->offsetGet(0);
+        /** @var ImmutableSpan $execSpan */
+        $execSpan = $this->storage->offsetGet(1);
+        /** @var ImmutableSpan $prepareSpan */
+        $prepareSpan = $this->storage->offsetGet(2);
+        /** @var ImmutableSpan $executeSpan */
+        $executeSpan = $this->storage->offsetGet(3);
+        /** @var ImmutableSpan $fetchAllSpan */
+        $fetchAllSpan = $this->storage->offsetGet(4);
+
+        // All PDO spans should be children of the internal span
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $pdoSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $execSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $prepareSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $executeSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $fetchAllSpan->getParentSpanId());
+
+        // Detach scopes
+        $internalScope->detach();
+        $serverScope->detach();
     }
 }

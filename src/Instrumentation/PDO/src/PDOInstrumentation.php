@@ -263,9 +263,10 @@ class PDOInstrumentation
                 if ($spanContext = $pdoTracker->getSpanForPreparedStatement($statement)) {
                     $builder->addLink($spanContext);
                 }
+                $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
                 self::end($exception);
@@ -290,9 +291,9 @@ class PDOInstrumentation
                 if ($spanContext = $pdoTracker->getSpanForPreparedStatement($statement)) {
                     $builder->addLink($spanContext);
                 }
+                $parent = Context::getCurrent();
                 $span = $builder->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
                 self::end($exception);
