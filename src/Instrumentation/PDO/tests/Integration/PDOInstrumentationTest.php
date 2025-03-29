@@ -31,6 +31,7 @@ class PDOInstrumentationTest extends TestCase
         if (!class_exists('Pdo\Sqlite')) {
             $this->markTestSkipped('Pdo\Sqlite class is not available in this PHP version');
         }
+
         return PDO::connect('sqlite::memory:');
     }
 
