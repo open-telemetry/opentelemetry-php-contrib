@@ -70,8 +70,11 @@ class PDOInstrumentation
 
                     $dsn = $params[0] ?? '';
 
-                    $attributes = $pdoTracker->trackPdoAttributes($object, $dsn);
-                    $span->setAttributes($attributes);
+                    // guard against PDO::connect returning a string
+                    if ($result instanceof PDO) {
+                        $attributes = $pdoTracker->trackPdoAttributes($result, $dsn);
+                        $span->setAttributes($attributes);
+                    }
 
                     self::end($exception);
                 }
