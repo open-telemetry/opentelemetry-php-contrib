@@ -12,6 +12,10 @@ if (version_compare(PHP_VERSION, '8.4', '<')) {
         '#Call to method exec\(\) on an unknown class PDO\\\\Sqlite#',
         '#Call to method query\(\) on an unknown class PDO\\\\Sqlite#',
     ];
+} elseif (version_compare(PHP_VERSION, '8.4', '>=')) {
+    $ignoreErrors = [
+        '#Call to an undefined method Pdo\\\\Sqlite::createFunction\(\)#',
+    ];
 }
 
 return [
