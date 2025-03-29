@@ -36,7 +36,14 @@ class PDOInstrumentation
             hook(
                 PDO::class,
                 'connect',
-                pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                pre: static function (
+                    $object,
+                    array $params,
+                    string $class,
+                    string $function,
+                    ?string $filename,
+                    ?int $lineno,
+                ) use ($instrumentation) {
                     /** @psalm-suppress ArgumentTypeCoercion */
                     $builder = self::makeBuilder($instrumentation, 'PDO::connect', $function, $class, $filename, $lineno)
                         ->setSpanKind(SpanKind::KIND_CLIENT);
@@ -49,7 +56,12 @@ class PDOInstrumentation
                     $span = $builder->startSpan();
                     Context::storage()->attach($span->storeInContext($parent));
                 },
-                post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) use ($pdoTracker) {
+                post: static function (
+                    $object,
+                    array $params,
+                    $result,
+                    ?Throwable $exception,
+                ) use ($pdoTracker) {
                     $scope = Context::storage()->scope();
                     if (!$scope) {
                         return;
@@ -58,7 +70,7 @@ class PDOInstrumentation
 
                     $dsn = $params[0] ?? '';
 
-                    $attributes = $pdoTracker->trackPdoAttributes($pdo, $dsn);
+                    $attributes = $pdoTracker->trackPdoAttributes($object, $dsn);
                     $span->setAttributes($attributes);
 
                     self::end($exception);
