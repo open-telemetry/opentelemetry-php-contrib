@@ -26,6 +26,14 @@ class PDOInstrumentationTest extends TestCase
         return new PDO('sqlite::memory:');
     }
 
+    private function createDBWithNewSubclass(): PDO\Sqlite
+    {
+        if (!class_exists('Pdo\Sqlite')) {
+            $this->markTestSkipped('Pdo\Sqlite class is not available in this PHP version');
+        }
+        return PDO::connect('sqlite::memory:');
+    }
+
     private function fillDB():string
     {
         return <<<SQL
@@ -70,6 +78,34 @@ class PDOInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $this->assertSame('PDO::__construct', $span->getName());
         $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+    }
+
+    public function test_pdo_sqlite_subclass(): void
+    {
+        $this->assertCount(0, $this->storage);
+        $db = self::createDBWithNewSubclass();
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('PDO::connect', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+
+        // Test that the subclass-specific methods work
+        $db->createFunction('test_function', static fn ($value) => strtoupper($value));
+        
+        // Test that standard PDO operations still work
+        $db->exec($this->fillDB());
+        $span = $this->storage->offsetGet(1);
+        $this->assertSame('PDO::exec', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+        $this->assertCount(2, $this->storage);
+
+        // Test that the custom function works
+        $result = $db->query("SELECT test_function('hello')")->fetchColumn();
+        $this->assertEquals('HELLO', $result);
+        $span = $this->storage->offsetGet(2);
+        $this->assertSame('PDO::query', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+        $this->assertCount(3, $this->storage);
     }
 
     public function test_constructor_exception(): void
