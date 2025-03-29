@@ -7,3 +7,10 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        # PHP 8.4 PDO subclass issues
+        - '#Call to an undefined static method PDO::connect\(\)#'
+        - '#PHPDoc tag @var for variable \$db contains unknown class PDO\\Sqlite#'
+        - '#Call to method createFunction\(\) on an unknown class PDO\\Sqlite#'
+        - '#Call to method exec\(\) on an unknown class PDO\\Sqlite#'
+        - '#Call to method query\(\) on an unknown class PDO\\Sqlite#'
