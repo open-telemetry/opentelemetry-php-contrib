@@ -16,7 +16,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
 {
     public static function setUpBeforeClass(): void
     {
-        TestHttpServer::start();
+        TestHttpServer::start(8058);
     }
 
     protected function getHttpClient(string $_testCase): HttpClientInterface
@@ -32,7 +32,8 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $client = $this->getHttpClient(__FUNCTION__);
         $this->assertCount(0, $this->storage);
 
-        $response = $client->request($method, $uri, ['bindto' => '127.0.0.1:9876']);
+        $port = 9876 + (parse_url($uri, PHP_URL_PATH) === '/1' ? 1 : 0);
+        $response = $client->request($method, $uri, ['bindto' => "127.0.0.1:$port"]);
         $response->getStatusCode();
         $this->assertCount(1, $this->storage);
 
@@ -62,7 +63,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         try {
-            $client->request('GET', 'http://localhost:8057', [
+            $client->request('GET', 'http://localhost:8058', [
                 'bindto' => '127.0.0.1:9876',
                 'auth_ntlm' => [],
             ]);
@@ -83,10 +84,10 @@ final class HttpClientInstrumentationTest extends AbstractTest
     public function requestProvider(): array
     {
         return [
-            ['GET', 'http://localhost:8057', Response::HTTP_OK, StatusCode::STATUS_UNSET],
-            ['GET','http://localhost:8057/404', Response::HTTP_NOT_FOUND, StatusCode::STATUS_ERROR],
-            ['POST','http://localhost:8057/json', Response::HTTP_OK, StatusCode::STATUS_UNSET],
-            ['DELETE', 'http://localhost:8057/1', Response::HTTP_OK, StatusCode::STATUS_UNSET],
+            ['GET', 'http://localhost:8058', Response::HTTP_OK, StatusCode::STATUS_UNSET],
+            ['GET','http://localhost:8058/404', Response::HTTP_NOT_FOUND, StatusCode::STATUS_ERROR],
+            ['POST','http://localhost:8058/json', Response::HTTP_OK, StatusCode::STATUS_UNSET],
+            ['DELETE', 'http://localhost:8058/1', Response::HTTP_OK, StatusCode::STATUS_UNSET],
         ];
     }
 }
