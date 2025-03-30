@@ -29,6 +29,15 @@ final class SendEmailMessage
     }
 }
 
+final class SendEmailMessageHandler
+{
+    public function __invoke(SendEmailMessage $message)
+    {
+        // Handler logic
+        return 'handled';
+    }
+}
+
 final class MessengerInstrumentationTest extends AbstractTest
 {
     protected function getMessenger(): MessageBusInterface
@@ -144,6 +153,61 @@ final class MessengerInstrumentationTest extends AbstractTest
             $this->assertCount(1, $this->storage);
             $this->assertArrayHasKey(0, $this->storage);
         }
+    }
+
+    public function test_handle_message()
+    {
+        $bus = $this->getMessenger();
+        $transport = $this->getTransport();
+        $worker = new \Symfony\Component\Messenger\Worker(
+            ['transport' => $transport],
+            $bus
+        );
+
+        // Send a message to the transport
+        $message = new SendEmailMessage('Hello Again');
+        $envelope = new Envelope($message);
+        $transport->send($envelope);
+
+        // Get and handle the message
+        $messages = iterator_to_array($transport->get());
+        $message = $messages[0];
+        
+        // Use reflection to call the protected handleMessage method
+        $reflection = new \ReflectionClass($worker);
+        $handleMessageMethod = $reflection->getMethod('handleMessage');
+        $handleMessageMethod->setAccessible(true);
+        $handleMessageMethod->invoke($worker, $message, 'transport');
+
+        // We should have 3 spans: send, dispatch, and consume
+        $this->assertCount(3, $this->storage);
+
+        // Check the send span
+        $sendSpan = $this->storage[0];
+        $this->assertEquals(
+            'SEND OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+            $sendSpan->getName()
+        );
+        $this->assertEquals(SpanKind::KIND_PRODUCER, $sendSpan->getKind());
+
+        // Check the dispatch span
+        $dispatchSpan = $this->storage[1];
+        $this->assertEquals(
+            'DISPATCH Symfony\Component\Messenger\Envelope',
+            $dispatchSpan->getName()
+        );
+        $this->assertEquals(SpanKind::KIND_PRODUCER, $dispatchSpan->getKind());
+
+        // Check the consumer span
+        $consumeSpan = $this->storage[2];
+        $this->assertEquals(
+            'CONSUME OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+            $consumeSpan->getName()
+        );
+        $this->assertEquals(SpanKind::KIND_CONSUMER, $consumeSpan->getKind());
+        $this->assertTrue($consumeSpan->getAttributes()->has(MessengerInstrumentation::ATTRIBUTE_MESSAGING_SYSTEM));
+        $this->assertEquals('symfony', $consumeSpan->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSAGING_SYSTEM));
+        $this->assertEquals('receive', $consumeSpan->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSAGING_OPERATION));
     }
 
     public function sendDataProvider(): array
