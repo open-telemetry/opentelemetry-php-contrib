@@ -87,16 +87,10 @@ class LaravelInstrumentationTest extends TestCase
     public function test_eloquent_operations(): void
     {
         /** @var class-string<\Illuminate\Database\Eloquent\Model> */
-        $modelClass = eval('
-            if (!class_exists("TestModel")) {
-                class TestModel extends \Illuminate\Database\Eloquent\Model
-                {
-                    protected $table = "test_models";
-                    protected $fillable = ["name"];
-                }
-            }
-            return TestModel::class;
-        ');
+        $model = new class() extends \Illuminate\Database\Eloquent\Model {
+            protected $table = 'test_models';
+            protected $fillable = ['name'];
+        };
 
         // Assert storage is empty before interacting with the database
         $this->assertCount(0, $this->storage);
