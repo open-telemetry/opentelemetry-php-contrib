@@ -24,6 +24,7 @@ final class EnvelopeContextPropagator implements PropagationGetterInterface, Pro
         if (null === self::$instance) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
@@ -84,4 +85,4 @@ final class EnvelopeContextPropagator implements PropagationGetterInterface, Pro
 
         return null;
     }
-} 
+}
