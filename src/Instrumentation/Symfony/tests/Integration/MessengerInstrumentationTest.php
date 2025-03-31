@@ -72,13 +72,6 @@ final class MessengerInstrumentationTest extends AbstractTest
         return new LegacyInMemoryTransport();
     }
 
-    public function setUp(): void
-    {
-        MessengerInstrumentation::register();
-        parent::setUp();
-        $this->storage = new ArrayObject();
-    }
-
     /**
      * @dataProvider dispatchDataProvider
      * @param mixed $message
