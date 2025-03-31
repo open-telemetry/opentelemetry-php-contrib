@@ -503,23 +503,6 @@ final class MessengerInstrumentation
         }
     }
 
-    private static function buildResourceName(string $messageClass, ?string $transportName = null, ?string $operation = null): string
-    {
-        if (empty($transportName)) {
-            return $messageClass;
-        }
-
-        if ($operation === 'send') {
-            return \sprintf('%s -> %s', $messageClass, $transportName);
-        }
-
-        if ($operation === 'receive' || $operation === 'consume') {
-            return \sprintf('%s -> %s', $transportName, $messageClass);
-        }
-
-        return \sprintf('%s -> %s', $messageClass, $transportName);
-    }
-
     private static function addMessageStampsToSpan(SpanBuilderInterface $builder, Envelope $envelope): void
     {
         $busStamp = $envelope->last(BusNameStamp::class);
@@ -584,8 +567,5 @@ final class MessengerInstrumentation
                 $builder->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE_ID, $amazonSqsReceivedStamp->getId());
             }
         }
-
-        // Set resource name
-        $builder->setAttribute('resource.name', self::buildResourceName($messageClass, $transportName, $operation));
     }
 }
