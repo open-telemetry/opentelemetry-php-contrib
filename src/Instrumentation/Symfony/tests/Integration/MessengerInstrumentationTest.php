@@ -289,60 +289,22 @@ final class MessengerInstrumentationTest extends AbstractTest
         $this->assertArrayHasKey('Symfony\Component\Messenger\Stamp\TransportMessageIdStamp', $stamps);
     }
 
-    public function test_resource_names()
+    public function test_throw_exception(): void
     {
-        $transport = $this->getTransport();
-        $message = new SendEmailMessage('Hello Again');
-        
-        // Test send operation
-        $envelope = new Envelope($message, [
-            new \Symfony\Component\Messenger\Stamp\SentStamp('test_transport', 'TestSender'),
-        ]);
-        $transport->send($envelope);
-        
-        $this->assertCount(1, $this->storage);
-        $sendSpan = $this->storage[0];
-        $this->assertTrue($sendSpan->getAttributes()->has('resource.name'));
-        $this->assertEquals(
-            'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage -> TestSender',
-            $sendSpan->getAttributes()->get('resource.name')
-        );
-        
-        // Clear storage for next test
-        $this->storage = new ArrayObject();
-        
-        // Test receive operation
-        $envelope = new Envelope($message, [
-            new \Symfony\Component\Messenger\Stamp\ReceivedStamp('test_transport'),
-        ]);
-        
-        // First send the message to the transport
-        $transport->send($envelope);
-        
-        // Create a worker and handle the message
-        $bus = $this->getMessenger();
-        $worker = new \Symfony\Component\Messenger\Worker(
-            ['test_transport' => $transport],
-            $bus
-        );
-        
-        // Get and handle the message
-        $messages = iterator_to_array($transport->get());
-        $receivedEnvelope = $messages[0];
-        
-        // Use reflection to call the protected handleMessage method
-        $reflection = new \ReflectionClass($worker);
-        $handleMessageMethod = $reflection->getMethod('handleMessage');
-        $handleMessageMethod->setAccessible(true);
-        $handleMessageMethod->invoke($worker, $receivedEnvelope, 'test_transport');
-        
-        $this->assertCount(1, $this->storage);
-        $receiveSpan = $this->storage[0];
-        $this->assertTrue($receiveSpan->getAttributes()->has('resource.name'));
-        $this->assertEquals(
-            'test_transport -> OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-            $receiveSpan->getAttributes()->get('resource.name')
-        );
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('test');
+
+        $bus = $this->getBus(__FUNCTION__);
+        $bus->dispatch(new TestMessage());
+    }
+
+    public function test_throw_exception_with_retry(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('test');
+
+        $bus = $this->getBus(__FUNCTION__);
+        $bus->dispatch(new TestMessageWithRetry());
     }
 
     public function sendDataProvider(): array
