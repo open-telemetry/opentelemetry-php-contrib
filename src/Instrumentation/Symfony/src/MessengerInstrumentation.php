@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Symfony;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
@@ -26,7 +27,6 @@ use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 use Symfony\Component\Messenger\Worker;
-use OpenTelemetry\API\Trace\SpanBuilderInterface;
 
 // Add Amazon SQS stamp class if available
 if (\class_exists('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp')) {
@@ -42,10 +42,6 @@ if (\class_exists('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\Amazon
  */
 final class MessengerInstrumentation
 {
-    const ATTRIBUTE_MESSAGING_SYSTEM = 'messaging.system';
-    const ATTRIBUTE_MESSAGING_OPERATION = 'messaging.operation';
-    const ATTRIBUTE_MESSAGING_DESTINATION = 'messaging.destination';
-    const ATTRIBUTE_MESSAGING_MESSAGE_ID = 'messaging.message_id';
     const ATTRIBUTE_MESSAGING_MESSAGE = 'messaging.message';
     const ATTRIBUTE_MESSAGING_BUS = 'messaging.symfony.bus';
     const ATTRIBUTE_MESSAGING_HANDLER = 'messaging.symfony.handler';
@@ -54,10 +50,11 @@ final class MessengerInstrumentation
     const ATTRIBUTE_MESSAGING_DELAY = 'messaging.symfony.delay';
     const ATTRIBUTE_MESSAGING_RETRY_COUNT = 'messaging.symfony.retry_count';
     const ATTRIBUTE_MESSAGING_STAMPS = 'messaging.symfony.stamps';
+    const ATTRIBUTE_MESSAGING_MIDDLEWARE = 'symfony.messenger.middleware';
+    const ATTRIBUTE_MESSAGING_CONSUMED_BY_WORKER = 'messaging.symfony.consumed_by_worker';
 
     // Constants used in tests
     const ATTRIBUTE_MESSENGER_BUS = self::ATTRIBUTE_MESSAGING_BUS;
-    const ATTRIBUTE_MESSENGER_TRANSPORT = self::ATTRIBUTE_MESSAGING_DESTINATION;
     const ATTRIBUTE_MESSENGER_MESSAGE = self::ATTRIBUTE_MESSAGING_MESSAGE;
 
     /** @psalm-suppress PossiblyUnusedMethod */
@@ -96,8 +93,8 @@ final class MessengerInstrumentation
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'dispatch')
+                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'dispatch')
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_BUS, $class)
                 ;
@@ -174,10 +171,10 @@ final class MessengerInstrumentation
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'send')
+                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'send')
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_DESTINATION, $class)
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $class)
                 ;
 
                 self::addMessageStampsToSpan($builder, $envelope);
@@ -257,9 +254,9 @@ final class MessengerInstrumentation
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'receive')
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_DESTINATION, $transportName)
+                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'receive')
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $transportName)
                 ;
 
                 self::addMessageStampsToSpan($builder, $envelope);
@@ -324,8 +321,8 @@ final class MessengerInstrumentation
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'process')
+                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'process')
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
                 ;
 
@@ -391,8 +388,8 @@ final class MessengerInstrumentation
                         ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                         ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                         ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                        ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
-                        ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'process')
+                        ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
+                        ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'process')
                         ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
                         ->setAttribute(self::ATTRIBUTE_MESSAGING_HANDLER, $handlerClass)
                     ;
@@ -460,10 +457,10 @@ final class MessengerInstrumentation
                         ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                         ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                         ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                        ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
-                        ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'middleware')
+                        ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
+                        ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'middleware')
                         ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
-                        ->setAttribute('messaging.symfony.middleware', $middlewareClass)
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_MIDDLEWARE, $middlewareClass)
                     ;
 
                     self::addMessageStampsToSpan($builder, $envelope);
@@ -514,12 +511,12 @@ final class MessengerInstrumentation
         $sentStamp = $envelope->last(SentStamp::class);
         $transportMessageIdStamp = $envelope->last(TransportMessageIdStamp::class);
 
-        $messageClass = \get_class($envelope->getMessage());
-        $transportName = null;
-        $operation = null;
-
         if ($busStamp) {
             $builder->setAttribute(self::ATTRIBUTE_MESSAGING_BUS, $busStamp->getBusName());
+        }
+
+        if ($consumedByWorkerStamp) {
+            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_CONSUMED_BY_WORKER, true);
         }
 
         if ($handledStamp) {
@@ -533,17 +530,13 @@ final class MessengerInstrumentation
 
         if ($sentStamp) {
             $builder->setAttribute(self::ATTRIBUTE_MESSAGING_SENDER, $sentStamp->getSenderClass());
-            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_DESTINATION, $sentStamp->getSenderAlias());
-            $transportName = $sentStamp->getSenderAlias();
-            $operation = 'send';
+            $builder->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $sentStamp->getSenderAlias());
         } elseif ($receivedStamp) {
-            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_DESTINATION, $receivedStamp->getTransportName());
-            $transportName = $receivedStamp->getTransportName();
-            $operation = 'receive';
+            $builder->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $receivedStamp->getTransportName());
         }
 
         if ($transportMessageIdStamp) {
-            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE_ID, $transportMessageIdStamp->getId());
+            $builder->setAttribute(TraceAttributes::MESSAGING_MESSAGE_ID, $transportMessageIdStamp->getId());
         }
 
         if ($delayStamp) {
@@ -564,7 +557,7 @@ final class MessengerInstrumentation
             /** @var \Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp|null $amazonSqsReceivedStamp */
             $amazonSqsReceivedStamp = $envelope->last('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp');
             if ($amazonSqsReceivedStamp && !$transportMessageIdStamp && method_exists($amazonSqsReceivedStamp, 'getId')) {
-                $builder->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE_ID, $amazonSqsReceivedStamp->getId());
+                $builder->setAttribute(TraceAttributes::MESSAGING_MESSAGE_ID, $amazonSqsReceivedStamp->getId());
             }
         }
     }
