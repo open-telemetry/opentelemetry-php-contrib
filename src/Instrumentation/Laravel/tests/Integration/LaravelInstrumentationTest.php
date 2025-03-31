@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel;
 
 /** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
@@ -86,12 +87,6 @@ class LaravelInstrumentationTest extends TestCase
 
     public function test_eloquent_operations(): void
     {
-        /** @var class-string<\Illuminate\Database\Eloquent\Model> */
-        $model = new class() extends \Illuminate\Database\Eloquent\Model {
-            protected $table = 'test_models';
-            protected $fillable = ['name'];
-        };
-
         // Assert storage is empty before interacting with the database
         $this->assertCount(0, $this->storage);
 
@@ -103,16 +98,13 @@ class LaravelInstrumentationTest extends TestCase
             updated_at DATETIME
         )');
 
-        $this->router()->get('/eloquent', function () use ($modelClass) {
+        $this->router()->get('/eloquent', function () {
             try {
-                /** @var \Illuminate\Database\Eloquent\Model $model */
-                $model = new $modelClass();
-                
                 // Test create
-                $created = $modelClass::create(['name' => 'test']);
+                $created = TestModel::create(['name' => 'test']);
                 
                 // Test find
-                $found = $modelClass::find($created->id);
+                $found = TestModel::find($created->id);
                 
                 // Test update
                 $found->update(['name' => 'updated']);
@@ -161,8 +153,8 @@ class LaravelInstrumentationTest extends TestCase
         $createSpan = array_values(array_filter($eloquentSpans, function ($span) {
             return $span->getAttributes()->get('laravel.eloquent.operation') === 'create';
         }))[0];
-        $this->assertSame('TestModel::create', $createSpan->getName());
-        $this->assertSame('TestModel', $createSpan->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::create', $createSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $createSpan->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $createSpan->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('create', $createSpan->getAttributes()->get('laravel.eloquent.operation'));
         
@@ -170,8 +162,8 @@ class LaravelInstrumentationTest extends TestCase
         $findSpan = array_values(array_filter($eloquentSpans, function ($span) {
             return $span->getAttributes()->get('laravel.eloquent.operation') === 'find';
         }))[0];
-        $this->assertSame('TestModel::find', $findSpan->getName());
-        $this->assertSame('TestModel', $findSpan->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::find', $findSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $findSpan->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $findSpan->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('find', $findSpan->getAttributes()->get('laravel.eloquent.operation'));
         
@@ -179,8 +171,8 @@ class LaravelInstrumentationTest extends TestCase
         $updateSpan = array_values(array_filter($eloquentSpans, function ($span) {
             return $span->getAttributes()->get('laravel.eloquent.operation') === 'update';
         }))[0];
-        $this->assertSame('TestModel::update', $updateSpan->getName());
-        $this->assertSame('TestModel', $updateSpan->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::update', $updateSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $updateSpan->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $updateSpan->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('update', $updateSpan->getAttributes()->get('laravel.eloquent.operation'));
         
@@ -188,8 +180,8 @@ class LaravelInstrumentationTest extends TestCase
         $deleteSpan = array_values(array_filter($eloquentSpans, function ($span) {
             return $span->getAttributes()->get('laravel.eloquent.operation') === 'delete';
         }))[0];
-        $this->assertSame('TestModel::delete', $deleteSpan->getName());
-        $this->assertSame('TestModel', $deleteSpan->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::delete', $deleteSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $deleteSpan->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $deleteSpan->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('delete', $deleteSpan->getAttributes()->get('laravel.eloquent.operation'));
     }
