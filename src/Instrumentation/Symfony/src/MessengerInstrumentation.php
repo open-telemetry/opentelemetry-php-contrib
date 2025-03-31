@@ -26,6 +26,15 @@ use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 use Symfony\Component\Messenger\Worker;
+use OpenTelemetry\API\Trace\SpanBuilderInterface;
+
+// Add Amazon SQS stamp class if available
+if (\class_exists('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp')) {
+    class_alias(
+        'Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp',
+        'OpenTelemetry\Contrib\Instrumentation\Symfony\AmazonSqsReceivedStamp'
+    );
+}
 
 /**
  * The messenger instrumentation will create spans for message operations in Symfony's Messenger system.
@@ -226,6 +235,12 @@ final class MessengerInstrumentation
                 $transport = $params[1];
                 $transportName = \is_object($transport) ? \get_class($transport) : $transport;
 
+                // Use ReceivedStamp transport name if available
+                $receivedStamp = $envelope->last(ReceivedStamp::class);
+                if ($receivedStamp) {
+                    $transportName = $receivedStamp->getTransportName();
+                }
+
                 // Extract OpenTelemetry context from message envelope
                 $propagator = Globals::propagator();
                 $extractedContext = EnvelopeContextPropagator::getInstance()->extractContextFromEnvelope($envelope);
@@ -348,9 +363,164 @@ final class MessengerInstrumentation
                 $span->end();
             }
         );
+
+        // Add instrumentation for individual handlers in Symfony 6.2+
+        if (method_exists('Symfony\Component\Messenger\Middleware\HandleMessageMiddleware', 'callHandler')) {
+            hook(
+                'Symfony\Component\Messenger\Middleware\HandleMessageMiddleware',
+                'callHandler',
+                pre: static function (
+                    object $middleware,
+                    array $params,
+                    string $class,
+                    string $function,
+                    ?string $filename,
+                    ?int $lineno,
+                ) use ($instrumentation): array {
+                    $handler = $params[0];
+                    $message = $params[1];
+                    $handlerClass = \get_class($handler);
+                    $messageClass = \get_class($message);
+
+                    /** @psalm-suppress ArgumentTypeCoercion */
+                    $builder = $instrumentation
+                        ->tracer()
+                        ->spanBuilder(\sprintf('HANDLE %s::%s', $handlerClass, $messageClass))
+                        ->setSpanKind(SpanKind::KIND_INTERNAL)
+                        ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
+                        ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                        ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                        ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'process')
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_HANDLER, $handlerClass)
+                    ;
+
+                    $parent = Context::getCurrent();
+                    $span = $builder
+                        ->setParent($parent)
+                        ->startSpan();
+
+                    $context = $span->storeInContext($parent);
+                    Context::storage()->attach($context);
+
+                    return $params;
+                },
+                post: static function (
+                    object $middleware,
+                    array $params,
+                    $result,
+                    ?\Throwable $exception
+                ): void {
+                    $scope = Context::storage()->scope();
+                    if (null === $scope) {
+                        return;
+                    }
+
+                    $scope->detach();
+                    $span = Span::fromContext($scope->context());
+
+                    if (null !== $exception) {
+                        $span->recordException($exception);
+                        $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    }
+
+                    $span->end();
+                }
+            );
+        }
+
+        if (getenv('OTEL_PHP_MESSENGER_INSTRUMENT_MIDDLEWARES')) {
+            /**
+             * Instrument all middlewares
+             */
+            hook(
+                'Symfony\Component\Messenger\Middleware\MiddlewareInterface',
+                'handle',
+                pre: static function (
+                    object $middleware,
+                    array $params,
+                    string $class,
+                    string $function,
+                    ?string $filename,
+                    ?int $lineno,
+                ) use ($instrumentation): array {
+                    /** @var Envelope $envelope */
+                    $envelope = $params[0];
+                    $messageClass = \get_class($envelope->getMessage());
+                    $middlewareClass = \get_class($middleware);
+
+                    /** @psalm-suppress ArgumentTypeCoercion */
+                    $builder = $instrumentation
+                        ->tracer()
+                        ->spanBuilder(\sprintf('MIDDLEWARE %s::%s', $middlewareClass, $messageClass))
+                        ->setSpanKind(SpanKind::KIND_INTERNAL)
+                        ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
+                        ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                        ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                        ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_SYSTEM, 'symfony')
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_OPERATION, 'middleware')
+                        ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
+                        ->setAttribute('messaging.symfony.middleware', $middlewareClass)
+                    ;
+
+                    self::addMessageStampsToSpan($builder, $envelope);
+
+                    $parent = Context::getCurrent();
+                    $span = $builder
+                        ->setParent($parent)
+                        ->startSpan();
+
+                    $context = $span->storeInContext($parent);
+                    Context::storage()->attach($context);
+
+                    return $params;
+                },
+                post: static function (
+                    object $middleware,
+                    array $params,
+                    ?Envelope $result,
+                    ?\Throwable $exception
+                ): void {
+                    $scope = Context::storage()->scope();
+                    if (null === $scope) {
+                        return;
+                    }
+
+                    $scope->detach();
+                    $span = Span::fromContext($scope->context());
+
+                    if (null !== $exception) {
+                        $span->recordException($exception);
+                        $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    }
+
+                    $span->end();
+                }
+            );
+        }
     }
 
-    private static function addMessageStampsToSpan($builder, Envelope $envelope): void
+    private static function buildResourceName(string $messageClass, ?string $transportName = null, ?string $operation = null): string
+    {
+        if (empty($transportName)) {
+            return $messageClass;
+        }
+
+        if ($operation === 'send') {
+            return \sprintf('%s -> %s', $messageClass, $transportName);
+        }
+
+        if ($operation === 'receive' || $operation === 'consume') {
+            return \sprintf('%s -> %s', $transportName, $messageClass);
+        }
+
+        return \sprintf('%s -> %s', $messageClass, $transportName);
+    }
+
+    private static function addMessageStampsToSpan(SpanBuilderInterface $builder, Envelope $envelope): void
     {
         $busStamp = $envelope->last(BusNameStamp::class);
         $consumedByWorkerStamp = $envelope->last(ConsumedByWorkerStamp::class);
@@ -361,6 +531,10 @@ final class MessengerInstrumentation
         $sentStamp = $envelope->last(SentStamp::class);
         $transportMessageIdStamp = $envelope->last(TransportMessageIdStamp::class);
 
+        $messageClass = \get_class($envelope->getMessage());
+        $transportName = null;
+        $operation = null;
+
         if ($busStamp) {
             $builder->setAttribute(self::ATTRIBUTE_MESSAGING_BUS, $busStamp->getBusName());
         }
@@ -370,32 +544,48 @@ final class MessengerInstrumentation
         }
 
         if ($redeliveryStamp) {
-            $builder->setAttribute(
-                self::ATTRIBUTE_MESSAGING_REDELIVERED_AT,
-                $redeliveryStamp->getRedeliveredAt()->format('Y-m-d\TH:i:sP')
-            );
+            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_REDELIVERED_AT, $redeliveryStamp->getRedeliveredAt()->format('Y-m-d\TH:i:sP'));
             $builder->setAttribute(self::ATTRIBUTE_MESSAGING_RETRY_COUNT, $redeliveryStamp->getRetryCount());
         }
 
         if ($sentStamp) {
             $builder->setAttribute(self::ATTRIBUTE_MESSAGING_SENDER, $sentStamp->getSenderClass());
-        }
-
-        if ($delayStamp) {
-            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_DELAY, $delayStamp->getDelay());
+            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_DESTINATION, $sentStamp->getSenderAlias());
+            $transportName = $sentStamp->getSenderAlias();
+            $operation = 'send';
+        } elseif ($receivedStamp) {
+            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_DESTINATION, $receivedStamp->getTransportName());
+            $transportName = $receivedStamp->getTransportName();
+            $operation = 'receive';
         }
 
         if ($transportMessageIdStamp) {
             $builder->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE_ID, $transportMessageIdStamp->getId());
         }
 
-        // Add count of all stamps as a metric
+        if ($delayStamp) {
+            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_DELAY, $delayStamp->getDelay());
+        }
+
+        // Add all stamps count
         $stamps = [];
         foreach ($envelope->all() as $stampFqcn => $instances) {
             $stamps[$stampFqcn] = \count($instances);
         }
         if (!empty($stamps)) {
-            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_STAMPS, $stamps);
+            $builder->setAttribute(self::ATTRIBUTE_MESSAGING_STAMPS, \json_encode($stamps));
         }
+
+        // Support for Amazon SQS
+        if (\class_exists('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp')) {
+            /** @var \Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp|null $amazonSqsReceivedStamp */
+            $amazonSqsReceivedStamp = $envelope->last('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp');
+            if ($amazonSqsReceivedStamp && !$transportMessageIdStamp && method_exists($amazonSqsReceivedStamp, 'getId')) {
+                $builder->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE_ID, $amazonSqsReceivedStamp->getId());
+            }
+        }
+
+        // Set resource name
+        $builder->setAttribute('resource.name', self::buildResourceName($messageClass, $transportName, $operation));
     }
 }
