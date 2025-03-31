@@ -39,6 +39,22 @@ final class SendEmailMessageHandler
     }
 }
 
+final class TestMessage
+{
+    public function __construct()
+    {
+        throw new \RuntimeException('test');
+    }
+}
+
+final class TestMessageWithRetry
+{
+    public function __construct()
+    {
+        throw new \RuntimeException('test');
+    }
+}
+
 final class MessengerInstrumentationTest extends AbstractTest
 {
     protected function getMessenger(): MessageBusInterface
@@ -294,7 +310,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('test');
 
-        $bus = $this->getBus(__FUNCTION__);
+        $bus = $this->getMessenger();
         $bus->dispatch(new TestMessage());
     }
 
@@ -303,7 +319,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('test');
 
-        $bus = $this->getBus(__FUNCTION__);
+        $bus = $this->getMessenger();
         $bus->dispatch(new TestMessageWithRetry());
     }
 
