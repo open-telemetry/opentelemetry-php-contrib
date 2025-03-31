@@ -6,6 +6,9 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @psalm-suppress UnusedClass
+ */
 class TestModel extends Model
 {
     protected $table = 'test_models';
