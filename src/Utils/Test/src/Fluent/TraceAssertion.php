@@ -63,6 +63,7 @@ class TraceAssertion
         $rootSpans = [];
         $spanMap = $this->buildSpanMap($this->spans);
 
+        /** @psalm-suppress UnusedVariable */
         foreach ($spanMap as $spanId => $data) {
             $span = $data['span'];
             $parentSpanId = $span->getParentSpanId();
@@ -151,6 +152,7 @@ class TraceAssertion
         $rootSpans = [];
         $spanMap = $this->buildSpanMap($this->spans);
 
+        /** @psalm-suppress UnusedVariable */
         foreach ($spanMap as $spanId => $data) {
             $span = $data['span'];
             $parentSpanId = $span->getParentSpanId();

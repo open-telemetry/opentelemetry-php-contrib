@@ -240,11 +240,12 @@ class TraceAssertionFailedException extends AssertionFailedError
         } elseif (null === $value) {
             return 'null';
         } elseif (is_array($value)) {
-            return json_encode($value);
+            $json = json_encode($value);
+
+            return $json === false ? '[unable to encode]' : $json;
         }
 
         return (string) $value;
-        
     }
 
     /**
