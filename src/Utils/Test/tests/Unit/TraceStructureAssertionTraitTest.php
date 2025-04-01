@@ -233,4 +233,133 @@ class TraceStructureAssertionTraitTest extends TestCase
         // Assert the trace structure
         $this->assertTraceStructure($this->storage, $expectedStructure);
     }
+
+    /**
+     * Test that assertTraceStructure fails when there are additional root spans.
+     */
+    public function test_assert_fails_with_additional_root_spans(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create two root spans
+        $rootSpan1 = $tracer->spanBuilder('root-span-1')->startSpan();
+        $rootSpan1->end();
+
+        $rootSpan2 = $tracer->spanBuilder('root-span-2')->startSpan();
+        $rootSpan2->end();
+
+        // Define expected structure with only one root span
+        $expectedStructure = [
+            [
+                'name' => 'root-span-1',
+            ],
+        ];
+
+        // Expect assertion to fail
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessage('Expected 1 root spans, but found 2');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure);
+    }
+
+    /**
+     * Test that assertTraceStructure fails when there are additional child spans.
+     */
+    public function test_assert_fails_with_additional_child_spans(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a root span
+        $rootSpan = $tracer->spanBuilder('root-span')->startSpan();
+        $rootScope = $rootSpan->activate();
+
+        try {
+            // Create two child spans
+            $childSpan1 = $tracer->spanBuilder('child-span-1')->startSpan();
+            $childSpan1->end();
+
+            $childSpan2 = $tracer->spanBuilder('child-span-2')->startSpan();
+            $childSpan2->end();
+        } finally {
+            $rootSpan->end();
+            $rootScope->detach();
+        }
+
+        // Define expected structure with only one child span
+        $expectedStructure = [
+            [
+                'name' => 'root-span',
+                'children' => [
+                    [
+                        'name' => 'child-span-1',
+                    ],
+                ],
+            ],
+        ];
+
+        // Expect assertion to fail
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        // We don't check the exact message as it might vary based on implementation details
+
+        $this->assertTraceStructure($this->storage, $expectedStructure);
+    }
+
+    /**
+     * Test that assertTraceStructure fails in strict mode when there are additional events.
+     */
+    public function test_assert_fails_with_additional_events_in_strict_mode(): void
+    {
+        // Create a new test setup to avoid interference from previous tests
+        $storage = new ArrayObject();
+        $tracerProvider = new TracerProvider(
+            new SimpleSpanProcessor(
+                new InMemoryExporter($storage)
+            )
+        );
+
+        $tracer = $tracerProvider->getTracer('test-tracer');
+
+        // Create a span with multiple events
+        $span = $tracer->spanBuilder('test-span')->startSpan();
+        $span->addEvent('event-1');
+        $span->addEvent('event-2');
+        $span->end();
+
+        // Define expected structure with only one event
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+                'events' => [
+                    [
+                        'name' => 'event-1',
+                    ],
+                ],
+            ],
+        ];
+
+        // Assert passes in non-strict mode
+        $this->assertTraceStructure($storage, $expectedStructure, false);
+
+        // Create a new test setup for the strict mode test
+        $strictStorage = new ArrayObject();
+        $strictTracerProvider = new TracerProvider(
+            new SimpleSpanProcessor(
+                new InMemoryExporter($strictStorage)
+            )
+        );
+
+        $strictTracer = $strictTracerProvider->getTracer('test-tracer');
+
+        // Create the same span structure again
+        $strictSpan = $strictTracer->spanBuilder('test-span')->startSpan();
+        $strictSpan->addEvent('event-1');
+        $strictSpan->addEvent('event-2');
+        $strictSpan->end();
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        // We don't check the exact message as it might vary based on implementation details
+
+        $this->assertTraceStructure($strictStorage, $expectedStructure, true);
+    }
 }
