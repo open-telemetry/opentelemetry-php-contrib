@@ -231,7 +231,7 @@ class SpanAssertion
      *
      * @psalm-suppress PossiblyUnusedMethod
      *
-     * @param int|Constraint $code The expected status code
+     * @param string|Constraint $code The expected status code
      * @param string|Constraint|null $description The expected status description
      * @throws TraceAssertionFailedException
      * @return self
@@ -507,6 +507,21 @@ class SpanAssertion
         ];
 
         return new SpanAssertion($matchingSpan, $this->traceAssertion, $this, $this->expectedStructure, $this->actualStructure);
+    }
+
+    /**
+     * Assert that the span has a root span with the given name.
+     * This is a convenience method that delegates to the trace assertion.
+     *
+     * @psalm-suppress PossiblyUnusedMethod
+     *
+     * @param string|Constraint $name The expected name of the root span
+     * @throws TraceAssertionFailedException
+     * @return SpanAssertion
+     */
+    public function hasRootSpan($name): SpanAssertion
+    {
+        return $this->traceAssertion->hasRootSpan($name);
     }
 
     /**

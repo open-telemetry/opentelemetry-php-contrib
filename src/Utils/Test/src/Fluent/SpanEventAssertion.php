@@ -155,6 +155,7 @@ class SpanEventAssertion
     /**
      * Return to the parent span assertion.
      *
+     * @psalm-suppress UnusedMethodCall
      * @return SpanAssertion
      */
     public function end(): SpanAssertion

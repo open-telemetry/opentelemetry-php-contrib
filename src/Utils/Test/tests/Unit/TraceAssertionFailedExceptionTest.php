@@ -146,6 +146,7 @@ class TraceAssertionFailedExceptionTest extends TestCase
 
     /**
      * Test that the TraceAssertionFailedException provides a visual diff when a span event is missing.
+     * @psalm-suppress UnusedMethodCall
      */
     public function test_trace_assertion_failed_exception_provides_visual_diff_for_missing_event(): void
     {

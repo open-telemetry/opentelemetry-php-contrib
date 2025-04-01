@@ -140,6 +140,74 @@ class TraceAssertion
     }
 
     /**
+     * Assert that the trace has a child span with the expected name.
+     *
+     * @param string|Constraint $name The expected child span name
+     * @throws TraceAssertionFailedException
+     * @return SpanAssertion
+     */
+    public function hasChild($name): SpanAssertion
+    {
+        // Find the matching span
+        $matchingSpan = null;
+
+        if ($name instanceof Constraint) {
+            foreach ($this->spans as $span) {
+                try {
+                    Assert::assertThat(
+                        $span->getName(),
+                        $name,
+                        'Span name does not match constraint'
+                    );
+                    $matchingSpan = $span;
+
+                    break;
+                } catch (AssertionFailedError $e) {
+                    // This span doesn't match the constraint, skip it
+                    continue;
+                }
+            }
+        } else {
+            foreach ($this->spans as $span) {
+                if ($span->getName() === $name) {
+                    $matchingSpan = $span;
+
+                    break;
+                }
+            }
+        }
+
+        if (!$matchingSpan) {
+            // Record the actual result
+            $this->actualStructure[] = [
+                'type' => 'missing_child_span',
+                'expected_name' => $name instanceof Constraint ? 'constraint' : $name,
+                'available_spans' => array_map(function ($span) {
+                    return $span->getName();
+                }, $this->spans),
+            ];
+
+            throw new TraceAssertionFailedException(
+                sprintf(
+                    'No span matching name "%s" found',
+                    $name instanceof Constraint ? 'constraint' : $name
+                ),
+                $this->expectedStructure,
+                $this->actualStructure
+            );
+        }
+
+        // Record the actual result
+        $this->actualStructure[] = [
+            'type' => 'child_span',
+            'name' => $matchingSpan->getName(),
+            'span' => $matchingSpan,
+        ];
+
+        return new SpanAssertion($matchingSpan, $this, null, $this->expectedStructure, $this->actualStructure);
+    }
+
+    /**
      * Assert that the trace has the expected number of root spans.
      *
      * @param int $count The expected number of root spans
@@ -217,6 +285,17 @@ class TraceAssertion
     public function isStrict(): bool
     {
         return $this->strict;
+    }
+
+    /**
+     * Return the trace assertion itself.
+     * This method is used to maintain a consistent fluent interface.
+     *
+     * @return self
+     */
+    public function end(): self
+    {
+        return $this;
     }
 
     /**
