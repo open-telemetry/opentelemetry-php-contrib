@@ -30,6 +30,7 @@ final class ServerTimingPropagator implements ResponsePropagator
         ];
     }
 
+    #[\Override]
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
         $setter = $setter ?? ArrayAccessGetterSetter::getInstance();
