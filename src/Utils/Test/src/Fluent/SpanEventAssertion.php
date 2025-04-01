@@ -141,6 +141,7 @@ class SpanEventAssertion
      * @param array $attributes The expected attributes
      * @throws TraceAssertionFailedException
      * @return self
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function withAttributes(array $attributes): self
     {
@@ -176,10 +177,11 @@ class SpanEventAssertion
         } elseif (null === $value) {
             return 'null';
         } elseif (is_array($value)) {
-            return json_encode($value);
+            $json = json_encode($value);
+
+            return $json === false ? '[unable to encode]' : $json;
         }
 
         return (string) $value;
-        
     }
 }

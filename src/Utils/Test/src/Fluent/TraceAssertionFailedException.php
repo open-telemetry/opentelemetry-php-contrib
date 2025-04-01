@@ -8,6 +8,7 @@ use PHPUnit\Framework\AssertionFailedError;
 
 /**
  * Exception thrown when a trace assertion fails.
+ * @psalm-suppress InternalClass
  */
 class TraceAssertionFailedException extends AssertionFailedError
 {
@@ -21,6 +22,7 @@ class TraceAssertionFailedException extends AssertionFailedError
      * @param string $message The error message
      * @param array $expectedStructure The expected structure
      * @param array $actualStructure The actual structure
+     * @psalm-suppress InternalMethod
      */
     public function __construct(string $message, array $expectedStructure, array $actualStructure)
     {

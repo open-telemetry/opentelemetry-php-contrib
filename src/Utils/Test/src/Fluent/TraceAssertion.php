@@ -42,6 +42,7 @@ class TraceAssertion
      * Enable strict mode for all assertions.
      *
      * @return self
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function inStrictMode(): self
     {
@@ -63,8 +64,7 @@ class TraceAssertion
         $rootSpans = [];
         $spanMap = $this->buildSpanMap($this->spans);
 
-        /** @psalm-suppress UnusedVariable */
-        foreach ($spanMap as $spanId => $data) {
+        foreach ($spanMap as $_ => $data) {
             $span = $data['span'];
             $parentSpanId = $span->getParentSpanId();
 
@@ -152,8 +152,7 @@ class TraceAssertion
         $rootSpans = [];
         $spanMap = $this->buildSpanMap($this->spans);
 
-        /** @psalm-suppress UnusedVariable */
-        foreach ($spanMap as $spanId => $data) {
+        foreach ($spanMap as $_ => $data) {
             $span = $data['span'];
             $parentSpanId = $span->getParentSpanId();
 
@@ -213,6 +212,7 @@ class TraceAssertion
      * Check if strict mode is enabled.
      *
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function isStrict(): bool
     {
