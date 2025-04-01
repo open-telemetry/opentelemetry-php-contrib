@@ -595,6 +595,7 @@ class SpanAssertion
             return 'null';
         } elseif (is_array($value)) {
             $json = json_encode($value);
+
             return $json === false ? '[unable to encode]' : $json;
         }
 
