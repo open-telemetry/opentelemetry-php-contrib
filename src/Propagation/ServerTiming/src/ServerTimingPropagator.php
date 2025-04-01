@@ -30,6 +30,9 @@ final class ServerTimingPropagator implements ResponsePropagator
         ];
     }
 
+    /**
+     * @suppress PhanUndeclaredClassAttribute
+     */
     #[\Override]
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
