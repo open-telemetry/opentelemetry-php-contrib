@@ -8,6 +8,7 @@ use ArrayObject;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\Constraint\Constraint;
 use Traversable;
 
 /**
@@ -225,20 +226,50 @@ trait TraceStructureAssertionTrait
             throw new \InvalidArgumentException('Expected span must have a name');
         }
 
-        // Find a span with the matching name
-        $matchingSpans = array_filter($actualSpans, function ($actualSpan) use ($expectedName) {
-            return $actualSpan['name'] === $expectedName;
-        });
+        // Check if the expected name is a constraint
+        if ($this->isConstraint($expectedName)) {
+            // Find spans that match the constraint
+            $matchingSpans = [];
+            foreach ($actualSpans as $actualSpan) {
+                try {
+                    Assert::assertThat(
+                        $actualSpan['name'],
+                        $expectedName,
+                        'Span name does not match constraint'
+                    );
+                    $matchingSpans[] = $actualSpan;
+                } catch (AssertionFailedError $e) {
+                    // This span doesn't match the constraint, skip it
+                    continue;
+                }
+            }
+        } else {
+            // Find spans with the exact matching name
+            $matchingSpans = array_filter($actualSpans, function ($actualSpan) use ($expectedName) {
+                return $actualSpan['name'] === $expectedName;
+            });
+        }
 
         Assert::assertNotEmpty(
             $matchingSpans,
-            sprintf('No span with name "%s" found', $expectedName)
+            sprintf(
+                'No span matching name "%s" found',
+                $this->isConstraint($expectedName) ? 'constraint' : $expectedName
+            )
         );
 
-        // If multiple spans have the same name, try to match based on other properties
+        // If multiple spans match, try to match based on other properties
         foreach ($matchingSpans as $actualSpan) {
             try {
-                $this->compareSpans($expectedSpan, $actualSpan, $strict);
+                // For constraint-based names, we need to modify the expected span for comparison
+                // since compareSpans expects exact name matching
+                $spanToCompare = $expectedSpan;
+                if ($this->isConstraint($expectedName)) {
+                    $spanToCompare = $expectedSpan;
+                    $spanToCompare['name'] = $actualSpan['name'];
+                }
+
+                $this->compareSpans($spanToCompare, $actualSpan, $strict);
 
                 // If we get here, the spans match
                 // Now check children if they exist
@@ -256,7 +287,10 @@ trait TraceStructureAssertionTrait
 
         // If we get here, none of the spans matched
         Assert::fail(
-            sprintf('No matching span found for expected span "%s"', $expectedName)
+            sprintf(
+                'No matching span found for expected span "%s"',
+                $this->isConstraint($expectedName) ? 'constraint' : $expectedName
+            )
         );
     }
 
@@ -280,11 +314,21 @@ trait TraceStructureAssertionTrait
 
         // Compare kind if specified
         if (isset($expectedSpan['kind'])) {
-            Assert::assertSame(
-                $expectedSpan['kind'],
-                $actualSpan['kind'],
-                sprintf('Span kinds do not match for span "%s"', $expectedSpan['name'])
-            );
+            $expectedKind = $expectedSpan['kind'];
+
+            if ($this->isConstraint($expectedKind)) {
+                Assert::assertThat(
+                    $actualSpan['kind'],
+                    $expectedKind,
+                    sprintf('Span kind does not match constraint for span "%s"', $expectedSpan['name'])
+                );
+            } else {
+                Assert::assertSame(
+                    $expectedKind,
+                    $actualSpan['kind'],
+                    sprintf('Span kinds do not match for span "%s"', $expectedSpan['name'])
+                );
+            }
         }
 
         // Compare attributes if specified
@@ -346,6 +390,17 @@ trait TraceStructureAssertionTrait
     }
 
     /**
+     * Checks if a value is a PHPUnit constraint object.
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    private function isConstraint($value): bool
+    {
+        return $value instanceof Constraint;
+    }
+
+    /**
      * Compares the attributes of an expected span with the attributes of an actual span.
      *
      * @param array $expectedAttributes
@@ -370,12 +425,25 @@ trait TraceStructureAssertionTrait
                 continue;
             }
 
-            // Compare the attribute values
-            Assert::assertEquals(
-                $expectedValue,
-                $actualAttributes[$key],
-                sprintf('Attribute "%s" value does not match in span "%s"', $key, $spanName)
-            );
+            // Get the actual value
+            $actualValue = $actualAttributes[$key];
+
+            // Check if the expected value is a constraint
+            if ($this->isConstraint($expectedValue)) {
+                // Use assertThat for constraint evaluation
+                Assert::assertThat(
+                    $actualValue,
+                    $expectedValue,
+                    sprintf('Attribute "%s" value does not match constraint in span "%s"', $key, $spanName)
+                );
+            } else {
+                // Use regular assertEquals for direct comparison
+                Assert::assertEquals(
+                    $expectedValue,
+                    $actualValue,
+                    sprintf('Attribute "%s" value does not match in span "%s"', $key, $spanName)
+                );
+            }
         }
     }
 
@@ -392,20 +460,40 @@ trait TraceStructureAssertionTrait
     {
         // Compare status code if specified
         if (isset($expectedStatus['code'])) {
-            Assert::assertSame(
-                $expectedStatus['code'],
-                $actualStatus['code'],
-                sprintf('Status code does not match for span "%s"', $spanName)
-            );
+            $expectedCode = $expectedStatus['code'];
+
+            if ($this->isConstraint($expectedCode)) {
+                Assert::assertThat(
+                    $actualStatus['code'],
+                    $expectedCode,
+                    sprintf('Status code does not match constraint for span "%s"', $spanName)
+                );
+            } else {
+                Assert::assertSame(
+                    $expectedCode,
+                    $actualStatus['code'],
+                    sprintf('Status code does not match for span "%s"', $spanName)
+                );
+            }
         }
 
         // Compare status description if specified
         if (isset($expectedStatus['description'])) {
-            Assert::assertSame(
-                $expectedStatus['description'],
-                $actualStatus['description'],
-                sprintf('Status description does not match for span "%s"', $spanName)
-            );
+            $expectedDescription = $expectedStatus['description'];
+
+            if ($this->isConstraint($expectedDescription)) {
+                Assert::assertThat(
+                    $actualStatus['description'],
+                    $expectedDescription,
+                    sprintf('Status description does not match constraint for span "%s"', $spanName)
+                );
+            } else {
+                Assert::assertSame(
+                    $expectedDescription,
+                    $actualStatus['description'],
+                    sprintf('Status description does not match for span "%s"', $spanName)
+                );
+            }
         }
     }
 
@@ -471,17 +559,40 @@ trait TraceStructureAssertionTrait
             throw new \InvalidArgumentException('Expected event must have a name');
         }
 
-        // Find an event with the matching name
-        $matchingEvents = array_filter($actualEvents, function ($actualEvent) use ($expectedName) {
-            return $actualEvent['name'] === $expectedName;
-        });
+        // Check if the expected name is a constraint
+        if ($this->isConstraint($expectedName)) {
+            // Find events that match the constraint
+            $matchingEvents = [];
+            foreach ($actualEvents as $actualEvent) {
+                try {
+                    Assert::assertThat(
+                        $actualEvent['name'],
+                        $expectedName,
+                        'Event name does not match constraint'
+                    );
+                    $matchingEvents[] = $actualEvent;
+                } catch (AssertionFailedError $e) {
+                    // This event doesn't match the constraint, skip it
+                    continue;
+                }
+            }
+        } else {
+            // Find events with the exact matching name
+            $matchingEvents = array_filter($actualEvents, function ($actualEvent) use ($expectedName) {
+                return $actualEvent['name'] === $expectedName;
+            });
+        }
 
         Assert::assertNotEmpty(
             $matchingEvents,
-            sprintf('No event with name "%s" found in span "%s"', $expectedName, $spanName)
+            sprintf(
+                'No event matching name "%s" found in span "%s"',
+                $this->isConstraint($expectedName) ? 'constraint' : $expectedName,
+                $spanName
+            )
         );
 
-        // If multiple events have the same name, try to match based on attributes
+        // If multiple events match, try to match based on attributes
         foreach ($matchingEvents as $actualEvent) {
             try {
                 // Compare attributes if specified
@@ -490,7 +601,11 @@ trait TraceStructureAssertionTrait
                         $expectedEvent['attributes'],
                         $actualEvent['attributes'],
                         $strict,
-                        sprintf('Event "%s" in span "%s"', $expectedName, $spanName)
+                        sprintf(
+                            'Event "%s" in span "%s"',
+                            $this->isConstraint($expectedName) ? $actualEvent['name'] : $expectedName,
+                            $spanName
+                        )
                     );
                 }
 
@@ -504,7 +619,11 @@ trait TraceStructureAssertionTrait
 
         // If we get here, none of the events matched
         Assert::fail(
-            sprintf('No matching event found for expected event "%s" in span "%s"', $expectedName, $spanName)
+            sprintf(
+                'No matching event found for expected event "%s" in span "%s"',
+                $this->isConstraint($expectedName) ? 'constraint' : $expectedName,
+                $spanName
+            )
         );
     }
 }

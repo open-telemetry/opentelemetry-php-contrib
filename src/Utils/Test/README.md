@@ -21,6 +21,7 @@ Key features:
 - Support for hierarchical span relationships
 - Verification of span names, kinds, attributes, events, and status
 - Flexible matching with strict and non-strict modes
+- Support for PHPUnit matchers/constraints for more flexible assertions
 - Detailed error messages for failed assertions
 
 ## Requirements
@@ -98,6 +99,66 @@ The `assertTraceStructure` method takes the following parameters:
 - `$spans`: An array or ArrayObject of spans (typically from an InMemoryExporter)
 - `$expectedStructure`: An array defining the expected structure of the trace
 - `$strict` (optional): Whether to perform strict matching (all attributes must match)
+
+### Using PHPUnit Matchers
+
+You can use PHPUnit constraints/matchers for more flexible assertions:
+
+```php
+use PHPUnit\Framework\Constraint\Callback;
+use PHPUnit\Framework\Constraint\IsEqual;
+use PHPUnit\Framework\Constraint\IsIdentical;
+use PHPUnit\Framework\Constraint\IsType;
+use PHPUnit\Framework\Constraint\RegularExpression;
+use PHPUnit\Framework\Constraint\StringContains;
+
+// Define the expected structure with matchers
+$expectedStructure = [
+    [
+        'name' => 'root-span',
+        'kind' => new IsIdentical(SpanKind::KIND_SERVER),
+        'attributes' => [
+            'string.attribute' => new StringContains('World'),
+            'numeric.attribute' => new Callback(function ($value) {
+                return $value > 40 || $value === 42;
+            }),
+            'boolean.attribute' => new IsType('boolean'),
+            'array.attribute' => new Callback(function ($value) {
+                return is_array($value) && count($value) === 3 && in_array('b', $value);
+            }),
+        ],
+        'children' => [
+            [
+                'name' => new RegularExpression('/child-span-\d+/'),
+                'kind' => SpanKind::KIND_INTERNAL,
+                'attributes' => [
+                    'timestamp' => new IsType('integer'),
+                ],
+                'events' => [
+                    [
+                        'name' => 'process.start',
+                        'attributes' => [
+                            'process.id' => new IsType('integer'),
+                            'process.name' => new StringContains('process'),
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
+];
+
+// Assert the trace structure with matchers
+$this->assertTraceStructure($spans, $expectedStructure);
+```
+
+Supported PHPUnit matchers include:
+- `StringContains` for partial string matching
+- `RegularExpression` for pattern matching
+- `IsIdentical` for strict equality
+- `IsEqual` for loose equality
+- `IsType` for type checking
+- `Callback` for custom validation logic
 
 ## Installation via composer
 
