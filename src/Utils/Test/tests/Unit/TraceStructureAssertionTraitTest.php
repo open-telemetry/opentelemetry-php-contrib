@@ -448,6 +448,7 @@ class TraceStructureAssertionTraitTest extends TestCase
                 'attributes' => [
                     'string.attribute' => new StringContains('World'),
                     'numeric.attribute' => new Callback(function ($value) {
+                        /** @phpstan-ignore identical.alwaysFalse */
                         return $value > 40 || $value === 42;
                     }),
                     'boolean.attribute' => new IsType('boolean'),

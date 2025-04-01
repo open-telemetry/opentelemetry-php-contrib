@@ -255,6 +255,7 @@ class FluentTraceAssertionTest extends TestCase
                 ->withKind(new IsIdentical(SpanKind::KIND_SERVER))
                 ->withAttribute('string.attribute', new StringContains('World'))
                 ->withAttribute('numeric.attribute', new Callback(function ($value) {
+                    /** @phpstan-ignore identical.alwaysFalse */
                     return $value > 40 || $value === 42;
                 }))
                 ->withAttribute('boolean.attribute', new IsType('boolean'))

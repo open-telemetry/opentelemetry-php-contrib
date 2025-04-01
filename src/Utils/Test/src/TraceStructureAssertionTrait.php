@@ -71,6 +71,7 @@ trait TraceStructureAssertionTrait
             return iterator_to_array($spans);
         }
 
+        /** @phpstan-ignore deadCode.unreachable */
         throw new \InvalidArgumentException('Spans must be an array, ArrayObject, or Traversable');
     }
 
