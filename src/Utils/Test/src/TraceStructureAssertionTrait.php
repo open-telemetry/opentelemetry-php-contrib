@@ -56,23 +56,29 @@ trait TraceStructureAssertionTrait
     }
 
     /**
-     * Converts spans to an array if they are in a different format.
+     * Converts spans to an array if they are in a different format and filters out non-span items.
      *
+     * @psalm-suppress UnusedVariable
      * @param array|ArrayObject|Traversable $spans
      * @return array
      */
     private function convertSpansToArray($spans): array
     {
+        $array = [];
+
         if (is_array($spans)) {
-            return $spans;
+            $array = $spans;
+        } elseif ($spans instanceof ArrayObject || $spans instanceof Traversable) {
+            $array = iterator_to_array($spans);
+        } else {
+            /** @phpstan-ignore deadCode.unreachable */
+            throw new \InvalidArgumentException('Spans must be an array, ArrayObject, or Traversable');
         }
 
-        if ($spans instanceof ArrayObject || $spans instanceof Traversable) {
-            return iterator_to_array($spans);
-        }
-
-        /** @phpstan-ignore deadCode.unreachable */
-        throw new \InvalidArgumentException('Spans must be an array, ArrayObject, or Traversable');
+        // Filter out non-span items
+        return array_filter($array, function ($item) {
+            return $item instanceof ImmutableSpan;
+        });
     }
 
     /**
@@ -86,10 +92,7 @@ trait TraceStructureAssertionTrait
         $spanMap = [];
 
         foreach ($spans as $span) {
-            if (!$span instanceof ImmutableSpan) {
-                throw new \InvalidArgumentException('Each span must be an instance of ImmutableSpan');
-            }
-
+            // All non-span items should have been filtered out in convertSpansToArray
             $spanMap[$span->getSpanId()] = [
                 'span' => $span,
                 'children' => [],
