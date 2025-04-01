@@ -15,7 +15,7 @@ This package provides testing utilities for OpenTelemetry PHP instrumentations. 
 
 ### TraceStructureAssertionTrait
 
-The `TraceStructureAssertionTrait` provides a method to assess if spans match an expected trace structure. It's particularly useful for testing complex trace hierarchies and relationships between spans.
+The `TraceStructureAssertionTrait` provides methods to assess if spans match an expected trace structure. It's particularly useful for testing complex trace hierarchies and relationships between spans.
 
 Key features:
 - Support for hierarchical span relationships
@@ -23,6 +23,7 @@ Key features:
 - Flexible matching with strict and non-strict modes
 - Support for PHPUnit matchers/constraints for more flexible assertions
 - Detailed error messages for failed assertions
+- Two interfaces: array-based and fluent
 
 ## Requirements
 
@@ -48,7 +49,9 @@ class MyTest extends TestCase
 }
 ```
 
-Use the `assertTraceStructure` method to verify trace structures:
+#### Array-Based Interface
+
+Use the `assertTraceStructure` method to verify trace structures using an array-based approach:
 
 ```php
 public function testTraceStructure(): void
@@ -100,13 +103,66 @@ The `assertTraceStructure` method takes the following parameters:
 - `$expectedStructure`: An array defining the expected structure of the trace
 - `$strict` (optional): Whether to perform strict matching (all attributes must match)
 
+#### Fluent Interface
+
+Use the `assertTrace` method to verify trace structures using a fluent, chainable interface:
+
+```php
+public function testTraceStructure(): void
+{
+    // Create spans using the OpenTelemetry SDK
+    // ...
+
+    // Assert the trace structure using the fluent interface
+    $this->assertTrace($spans)
+        ->hasRootSpan('root-span')
+            ->withKind(SpanKind::KIND_SERVER)
+            ->hasChild('child-span')
+                ->withKind(SpanKind::KIND_INTERNAL)
+                ->withAttribute('attribute.one', 'value1')
+                ->withAttribute('attribute.two', 42)
+                ->hasEvent('event.processed')
+                    ->withAttribute('processed.id', 'abc123')
+                ->end()
+            ->end()
+            ->hasChild('another-child-span')
+                ->withKind(SpanKind::KIND_CLIENT)
+                ->withStatus(StatusCode::STATUS_ERROR, 'Something went wrong')
+            ->end()
+        ->end();
+}
+```
+
+The fluent interface provides the following methods:
+
+**TraceAssertion:**
+- `hasRootSpan(string|Constraint $name)`: Assert that the trace has a root span with the given name
+- `hasRootSpans(int $count)`: Assert that the trace has the expected number of root spans
+- `inStrictMode()`: Enable strict mode for all assertions
+
+**SpanAssertion:**
+- `withKind(int|Constraint $kind)`: Assert that the span has the expected kind
+- `withAttribute(string $key, mixed|Constraint $value)`: Assert that the span has an attribute with the expected key and value
+- `withAttributes(array $attributes)`: Assert that the span has the expected attributes
+- `withStatus(int|Constraint $code, string|Constraint|null $description = null)`: Assert that the span has the expected status
+- `hasEvent(string|Constraint $name)`: Assert that the span has an event with the expected name
+- `hasChild(string|Constraint $name)`: Assert that the span has a child span with the expected name
+- `hasChildren(int $count)`: Assert that the span has the expected number of children
+- `end()`: Return to the parent assertion
+
+**SpanEventAssertion:**
+- `withAttribute(string $key, mixed|Constraint $value)`: Assert that the event has an attribute with the expected key and value
+- `withAttributes(array $attributes)`: Assert that the event has the expected attributes
+- `end()`: Return to the parent span assertion
+
 ### Using PHPUnit Matchers
 
-You can use PHPUnit constraints/matchers for more flexible assertions:
+You can use PHPUnit constraints/matchers for more flexible assertions with both interfaces:
+
+#### Array-Based Interface with Matchers
 
 ```php
 use PHPUnit\Framework\Constraint\Callback;
-use PHPUnit\Framework\Constraint\IsEqual;
 use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\Constraint\RegularExpression;
@@ -150,6 +206,38 @@ $expectedStructure = [
 
 // Assert the trace structure with matchers
 $this->assertTraceStructure($spans, $expectedStructure);
+```
+
+#### Fluent Interface with Matchers
+
+```php
+use PHPUnit\Framework\Constraint\Callback;
+use PHPUnit\Framework\Constraint\IsIdentical;
+use PHPUnit\Framework\Constraint\IsType;
+use PHPUnit\Framework\Constraint\RegularExpression;
+use PHPUnit\Framework\Constraint\StringContains;
+
+// Assert the trace structure using the fluent interface with matchers
+$this->assertTrace($spans)
+    ->hasRootSpan('root-span')
+        ->withKind(new IsIdentical(SpanKind::KIND_SERVER))
+        ->withAttribute('string.attribute', new StringContains('World'))
+        ->withAttribute('numeric.attribute', new Callback(function ($value) {
+            return $value > 40 || $value === 42;
+        }))
+        ->withAttribute('boolean.attribute', new IsType('boolean'))
+        ->withAttribute('array.attribute', new Callback(function ($value) {
+            return is_array($value) && count($value) === 3 && in_array('b', $value);
+        }))
+        ->hasChild(new RegularExpression('/child-span-\d+/'))
+            ->withKind(SpanKind::KIND_INTERNAL)
+            ->withAttribute('timestamp', new IsType('integer'))
+            ->hasEvent('process.start')
+                ->withAttribute('process.id', new IsType('integer'))
+                ->withAttribute('process.name', new StringContains('process'))
+            ->end()
+        ->end()
+    ->end();
 ```
 
 Supported PHPUnit matchers include:

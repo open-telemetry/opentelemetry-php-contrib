@@ -6,6 +6,7 @@ namespace OpenTelemetry\TestUtils;
 
 use ArrayObject;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
+use OpenTelemetry\TestUtils\Fluent\TraceAssertion;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Constraint\Constraint;
@@ -18,6 +19,18 @@ use Traversable;
  */
 trait TraceStructureAssertionTrait
 {
+    /**
+     * Creates a fluent interface for asserting trace structure.
+     *
+     * @param array|ArrayObject|Traversable $spans The spans to assess
+     * @param bool $strict Whether to perform strict matching
+     * @return TraceAssertion
+     */
+    public function assertTrace($spans, bool $strict = false): TraceAssertion
+    {
+        return new TraceAssertion($spans, $strict);
+    }
+
     /**
      * Assesses if the given spans match the expected trace structure.
      *
