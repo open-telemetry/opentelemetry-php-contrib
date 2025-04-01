@@ -230,11 +230,10 @@ trait TraceStructureAssertionTrait
             return $actualSpan['name'] === $expectedName;
         });
 
-        if (empty($matchingSpans)) {
-            throw new AssertionFailedError(
-                sprintf('No span with name "%s" found', $expectedName)
-            );
-        }
+        Assert::assertNotEmpty(
+            $matchingSpans,
+            sprintf('No span with name "%s" found', $expectedName)
+        );
 
         // If multiple spans have the same name, try to match based on other properties
         foreach ($matchingSpans as $actualSpan) {
@@ -256,7 +255,7 @@ trait TraceStructureAssertionTrait
         }
 
         // If we get here, none of the spans matched
-        throw new AssertionFailedError(
+        Assert::fail(
             sprintf('No matching span found for expected span "%s"', $expectedName)
         );
     }
@@ -434,9 +433,11 @@ trait TraceStructureAssertionTrait
                     $spanName
                 )
             );
-        } elseif (count($expectedEvents) > count($actualEvents)) {
+        } else {
             // In non-strict mode, there must be at least as many actual events as expected
-            throw new AssertionFailedError(
+            Assert::assertGreaterThanOrEqual(
+                count($expectedEvents),
+                count($actualEvents),
                 sprintf(
                     'Expected at least %d events, but found only %d in span "%s"',
                     count($expectedEvents),
@@ -475,11 +476,10 @@ trait TraceStructureAssertionTrait
             return $actualEvent['name'] === $expectedName;
         });
 
-        if (empty($matchingEvents)) {
-            throw new AssertionFailedError(
-                sprintf('No event with name "%s" found in span "%s"', $expectedName, $spanName)
-            );
-        }
+        Assert::assertNotEmpty(
+            $matchingEvents,
+            sprintf('No event with name "%s" found in span "%s"', $expectedName, $spanName)
+        );
 
         // If multiple events have the same name, try to match based on attributes
         foreach ($matchingEvents as $actualEvent) {
@@ -503,7 +503,7 @@ trait TraceStructureAssertionTrait
         }
 
         // If we get here, none of the events matched
-        throw new AssertionFailedError(
+        Assert::fail(
             sprintf('No matching event found for expected event "%s" in span "%s"', $expectedName, $spanName)
         );
     }
