@@ -229,6 +229,8 @@ class SpanAssertion
     /**
      * Assert that the span has the expected status.
      *
+     * @psalm-suppress PossiblyUnusedMethod
+     *
      * @param int|Constraint $code The expected status code
      * @param string|Constraint|null $description The expected status description
      * @throws TraceAssertionFailedException
@@ -592,7 +594,8 @@ class SpanAssertion
         } elseif (null === $value) {
             return 'null';
         } elseif (is_array($value)) {
-            return json_encode($value);
+            $json = json_encode($value);
+            return $json === false ? '[unable to encode]' : $json;
         }
 
         return (string) $value;
