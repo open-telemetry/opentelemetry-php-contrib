@@ -53,6 +53,8 @@ class SpanAssertion
     /**
      * Assert that the span has the expected kind.
      *
+     * @psalm-suppress PossiblyUnusedMethod
+     *
      * @param int|Constraint $kind The expected kind
      * @throws TraceAssertionFailedException
      * @return self
@@ -115,6 +117,8 @@ class SpanAssertion
 
     /**
      * Assert that the span has an attribute with the expected key and value.
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      *
      * @param string $key The attribute key
      * @param mixed|Constraint $value The expected value
@@ -206,6 +210,8 @@ class SpanAssertion
 
     /**
      * Assert that the span has the expected attributes.
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      *
      * @param array $attributes The expected attributes
      * @throws TraceAssertionFailedException
@@ -339,6 +345,8 @@ class SpanAssertion
     /**
      * Assert that the span has an event with the expected name.
      *
+     * @psalm-suppress PossiblyUnusedMethod
+     *
      * @param string|Constraint $name The expected event name
      * @throws TraceAssertionFailedException
      * @return SpanEventAssertion
@@ -414,6 +422,8 @@ class SpanAssertion
 
     /**
      * Assert that the span has a child span with the expected name.
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      *
      * @param string|Constraint $name The expected child span name
      * @throws TraceAssertionFailedException
@@ -500,6 +510,8 @@ class SpanAssertion
     /**
      * Assert that the span has the expected number of children.
      *
+     * @psalm-suppress PossiblyUnusedMethod
+     *
      * @param int $count The expected number of children
      * @throws TraceAssertionFailedException
      * @return self
@@ -556,6 +568,8 @@ class SpanAssertion
     /**
      * Return to the parent assertion.
      *
+     * @psalm-suppress PossiblyUnusedMethod
+     *
      * @return SpanAssertion|TraceAssertion
      */
     public function end()
@@ -582,7 +596,7 @@ class SpanAssertion
         }
 
         return (string) $value;
-        
+
     }
 
     /**
