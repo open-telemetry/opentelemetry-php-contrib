@@ -29,6 +29,7 @@ class LaravelInstrumentation
         Hooks\Illuminate\Queue\SyncQueue::hook($instrumentation);
         Hooks\Illuminate\Queue\Queue::hook($instrumentation);
         Hooks\Illuminate\Queue\Worker::hook($instrumentation);
+        Hooks\Illuminate\Database\Eloquent\Model::hook($instrumentation);
     }
 
     public static function shouldTraceCli(): bool
