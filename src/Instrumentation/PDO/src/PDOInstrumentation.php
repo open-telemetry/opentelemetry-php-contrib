@@ -31,6 +31,56 @@ class PDOInstrumentation
         );
         $pdoTracker = new PDOTracker();
 
+        // Hook for the new PDO::connect static method
+        if (method_exists(PDO::class, 'connect')) {
+            hook(
+                PDO::class,
+                'connect',
+                pre: static function (
+                    $object,
+                    array $params,
+                    string $class,
+                    string $function,
+                    ?string $filename,
+                    ?int $lineno,
+                ) use ($instrumentation) {
+                    /** @psalm-suppress ArgumentTypeCoercion */
+                    $builder = self::makeBuilder($instrumentation, 'PDO::connect', $function, $class, $filename, $lineno)
+                        ->setSpanKind(SpanKind::KIND_CLIENT);
+                    if ($class === PDO::class) {
+                        $builder
+                            ->setAttribute(TraceAttributes::SERVER_ADDRESS, $params[0] ?? 'unknown')
+                            ->setAttribute(TraceAttributes::SERVER_PORT, $params[0] ?? null);
+                    }
+                    $parent = Context::getCurrent();
+                    $span = $builder->startSpan();
+                    Context::storage()->attach($span->storeInContext($parent));
+                },
+                post: static function (
+                    $object,
+                    array $params,
+                    $result,
+                    ?Throwable $exception,
+                ) use ($pdoTracker) {
+                    $scope = Context::storage()->scope();
+                    if (!$scope) {
+                        return;
+                    }
+                    $span = Span::fromContext($scope->context());
+
+                    $dsn = $params[0] ?? '';
+
+                    // guard against PDO::connect returning a string
+                    if ($result instanceof PDO) {
+                        $attributes = $pdoTracker->trackPdoAttributes($result, $dsn);
+                        $span->setAttributes($attributes);
+                    }
+
+                    self::end($exception);
+                }
+            );
+        }
+
         hook(
             PDO::class,
             '__construct',
@@ -213,9 +263,10 @@ class PDOInstrumentation
                 if ($spanContext = $pdoTracker->getSpanForPreparedStatement($statement)) {
                     $builder->addLink($spanContext);
                 }
+                $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
                 self::end($exception);
@@ -240,9 +291,9 @@ class PDOInstrumentation
                 if ($spanContext = $pdoTracker->getSpanForPreparedStatement($statement)) {
                     $builder->addLink($spanContext);
                 }
+                $parent = Context::getCurrent();
                 $span = $builder->startSpan();
-
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
                 self::end($exception);
