@@ -78,6 +78,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sampler-rulebased.git"
   - prefix: "src/Shims/OpenTracing"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-shim-opentracing.git"
+  - prefix: "src/Utils/Test"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-utils-test.git"
 # List of references to split (defined as regexp)
 origins:
   - ^main$

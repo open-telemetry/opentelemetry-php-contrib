@@ -59,6 +59,12 @@
       "src/ResourceDetectors/Container/_register.php"
     ]
   },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\TestUtils\\": "src/",
+      "OpenTelemetry\\TestUtils\\Tests\\": "tests/"
+    }
+  },
   "replace": {
     "open-telemetry/contrib-aws": "self.version",
     "open-telemetry/contrib-sdk-bundle": "self.version",
@@ -81,7 +87,8 @@
     "open-telemetry/opentelemetry-logger-monolog": "self.version",
     "open-telemetry/detector-container": "self.version",
     "open-telemetry/symfony-sdk-bundle": "self.version",
-    "open-telemetry/opentracing-shim": "self.version"
+    "open-telemetry/opentracing-shim": "self.version",
+    "open-telemetry/test-utils": "self.version"
   },
   "config": {
     "sort-packages": true,
