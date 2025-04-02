@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
+use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -26,6 +27,31 @@ final class SendEmailMessage
     public function getMessage(): string
     {
         return $this->message;
+    }
+}
+
+final class SendEmailMessageHandler
+{
+    public function __invoke(SendEmailMessage $message)
+    {
+        // Handler logic
+        return 'handled';
+    }
+}
+
+final class TestMessage
+{
+    public function __construct()
+    {
+        throw new \RuntimeException('test');
+    }
+}
+
+final class TestMessageWithRetry
+{
+    public function __construct()
+    {
+        throw new \RuntimeException('test');
     }
 }
 
@@ -146,6 +172,161 @@ final class MessengerInstrumentationTest extends AbstractTest
         }
     }
 
+    public function test_handle_message()
+    {
+        $bus = $this->getMessenger();
+        $transport = $this->getTransport();
+        $worker = new \Symfony\Component\Messenger\Worker(
+            ['transport' => $transport],
+            $bus
+        );
+
+        // Send a message to the transport
+        $message = new SendEmailMessage('Hello Again');
+        $envelope = new Envelope($message);
+        $transport->send($envelope);
+
+        // Get and handle the message
+        $messages = iterator_to_array($transport->get());
+        $message = $messages[0];
+        
+        // Use reflection to call the protected handleMessage method
+        $reflection = new \ReflectionClass($worker);
+        $handleMessageMethod = $reflection->getMethod('handleMessage');
+        $handleMessageMethod->setAccessible(true);
+        $handleMessageMethod->invoke($worker, $message, 'transport');
+
+        // We should have 3 spans: send, dispatch, and consume
+        $this->assertCount(3, $this->storage);
+
+        // Check the send span
+        $sendSpan = $this->storage[0];
+        $this->assertEquals(
+            'SEND OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+            $sendSpan->getName()
+        );
+        $this->assertEquals(SpanKind::KIND_PRODUCER, $sendSpan->getKind());
+
+        // Check the dispatch span
+        $dispatchSpan = $this->storage[1];
+        $this->assertEquals(
+            'DISPATCH Symfony\Component\Messenger\Envelope',
+            $dispatchSpan->getName()
+        );
+        $this->assertEquals(SpanKind::KIND_PRODUCER, $dispatchSpan->getKind());
+
+        // Check the consume span
+        $consumeSpan = $this->storage[2];
+        $this->assertEquals(
+            'CONSUME OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+            $consumeSpan->getName()
+        );
+        $this->assertEquals(SpanKind::KIND_CONSUMER, $consumeSpan->getKind());
+    }
+
+    public function test_middleware_instrumentation()
+    {
+        // Register the instrumentation first
+        MessengerInstrumentation::register();
+
+        $bus = $this->getMessenger();
+        $message = new SendEmailMessage('Hello Again');
+        $envelope = new Envelope($message);
+
+        // Create a test middleware
+        $middleware = new class() implements \Symfony\Component\Messenger\Middleware\MiddlewareInterface {
+            public function handle(Envelope $envelope, \Symfony\Component\Messenger\Middleware\StackInterface $stack): Envelope
+            {
+                return $stack->next()->handle($envelope, $stack);
+            }
+        };
+
+        // Handle the message through the middleware
+        $middleware->handle($envelope, new class() implements \Symfony\Component\Messenger\Middleware\StackInterface {
+            public function next(): \Symfony\Component\Messenger\Middleware\MiddlewareInterface
+            {
+                return new class() implements \Symfony\Component\Messenger\Middleware\MiddlewareInterface {
+                    public function handle(Envelope $envelope, \Symfony\Component\Messenger\Middleware\StackInterface $stack): Envelope
+                    {
+                        return $envelope;
+                    }
+                };
+            }
+        });
+
+        // Find the middleware span
+        $middlewareSpan = null;
+        foreach ($this->storage as $span) {
+            if (strpos($span->getName(), 'MIDDLEWARE') === 0) {
+                $middlewareSpan = $span;
+
+                break;
+            }
+        }
+
+        // Assert we found the middleware span
+        $this->assertNotNull($middlewareSpan, 'Middleware span not found');
+        $this->assertStringStartsWith('MIDDLEWARE', $middlewareSpan->getName());
+        $this->assertStringEndsWith('SendEmailMessage', $middlewareSpan->getName());
+        $this->assertEquals(SpanKind::KIND_INTERNAL, $middlewareSpan->getKind());
+        $this->assertTrue($middlewareSpan->getAttributes()->has(MessengerInstrumentation::ATTRIBUTE_MESSAGING_MIDDLEWARE));
+    }
+
+    public function test_stamp_information()
+    {
+        $transport = $this->getTransport();
+        $message = new SendEmailMessage('Hello Again');
+        
+        // Add various stamps to the envelope
+        $envelope = new Envelope($message, [
+            new \Symfony\Component\Messenger\Stamp\BusNameStamp('test_bus'),
+            new \Symfony\Component\Messenger\Stamp\DelayStamp(1000),
+            new \Symfony\Component\Messenger\Stamp\TransportMessageIdStamp('test-id'),
+        ]);
+
+        $transport->send($envelope);
+
+        // We should have a send span with all stamp information
+        $this->assertCount(1, $this->storage);
+        $sendSpan = $this->storage[0];
+        
+        // Check stamp attributes
+        $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.bus'));
+        $this->assertEquals('test_bus', $sendSpan->getAttributes()->get('messaging.symfony.bus'));
+        
+        $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.delay'));
+        $this->assertEquals(1000, $sendSpan->getAttributes()->get('messaging.symfony.delay'));
+        
+        $this->assertTrue($sendSpan->getAttributes()->has(TraceAttributes::MESSAGING_MESSAGE_ID));
+        $this->assertEquals('test-id', $sendSpan->getAttributes()->get(TraceAttributes::MESSAGING_MESSAGE_ID));
+        
+        // Check stamps count
+        $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.stamps'));
+        $stamps = json_decode($sendSpan->getAttributes()->get('messaging.symfony.stamps'), true);
+        $this->assertIsArray($stamps);
+        $this->assertArrayHasKey('Symfony\Component\Messenger\Stamp\BusNameStamp', $stamps);
+        $this->assertArrayHasKey('Symfony\Component\Messenger\Stamp\DelayStamp', $stamps);
+        $this->assertArrayHasKey('Symfony\Component\Messenger\Stamp\TransportMessageIdStamp', $stamps);
+    }
+
+    public function test_throw_exception(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('test');
+
+        $bus = $this->getMessenger();
+        $bus->dispatch(new TestMessage());
+    }
+
+    public function test_throw_exception_with_retry(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('test');
+
+        $bus = $this->getMessenger();
+        $bus->dispatch(new TestMessageWithRetry());
+    }
+
     public function sendDataProvider(): array
     {
         return [
@@ -154,7 +335,7 @@ final class MessengerInstrumentationTest extends AbstractTest
                 'SEND OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                 SpanKind::KIND_PRODUCER,
                 [
-                    MessengerInstrumentation::ATTRIBUTE_MESSENGER_TRANSPORT => class_exists('Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport') ? 'Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport' : 'Symfony\Component\Messenger\Transport\InMemoryTransport',
+                    TraceAttributes::MESSAGING_DESTINATION_NAME => class_exists('Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport') ? 'Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport' : 'Symfony\Component\Messenger\Transport\InMemoryTransport',
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                 ],
             ],
