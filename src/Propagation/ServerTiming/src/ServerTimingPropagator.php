@@ -9,6 +9,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
+use Override;
 
 /**
  * Provides a ResponsePropagator for Server-Timings headers
@@ -30,6 +31,7 @@ final class ServerTimingPropagator implements ResponsePropagator
         ];
     }
 
+    #[Override]
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
         $setter = $setter ?? ArrayAccessGetterSetter::getInstance();
