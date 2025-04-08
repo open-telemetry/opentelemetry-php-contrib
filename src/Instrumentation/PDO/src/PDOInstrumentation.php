@@ -48,9 +48,13 @@ class PDOInstrumentation
                     $builder = self::makeBuilder($instrumentation, 'PDO::connect', $function, $class, $filename, $lineno)
                         ->setSpanKind(SpanKind::KIND_CLIENT);
                     if ($class === PDO::class) {
+                        // Parse the DSN to extract host and port
+                        $dsn = $params[0] ?? '';
+                        [$host, $port] = self::extractFromDSN($dsn);
+
                         $builder
-                            ->setAttribute(TraceAttributes::SERVER_ADDRESS, $params[0] ?? 'unknown')
-                            ->setAttribute(TraceAttributes::SERVER_PORT, $params[0] ?? null);
+                            ->setAttribute(TraceAttributes::SERVER_ADDRESS, $host)
+                            ->setAttribute(TraceAttributes::SERVER_PORT, $port);
                     }
                     $parent = Context::getCurrent();
                     $span = $builder->startSpan();
@@ -89,10 +93,13 @@ class PDOInstrumentation
                 $builder = self::makeBuilder($instrumentation, 'PDO::__construct', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 if ($class === PDO::class) {
-                    //@todo split params[0] into host + port, replace deprecated trace attribute
+                    // Parse the DSN to extract host and port
+                    $dsn = $params[0] ?? '';
+                    [$host, $port] = self::extractFromDSN($dsn);
+
                     $builder
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $params[0] ?? 'unknown')
-                        ->setAttribute(TraceAttributes::SERVER_PORT, $params[0] ?? null);
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $host)
+                        ->setAttribute(TraceAttributes::SERVER_PORT, $port);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -339,5 +346,25 @@ class PDOInstrumentation
         }
 
         return filter_var(get_cfg_var('otel.instrumentation.pdo.distribute_statement_to_linked_spans'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+    }
+
+    private static function extractFromDSN(string $dsn): array
+    {
+        $host = 'unknown';
+        $port = null;
+
+        if (preg_match('/host=([^;]+)/', $dsn, $hostMatches)) {
+            $host = $hostMatches[1];
+        } elseif (preg_match('/mysql:([^;:]+)/', $dsn, $hostMatches)) {
+            $host = $hostMatches[1];
+        }
+
+        if (preg_match('/port=([0-9]+)/', $dsn, $portMatches)) {
+            $port = (int) $portMatches[1];
+        } elseif (preg_match('/:[0-9]+/', $dsn, $portMatches)) {
+            $port = (int) substr($portMatches[0], 1);
+        }
+
+        return [$host, $port];
     }
 }
