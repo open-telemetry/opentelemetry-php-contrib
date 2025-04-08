@@ -47,15 +47,15 @@ class PDOInstrumentation
                     /** @psalm-suppress ArgumentTypeCoercion */
                     $builder = self::makeBuilder($instrumentation, 'PDO::connect', $function, $class, $filename, $lineno)
                         ->setSpanKind(SpanKind::KIND_CLIENT);
-                    if ($class === PDO::class) {
-                        // Parse the DSN to extract host and port
-                        $dsn = $params[0] ?? '';
-                        [$host, $port] = self::extractFromDSN($dsn);
 
-                        $builder
-                            ->setAttribute(TraceAttributes::SERVER_ADDRESS, $host)
-                            ->setAttribute(TraceAttributes::SERVER_PORT, $port);
-                    }
+                    // Parse the DSN to extract host and port
+                    $dsn = $params[0] ?? '';
+                    [$host, $port] = self::extractFromDSN($dsn);
+
+                    $builder
+                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $host)
+                        ->setAttribute(TraceAttributes::SERVER_PORT, $port);
+
                     $parent = Context::getCurrent();
                     $span = $builder->startSpan();
                     Context::storage()->attach($span->storeInContext($parent));
