@@ -517,6 +517,62 @@ class TraceStructureAssertionTraitTest extends TestCase
     }
 
     /**
+     * Test that the diff output is generated correctly when an expected root span is missing.
+     */
+    public function test_trace_structure_diff_output_with_missing_root_span(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create only one root span
+        $rootSpan = $tracer->spanBuilder('root-span-1')
+            ->setSpanKind(SpanKind::KIND_SERVER)
+            ->startSpan();
+        $rootSpan->setAttribute('attribute.one', 'value1');
+        $rootSpan->end();
+
+        // Define an expected structure with two root spans
+        $expectedStructure = [
+            [
+                'name' => 'root-span-1',
+                'kind' => SpanKind::KIND_SERVER,
+                'attributes' => [
+                    'attribute.one' => 'value1',
+                ],
+            ],
+            [
+                'name' => 'root-span-2', // This span doesn't exist
+                'kind' => SpanKind::KIND_CLIENT,
+                'attributes' => [
+                    'attribute.two' => 42,
+                ],
+            ],
+        ];
+
+        try {
+            // This should fail
+            $this->assertTraceStructure($this->storage, $expectedStructure);
+            $this->fail('Expected assertion to fail but it passed');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            // Verify that the error message contains the diff
+            $errorMessage = $e->getMessage();
+
+            // Check for diff markers
+            $this->assertStringContainsString('--- Expected Trace Structure', $errorMessage);
+            $this->assertStringContainsString('+++ Actual Trace Structure', $errorMessage);
+
+            // Check for specific content in the diff
+            $this->assertStringContainsString('root-span-1', $errorMessage);
+
+            // Check for the missing root span indicator in the diff
+            $this->assertStringContainsString('[1] => Array', $errorMessage);
+
+            // Check that the error message indicates the missing root span count
+            $this->assertStringContainsString('Expected 2 root spans', $errorMessage);
+            $this->assertStringContainsString('found 1', $errorMessage);
+        }
+    }
+
+    /**
      * Test asserting a trace structure using PHPUnit matchers.
      */
     public function test_assert_trace_structure_with_phpunit_matchers(): void
