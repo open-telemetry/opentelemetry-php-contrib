@@ -151,6 +151,29 @@ final class PDOTracker
             return $attributes;
         }
 
+        // SQL Server format handling
+        if (str_starts_with($dsn, 'sqlsrv:')) {
+            if (preg_match('/Server=([^,;]+)(?:,([0-9]+))?/', $dsn, $serverMatches)) {
+                $server = $serverMatches[1];
+                if ($server !== '') {
+                    $attributes[TraceAttributes::SERVER_ADDRESS] = $server;
+                }
+
+                if (isset($serverMatches[2]) && $serverMatches[2] !== '') {
+                    $attributes[TraceAttributes::SERVER_PORT] = (int) $serverMatches[2];
+                }
+            }
+
+            if (preg_match('/Database=([^;]*)/', $dsn, $dbMatches)) {
+                $dbname = $dbMatches[1];
+                if ($dbname !== '') {
+                    $attributes[TraceAttributes::DB_NAMESPACE] = $dbname;
+                }
+            }
+
+            return $attributes;
+        }
+
         //deprecated, no replacement at this time
         /*if (preg_match('/user=([^;]*)/', $dsn, $matches)) {
             $user = $matches[1];
@@ -158,12 +181,34 @@ final class PDOTracker
                 $attributes[TraceAttributes::DB_USER] = $user;
             }
         }*/
+
+        // Extract host information
         if (preg_match('/host=([^;]*)/', $dsn, $matches)) {
             $host = $matches[1];
             if ($host !== '') {
                 $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
             }
+        } elseif (preg_match('/mysql:([^;:]+)/', $dsn, $hostMatches)) {
+            $host = $hostMatches[1];
+            if ($host !== '' && $host !== 'dbname') {
+                $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
+            }
         }
+
+        // Extract port information
+        if (preg_match('/port=([0-9]+)/', $dsn, $portMatches)) {
+            $port = (int) $portMatches[1];
+            $attributes[TraceAttributes::SERVER_PORT] = $port;
+        } elseif (preg_match('/[.0-9]+:([0-9]+)/', $dsn, $portMatches)) {
+            // This pattern matches IP:PORT format like 127.0.0.1:3308
+            $port = (int) $portMatches[1];
+            $attributes[TraceAttributes::SERVER_PORT] = $port;
+        } elseif (preg_match('/:([0-9]+)/', $dsn, $portMatches)) {
+            $port = (int) $portMatches[1];
+            $attributes[TraceAttributes::SERVER_PORT] = $port;
+        }
+
+        // Extract database name
         if (preg_match('/dbname=([^;]*)/', $dsn, $matches)) {
             $dbname = $matches[1];
             if ($dbname !== '') {
