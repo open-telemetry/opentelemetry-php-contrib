@@ -452,6 +452,71 @@ class TraceStructureAssertionTraitTest extends TestCase
     }
 
     /**
+     * Test that the diff output is generated correctly for multiple root spans.
+     */
+    public function test_trace_structure_diff_output_with_multiple_root_spans(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create first root span
+        $rootSpan1 = $tracer->spanBuilder('root-span-1')
+            ->setSpanKind(SpanKind::KIND_SERVER)
+            ->startSpan();
+        $rootSpan1->setAttribute('attribute.one', 'actual-value-1');
+        $rootSpan1->end();
+
+        // Create second root span
+        $rootSpan2 = $tracer->spanBuilder('root-span-2')
+            ->setSpanKind(SpanKind::KIND_CLIENT)
+            ->startSpan();
+        $rootSpan2->setAttribute('attribute.two', 42);
+        $rootSpan2->end();
+
+        // Define an expected structure that doesn't match the actual structure
+        $expectedStructure = [
+            [
+                'name' => 'root-span-1',
+                'kind' => SpanKind::KIND_SERVER,
+                'attributes' => [
+                    'attribute.one' => 'expected-value-1', // Different value
+                ],
+            ],
+            [
+                'name' => 'root-span-2',
+                'kind' => SpanKind::KIND_CLIENT,
+                'attributes' => [
+                    'attribute.two' => 24, // Different value
+                    'attribute.three' => true, // Extra attribute
+                ],
+            ],
+        ];
+
+        try {
+            // This should fail
+            $this->assertTraceStructure($this->storage, $expectedStructure);
+            $this->fail('Expected assertion to fail but it passed');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            // Verify that the error message contains the diff
+            $errorMessage = $e->getMessage();
+
+            // Check for diff markers
+            $this->assertStringContainsString('--- Expected Trace Structure', $errorMessage);
+            $this->assertStringContainsString('+++ Actual Trace Structure', $errorMessage);
+
+            // Check for specific content in the diff for the first root span
+            $this->assertStringContainsString('root-span-1', $errorMessage);
+            $this->assertStringContainsString('expected-value-1', $errorMessage);
+            $this->assertStringContainsString('actual-value-1', $errorMessage);
+
+            // Check for specific content in the diff for the second root span
+            $this->assertStringContainsString('root-span-2', $errorMessage);
+            $this->assertStringContainsString('24', $errorMessage);
+            $this->assertStringContainsString('42', $errorMessage);
+            $this->assertStringContainsString('attribute.three', $errorMessage);
+        }
+    }
+
+    /**
      * Test asserting a trace structure using PHPUnit matchers.
      */
     public function test_assert_trace_structure_with_phpunit_matchers(): void
