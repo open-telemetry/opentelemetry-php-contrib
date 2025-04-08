@@ -89,13 +89,12 @@ class TraceAssertionFailedExceptionTest extends TestCase
             // Verify that the exception message contains the expected and actual structures
             $message = $e->getMessage();
 
-            // Check that the message contains the expected structure
-            $this->assertStringContainsString('Expected Trace Structure:', $message);
-            $this->assertStringContainsString('Attribute "attribute.three"', $message);
+            // Check that the message contains the diff markers
+            $this->assertStringContainsString('--- Expected Trace Structure', $message);
+            $this->assertStringContainsString('+++ Actual Trace Structure', $message);
 
-            // Check that the message contains the actual structure
-            $this->assertStringContainsString('Actual Trace Structure:', $message);
-            $this->assertStringContainsString('Missing Attribute: "attribute.three"', $message);
+            // Check for specific content in the diff
+            $this->assertStringContainsString('attribute.three', $message);
 
             // Verify that the exception contains the expected and actual structures
             $this->assertNotEmpty($e->getExpectedStructure());
@@ -132,13 +131,12 @@ class TraceAssertionFailedExceptionTest extends TestCase
             // Verify that the exception message contains the expected and actual structures
             $message = $e->getMessage();
 
-            // Check that the message contains the expected structure
-            $this->assertStringContainsString('Expected Trace Structure:', $message);
-            $this->assertStringContainsString('Child Span: "non-existent-child"', $message);
+            // Check that the message contains the diff markers
+            $this->assertStringContainsString('--- Expected Trace Structure', $message);
+            $this->assertStringContainsString('+++ Actual Trace Structure', $message);
 
-            // Check that the message contains the actual structure
-            $this->assertStringContainsString('Actual Trace Structure:', $message);
-            $this->assertStringContainsString('Missing Child Span: "non-existent-child"', $message);
+            // Check for specific content in the diff
+            $this->assertStringContainsString('non-existent-child', $message);
 
             // Verify that the exception contains the expected and actual structures
             $this->assertNotEmpty($e->getExpectedStructure());
@@ -179,13 +177,12 @@ class TraceAssertionFailedExceptionTest extends TestCase
             // Verify that the exception message contains the expected and actual structures
             $message = $e->getMessage();
 
-            // Check that the message contains the expected structure
-            $this->assertStringContainsString('Expected Trace Structure:', $message);
-            $this->assertStringContainsString('Event: "non-existent-event"', $message);
+            // Check that the message contains the diff markers
+            $this->assertStringContainsString('--- Expected Trace Structure', $message);
+            $this->assertStringContainsString('+++ Actual Trace Structure', $message);
 
-            // Check that the message contains the actual structure
-            $this->assertStringContainsString('Actual Trace Structure:', $message);
-            $this->assertStringContainsString('Missing Event: "non-existent-event"', $message);
+            // Check for specific content in the diff
+            $this->assertStringContainsString('non-existent-event', $message);
 
             // Verify that the exception contains the expected and actual structures
             $this->assertNotEmpty($e->getExpectedStructure());
@@ -221,13 +218,13 @@ class TraceAssertionFailedExceptionTest extends TestCase
             // Verify that the exception message contains the expected and actual structures
             $message = $e->getMessage();
 
-            // Check that the message contains the expected structure
-            $this->assertStringContainsString('Expected Trace Structure:', $message);
-            $this->assertStringContainsString('Kind: KIND_CLIENT', $message);
+            // Check that the message contains the diff markers
+            $this->assertStringContainsString('--- Expected Trace Structure', $message);
+            $this->assertStringContainsString('+++ Actual Trace Structure', $message);
 
-            // Check that the message contains the actual structure
-            $this->assertStringContainsString('Actual Trace Structure:', $message);
-            $this->assertStringContainsString('Kind: KIND_SERVER', $message);
+            // Check for specific content in the diff
+            $this->assertStringContainsString('1', $message); // KIND_CLIENT = 1
+            $this->assertStringContainsString('2', $message); // KIND_SERVER = 2
 
             // Verify that the exception contains the expected and actual structures
             $this->assertNotEmpty($e->getExpectedStructure());

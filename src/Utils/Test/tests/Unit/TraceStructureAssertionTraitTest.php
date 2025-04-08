@@ -371,6 +371,87 @@ class TraceStructureAssertionTraitTest extends TestCase
     }
 
     /**
+     * Test that the diff output is generated correctly when an assertion fails.
+     */
+    public function test_trace_structure_diff_output(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a root span with specific attributes
+        $rootSpan = $tracer->spanBuilder('root-span')
+            ->setSpanKind(SpanKind::KIND_SERVER)
+            ->startSpan();
+
+        $rootSpan->setAttribute('attribute.one', 'actual-value');
+        $rootSpan->setAttribute('attribute.two', 42);
+        $rootSpan->setAttribute('attribute.three', true);
+
+        // Activate the root span
+        $rootScope = $rootSpan->activate();
+
+        try {
+            // Create a child span
+            $childSpan = $tracer->spanBuilder('child-span')
+                ->setSpanKind(SpanKind::KIND_INTERNAL)
+                ->startSpan();
+
+            $childSpan->setAttribute('child.attribute', 'child-value');
+            $childSpan->end();
+        } finally {
+            $rootSpan->end();
+            $rootScope->detach();
+        }
+
+        // Define an expected structure that doesn't match the actual structure
+        $expectedStructure = [
+            [
+                'name' => 'root-span',
+                'kind' => SpanKind::KIND_SERVER,
+                'attributes' => [
+                    'attribute.one' => 'expected-value', // Different value
+                    'attribute.two' => 24, // Different value
+                    // Missing attribute.three
+                ],
+                'children' => [
+                    [
+                        'name' => 'child-span',
+                        'kind' => SpanKind::KIND_INTERNAL,
+                        'attributes' => [
+                            'child.attribute' => 'wrong-value', // Different value
+                            'missing.attribute' => 'missing', // Extra attribute
+                        ],
+                    ],
+                    [
+                        'name' => 'missing-child-span', // Extra child span
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            // This should fail
+            $this->assertTraceStructure($this->storage, $expectedStructure);
+            $this->fail('Expected assertion to fail but it passed');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            // Verify that the error message contains the diff
+            $errorMessage = $e->getMessage();
+
+            // Check for diff markers
+            $this->assertStringContainsString('--- Expected Trace Structure', $errorMessage);
+            $this->assertStringContainsString('+++ Actual Trace Structure', $errorMessage);
+
+            // Check for specific content in the diff
+            $this->assertStringContainsString('expected-value', $errorMessage);
+            $this->assertStringContainsString('actual-value', $errorMessage);
+            $this->assertStringContainsString('24', $errorMessage);
+            $this->assertStringContainsString('42', $errorMessage);
+            $this->assertStringContainsString('attribute.three', $errorMessage);
+            $this->assertStringContainsString('missing.attribute', $errorMessage);
+            $this->assertStringContainsString('[1] => Array', $errorMessage); // This indicates the missing child span
+        }
+    }
+
+    /**
      * Test asserting a trace structure using PHPUnit matchers.
      */
     public function test_assert_trace_structure_with_phpunit_matchers(): void
