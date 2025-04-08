@@ -33,6 +33,7 @@ class LaravelInstrumentation
         Hooks\Illuminate\Queue\Worker::hook($instrumentation);
         Hooks\Illuminate\Routing\Route::hook($instrumentation);
         Hooks\Illuminate\View\View::hook($instrumentation);
+        Hooks\Illuminate\Database\Eloquent\Model::hook($instrumentation);
     }
 
     public static function shouldTraceCli(): bool

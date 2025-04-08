@@ -54,6 +54,7 @@ jobs:
           'Sampler/RuleBased',
           'Shims/OpenTracing',
           'Symfony',
+          'Utils/Test'
         ]
         exclude:
 

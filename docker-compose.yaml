@@ -1,10 +1,11 @@
 services:
   php:
+    image: opentelemetry-php:local-${PHP_VERSION}-cli
     build:
       context: ./docker
       dockerfile: Dockerfile
       args:
-        - PHP_VERSION
+        - PHP_VERSION:${PHP_VERSION}
     volumes:
     - ./:/usr/src/myapp
     user: "${PHP_USER}:root"
