@@ -11,6 +11,7 @@ use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\TestUtils\Fluent\TraceAssertion;
 use OpenTelemetry\TestUtils\Fluent\TraceAssertionFailedException;
+use Override;
 use PHPUnit\Framework\Constraint\StringContains;
 use PHPUnit\Framework\TestCase;
 
@@ -22,6 +23,7 @@ class TraceAssertionTest extends TestCase
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
+    #[Override]
     protected function setUp(): void
     {
         // Create a storage for the exported spans
