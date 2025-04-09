@@ -1,5 +1,6 @@
 includes:
     - vendor/phpstan/phpstan-phpunit/extension.neon
+    - ignore-by-php-version.neon.php
 
 parameters:
     tmpDir: var/cache/phpstan
