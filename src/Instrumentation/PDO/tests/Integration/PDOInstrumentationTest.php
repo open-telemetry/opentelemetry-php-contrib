@@ -15,11 +15,14 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\TestUtils\TraceStructureAssertionTrait;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
 class PDOInstrumentationTest extends TestCase
 {
+    use TraceStructureAssertionTrait;
+
     private ScopeInterface $scope;
     /** @var ArrayObject<array-key, mixed> */
     private ArrayObject $storage;
@@ -113,7 +116,7 @@ class PDOInstrumentationTest extends TestCase
 
         // Test that the subclass-specific methods work
         $db->createFunction('test_function', static fn ($value) => strtoupper($value));
-        
+
         // Test that standard PDO operations still work
         $db->exec($this->fillDB());
         $span = $this->storage->offsetGet(1);
@@ -288,7 +291,7 @@ class PDOInstrumentationTest extends TestCase
         $serverSpan = $tracer->spanBuilder('HTTP GET /api/users')
             ->setSpanKind(SpanKind::KIND_SERVER)
             ->startSpan();
-        
+
         // Create scope for server span
         $serverScope = Context::storage()->attach($serverSpan->storeInContext(Context::getCurrent()));
 
@@ -297,7 +300,7 @@ class PDOInstrumentationTest extends TestCase
         $internalSpan = $tracer->spanBuilder('processUserData')
             ->setSpanKind(SpanKind::KIND_INTERNAL)
             ->startSpan();
-        
+
         // Create scope for internal span
         $internalScope = Context::storage()->attach($internalSpan->storeInContext(Context::getCurrent()));
 
@@ -340,6 +343,63 @@ class PDOInstrumentationTest extends TestCase
 
         // Detach scopes
         $internalScope->detach();
+        $internalSpan->end();
         $serverScope->detach();
+        $serverSpan->end();
+
+        $this->assertTraceStructure(
+            $this->storage,
+            [
+                [
+                    'name' => 'HTTP GET /api/users',
+                    'kind' => SpanKind::KIND_SERVER,
+                    'attributes' => [],
+                    'children' => [
+                        [
+                            'name' => 'processUserData',
+                            'kind' => SpanKind::KIND_INTERNAL,
+                            'attributes' => [],
+                            'children' => [
+                                [
+                                    'name' => 'PDO::__construct',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDO::exec',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDO::prepare',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDOStatement::execute',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDOStatement::fetchAll',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]
+        );
     }
 }
