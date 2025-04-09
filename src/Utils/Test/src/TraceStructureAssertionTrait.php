@@ -229,10 +229,8 @@ trait TraceStructureAssertionTrait
             // Generate a detailed diff between expected and actual structures
             $diff = $this->generateTraceDiff($expectedStructure, $actualStructure);
 
-            // Throw a new assertion failed error with the detailed diff
-            throw new AssertionFailedError(
-                $e->getMessage() . "\n\n" . $diff
-            );
+            // Use Assert::fail() instead of throwing directly
+            Assert::fail($e->getMessage() . "\n\n" . $diff);
         }
     }
 
