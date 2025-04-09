@@ -136,7 +136,7 @@ trait TraceStructureAssertionTrait
         // Build the trace structure starting from root spans
         $traceStructure = [];
         foreach ($rootSpans as $rootSpanId) {
-            $traceStructure[] = $this->buildSpanStructure($rootSpanId, $spanMap);
+            $traceStructure[] = $this->buildSpanStructure((string) $rootSpanId, $spanMap);
         }
 
         return $traceStructure;
@@ -172,7 +172,7 @@ trait TraceStructureAssertionTrait
 
         // Recursively build children structures
         foreach ($childrenIds as $childId) {
-            $structure['children'][] = $this->buildSpanStructure($childId, $spanMap);
+            $structure['children'][] = $this->buildSpanStructure((string) $childId, $spanMap);
         }
 
         return $structure;
@@ -209,21 +209,175 @@ trait TraceStructureAssertionTrait
      */
     private function compareTraceStructures(array $actualStructure, array $expectedStructure, bool $strict): void
     {
-        // Check if the number of root spans matches
-        Assert::assertCount(
-            count($expectedStructure),
-            $actualStructure,
-            sprintf(
-                'Expected %d root spans, but found %d',
+        try {
+            // Check if the number of root spans matches
+            Assert::assertCount(
                 count($expectedStructure),
-                count($actualStructure)
-            )
-        );
+                $actualStructure,
+                sprintf(
+                    'Expected %d root spans, but found %d',
+                    count($expectedStructure),
+                    count($actualStructure)
+                )
+            );
 
-        // For each expected root span, find a matching actual root span
-        foreach ($expectedStructure as $expectedRootSpan) {
-            $this->findMatchingSpan($expectedRootSpan, $actualStructure, $strict);
+            // For each expected root span, find a matching actual root span
+            foreach ($expectedStructure as $expectedRootSpan) {
+                $this->findMatchingSpan($expectedRootSpan, $actualStructure, $strict);
+            }
+        } catch (AssertionFailedError $e) {
+            // Generate a detailed diff between expected and actual structures
+            $diff = $this->generateTraceDiff($expectedStructure, $actualStructure);
+
+            // Use Assert::fail() instead of throwing directly
+            Assert::fail($e->getMessage() . "\n\n" . $diff);
         }
+    }
+
+    /**
+     * Generates a detailed diff between expected and actual trace structures.
+     *
+     * @param array $expectedStructure The expected structure of the trace
+     * @param array $actualStructure The actual structure of the trace
+     * @return string The formatted diff
+     */
+    private function generateTraceDiff(array $expectedStructure, array $actualStructure): string
+    {
+        $output = "--- Expected Trace Structure\n";
+        $output .= "+++ Actual Trace Structure\n";
+        $output .= "@@ @@\n";
+
+        // Generate the diff for the root level
+        $output .= $this->generateArrayDiff($expectedStructure, $actualStructure);
+
+        return $output;
+    }
+
+    /**
+     * Recursively generates a diff between two arrays.
+     *
+     * @param array $expected The expected array
+     * @param array $actual The actual array
+     * @param int $depth The current depth for indentation
+     * @return string The formatted diff
+     */
+    private function generateArrayDiff(array $expected, array $actual, int $depth = 0): string
+    {
+        $output = '';
+        $indent = str_repeat('  ', $depth);
+
+        // If arrays are indexed numerically, compare them as lists
+        if ($this->isIndexedArray($expected) && $this->isIndexedArray($actual)) {
+            $output .= $indent . "Array (\n";
+
+            // Find the maximum index to iterate through
+            $maxIndex = max(count($expected), count($actual)) - 1;
+
+            for ($i = 0; $i <= $maxIndex; $i++) {
+                if (isset($expected[$i]) && isset($actual[$i])) {
+                    // Both arrays have this index, compare the values
+                    if (is_array($expected[$i]) && is_array($actual[$i])) {
+                        // Both values are arrays, recursively compare
+                        $output .= $indent . "  [$i] => Array (\n";
+                        $output .= $this->generateArrayDiff($expected[$i], $actual[$i], $depth + 2);
+                        $output .= $indent . "  )\n";
+                    } elseif ($expected[$i] === $actual[$i]) {
+                        // Values are the same
+                        $output .= $indent . "  [$i] => " . $this->formatValue($expected[$i]) . "\n";
+                    } else {
+                        // Values are different
+                        $output .= $indent . "- [$i] => " . $this->formatValue($expected[$i]) . "\n";
+                        $output .= $indent . "+ [$i] => " . $this->formatValue($actual[$i]) . "\n";
+                    }
+                } elseif (isset($expected[$i])) {
+                    // Only in expected
+                    $output .= $indent . "- [$i] => " . $this->formatValue($expected[$i]) . "\n";
+                } else {
+                    // Only in actual
+                    $output .= $indent . "+ [$i] => " . $this->formatValue($actual[$i]) . "\n";
+                }
+            }
+
+            $output .= $indent . ")\n";
+        } else {
+            // Compare as associative arrays
+            $output .= $indent . "Array (\n";
+
+            // Get all keys from both arrays
+            $allKeys = array_unique(array_merge(array_keys($expected), array_keys($actual)));
+            sort($allKeys);
+
+            foreach ($allKeys as $key) {
+                if (isset($expected[$key]) && isset($actual[$key])) {
+                    // Both arrays have this key, compare the values
+                    if (is_array($expected[$key]) && is_array($actual[$key])) {
+                        // Both values are arrays, recursively compare
+                        $output .= $indent . "  ['$key'] => Array (\n";
+                        $output .= $this->generateArrayDiff($expected[$key], $actual[$key], $depth + 2);
+                        $output .= $indent . "  )\n";
+                    } elseif ($expected[$key] === $actual[$key]) {
+                        // Values are the same
+                        $output .= $indent . "  ['$key'] => " . $this->formatValue($expected[$key]) . "\n";
+                    } else {
+                        // Values are different
+                        $output .= $indent . "- ['$key'] => " . $this->formatValue($expected[$key]) . "\n";
+                        $output .= $indent . "+ ['$key'] => " . $this->formatValue($actual[$key]) . "\n";
+                    }
+                } elseif (isset($expected[$key])) {
+                    // Only in expected
+                    $output .= $indent . "- ['$key'] => " . $this->formatValue($expected[$key]) . "\n";
+                } else {
+                    // Only in actual
+                    $output .= $indent . "+ ['$key'] => " . $this->formatValue($actual[$key]) . "\n";
+                }
+            }
+
+            $output .= $indent . ")\n";
+        }
+
+        return $output;
+    }
+
+    /**
+     * Checks if an array is indexed numerically (not associative).
+     *
+     * @param array $array The array to check
+     * @return bool True if the array is indexed, false if it's associative
+     */
+    private function isIndexedArray(array $array): bool
+    {
+        if (empty($array)) {
+            return true;
+        }
+
+        return array_keys($array) === range(0, count($array) - 1);
+    }
+
+    /**
+     * Formats a value for display in the diff.
+     *
+     * @param mixed $value The value to format
+     * @return string The formatted value
+     */
+    private function formatValue($value): string
+    {
+        if (is_string($value)) {
+            return "'" . addslashes($value) . "'";
+        } elseif (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        } elseif (null === $value) {
+            return 'null';
+        } elseif (is_array($value)) {
+            return 'Array(...)';
+        } elseif (is_object($value)) {
+            if ($value instanceof Constraint) {
+                return 'Constraint(...)';
+            }
+
+            return 'Object(' . get_class($value) . ')';
+        }
+
+        return (string) $value;
     }
 
     /**

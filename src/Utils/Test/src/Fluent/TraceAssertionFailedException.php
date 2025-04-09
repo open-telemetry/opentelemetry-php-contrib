@@ -60,171 +60,187 @@ class TraceAssertionFailedException extends AssertionFailedError
      */
     private function formatDiff(array $expected, array $actual): string
     {
-        $output = "\n\nExpected Trace Structure:\n";
-        $output .= $this->formatExpectedStructure($expected);
+        // First, convert the fluent assertion structures to a format suitable for diffing
+        $expectedStructure = $this->convertFluentStructureToArray($expected);
+        $actualStructure = $this->convertFluentStructureToArray($actual);
 
-        $output .= "\n\nActual Trace Structure:\n";
-        $output .= $this->formatActualStructure($actual);
+        // Generate a PHPUnit-style diff
+        $output = "\n\n--- Expected Trace Structure\n";
+        $output .= "+++ Actual Trace Structure\n";
+        $output .= "@@ @@\n";
+
+        // Generate the diff for the root level
+        $output .= $this->generateArrayDiff($expectedStructure, $actualStructure);
 
         return $output;
     }
 
     /**
-     * Format the expected structure.
+     * Converts the fluent assertion structure to a format suitable for diffing.
      *
-     * @param array $expected The expected structure
-     * @param int $indent The indentation level
-     * @return string
+     * @param array $structure The fluent assertion structure
+     * @return array The converted structure
      */
-    private function formatExpectedStructure(array $expected, int $indent = 0): string
+    private function convertFluentStructureToArray(array $structure): array
     {
-        $output = '';
-        $indentation = str_repeat('  ', $indent);
+        $result = [];
 
-        foreach ($expected as $item) {
+        foreach ($structure as $item) {
             if (!isset($item['type'])) {
                 continue;
             }
 
             switch ($item['type']) {
                 case 'root_span':
-                    $output .= $indentation . "Root Span: \"{$item['name']}\"\n";
+                    $result[] = [
+                        'name' => $item['name'],
+                        'type' => 'root',
+                    ];
 
                     break;
-                case 'root_span_count':
-                    $output .= $indentation . "Root Span Count: {$item['count']}\n";
 
-                    break;
-                case 'span_kind':
-                    $output .= $indentation . 'Kind: ' . $this->formatKind($item['kind']) . "\n";
-
-                    break;
-                case 'span_attribute':
-                    $output .= $indentation . "Attribute \"{$item['key']}\": " . $this->formatValue($item['value']) . "\n";
-
-                    break;
-                case 'span_status':
-                    $output .= $indentation . 'Status: Code=' . $this->formatValue($item['code']);
-                    if (isset($item['description'])) {
-                        $output .= ", Description=\"{$item['description']}\"";
-                    }
-                    $output .= "\n";
-
-                    break;
-                case 'span_event':
-                    $output .= $indentation . "Event: \"{$item['name']}\"\n";
-
-                    break;
-                case 'span_event_attribute':
-                    $output .= $indentation . "Event Attribute \"{$item['key']}\": " . $this->formatValue($item['value']) . "\n";
-
-                    break;
                 case 'child_span':
-                    $output .= $indentation . "Child Span: \"{$item['name']}\"\n";
+                    $result[] = [
+                        'name' => $item['name'],
+                        'type' => 'child',
+                    ];
 
                     break;
-                case 'child_span_count':
-                    $output .= $indentation . "Child Span Count: {$item['count']}\n";
 
-                    break;
-            }
-        }
-
-        return $output;
-    }
-
-    /**
-     * Format the actual structure.
-     *
-     * @param array $actual The actual structure
-     * @param int $indent The indentation level
-     * @return string
-     */
-    private function formatActualStructure(array $actual, int $indent = 0): string
-    {
-        $output = '';
-        $indentation = str_repeat('  ', $indent);
-
-        foreach ($actual as $item) {
-            if (!isset($item['type'])) {
-                continue;
-            }
-
-            switch ($item['type']) {
-                case 'root_span':
-                    $output .= $indentation . "Root Span: \"{$item['name']}\"\n";
-
-                    break;
                 case 'missing_root_span':
-                    $output .= $indentation . "Missing Root Span: \"{$item['expected_name']}\"\n";
-                    if (!empty($item['available_root_spans'])) {
-                        $output .= $indentation . '  Available Root Spans: ' . implode(', ', array_map(function ($name) {
-                            return "\"$name\"";
-                        }, $item['available_root_spans'])) . "\n";
-                    }
+                    $result[] = [
+                        'name' => $item['expected_name'],
+                        'type' => 'root',
+                        'missing' => true,
+                        'available' => $item['available_root_spans'] ?? [],
+                    ];
 
                     break;
-                case 'root_span_count':
-                    $output .= $indentation . "Root Span Count: {$item['count']}\n";
-                    if (!empty($item['spans'])) {
-                        $output .= $indentation . '  Root Spans: ' . implode(', ', array_map(function ($name) {
-                            return "\"$name\"";
-                        }, $item['spans'])) . "\n";
-                    }
 
-                    break;
-                case 'span_kind':
-                    $output .= $indentation . 'Kind: ' . $this->formatKind($item['kind']) . "\n";
-
-                    break;
-                case 'span_attribute':
-                    $output .= $indentation . "Attribute \"{$item['key']}\": " . $this->formatValue($item['value']) . "\n";
-
-                    break;
-                case 'missing_span_attribute':
-                    $output .= $indentation . "Missing Attribute: \"{$item['key']}\"\n";
-
-                    break;
-                case 'span_status':
-                    $output .= $indentation . 'Status: Code=' . $this->formatValue($item['code']);
-                    if (isset($item['description'])) {
-                        $output .= ", Description=\"{$item['description']}\"";
-                    }
-                    $output .= "\n";
-
-                    break;
-                case 'span_event':
-                    $output .= $indentation . "Event: \"{$item['name']}\"\n";
-
-                    break;
-                case 'missing_span_event':
-                    $output .= $indentation . "Missing Event: \"{$item['expected_name']}\"\n";
-
-                    break;
-                case 'span_event_attribute':
-                    $output .= $indentation . "Event Attribute \"{$item['key']}\": " . $this->formatValue($item['value']) . "\n";
-
-                    break;
-                case 'child_span':
-                    $output .= $indentation . "Child Span: \"{$item['name']}\"\n";
-
-                    break;
                 case 'missing_child_span':
-                    $output .= $indentation . "Missing Child Span: \"{$item['expected_name']}\"\n";
+                    $result[] = [
+                        'name' => $item['expected_name'],
+                        'type' => 'child',
+                        'missing' => true,
+                        'available' => $item['available_spans'] ?? [],
+                    ];
 
                     break;
-                case 'unexpected_child_span':
-                    $output .= $indentation . "Unexpected Child Span: \"{$item['name']}\"\n";
+
+                case 'root_span_count':
+                    $result[] = [
+                        'type' => 'count',
+                        'count' => $item['count'],
+                        'spans' => $item['spans'] ?? [],
+                    ];
 
                     break;
-                case 'child_span_count':
-                    $output .= $indentation . "Child Span Count: {$item['count']}\n";
 
-                    break;
+                    // Add other types as needed
             }
         }
 
+        return $result;
+    }
+
+    /**
+     * Recursively generates a diff between two arrays.
+     *
+     * @param array $expected The expected array
+     * @param array $actual The actual array
+     * @param int $depth The current depth for indentation
+     * @return string The formatted diff
+     */
+    private function generateArrayDiff(array $expected, array $actual, int $depth = 0): string
+    {
+        $output = '';
+        $indent = str_repeat('  ', $depth);
+
+        // If arrays are indexed numerically, compare them as lists
+        if ($this->isIndexedArray($expected) && $this->isIndexedArray($actual)) {
+            $output .= $indent . "Array (\n";
+
+            // Find the maximum index to iterate through
+            $maxIndex = max(count($expected), count($actual)) - 1;
+
+            for ($i = 0; $i <= $maxIndex; $i++) {
+                if (isset($expected[$i]) && isset($actual[$i])) {
+                    // Both arrays have this index, compare the values
+                    if (is_array($expected[$i]) && is_array($actual[$i])) {
+                        // Both values are arrays, recursively compare
+                        $output .= $indent . "  [$i] => Array (\n";
+                        $output .= $this->generateArrayDiff($expected[$i], $actual[$i], $depth + 2);
+                        $output .= $indent . "  )\n";
+                    } elseif ($expected[$i] === $actual[$i]) {
+                        // Values are the same
+                        $output .= $indent . "  [$i] => " . $this->formatValue($expected[$i]) . "\n";
+                    } else {
+                        // Values are different
+                        $output .= $indent . "- [$i] => " . $this->formatValue($expected[$i]) . "\n";
+                        $output .= $indent . "+ [$i] => " . $this->formatValue($actual[$i]) . "\n";
+                    }
+                } elseif (isset($expected[$i])) {
+                    // Only in expected
+                    $output .= $indent . "- [$i] => " . $this->formatValue($expected[$i]) . "\n";
+                } else {
+                    // Only in actual
+                    $output .= $indent . "+ [$i] => " . $this->formatValue($actual[$i]) . "\n";
+                }
+            }
+
+            $output .= $indent . ")\n";
+        } else {
+            // Compare as associative arrays
+            $output .= $indent . "Array (\n";
+
+            // Get all keys from both arrays
+            $allKeys = array_unique(array_merge(array_keys($expected), array_keys($actual)));
+            sort($allKeys);
+
+            foreach ($allKeys as $key) {
+                if (isset($expected[$key]) && isset($actual[$key])) {
+                    // Both arrays have this key, compare the values
+                    if (is_array($expected[$key]) && is_array($actual[$key])) {
+                        // Both values are arrays, recursively compare
+                        $output .= $indent . "  ['$key'] => Array (\n";
+                        $output .= $this->generateArrayDiff($expected[$key], $actual[$key], $depth + 2);
+                        $output .= $indent . "  )\n";
+                    } elseif ($expected[$key] === $actual[$key]) {
+                        // Values are the same
+                        $output .= $indent . "  ['$key'] => " . $this->formatValue($expected[$key]) . "\n";
+                    } else {
+                        // Values are different
+                        $output .= $indent . "- ['$key'] => " . $this->formatValue($expected[$key]) . "\n";
+                        $output .= $indent . "+ ['$key'] => " . $this->formatValue($actual[$key]) . "\n";
+                    }
+                } elseif (isset($expected[$key])) {
+                    // Only in expected
+                    $output .= $indent . "- ['$key'] => " . $this->formatValue($expected[$key]) . "\n";
+                } else {
+                    // Only in actual
+                    $output .= $indent . "+ ['$key'] => " . $this->formatValue($actual[$key]) . "\n";
+                }
+            }
+
+            $output .= $indent . ")\n";
+        }
+
         return $output;
+    }
+
+    /**
+     * Checks if an array is indexed numerically (not associative).
+     *
+     * @param array $array The array to check
+     * @return bool True if the array is indexed, false if it's associative
+     */
+    private function isIndexedArray(array $array): bool
+    {
+        if (empty($array)) {
+            return true;
+        }
+
+        return array_keys($array) === range(0, count($array) - 1);
     }
 
     /**
@@ -242,12 +258,30 @@ class TraceAssertionFailedException extends AssertionFailedError
         } elseif (null === $value) {
             return 'null';
         } elseif (is_array($value)) {
+            // Check if this array looks like a status
+            if (isset($value['code']) || isset($value['description'])) {
+                return $this->formatStatus($value);
+            }
+
             $json = json_encode($value);
 
             return $json === false ? '[unable to encode]' : $json;
+        } elseif (is_int($value) && $this->isSpanKind($value)) {
+            return $this->formatKind($value);
         }
 
         return (string) $value;
+    }
+
+    /**
+     * Checks if a value is a span kind.
+     *
+     * @param int $value The value to check
+     * @return bool True if the value is a span kind
+     */
+    private function isSpanKind(int $value): bool
+    {
+        return $value >= 0 && $value <= 4;
     }
 
     /**
@@ -267,5 +301,35 @@ class TraceAssertionFailedException extends AssertionFailedError
         ];
 
         return $kinds[$kind] ?? "UNKNOWN_KIND($kind)";
+    }
+
+    /**
+     * Format a span status for display.
+     *
+     * @param array $status The span status
+     * @return string
+     */
+    private function formatStatus(array $status): string
+    {
+        $output = 'Status: Code=';
+
+        if (isset($status['code'])) {
+            $statusCodes = [
+                0 => 'STATUS_UNSET',
+                1 => 'STATUS_OK',
+                2 => 'STATUS_ERROR',
+            ];
+
+            $code = $status['code'];
+            $output .= isset($statusCodes[$code]) ? $statusCodes[$code] : "UNKNOWN_STATUS($code)";
+        } else {
+            $output .= 'UNDEFINED';
+        }
+
+        if (isset($status['description']) && $status['description']) {
+            $output .= ", Description=\"{$status['description']}\"";
+        }
+
+        return $output;
     }
 }
