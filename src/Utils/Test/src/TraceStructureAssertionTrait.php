@@ -136,7 +136,7 @@ trait TraceStructureAssertionTrait
         // Build the trace structure starting from root spans
         $traceStructure = [];
         foreach ($rootSpans as $rootSpanId) {
-            $traceStructure[] = $this->buildSpanStructure($rootSpanId, $spanMap);
+            $traceStructure[] = $this->buildSpanStructure((string) $rootSpanId, $spanMap);
         }
 
         return $traceStructure;
@@ -172,7 +172,7 @@ trait TraceStructureAssertionTrait
 
         // Recursively build children structures
         foreach ($childrenIds as $childId) {
-            $structure['children'][] = $this->buildSpanStructure($childId, $spanMap);
+            $structure['children'][] = $this->buildSpanStructure((string) $childId, $spanMap);
         }
 
         return $structure;
