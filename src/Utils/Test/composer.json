@@ -1,0 +1,29 @@
+{
+    "name": "open-telemetry/test-utils",
+    "description": "Testing utilities for OpenTelemetry PHP instrumentations",
+    "type": "library",
+    "license": "Apache-2.0",
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\TestUtils\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\TestUtils\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {},
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3",
+        "phan/phan": "^5.0",
+        "phpstan/phpstan": "^1.1",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "open-telemetry/api": "^1.0",
+        "open-telemetry/sdk": "^1.0",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4|^5|^6"
+    }
+}
