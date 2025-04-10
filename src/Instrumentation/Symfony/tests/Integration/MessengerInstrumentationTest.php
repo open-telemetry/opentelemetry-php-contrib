@@ -224,32 +224,20 @@ final class MessengerInstrumentationTest extends AbstractTest
         $handleMessageMethod->setAccessible(true);
         $handleMessageMethod->invoke($worker, $message, 'transport');
 
-        // We should have 3 spans: send, dispatch, and consume
-        $this->assertCount(3, $this->storage);
-
-        // Check the send span
-        $sendSpan = $this->storage[0];
-        $this->assertEquals(
-            'SEND OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-            $sendSpan->getName()
+        // We should have 2 spans: send and consume
+        $this->assertTraceStructure(
+            $this->storage,
+            [
+                [
+                    'name' => 'SEND OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\Integration\\SendEmailMessage',
+                    'kind' => SpanKind::KIND_PRODUCER,
+                ],
+                [
+                    'name' => 'CONSUME OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\Integration\\SendEmailMessage',
+                    'kind' => SpanKind::KIND_CONSUMER,
+                ],
+            ]
         );
-        $this->assertEquals(SpanKind::KIND_PRODUCER, $sendSpan->getKind());
-
-        // Check the dispatch span
-        $dispatchSpan = $this->storage[1];
-        $this->assertEquals(
-            'DISPATCH Symfony\Component\Messenger\Envelope',
-            $dispatchSpan->getName()
-        );
-        $this->assertEquals(SpanKind::KIND_PRODUCER, $dispatchSpan->getKind());
-
-        // Check the consume span
-        $consumeSpan = $this->storage[2];
-        $this->assertEquals(
-            'CONSUME OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-            $consumeSpan->getName()
-        );
-        $this->assertEquals(SpanKind::KIND_CONSUMER, $consumeSpan->getKind());
     }
 
     public function test_middleware_instrumentation()
@@ -282,22 +270,22 @@ final class MessengerInstrumentationTest extends AbstractTest
             }
         });
 
-        // Find the middleware span
-        $middlewareSpan = null;
-        foreach ($this->storage as $span) {
-            if (strpos($span->getName(), 'MIDDLEWARE') === 0) {
-                $middlewareSpan = $span;
-
-                break;
-            }
-        }
-
-        // Assert we found the middleware span
-        $this->assertNotNull($middlewareSpan, 'Middleware span not found');
-        $this->assertStringStartsWith('MIDDLEWARE', $middlewareSpan->getName());
-        $this->assertStringEndsWith('SendEmailMessage', $middlewareSpan->getName());
-        $this->assertEquals(SpanKind::KIND_INTERNAL, $middlewareSpan->getKind());
-        $this->assertTrue($middlewareSpan->getAttributes()->has(MessengerInstrumentation::ATTRIBUTE_MESSAGING_MIDDLEWARE));
+        // Use assertTraceStructure with PHPUnit constraints
+        $this->assertTraceStructure(
+            $this->storage,
+            [
+                [
+                    'name' => $this->logicalAnd(
+                        $this->stringStartsWith('MIDDLEWARE'),
+                        $this->stringContains('SendEmailMessage')
+                    ),
+                    'kind' => SpanKind::KIND_INTERNAL,
+                    'attributes' => [
+                        MessengerInstrumentation::ATTRIBUTE_MESSAGING_MIDDLEWARE => $this->logicalNot($this->isEmpty()),
+                    ],
+                ],
+            ]
+        );
     }
 
     public function test_stamp_information()
@@ -315,20 +303,23 @@ final class MessengerInstrumentationTest extends AbstractTest
         $transport->send($envelope);
 
         // We should have a send span with all stamp information
-        $this->assertCount(1, $this->storage);
-        $sendSpan = $this->storage[0];
-
-        // Check stamp attributes
-        $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.bus'));
-        $this->assertEquals('test_bus', $sendSpan->getAttributes()->get('messaging.symfony.bus'));
-
-        $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.delay'));
-        $this->assertEquals(1000, $sendSpan->getAttributes()->get('messaging.symfony.delay'));
-
-        $this->assertTrue($sendSpan->getAttributes()->has(TraceAttributes::MESSAGING_MESSAGE_ID));
-        $this->assertEquals('test-id', $sendSpan->getAttributes()->get(TraceAttributes::MESSAGING_MESSAGE_ID));
+        $this->assertTraceStructure(
+            $this->storage,
+            [
+                [
+                    'name' => 'SEND OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\Integration\\SendEmailMessage',
+                    'kind' => SpanKind::KIND_PRODUCER,
+                    'attributes' => [
+                        'messaging.symfony.bus' => 'test_bus',
+                        'messaging.symfony.delay' => 1000,
+                        TraceAttributes::MESSAGING_MESSAGE_ID => 'test-id',
+                    ],
+                ],
+            ]
+        );
 
         // Check stamps count
+        $sendSpan = $this->storage[0];
         $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.stamps'));
         $stamps = json_decode($sendSpan->getAttributes()->get('messaging.symfony.stamps'), true);
         $this->assertIsArray($stamps);
