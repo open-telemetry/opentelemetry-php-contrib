@@ -205,6 +205,41 @@ class TraceStructureAssertionTraitTest extends TestCase
     }
 
     /**
+     * Test that assertTraceStructure fails when expected attributes don't exist in the actual span,
+     * even in non-strict mode.
+     */
+    public function test_assert_fails_with_nonexistent_attributes_in_nonstrict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with specific attributes
+        $span = $tracer->spanBuilder('test-span')
+            ->startSpan();
+
+        $span->setAttribute('attribute.one', 'value1');
+        $span->setAttribute('attribute.two', 42);
+
+        $span->end();
+
+        // Define expected structure with an attribute that doesn't exist in the actual span
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+                'attributes' => [
+                    'attribute.one' => 'value1',
+                    'nonexistent.attribute' => 'this-does-not-exist', // This attribute doesn't exist
+                ],
+            ],
+        ];
+
+        // Expect assertion to fail even in non-strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessage('No matching span found for expected span "test-span"');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, false);
+    }
+
+    /**
      * Test asserting a trace structure with multiple root spans.
      */
     public function test_assert_trace_structure_with_multiple_root_spans(): void

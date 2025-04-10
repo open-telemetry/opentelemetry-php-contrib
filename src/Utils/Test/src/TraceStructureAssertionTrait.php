@@ -584,17 +584,12 @@ trait TraceStructureAssertionTrait
     private function compareAttributes(array $expectedAttributes, array $actualAttributes, bool $strict, string $spanName): void
     {
         foreach ($expectedAttributes as $key => $expectedValue) {
-            // In strict mode, all attributes must be present and match
-            if ($strict) {
-                Assert::assertArrayHasKey(
-                    $key,
-                    $actualAttributes,
-                    sprintf('Attribute "%s" not found in span "%s"', $key, $spanName)
-                );
-            } elseif (!isset($actualAttributes[$key])) {
-                // In non-strict mode, if the attribute is not present, skip it
-                continue;
-            }
+            // Both in strict and non-strict mode, all expected attributes must be present
+            Assert::assertArrayHasKey(
+                $key,
+                $actualAttributes,
+                sprintf('Attribute "%s" not found in span "%s"', $key, $spanName)
+            );
 
             // Get the actual value
             $actualValue = $actualAttributes[$key];
