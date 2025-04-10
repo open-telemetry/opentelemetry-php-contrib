@@ -451,7 +451,12 @@ trait TraceStructureAssertionTrait
                 // If we get here, the span and its children match
                 return;
             } catch (AssertionFailedError $e) {
-                // This span didn't match, try the next one
+                // If the error is about an unexpected field in the status, rethrow it
+                if (strpos($e->getMessage(), 'Unexpected field') !== false) {
+                    throw $e;
+                }
+
+                // Otherwise, this span didn't match, try the next one
                 continue;
             }
         }
@@ -653,32 +658,43 @@ trait TraceStructureAssertionTrait
     /**
      * Compares the status of an expected span with the status of an actual span.
      *
-     * @param array $expectedStatus
-     * @param array $actualStatus
-     * @param bool $strict
-     * @param string $spanName
+     * @param mixed $expectedStatus The expected status (multiple formats supported)
+     * @param array $actualStatus The actual status
+     * @param bool $strict Whether to perform strict matching
+     * @param string $spanName The name of the span being compared
      * @throws AssertionFailedError
      * @return void
      */
-    private function compareStatus(array $expectedStatus, array $actualStatus, bool $strict, string $spanName): void
+    private function compareStatus($expectedStatus, array $actualStatus, bool $strict, string $spanName): void
     {
-        // In strict mode, verify that all fields in expected status are also in actual status
-        if ($strict) {
-            // Check if code is specified in expected status
-            if (!isset($expectedStatus['code']) && $actualStatus['code'] !== 0) {
-                Assert::fail(sprintf('Actual status has non-default code but expected status does not specify code for span "%s"', $spanName));
-            }
+        // Case 1: Constraint directly on status code
+        if ($this->isConstraint($expectedStatus)) {
+            Assert::assertThat(
+                $actualStatus['code'],
+                $expectedStatus,
+                sprintf('Status code does not match constraint for span "%s"', $spanName)
+            );
 
-            // Check if description is specified in expected status
-            if (!isset($expectedStatus['description']) && $actualStatus['description'] !== '') {
-                Assert::fail(sprintf('Actual status has description but expected status does not specify description for span "%s"', $spanName));
-            }
+            return;
         }
 
-        // Compare status code if specified
-        if (isset($expectedStatus['code'])) {
-            $expectedCode = $expectedStatus['code'];
+        // Case 2: Scalar value (direct status code comparison)
+        if (is_scalar($expectedStatus)) {
+            Assert::assertSame(
+                $expectedStatus,
+                $actualStatus['code'],
+                sprintf('Status code does not match for span "%s"', $spanName)
+            );
 
+            return;
+        }
+
+        // Case 3: Simple indexed array [code, description]
+        if (is_array($expectedStatus) && array_keys($expectedStatus) === [0, 1] && count($expectedStatus) === 2) {
+            $expectedCode = $expectedStatus[0];
+            $expectedDescription = $expectedStatus[1];
+
+            // Compare code
             if ($this->isConstraint($expectedCode)) {
                 Assert::assertThat(
                     $actualStatus['code'],
@@ -692,12 +708,8 @@ trait TraceStructureAssertionTrait
                     sprintf('Status code does not match for span "%s"', $spanName)
                 );
             }
-        }
 
-        // Compare status description if specified
-        if (isset($expectedStatus['description'])) {
-            $expectedDescription = $expectedStatus['description'];
-
+            // Compare description
             if ($this->isConstraint($expectedDescription)) {
                 Assert::assertThat(
                     $actualStatus['description'],
@@ -710,6 +722,69 @@ trait TraceStructureAssertionTrait
                     $actualStatus['description'],
                     sprintf('Status description does not match for span "%s"', $spanName)
                 );
+            }
+
+            return;
+        }
+
+        // Case 4: Traditional associative array with keys
+        if (is_array($expectedStatus)) {
+            // In strict mode, verify that the expected status doesn't have unexpected fields
+            if ($strict) {
+                // Check for unexpected fields in expected status
+                foreach (array_keys($expectedStatus) as $key) {
+                    if (!in_array($key, ['code', 'description'])) {
+                        Assert::fail(sprintf('Unexpected field "%s" in expected status for span "%s"', $key, $spanName));
+                    }
+                }
+
+                // Check if code is specified in expected status
+                if (!isset($expectedStatus['code']) && $actualStatus['code'] !== 0) {
+                    Assert::fail(sprintf('Actual status has non-default code but expected status does not specify code for span "%s"', $spanName));
+                }
+
+                // Check if description is specified in expected status
+                if (!isset($expectedStatus['description']) && $actualStatus['description'] !== '') {
+                    Assert::fail(sprintf('Actual status has description but expected status does not specify description for span "%s"', $spanName));
+                }
+            }
+
+            // Compare status code if specified
+            if (isset($expectedStatus['code'])) {
+                $expectedCode = $expectedStatus['code'];
+
+                if ($this->isConstraint($expectedCode)) {
+                    Assert::assertThat(
+                        $actualStatus['code'],
+                        $expectedCode,
+                        sprintf('Status code does not match constraint for span "%s"', $spanName)
+                    );
+                } else {
+                    Assert::assertSame(
+                        $expectedCode,
+                        $actualStatus['code'],
+                        sprintf('Status code does not match for span "%s"', $spanName)
+                    );
+                }
+            }
+
+            // Compare status description if specified
+            if (isset($expectedStatus['description'])) {
+                $expectedDescription = $expectedStatus['description'];
+
+                if ($this->isConstraint($expectedDescription)) {
+                    Assert::assertThat(
+                        $actualStatus['description'],
+                        $expectedDescription,
+                        sprintf('Status description does not match constraint for span "%s"', $spanName)
+                    );
+                } else {
+                    Assert::assertSame(
+                        $expectedDescription,
+                        $actualStatus['description'],
+                        sprintf('Status description does not match for span "%s"', $spanName)
+                    );
+                }
             }
         }
     }
