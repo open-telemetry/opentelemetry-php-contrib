@@ -8,12 +8,10 @@ use Aws\Middleware;
 use Aws\ResultInterface;
 use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
-use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
-use OpenTelemetry\Context\ScopeInterface;
 
 /**
  * @experimental
@@ -25,13 +23,12 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     public const NAME = 'AWS SDK Instrumentation';
     public const VERSION = '0.0.1';
     public const SPAN_KIND = SpanKind::KIND_CLIENT;
-    private TextMapPropagatorInterface $propagator;
-    private TracerProviderInterface $tracerProvider;
-    private $clients = [] ;
-    private string $clientName;
-    private string $region;
-    private SpanInterface $span;
-    private ScopeInterface $scope;
+
+    private array $clients = [];
+
+    private array $instrumentedClients = [];
+
+    private array $spanStorage = [];
 
     public function getName(): string
     {
@@ -79,61 +76,70 @@ class AwsSdkInstrumentation implements InstrumentationInterface
     }
 
     /** @psalm-api */
-    public function instrumentClients($clientsArray) : void
+    public function instrumentClients($clientsArray): void
     {
         $this->clients = $clientsArray;
     }
 
-    /** @psalm-suppress ArgumentTypeCoercion */
     public function activate(): bool
     {
         try {
-            $middleware = Middleware::tap(function ($cmd, $_req) {
-                $tracer = $this->getTracer();
-                $propagator = $this->getPropagator();
-
-                $carrier = [];
-                /** @phan-suppress-next-line PhanTypeMismatchArgument */
-                $this->span = $tracer->spanBuilder($this->clientName)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
-                $this->scope = $this->span->activate();
-
-                $propagator->inject($carrier);
-
-                /** @psalm-suppress PossiblyInvalidArgument */
-                $this->span->setAttributes([
-                    'rpc.method' => $cmd->getName(),
-                    'rpc.service' => $this->clientName,
-                    'rpc.system' => 'aws-api',
-                    'aws.region' => $this->region,
-                    ]);
-            });
-
-            /** @psalm-suppress PossiblyInvalidArgument */
-            $end_middleware = Middleware::mapResult(function (ResultInterface $result) {
-                /**
-                 * Some AWS SDK Funtions, such as S3Client->getObjectUrl() do not actually perform on the wire comms
-                 * with AWS Servers, and therefore do not return with a populated AWS\Result object with valid @metadata
-                 * Check for the presence of @metadata before extracting status code as these calls are still
-                 * instrumented.
-                 */
-                if (isset($result['@metadata'])) {
-                    $this->span->setAttributes([
-                        'http.status_code' => $result['@metadata']['statusCode'], //@phan-suppress-current-line PhanTypeMismatchDimFetch
-                    ]);
+            foreach ($this->clients as $client) {
+                $hash = spl_object_hash($client);
+                if (isset($this->instrumentedClients[$hash])) {
+                    continue;
                 }
 
-                $this->span->end();
-                $this->scope->detach();
+                $clientName = $client->getApi()->getServiceName();
+                $region = $client->getRegion();
 
-                return $result;
-            });
+                $client->getHandlerList()->prependInit(Middleware::tap(function ($cmd, $_req) use ($clientName, $region, $hash) {
+                    $tracer = $this->getTracer();
+                    $propagator = $this->getPropagator();
 
-            foreach ($this->clients as $client) {
-                $this->clientName = $client->getApi()->getServiceName();
-                $this->region = $client->getRegion();
+                    $carrier = [];
+                    /** @phan-suppress-next-line PhanTypeMismatchArgument */
+                    $span = $tracer->spanBuilder($clientName)->setSpanKind(AwsSdkInstrumentation::SPAN_KIND)->startSpan();
+                    $scope = $span->activate();
+                    $this->spanStorage[$hash] = [$span, $scope];
 
-                $client->getHandlerList()->prependInit($middleware, 'instrumentation');
-                $client->getHandlerList()->appendSign($end_middleware, 'end_instrumentation');
+                    $propagator->inject($carrier);
+
+                    /** @psalm-suppress PossiblyInvalidArgument */
+                    $span->setAttributes([
+                        'rpc.method' => $cmd->getName(),
+                        'rpc.service' => $clientName,
+                        'rpc.system' => 'aws-api',
+                        'aws.region' => $region,
+                    ]);
+                }), 'instrumentation');
+
+                $client->getHandlerList()->appendSign(Middleware::mapResult(function (ResultInterface $result) use ($hash) {
+                    if (empty($this->spanStorage[$hash])) {
+                        return $result;
+                    }
+                    [$span, $scope] = $this->spanStorage[$hash];
+                    unset($this->spanStorage[$hash]);
+
+                    /*
+                     * Some AWS SDK Functions, such as S3Client->getObjectUrl() do not actually perform on the wire comms
+                     * with AWS Servers, and therefore do not return with a populated AWS\Result object with valid @metadata
+                     * Check for the presence of @metadata before extracting status code as these calls are still
+                     * instrumented.
+                     */
+                    if (isset($result['@metadata'])) {
+                        $span->setAttributes([
+                            'http.status_code' => $result['@metadata']['statusCode'], // @phan-suppress-current-line PhanTypeMismatchDimFetch
+                        ]);
+                    }
+
+                    $span->end();
+                    $scope->detach();
+
+                    return $result;
+                }), 'end_instrumentation');
+
+                $this->instrumentedClients[$hash] = 1;
             }
         } catch (\Throwable $e) {
             return false;
