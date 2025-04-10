@@ -188,14 +188,21 @@ class TraceStructureAssertionTraitTest extends TestCase
         // Assert the trace structure with non-strict matching (should pass)
         $this->assertTraceStructure($this->storage, $expectedStructure, false);
 
-        // Define the expected structure with all attributes
+        // Define the expected structure with all attributes and fields
         $expectedStructureStrict = [
             [
                 'name' => 'test-span',
+                'kind' => 0, // Default kind
                 'attributes' => [
                     'attribute.one' => 'value1',
                     'attribute.two' => 42,
                     'attribute.three' => true,
+                ],
+                'events' => [], // Empty events array
+                'children' => [], // Empty children array
+                'status' => [
+                    'code' => 'Unset', // Default status code
+                    'description' => '', // Default status description
                 ],
             ],
         ];
@@ -680,6 +687,166 @@ class TraceStructureAssertionTraitTest extends TestCase
             // Check that the error message indicates a missing span
             $this->assertStringContainsString('No matching span found', $errorMessage);
         }
+    }
+
+    /**
+     * Test that strict mode fails when actual span has extra attributes.
+     */
+    public function test_assert_fails_with_extra_attributes_in_strict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with multiple attributes
+        $span = $tracer->spanBuilder('test-span')
+            ->startSpan();
+
+        $span->setAttribute('attribute.one', 'value1');
+        $span->setAttribute('attribute.two', 42);
+        $span->setAttribute('attribute.three', true);
+
+        $span->end();
+
+        // Define expected structure with only a subset of attributes
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+                'attributes' => [
+                    'attribute.one' => 'value1',
+                    'attribute.two' => 42,
+                ],
+            ],
+        ];
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/No matching span found for expected span "test-span"/');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, true);
+    }
+
+    /**
+     * Test that strict mode fails when actual span has a kind but expected doesn't.
+     */
+    public function test_assert_fails_with_extra_kind_in_strict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with a specific kind
+        $span = $tracer->spanBuilder('test-span')
+            ->setSpanKind(SpanKind::KIND_SERVER)
+            ->startSpan();
+
+        $span->end();
+
+        // Define expected structure without kind
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+            ],
+        ];
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/No matching span found for expected span "test-span"/');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, true);
+    }
+
+    /**
+     * Test that strict mode fails when actual span has events but expected doesn't.
+     */
+    public function test_assert_fails_with_extra_events_in_strict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with events
+        $span = $tracer->spanBuilder('test-span')
+            ->startSpan();
+
+        $span->addEvent('event-1');
+        $span->addEvent('event-2');
+
+        $span->end();
+
+        // Define expected structure without events
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+            ],
+        ];
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/No matching span found for expected span "test-span"/');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, true);
+    }
+
+    /**
+     * Test that strict mode fails when actual span has a non-default status but expected doesn't.
+     */
+    public function test_assert_fails_with_extra_status_in_strict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with a non-default status
+        $span = $tracer->spanBuilder('test-span')
+            ->startSpan();
+
+        $span->setStatus(StatusCode::STATUS_ERROR, 'Something went wrong');
+
+        $span->end();
+
+        // Define expected structure without status
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+            ],
+        ];
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/No matching span found for expected span "test-span"/');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, true);
+    }
+
+    /**
+     * Test that strict mode fails when actual span has children but expected doesn't.
+     */
+    public function test_assert_fails_with_extra_children_in_strict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a root span
+        $rootSpan = $tracer->spanBuilder('root-span')
+            ->startSpan();
+
+        // Activate the root span
+        $rootScope = $rootSpan->activate();
+
+        try {
+            // Create a child span
+            $childSpan = $tracer->spanBuilder('child-span')
+                ->startSpan();
+            $childSpan->end();
+        } finally {
+            $rootSpan->end();
+            $rootScope->detach();
+        }
+
+        // Define expected structure without children
+        $expectedStructure = [
+            [
+                'name' => 'root-span',
+            ],
+        ];
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/No matching span found for expected span "root-span"/');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, true);
     }
 
     /**

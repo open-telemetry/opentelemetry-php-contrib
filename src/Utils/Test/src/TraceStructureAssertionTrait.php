@@ -500,6 +500,10 @@ trait TraceStructureAssertionTrait
                     sprintf('Span kinds do not match for span "%s"', $expectedSpan['name'])
                 );
             }
+        } elseif ($strict && isset($actualSpan['kind']) && $actualSpan['kind'] !== 0) {
+            // In strict mode, if kind is not specified in expected span but exists in actual span (and is not default),
+            // the test should fail
+            Assert::fail(sprintf('Actual span has kind %d but expected span does not specify kind for span "%s"', $actualSpan['kind'], $expectedSpan['name']));
         }
 
         // Compare attributes if specified
@@ -510,6 +514,10 @@ trait TraceStructureAssertionTrait
                 $strict,
                 $expectedSpan['name']
             );
+        } elseif ($strict && isset($actualSpan['attributes']) && !empty($actualSpan['attributes'])) {
+            // In strict mode, if attributes are not specified in expected span but exist in actual span,
+            // the test should fail
+            Assert::fail(sprintf('Actual span has attributes but expected span does not specify attributes for span "%s"', $expectedSpan['name']));
         }
 
         // Compare status if specified
@@ -517,8 +525,14 @@ trait TraceStructureAssertionTrait
             $this->compareStatus(
                 $expectedSpan['status'],
                 $actualSpan['status'],
+                $strict,
                 $expectedSpan['name']
             );
+        } elseif ($strict && isset($actualSpan['status']) &&
+                 ($actualSpan['status']['code'] !== 0 || $actualSpan['status']['description'] !== '')) {
+            // In strict mode, if status is not specified in expected span but exists in actual span (and is not default),
+            // the test should fail
+            Assert::fail(sprintf('Actual span has non-default status but expected span does not specify status for span "%s"', $expectedSpan['name']));
         }
 
         // Compare events if specified
@@ -529,6 +543,15 @@ trait TraceStructureAssertionTrait
                 $strict,
                 $expectedSpan['name']
             );
+        } elseif ($strict && isset($actualSpan['events']) && !empty($actualSpan['events'])) {
+            // In strict mode, if events are not specified in expected span but exist in actual span,
+            // the test should fail
+            Assert::fail(sprintf('Actual span has events but expected span does not specify events for span "%s"', $expectedSpan['name']));
+        }
+
+        // In strict mode, check for children if not specified in expected span
+        if ($strict && !isset($expectedSpan['children']) && isset($actualSpan['children']) && !empty($actualSpan['children'])) {
+            Assert::fail(sprintf('Actual span has children but expected span does not specify children for span "%s"', $expectedSpan['name']));
         }
     }
 
@@ -583,6 +606,20 @@ trait TraceStructureAssertionTrait
      */
     private function compareAttributes(array $expectedAttributes, array $actualAttributes, bool $strict, string $spanName): void
     {
+        // In strict mode, verify that the number of attributes matches exactly
+        if ($strict) {
+            Assert::assertCount(
+                count($expectedAttributes),
+                $actualAttributes,
+                sprintf(
+                    'Expected %d attributes, but found %d in span "%s"',
+                    count($expectedAttributes),
+                    count($actualAttributes),
+                    $spanName
+                )
+            );
+        }
+
         foreach ($expectedAttributes as $key => $expectedValue) {
             // Both in strict and non-strict mode, all expected attributes must be present
             Assert::assertArrayHasKey(
@@ -618,12 +655,26 @@ trait TraceStructureAssertionTrait
      *
      * @param array $expectedStatus
      * @param array $actualStatus
+     * @param bool $strict
      * @param string $spanName
      * @throws AssertionFailedError
      * @return void
      */
-    private function compareStatus(array $expectedStatus, array $actualStatus, string $spanName): void
+    private function compareStatus(array $expectedStatus, array $actualStatus, bool $strict, string $spanName): void
     {
+        // In strict mode, verify that all fields in expected status are also in actual status
+        if ($strict) {
+            // Check if code is specified in expected status
+            if (!isset($expectedStatus['code']) && $actualStatus['code'] !== 0) {
+                Assert::fail(sprintf('Actual status has non-default code but expected status does not specify code for span "%s"', $spanName));
+            }
+
+            // Check if description is specified in expected status
+            if (!isset($expectedStatus['description']) && $actualStatus['description'] !== '') {
+                Assert::fail(sprintf('Actual status has description but expected status does not specify description for span "%s"', $spanName));
+            }
+        }
+
         // Compare status code if specified
         if (isset($expectedStatus['code'])) {
             $expectedCode = $expectedStatus['code'];
