@@ -7,6 +7,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\TestUtils\TraceStructureAssertionTrait;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -57,6 +58,7 @@ final class TestMessageWithRetry
 
 final class MessengerInstrumentationTest extends AbstractTest
 {
+    use TraceStructureAssertionTrait;
     protected function getMessenger(): MessageBusInterface
     {
         return new MessageBus();
@@ -85,17 +87,16 @@ final class MessengerInstrumentationTest extends AbstractTest
 
         $bus->dispatch($message);
 
-        $this->assertCount(1, $this->storage);
-
-        $span = $this->storage[0];
-
-        $this->assertEquals($spanName, $span->getName());
-        $this->assertEquals($kind, $span->getKind());
-
-        foreach ($attributes as $key => $value) {
-            $this->assertTrue($span->getAttributes()->has($key), sprintf('Attribute %s not found', $key));
-            $this->assertEquals($value, $span->getAttributes()->get($key));
-        }
+        $this->assertTraceStructure(
+            $this->storage,
+            [
+                [
+                    'name' => $spanName,
+                    'kind' => $kind,
+                    'attributes' => $attributes,
+                ],
+            ]
+        );
     }
 
     /**
@@ -110,17 +111,16 @@ final class MessengerInstrumentationTest extends AbstractTest
         $transport = $this->getTransport();
         $transport->send(new Envelope($message));
 
-        $this->assertCount(1, $this->storage);
-
-        $span = $this->storage[0];
-
-        $this->assertEquals($spanName, $span->getName());
-        $this->assertEquals($kind, $span->getKind());
-
-        foreach ($attributes as $key => $value) {
-            $this->assertTrue($span->getAttributes()->has($key), sprintf('Attribute %s not found', $key));
-            $this->assertEquals($value, $span->getAttributes()->get($key));
-        }
+        $this->assertTraceStructure(
+            $this->storage,
+            [
+                [
+                    'name' => $spanName,
+                    'kind' => $kind,
+                    'attributes' => $attributes,
+                ],
+            ]
+        );
     }
 
     public function test_can_sustain_throw_while_dispatching()
@@ -134,9 +134,23 @@ final class MessengerInstrumentationTest extends AbstractTest
 
         try {
             $bus->dispatch(new SendEmailMessage('Hello Again'));
-        } catch (\Throwable $e) {
-            $this->assertCount(1, $this->storage);
-            $this->assertArrayHasKey(0, $this->storage);
+        } catch (\Exception $e) {
+            // Expected exception
+            $this->assertEquals('booo!', $e->getMessage());
+
+            // Now check the trace structure
+            $this->assertTraceStructure(
+                $this->storage,
+                [
+                    [
+                        'name' => 'DISPATCH OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\Integration\\SendEmailMessage',
+                        'kind' => SpanKind::KIND_PRODUCER,
+                        'attributes' => [
+                            MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+                        ],
+                    ],
+                ]
+            );
         }
     }
 
@@ -167,8 +181,22 @@ final class MessengerInstrumentationTest extends AbstractTest
         try {
             $transport->send(new Envelope(new SendEmailMessage('Hello Again')));
         } catch (\Throwable $e) {
-            $this->assertCount(1, $this->storage);
-            $this->assertArrayHasKey(0, $this->storage);
+            // Expected exception
+            $this->assertEquals('booo!', $e->getMessage());
+
+            // Now check the trace structure
+            $this->assertTraceStructure(
+                $this->storage,
+                [
+                    [
+                        'name' => 'SEND OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\Integration\\SendEmailMessage',
+                        'kind' => SpanKind::KIND_PRODUCER,
+                        'attributes' => [
+                            MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+                        ],
+                    ],
+                ]
+            );
         }
     }
 
@@ -189,7 +217,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         // Get and handle the message
         $messages = iterator_to_array($transport->get());
         $message = $messages[0];
-        
+
         // Use reflection to call the protected handleMessage method
         $reflection = new \ReflectionClass($worker);
         $handleMessageMethod = $reflection->getMethod('handleMessage');
@@ -276,7 +304,7 @@ final class MessengerInstrumentationTest extends AbstractTest
     {
         $transport = $this->getTransport();
         $message = new SendEmailMessage('Hello Again');
-        
+
         // Add various stamps to the envelope
         $envelope = new Envelope($message, [
             new \Symfony\Component\Messenger\Stamp\BusNameStamp('test_bus'),
@@ -289,17 +317,17 @@ final class MessengerInstrumentationTest extends AbstractTest
         // We should have a send span with all stamp information
         $this->assertCount(1, $this->storage);
         $sendSpan = $this->storage[0];
-        
+
         // Check stamp attributes
         $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.bus'));
         $this->assertEquals('test_bus', $sendSpan->getAttributes()->get('messaging.symfony.bus'));
-        
+
         $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.delay'));
         $this->assertEquals(1000, $sendSpan->getAttributes()->get('messaging.symfony.delay'));
-        
+
         $this->assertTrue($sendSpan->getAttributes()->has(TraceAttributes::MESSAGING_MESSAGE_ID));
         $this->assertEquals('test-id', $sendSpan->getAttributes()->get(TraceAttributes::MESSAGING_MESSAGE_ID));
-        
+
         // Check stamps count
         $this->assertTrue($sendSpan->getAttributes()->has('messaging.symfony.stamps'));
         $stamps = json_decode($sendSpan->getAttributes()->get('messaging.symfony.stamps'), true);
