@@ -37,11 +37,31 @@ if (\class_exists('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\Amazon
 }
 
 /**
- * The messenger instrumentation will create spans for message operations in Symfony's Messenger system.
- * It supports distributed tracing and provides rich metadata about message processing.
+ * The messenger instrumentation creates spans for message operations in Symfony's Messenger system.
+ *
+ * This implementation follows the OpenTelemetry messaging semantic conventions:
+ * @see https://opentelemetry.io/docs/specs/semconv/messaging/
+ *
+ * Key features:
+ * - Context propagation between producers and consumers
+ * - Span naming following the "{operation} {destination}" convention
+ * - Proper span kind assignment based on operation type
+ * - Standard messaging attributes
+ * - Support for distributed tracing across message boundaries
  */
 final class MessengerInstrumentation
 {
+    // Standard messaging operation types as defined in the spec
+    private const OPERATION_TYPE_CREATE = 'create';
+    private const OPERATION_TYPE_SEND = 'send';
+    private const OPERATION_TYPE_RECEIVE = 'receive';
+    private const OPERATION_TYPE_PROCESS = 'process';
+    private const OPERATION_TYPE_SETTLE = 'settle';
+
+    // Symfony-specific operation types
+    private const OPERATION_TYPE_MIDDLEWARE = 'middleware';
+
+    // Attribute constants
     const ATTRIBUTE_MESSAGING_MESSAGE = 'messaging.message';
     const ATTRIBUTE_MESSAGING_BUS = 'messaging.symfony.bus';
     const ATTRIBUTE_MESSAGING_HANDLER = 'messaging.symfony.handler';
@@ -57,9 +77,17 @@ final class MessengerInstrumentation
     const ATTRIBUTE_MESSENGER_BUS = self::ATTRIBUTE_MESSAGING_BUS;
     const ATTRIBUTE_MESSENGER_MESSAGE = self::ATTRIBUTE_MESSAGING_MESSAGE;
 
-    /** @psalm-suppress PossiblyUnusedMethod */
+    /**
+     * Registers the instrumentation hooks for Symfony Messenger.
+     *
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public static function register(): void
     {
+        // Check if we should use the stable messaging conventions
+        $useStableConventions = self::shouldUseStableConventions();
+        $emitDuplicateConventions = self::shouldEmitDuplicateConventions();
+
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.symfony_messenger',
             null,
@@ -84,19 +112,26 @@ final class MessengerInstrumentation
                 $message = $params[0];
                 $messageClass = \get_class($message);
 
+                // Get destination name if available
+                $destinationName = $message instanceof Envelope
+                    ? self::getDestinationName($message)
+                    : $class;
+
+                // Create span with proper naming convention
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
+                    ->spanBuilder(\sprintf('%s %s', self::OPERATION_TYPE_CREATE, $destinationName))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'dispatch')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, self::OPERATION_TYPE_CREATE)
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_BUS, $class)
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $destinationName)
                 ;
 
                 if ($message instanceof Envelope) {
@@ -159,22 +194,25 @@ final class MessengerInstrumentation
                 $currentContext = Context::getCurrent();
                 $headers = [];
                 $propagator->inject($headers, EnvelopeContextPropagator::getInstance(), $currentContext);
-                
+
                 $envelope = EnvelopeContextPropagator::getInstance()->injectContextIntoEnvelope($envelope, $headers);
+
+                // Get destination name
+                $destinationName = self::getDestinationName($envelope) ?: $class;
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('SEND %s', $messageClass))
+                    ->spanBuilder(\sprintf('%s %s', self::OPERATION_TYPE_SEND, $destinationName))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'send')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, self::OPERATION_TYPE_SEND)
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $class)
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $destinationName)
                 ;
 
                 self::addMessageStampsToSpan($builder, $envelope);
@@ -245,18 +283,21 @@ final class MessengerInstrumentation
                     $propagator->extract($extractedContext, EnvelopeContextPropagator::getInstance());
                 }
 
+                $messageClass = \get_class($envelope->getMessage());
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('CONSUME %s', \get_class($envelope->getMessage())))
+                    ->spanBuilder(\sprintf('%s %s', self::OPERATION_TYPE_RECEIVE, $transportName))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'receive')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, self::OPERATION_TYPE_RECEIVE)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $transportName)
+                    ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
                 ;
 
                 self::addMessageStampsToSpan($builder, $envelope);
@@ -312,18 +353,22 @@ final class MessengerInstrumentation
                 $envelope = $params[0];
                 $messageClass = \get_class($envelope->getMessage());
 
+                // Get destination name
+                $destinationName = self::getDestinationName($envelope) ?: $messageClass;
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('HANDLE %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_INTERNAL)
+                    ->spanBuilder(\sprintf('%s %s', self::OPERATION_TYPE_PROCESS, $destinationName))
+                    ->setSpanKind(SpanKind::KIND_CONSUMER) // Changed from INTERNAL to CONSUMER per spec
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'process')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, self::OPERATION_TYPE_PROCESS)
                     ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
+                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $destinationName)
                 ;
 
                 self::addMessageStampsToSpan($builder, $envelope);
@@ -379,19 +424,23 @@ final class MessengerInstrumentation
                     $handlerClass = \get_class($handler);
                     $messageClass = \get_class($message);
 
+                    // For handler-specific spans, use a custom destination format
+                    $destinationName = sprintf('%s::%s', $handlerClass, $messageClass);
+
                     /** @psalm-suppress ArgumentTypeCoercion */
                     $builder = $instrumentation
                         ->tracer()
-                        ->spanBuilder(\sprintf('HANDLE %s::%s', $handlerClass, $messageClass))
-                        ->setSpanKind(SpanKind::KIND_INTERNAL)
+                        ->spanBuilder(\sprintf('%s %s', self::OPERATION_TYPE_PROCESS, $destinationName))
+                        ->setSpanKind(SpanKind::KIND_CONSUMER) // Changed from INTERNAL to CONSUMER per spec
                         ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                         ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                         ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                         ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                         ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
-                        ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'process')
+                        ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, self::OPERATION_TYPE_PROCESS)
                         ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
                         ->setAttribute(self::ATTRIBUTE_MESSAGING_HANDLER, $handlerClass)
+                        ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $destinationName)
                     ;
 
                     $parent = Context::getCurrent();
@@ -448,19 +497,23 @@ final class MessengerInstrumentation
                     $messageClass = \get_class($envelope->getMessage());
                     $middlewareClass = \get_class($middleware);
 
+                    // For middleware spans, use a custom destination format
+                    $destinationName = sprintf('%s::%s', $middlewareClass, $messageClass);
+
                     /** @psalm-suppress ArgumentTypeCoercion */
                     $builder = $instrumentation
                         ->tracer()
-                        ->spanBuilder(\sprintf('MIDDLEWARE %s::%s', $middlewareClass, $messageClass))
-                        ->setSpanKind(SpanKind::KIND_INTERNAL)
+                        ->spanBuilder(\sprintf('%s %s', self::OPERATION_TYPE_MIDDLEWARE, $destinationName))
+                        ->setSpanKind(SpanKind::KIND_INTERNAL) // Keep as INTERNAL since middleware is not a standard messaging operation
                         ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                         ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                         ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
                         ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                         ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'symfony')
-                        ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'middleware')
+                        ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, self::OPERATION_TYPE_MIDDLEWARE)
                         ->setAttribute(self::ATTRIBUTE_MESSAGING_MESSAGE, $messageClass)
                         ->setAttribute(self::ATTRIBUTE_MESSAGING_MIDDLEWARE, $middlewareClass)
+                        ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $destinationName)
                     ;
 
                     self::addMessageStampsToSpan($builder, $envelope);
@@ -500,6 +553,58 @@ final class MessengerInstrumentation
         }
     }
 
+    /**
+     * Determines if stable messaging conventions should be used.
+     */
+    private static function shouldUseStableConventions(): bool
+    {
+        $optIn = getenv('OTEL_SEMCONV_STABILITY_OPT_IN');
+        if (!$optIn) {
+            return false;
+        }
+
+        $values = explode(',', $optIn);
+
+        return in_array('messaging', $values) || in_array('messaging/dup', $values);
+    }
+
+    /**
+     * Determines if both old and new conventions should be emitted.
+     */
+    private static function shouldEmitDuplicateConventions(): bool
+    {
+        $optIn = getenv('OTEL_SEMCONV_STABILITY_OPT_IN');
+        if (!$optIn) {
+            return false;
+        }
+
+        $values = explode(',', $optIn);
+
+        return in_array('messaging/dup', $values);
+    }
+
+    /**
+     * Gets the destination name from an envelope.
+     */
+    private static function getDestinationName(Envelope $envelope): ?string
+    {
+        $sentStamp = $envelope->last(SentStamp::class);
+        $receivedStamp = $envelope->last(ReceivedStamp::class);
+
+        if ($sentStamp && $sentStamp->getSenderAlias()) {
+            return $sentStamp->getSenderAlias();
+        }
+
+        if ($receivedStamp) {
+            return $receivedStamp->getTransportName();
+        }
+
+        return null;
+    }
+
+    /**
+     * Adds message stamps as span attributes.
+     */
     private static function addMessageStampsToSpan(SpanBuilderInterface $builder, Envelope $envelope): void
     {
         $busStamp = $envelope->last(BusNameStamp::class);
