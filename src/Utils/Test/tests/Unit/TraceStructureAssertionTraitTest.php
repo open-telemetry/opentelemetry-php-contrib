@@ -840,6 +840,106 @@ class TraceStructureAssertionTraitTest extends TestCase
     }
 
     /**
+     * Test that strict mode fails when actual status has a non-default code but expected status doesn't specify a code.
+     */
+    public function test_assert_fails_when_actual_status_has_code_but_expected_doesnt_in_strict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with a non-default status code
+        $span = $tracer->spanBuilder('test-span')
+            ->startSpan();
+
+        $span->setStatus(StatusCode::STATUS_ERROR, '');
+
+        $span->end();
+
+        // Define expected structure with status but without code
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+                'status' => [
+                    'description' => '',
+                ],
+            ],
+        ];
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/No matching span found for expected span "test-span"/');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, true);
+    }
+
+    /**
+     * Test that strict mode fails when actual status has a description but expected status doesn't specify a description.
+     */
+    public function test_assert_fails_when_actual_status_has_description_but_expected_doesnt_in_strict_mode(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with a status description
+        $span = $tracer->spanBuilder('test-span')
+            ->startSpan();
+
+        $span->setStatus(StatusCode::STATUS_ERROR, 'Something went wrong');
+
+        $span->end();
+
+        // Define expected structure with status but without description
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+                'status' => [
+                    'code' => StatusCode::STATUS_ERROR,
+                ],
+            ],
+        ];
+
+        // Expect assertion to fail in strict mode
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/No matching span found for expected span "test-span"/');
+
+        $this->assertTraceStructure($this->storage, $expectedStructure, true);
+    }
+
+    /**
+     * Test that status code constraint checking fails with the correct error message.
+     */
+    public function test_assert_fails_with_status_code_constraint_error_message(): void
+    {
+        $tracer = $this->tracerProvider->getTracer('test-tracer');
+
+        // Create a span with error status
+        $span = $tracer->spanBuilder('test-span')
+            ->startSpan();
+
+        $span->setStatus(StatusCode::STATUS_ERROR, 'Something went wrong');
+
+        $span->end();
+
+        // Create a constraint that will fail (expecting OK status)
+        $constraint = new \PHPUnit\Framework\Constraint\IsIdentical(StatusCode::STATUS_OK);
+
+        // Define expected structure with a constraint that will fail
+        $expectedStructure = [
+            [
+                'name' => 'test-span',
+                'status' => $constraint,
+            ],
+        ];
+
+        try {
+            $this->assertTraceStructure($this->storage, $expectedStructure);
+            $this->fail('Expected assertion to fail but it passed');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            // Verify that the error message contains the expected text
+            $errorMessage = $e->getMessage();
+            $this->assertStringContainsString('No matching span found for expected span "test-span"', $errorMessage);
+        }
+    }
+
+    /**
      * Test that strict mode fails when actual span has children but expected doesn't.
      */
     public function test_assert_fails_with_extra_children_in_strict_mode(): void
