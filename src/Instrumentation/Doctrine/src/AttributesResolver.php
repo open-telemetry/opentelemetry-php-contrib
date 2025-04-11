@@ -41,7 +41,7 @@ final class AttributesResolver
         'trino',
     ];
 
-    public static function get(string $attributeName, array $params)
+    public static function get(string $attributeName, array $params): string|int|null
     {
         $method = 'get' . str_replace('.', '', ucwords($attributeName, '.'));
 
@@ -65,7 +65,7 @@ final class AttributesResolver
      */
     private static function getServerPort(array $params): int
     {
-        return (int)($params[1][0]['port'] ?? null);
+        return (int) ($params[1][0]['port'] ?? null);
     }
 
     /**
