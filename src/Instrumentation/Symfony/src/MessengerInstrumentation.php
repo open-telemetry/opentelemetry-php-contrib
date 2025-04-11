@@ -654,14 +654,5 @@ final class MessengerInstrumentation
         if (!empty($stamps)) {
             $builder->setAttribute(self::ATTRIBUTE_MESSAGING_STAMPS, \json_encode($stamps));
         }
-
-        // Support for Amazon SQS
-        if (\class_exists('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp')) {
-            /** @var \Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp|null $amazonSqsReceivedStamp */
-            $amazonSqsReceivedStamp = $envelope->last('Symfony\Component\Messenger\Bridge\AmazonSqs\Transport\AmazonSqsReceivedStamp');
-            if ($amazonSqsReceivedStamp && !$transportMessageIdStamp && method_exists($amazonSqsReceivedStamp, 'getId')) {
-                $builder->setAttribute(TraceAttributes::MESSAGING_MESSAGE_ID, $amazonSqsReceivedStamp->getId());
-            }
-        }
     }
 }
