@@ -24,7 +24,6 @@ use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Symfony\Component\Messenger\Stamp\SentStamp;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
-use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 use Symfony\Component\Messenger\Worker;
 
@@ -56,7 +55,6 @@ final class MessengerInstrumentation
     private const OPERATION_TYPE_SEND = 'send';
     private const OPERATION_TYPE_RECEIVE = 'receive';
     private const OPERATION_TYPE_PROCESS = 'process';
-    private const OPERATION_TYPE_SETTLE = 'settle';
 
     // Symfony-specific operation types
     private const OPERATION_TYPE_MIDDLEWARE = 'middleware';

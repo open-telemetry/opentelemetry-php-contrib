@@ -146,8 +146,13 @@ final class MessengerInstrumentationTest extends AbstractTest
                         'name' => $this->stringContains('create'),
                         'kind' => SpanKind::KIND_PRODUCER,
                         'attributes' => [
-                            MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+                            // Required attributes
+                            TraceAttributes::MESSAGING_SYSTEM => 'symfony',
                             TraceAttributes::MESSAGING_OPERATION_TYPE => 'create',
+                            TraceAttributes::MESSAGING_DESTINATION_NAME => $this->isType('string'),
+
+                            // Symfony-specific attributes
+                            MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                         ],
                     ],
                 ]
@@ -193,8 +198,13 @@ final class MessengerInstrumentationTest extends AbstractTest
                         'name' => $this->stringContains('send'),
                         'kind' => SpanKind::KIND_PRODUCER,
                         'attributes' => [
-                            MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+                            // Required attributes
+                            TraceAttributes::MESSAGING_SYSTEM => 'symfony',
                             TraceAttributes::MESSAGING_OPERATION_TYPE => 'send',
+                            TraceAttributes::MESSAGING_DESTINATION_NAME => $this->isType('string'),
+
+                            // Symfony-specific attributes
+                            MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                         ],
                     ],
                 ]
@@ -233,10 +243,28 @@ final class MessengerInstrumentationTest extends AbstractTest
                 [
                     'name' => 'send ' . (class_exists('Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport') ? 'Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport' : 'Symfony\Component\Messenger\Transport\InMemoryTransport'),
                     'kind' => SpanKind::KIND_PRODUCER,
+                    'attributes' => [
+                        // Required attributes
+                        TraceAttributes::MESSAGING_SYSTEM => 'symfony',
+                        TraceAttributes::MESSAGING_OPERATION_TYPE => 'send',
+                        TraceAttributes::MESSAGING_DESTINATION_NAME => $this->isType('string'),
+
+                        // Symfony-specific attributes
+                        MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+                    ],
                 ],
                 [
                     'name' => 'receive transport',
                     'kind' => SpanKind::KIND_CONSUMER,
+                    'attributes' => [
+                        // Required attributes
+                        TraceAttributes::MESSAGING_SYSTEM => 'symfony',
+                        TraceAttributes::MESSAGING_OPERATION_TYPE => 'receive',
+                        TraceAttributes::MESSAGING_DESTINATION_NAME => 'transport',
+
+                        // Symfony-specific attributes
+                        MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+                    ],
                 ],
             ]
         );
@@ -283,6 +311,13 @@ final class MessengerInstrumentationTest extends AbstractTest
                     ),
                     'kind' => SpanKind::KIND_INTERNAL,
                     'attributes' => [
+                        // Required attributes
+                        TraceAttributes::MESSAGING_SYSTEM => 'symfony',
+                        TraceAttributes::MESSAGING_OPERATION_TYPE => 'middleware',
+                        TraceAttributes::MESSAGING_DESTINATION_NAME => $this->isType('string'),
+
+                        // Symfony-specific attributes
+                        MessengerInstrumentation::ATTRIBUTE_MESSAGING_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                         MessengerInstrumentation::ATTRIBUTE_MESSAGING_MIDDLEWARE => $this->logicalNot($this->isEmpty()),
                     ],
                 ],
@@ -312,10 +347,16 @@ final class MessengerInstrumentationTest extends AbstractTest
                     'name' => 'send ' . (class_exists('Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport') ? 'Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport' : 'Symfony\Component\Messenger\Transport\InMemoryTransport'),
                     'kind' => SpanKind::KIND_PRODUCER,
                     'attributes' => [
+                        // Required attributes
+                        TraceAttributes::MESSAGING_SYSTEM => 'symfony',
+                        TraceAttributes::MESSAGING_OPERATION_TYPE => 'send',
+                        TraceAttributes::MESSAGING_DESTINATION_NAME => $this->isType('string'),
+                        TraceAttributes::MESSAGING_MESSAGE_ID => 'test-id',
+
+                        // Symfony-specific attributes
+                        MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
                         'messaging.symfony.bus' => 'test_bus',
                         'messaging.symfony.delay' => 1000,
-                        TraceAttributes::MESSAGING_MESSAGE_ID => 'test-id',
-                        TraceAttributes::MESSAGING_OPERATION_TYPE => 'send',
                     ],
                 ],
             ]
@@ -361,9 +402,19 @@ final class MessengerInstrumentationTest extends AbstractTest
                 'send ' . $transportClass,
                 SpanKind::KIND_PRODUCER,
                 [
-                    TraceAttributes::MESSAGING_DESTINATION_NAME => $transportClass,
-                    MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+                    // Required attributes
+                    TraceAttributes::MESSAGING_SYSTEM => 'symfony',
                     TraceAttributes::MESSAGING_OPERATION_TYPE => 'send',
+                    TraceAttributes::MESSAGING_DESTINATION_NAME => $transportClass,
+
+                    // Symfony-specific attributes
+                    MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+
+                    // Code attributes
+                    TraceAttributes::CODE_FUNCTION_NAME => 'send',
+                    TraceAttributes::CODE_NAMESPACE => $this->stringContains('Symfony\Component\Messenger\Transport'),
+                    TraceAttributes::CODE_FILEPATH => $this->isType('string'),
+                    TraceAttributes::CODE_LINE_NUMBER => $this->greaterThan(0),
                 ],
             ],
         ];
@@ -377,10 +428,20 @@ final class MessengerInstrumentationTest extends AbstractTest
                 'create Symfony\Component\Messenger\MessageBus',
                 SpanKind::KIND_PRODUCER,
                 [
+                    // Required attributes
+                    TraceAttributes::MESSAGING_SYSTEM => 'symfony',
+                    TraceAttributes::MESSAGING_OPERATION_TYPE => 'create',
+                    TraceAttributes::MESSAGING_DESTINATION_NAME => 'Symfony\Component\Messenger\MessageBus',
+
+                    // Symfony-specific attributes
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS => 'Symfony\Component\Messenger\MessageBus',
                     MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE => 'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
-                    TraceAttributes::MESSAGING_DESTINATION_NAME => 'Symfony\Component\Messenger\MessageBus',
-                    TraceAttributes::MESSAGING_OPERATION_TYPE => 'create',
+
+                    // Code attributes
+                    TraceAttributes::CODE_FUNCTION_NAME => 'dispatch',
+                    TraceAttributes::CODE_NAMESPACE => $this->stringContains('Symfony\Component\Messenger'),
+                    TraceAttributes::CODE_FILEPATH => $this->isType('string'),
+                    TraceAttributes::CODE_LINE_NUMBER => $this->greaterThan(0),
                 ],
             ],
         ];
