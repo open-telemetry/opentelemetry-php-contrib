@@ -1,0 +1,42 @@
+name: Update Dependabot Configuration
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  update-dependabot-config:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: json
+          coverage: none
+
+      - name: Generate dependabot configuration
+        run: php scripts/generate-dependabot-config.php
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code .github/dependabot.yml || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .github/dependabot.yml
+          git commit -m "chore: update dependabot configuration [skip ci]"
+          git push
