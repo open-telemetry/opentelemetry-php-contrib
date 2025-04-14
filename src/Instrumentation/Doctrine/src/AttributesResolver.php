@@ -63,9 +63,14 @@ final class AttributesResolver
     /**
      * Resolve attribute `server.port`
      */
-    private static function getServerPort(array $params): int
+    private static function getServerPort(array $params): ?int
     {
-        return (int) ($params[1][0]['port'] ?? null);
+        $port = $params[1][0]['port'] ?? null;
+        if ($port) {
+            $port = (int) $port;
+        }
+
+        return $port;
     }
 
     /**
