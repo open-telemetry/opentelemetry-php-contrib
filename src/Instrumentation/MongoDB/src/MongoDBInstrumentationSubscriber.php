@@ -60,7 +60,7 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
 
     /**
      * @psalm-suppress MixedAssignment,MixedArrayTypeCoercion,MixedArrayOffset,MixedArgument
-     * @phan-suppress PhanDeprecatedFunctionInternal
+     * @phan-suppress PhanDeprecatedFunctionInternal,PhanUndeclaredMethod
      */
     public function commandStarted(CommandStartedEvent $event): void
     {
