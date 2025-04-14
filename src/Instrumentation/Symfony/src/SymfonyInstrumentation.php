@@ -11,8 +11,10 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use Symfony\Component\HttpKernel\KernelEvents;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
@@ -169,5 +171,160 @@ final class SymfonyInstrumentation
                 return $params;
             },
         );
+
+        /**
+         * Extract symfony event dispatcher known events and trace the controller
+         *
+         * Adapted from https://github.com/DataDog/dd-trace-php/blob/master/src/DDTrace/Integrations/Symfony/SymfonyIntegration.php
+         */
+        hook(
+            EventDispatcher::class,
+            'dispatch',
+            pre: static function (
+                EventDispatcher $dispatcher,
+                array $params,
+                string $class,
+                string $function,
+                ?string $filename,
+                ?int $lineno,
+            ) use ($instrumentation): array {
+                if (!isset($args[0])) {
+                    return $params;
+                }
+
+                if (\is_object($args[0])) {
+                    // dispatch($event, string $eventName = null)
+                    $event = $args[0];
+                    $eventName = isset($args[1]) && \is_string($args[1]) ? $args[1] : \get_class($event);
+                } elseif (\is_string($args[0])) {
+                    // dispatch($eventName, Event $event = null)
+                    $eventName = $args[0];
+                    $event = isset($args[1]) && \is_object($args[1]) ? $args[1] : null;
+                } else {
+                    return $params;
+                }
+
+                if ($eventName === 'kernel.controller' && \method_exists($event, 'getController')) {
+                    $controller = $event->getController();
+                    if (!($controller instanceof \Closure)) {
+                        if (\is_callable($controller, false, $controllerName) && $controllerName !== null) {
+                            if (\strpos($controllerName, '::') > 0) {
+                                list($class, $method) = \explode('::', $controllerName);
+                                if (isset($class, $method)) {
+                                    hook(
+                                        $class,
+                                        $method,
+                                        pre: static function (
+                                            object $controller,
+                                            array $params,
+                                            string $class,
+                                            string $function,
+                                            ?string $filename,
+                                            ?int $lineno,
+                                        ) use ($instrumentation) {
+                                            $parent = Context::getCurrent();
+                                            $builder = $instrumentation
+                                                ->tracer()
+                                                ->spanBuilder(sprintf('%s::%s', $class, $function))
+                                                ->setParent($parent);
+                                            $span = $builder->startSpan();
+                                            $parent = Context::getCurrent();
+                                            Context::storage()->attach($span->storeInContext($parent));
+                                        },
+                                        post: static function (
+                                            object $controller,
+                                            array $params,
+                                            $result,
+                                            ?\Throwable $exception
+                                        ) {
+                                            $scope = Context::storage()->scope();
+                                            if (null === $scope) {
+                                                return;
+                                            }
+
+                                            $scope->detach();
+                                            $span = Span::fromContext($scope->context());
+
+                                            if (null !== $exception) {
+                                                $span->recordException($exception, [
+                                                    TraceAttributes::EXCEPTION_ESCAPED => true,
+                                                ]);
+                                                $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                                            }
+
+                                            $span->end();
+                                        }
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $parent = Context::getCurrent();
+                $span = $instrumentation->tracer()
+                    ->spanBuilder('symfony.' . $eventName)
+                    ->setParent($parent)
+                    ->startSpan();
+
+                Context::storage()->attach($span->storeInContext($parent));
+
+                if ($event === null) {
+                    return $params;
+                }
+
+                self::setControllerNameAsSpanName($event, $eventName);
+
+                return $params;
+            },
+            post: static function (
+                EventDispatcher $dispatcher,
+                array $params,
+                $result,
+                ?\Throwable $exception
+            ) use ($instrumentation): void {
+                $scope = Context::storage()->scope();
+                if (null === $scope) {
+                    return;
+                }
+
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+
+                if (null !== $exception) {
+                    $span->recordException($exception, [
+                        TraceAttributes::EXCEPTION_ESCAPED => true,
+                    ]);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
+                $span->end();
+            }
+        );
+    }
+
+    private static function setControllerNameAsSpanName($event, $eventName): void
+    {
+        if (
+            !\defined("\Symfony\Component\HttpKernel\KernelEvents::CONTROLLER")
+            || $eventName !== KernelEvents::CONTROLLER
+            || !method_exists($event, 'getController')
+        ) {
+            return;
+        }
+
+        /** @var callable $controllerAndAction */
+        $controllerAndAction = $event->getController();
+
+        if (
+            !is_array($controllerAndAction)
+            || count($controllerAndAction) !== 2
+            || !is_object($controllerAndAction[0])
+        ) {
+            return;
+        }
+
+        $action = get_class($controllerAndAction[0]) . '::' . $controllerAndAction[1];
+        Span::getCurrent()->updateName($action);
     }
 }
