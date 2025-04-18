@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Aws;
 
+use Aws\CommandInterface;
 use Aws\Middleware;
 use Aws\ResultInterface;
+use Closure;
+use Error;
+use GuzzleHttp\Promise;
 use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
+use Psr\Http\Message\RequestInterface;
+use Throwable;
 
 /**
  * @experimental
@@ -114,37 +121,86 @@ class AwsSdkInstrumentation implements InstrumentationInterface
                     ]);
                 }), 'instrumentation');
 
-                $client->getHandlerList()->appendSign(Middleware::mapResult(function (ResultInterface $result) use ($hash) {
-                    if (empty($this->spanStorage[$hash])) {
-                        return $result;
-                    }
-                    [$span, $scope] = $this->spanStorage[$hash];
-                    unset($this->spanStorage[$hash]);
-
-                    /*
-                     * Some AWS SDK Functions, such as S3Client->getObjectUrl() do not actually perform on the wire comms
-                     * with AWS Servers, and therefore do not return with a populated AWS\Result object with valid @metadata
-                     * Check for the presence of @metadata before extracting status code as these calls are still
-                     * instrumented.
-                     */
-                    if (isset($result['@metadata'])) {
-                        $span->setAttributes([
-                            'http.status_code' => $result['@metadata']['statusCode'], // @phan-suppress-current-line PhanTypeMismatchDimFetch
-                        ]);
-                    }
-
-                    $span->end();
-                    $scope->detach();
-
-                    return $result;
-                }), 'end_instrumentation');
+                $client->getHandlerList()->appendSign(function (callable $handler) use ($hash) {
+                    return $this->endSpanMiddleware($handler, $hash);
+                }, 'end_instrumentation');
 
                 $this->instrumentedClients[$hash] = 1;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return false;
         }
 
         return true;
+    }
+
+    private function endSpanMiddleware(callable $handler, string $hash): Closure
+    {
+        $onFulfilled = function (ResultInterface $result) use ($hash) {
+            if (empty($this->spanStorage[$hash])) {
+                return $result;
+            }
+            [$span, $scope] = $this->spanStorage[$hash];
+            unset($this->spanStorage[$hash]);
+
+            /*
+             * Some AWS SDK Functions, such as S3Client->getObjectUrl() do not actually perform on the wire comms
+             * with AWS Servers, and therefore do not return with a populated AWS\Result object with valid @metadata
+             * Check for the presence of @metadata before extracting status code as these calls are still
+             * instrumented.
+             */
+            if (isset($result['@metadata'])) {
+                $span->setAttributes([
+                    'http.status_code' => $result['@metadata']['statusCode'], // @phan-suppress-current-line PhanTypeMismatchDimFetch
+                ]);
+            }
+
+            $span->end();
+            $scope->detach();
+
+            return $result;
+        };
+
+        $onRejected =  function ($reason) use ($hash) {
+            if (empty($this->spanStorage[$hash])) {
+                return Promise\Create::rejectionFor($reason);
+            }
+            [$span, $scope] = $this->spanStorage[$hash];
+            unset($this->spanStorage[$hash]);
+
+            $span->setStatus(StatusCode::STATUS_ERROR, $this->normalizeReason($reason));
+
+            if ($reason instanceof Throwable) {
+                $span->recordException($reason);
+            }
+
+            $span->end();
+            $scope->detach();
+
+            return Promise\Create::rejectionFor($reason);
+        };
+
+        return function (
+            CommandInterface $command,
+            ?RequestInterface $request = null,
+        ) use ($handler, $onFulfilled, $onRejected) {
+            return $handler($command, $request)->then(
+                $onFulfilled,
+                $onRejected,
+            );
+        };
+    }
+
+    private function normalizeReason(mixed $reason): ?string
+    {
+        if ($reason instanceof Throwable) {
+            return $reason->getMessage();
+        }
+
+        try {
+            return strval($reason);
+        } catch (Error) {
+            return null;
+        }
     }
 }
