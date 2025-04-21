@@ -8,7 +8,6 @@ use Aws\CommandInterface;
 use Aws\Middleware;
 use Aws\ResultInterface;
 use Closure;
-use Error;
 use GuzzleHttp\Promise;
 use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
 use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
@@ -18,6 +17,7 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use Psr\Http\Message\RequestInterface;
+use Stringable;
 use Throwable;
 
 /**
@@ -197,10 +197,10 @@ class AwsSdkInstrumentation implements InstrumentationInterface
             return $reason->getMessage();
         }
 
-        try {
-            return strval($reason);
-        } catch (Error) {
+        if (is_object($reason) && ! $reason instanceof Stringable) {
             return null;
         }
+
+        return (string) $reason;
     }
 }
