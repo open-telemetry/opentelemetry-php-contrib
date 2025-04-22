@@ -10,7 +10,7 @@
     "ext-json": "*"
   },
   "require-dev": {
-    "composer/xdebug-handler": "^2.0",
+    "composer/xdebug-handler": "^2.0 || ^3.0",
     "open-telemetry/dev-tools": "dev-main"
   },
   "autoload": {
