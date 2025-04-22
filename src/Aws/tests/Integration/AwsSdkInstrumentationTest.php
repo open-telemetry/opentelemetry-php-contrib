@@ -6,13 +6,18 @@ namespace OpenTelemetry\Tests\Aws\Integration;
 
 use Aws\AwsClientInterface;
 use Aws\EventBridge\EventBridgeClient;
+use Aws\Kms\Exception\KmsException;
+use Aws\Kms\KmsClient;
 use Aws\S3\S3Client;
 use Aws\Sqs\SqsClient;
+use GuzzleHttp\Promise;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Aws\AwsSdkInstrumentation;
 use OpenTelemetry\Aws\Xray\Propagator;
 use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class AwsSdkInstrumentationTest extends TestCase
 {
@@ -212,5 +217,98 @@ class AwsSdkInstrumentationTest extends TestCase
                 sprintf('Failed asserting that %s client was instrumented once', $name)
             );
         }
+    }
+
+    public function testFailedOperationRecordsSpan()
+    {
+        /** @var KmsClient $kmsClient */
+        $kmsClient = $this->getTestClient('KMS', ['region' => 'eu-west-1']);
+
+        $spanProcessor = new CollectingSpanProcessor();
+        $this->awsSdkInstrumentation->setTracerProvider(new TracerProvider([$spanProcessor]));
+        $this->awsSdkInstrumentation->setPropagator(new Propagator());
+        $this->awsSdkInstrumentation->instrumentClients([$kmsClient]);
+        $this->awsSdkInstrumentation->init();
+        $this->awsSdkInstrumentation->activate();
+
+        try {
+            $kmsClient->decrypt(['CiphertextBlob' => random_bytes(16)]);
+        } catch (KmsException) {
+        }
+
+        $collectedSpans = $spanProcessor->getCollectedSpans();
+        $this->assertCount(1, $collectedSpans);
+
+        $span = array_shift($collectedSpans);
+
+        /** @var ReadWriteSpanInterface $span */
+        $this->assertTrue($span->hasEnded());
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->toSpanData()->getStatus()->getCode());
+    }
+
+    public function testRejectsSafelyWithNonStringableObject()
+    {
+        /** @var KmsClient $kmsClient */
+        $kmsClient = $this->getTestClient('KMS', ['region' => 'eu-west-1']);
+
+        $spanProcessor = new CollectingSpanProcessor();
+        $this->awsSdkInstrumentation->setTracerProvider(new TracerProvider([$spanProcessor]));
+        $this->awsSdkInstrumentation->setPropagator(new Propagator());
+        $this->awsSdkInstrumentation->instrumentClients([$kmsClient]);
+        $this->awsSdkInstrumentation->init();
+        $this->awsSdkInstrumentation->activate();
+
+        $kmsClient->getHandlerList()->appendSign(function () {
+            return function () {
+                return Promise\Create::rejectionFor(new stdClass());
+            };
+        });
+
+        try {
+            $kmsClient->decrypt(['CiphertextBlob' => random_bytes(16)]);
+        } catch (Promise\RejectionException) {
+        }
+
+        $collectedSpans = $spanProcessor->getCollectedSpans();
+        $this->assertCount(1, $collectedSpans);
+
+        $span = array_shift($collectedSpans);
+
+        /** @var ReadWriteSpanInterface $span */
+        $this->assertTrue($span->hasEnded());
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->toSpanData()->getStatus()->getCode());
+    }
+
+    public function testRejectsSafelyWithString()
+    {
+        /** @var KmsClient $kmsClient */
+        $kmsClient = $this->getTestClient('KMS', ['region' => 'eu-west-1']);
+
+        $spanProcessor = new CollectingSpanProcessor();
+        $this->awsSdkInstrumentation->setTracerProvider(new TracerProvider([$spanProcessor]));
+        $this->awsSdkInstrumentation->setPropagator(new Propagator());
+        $this->awsSdkInstrumentation->instrumentClients([$kmsClient]);
+        $this->awsSdkInstrumentation->init();
+        $this->awsSdkInstrumentation->activate();
+
+        $kmsClient->getHandlerList()->appendSign(function () {
+            return function () {
+                return Promise\Create::rejectionFor('failed');
+            };
+        });
+
+        try {
+            $kmsClient->decrypt(['CiphertextBlob' => random_bytes(16)]);
+        } catch (Promise\RejectionException) {
+        }
+
+        $collectedSpans = $spanProcessor->getCollectedSpans();
+        $this->assertCount(1, $collectedSpans);
+
+        $span = array_shift($collectedSpans);
+
+        /** @var ReadWriteSpanInterface $span */
+        $this->assertTrue($span->hasEnded());
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->toSpanData()->getStatus()->getCode());
     }
 }
