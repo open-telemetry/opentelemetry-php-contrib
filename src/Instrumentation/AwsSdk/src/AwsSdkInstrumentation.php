@@ -14,6 +14,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\TraceAttributes;
 
 final class AwsSdkInstrumentation
 {
@@ -38,22 +39,22 @@ final class AwsSdkInstrumentation
                 AwsClient $c,
                 array $params,
                 string $class,
-                string $func,
-                ?string $file,
-                ?int $line
+                string $function,
+                ?string $filename,
+                ?int $lineno
             ) use ($inst) {
                 $cmd     = $params[0];
                 $builder = $inst->tracer()
                     ->spanBuilder("{$c->getApi()->getServiceName()}.{$cmd->getName()}")
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute('rpc.system', 'aws-api')
-                    ->setAttribute('rpc.method', $cmd->getName())
-                    ->setAttribute('rpc.service', $c->getApi()->getServiceName())
-                    ->setAttribute('aws.region', $c->getRegion())
-                    ->setAttribute('code.function', $func)
-                    ->setAttribute('code.namespace', $class)
-                    ->setAttribute('code.filepath', $file)
-                    ->setAttribute('code.line_number', $line);
+                    ->setAttribute(TraceAttributes::RPC_SYSTEM, 'aws-api')
+                    ->setAttribute(TraceAttributes::RPC_METHOD, $cmd->getName())
+                    ->setAttribute(TraceAttributes::RPC_SERVICE, $c->getApi()->getServiceName())
+                    ->setAttribute(TraceAttributes::CLOUD_REGION, $c->getRegion())
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
+                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $span   = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
@@ -72,12 +73,12 @@ final class AwsSdkInstrumentation
                 $scope->detach();
 
                 if ($result instanceof ResultInterface && isset($result['@metadata'])) {
-                    $span->setAttribute('http.status_code', $result['@metadata']['statusCode']);
-                    $span->setAttribute('aws.requestId', $result['@metadata']['headers']['x-amz-request-id']);
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $result['@metadata']['statusCode']);
+                    $span->setAttribute(TraceAttributes::AWS_REQUEST_ID, $result['@metadata']['headers']['x-amz-request-id']);
                 }
                 if ($ex) {
                     if ($ex instanceof AwsException && $ex->getAwsRequestId() !== null) {
-                        $span->setAttribute('aws.requestId', $ex->getAwsRequestId());
+                        $span->setAttribute(TraceAttributes::AWS_REQUEST_ID, $ex->getAwsRequestId());
                     }
                     $span->recordException($ex);
                     $span->setStatus(StatusCode::STATUS_ERROR, $ex->getMessage());
