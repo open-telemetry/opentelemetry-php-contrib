@@ -36,6 +36,7 @@
     "cakephp/log": "*",
     "monolog/monolog": "*",
     "symfony/console": "*",
+    "symfony/uid": "*",
     "yiisoft/log": "*",
     "friendsofphp/php-cs-fixer": "^3",
     "phan/phan": "^5.0",
