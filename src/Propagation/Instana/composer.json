@@ -1,7 +1,8 @@
+
 {
-  "name": "open-telemetry/opentelemetry-propagation-server-timing",
-  "description": "OpenTelemetry server-timing propagator.",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "server-timing"],
+  "name": "open-telemetry/opentelemetry-propagation-instana",
+  "description": "OpenTelemetry Instana propagator.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "instana"],
   "type": "library",
   "readme": "./README.md",
   "license": "Apache-2.0",
