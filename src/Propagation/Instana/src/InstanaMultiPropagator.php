@@ -15,7 +15,6 @@ use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
-use Override;
 
 /**
  * InstanaPropagator is a propagator that supports the specification for multiple
@@ -69,14 +68,18 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
         return self::$instance;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * @suppress PhanUndeclaredClassAttribute
+     */
     #[Override]
     public function fields(): array
     {
         return self::FIELDS;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * @suppress PhanUndeclaredClassAttribute
+     */
     #[Override]
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
@@ -94,6 +97,9 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
         $setter->set($carrier, self::INSTANA_LEVEL_HEADER, $spanContext->isSampled() ? self::IS_SAMPLED : self::IS_NOT_SAMPLED);
     }
 
+    /**
+     * @suppress PhanUndeclaredClassAttribute
+     */
     #[Override]
     public function extract($carrier, ?PropagationGetterInterface $getter = null, ?ContextInterface $context = null): ContextInterface
     {
@@ -115,7 +121,6 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
         }
 
         return $context->withContextValue(Span::wrap($spanContext));
-
     }
 
     private static function readHeader($carrier, PropagationGetterInterface $getter, string $key): string
@@ -125,6 +130,7 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
         // Return the header or an empty string if not found
         return $header;
     }
+
     private static function getSampledValue($carrier, PropagationGetterInterface $getter): ?int
     {
         $value = $getter->get($carrier, self::INSTANA_LEVEL_HEADER);
@@ -135,7 +141,8 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
 
         if (in_array(strtolower($value), self::VALID_SAMPLED)) {
             return (int) self::IS_SAMPLED;
-        }
+	}
+
         if (in_array(strtolower($value), self::VALID_NON_SAMPLED)) {
             return (int) self::IS_NOT_SAMPLED;
         }

@@ -1,9 +1,5 @@
 OpenTelemetry Instana Propagator
 
-[![NPM Published Version][npm-img]][npm-url]
-[![Apache License][license-image]][license-image]
-
-
 The OpenTelemetry Propagator for Instana provides HTTP header propagation for systems that are using IBM Observability by Instana.
 This propagator translates the Instana trace correlation headers (`X-INSTANA-T/X-INSTANA-S/X-INSTANA-L`) into the OpenTelemetry `SpanContext`, and vice versa.
 It does not handle `TraceState`.
@@ -12,12 +8,16 @@ It does not handle `TraceState`.
 ## Installation
 
 ```sh
-composer require @instana/opentelemetry-php-propagator-instana
+composer require open-telemetry/opentelemetry-propagation-instana
 ```
 
 ## Usage
 
+```
+$propagator = new InstanaMultiPropagator::getInstance();
+```
 
+Both of the above have extract and inject methods available to extract and inject respectively into the header.
 
 ## Propagator Details
 
@@ -54,7 +54,11 @@ A short summary for each of the headers is provided below. More details are avai
 * For more information on Instana, visit <https://www.instana.com/> and [Instana' documentation](https://www.ibm.com/docs/en/obi/current).
 * For more information on OpenTelemetry, visit: <https://opentelemetry.io/>
 
+## Installing dependencies and executing tests
 
-## License
+From Instana subdirectory:
 
-Apache 2.0 - See [LICENSE][license-url] for more information.
+``` sh
+$ composer install
+$ ./vendor/bin/phpunit tests
+```
