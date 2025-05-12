@@ -64,7 +64,6 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
         if (null === self::$instance) {
             self::$instance = new self();
         }
-
         return self::$instance;
     }
 
@@ -141,7 +140,7 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
 
         if (in_array(strtolower($value), self::VALID_SAMPLED)) {
             return (int) self::IS_SAMPLED;
-	}
+	    }
 
         if (in_array(strtolower($value), self::VALID_NON_SAMPLED)) {
             return (int) self::IS_NOT_SAMPLED;
