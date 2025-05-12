@@ -12,7 +12,3 @@ Registry::registerTextMapPropagator(
     InstanaMultiPropagator::getInstance()
 );
 
-Registry::registerCompositePropagator(
-    'instana',
-    InstanaPropagator::getInstance()
-);

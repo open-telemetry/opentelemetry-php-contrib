@@ -169,6 +169,5 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
             $spanId,
             $level ? TraceFlags::SAMPLED : TraceFlags::DEFAULT
         );
-
     }
 }

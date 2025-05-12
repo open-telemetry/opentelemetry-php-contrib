@@ -16,7 +16,10 @@
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Propagation\\Instana\\": "src/"
-    }
+    },
+    "files": [
+            "_register.php"
+    ]
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",

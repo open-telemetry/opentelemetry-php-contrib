@@ -14,7 +14,7 @@ composer require open-telemetry/opentelemetry-propagation-instana
 ## Usage
 
 ```
-$propagator = new InstanaMultiPropagator::getInstance();
+$propagator = InstanaMultiPropagator::getInstance();
 ```
 
 Both of the above have extract and inject methods available to extract and inject respectively into the header.
