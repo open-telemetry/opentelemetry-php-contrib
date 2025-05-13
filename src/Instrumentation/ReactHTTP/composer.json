@@ -12,7 +12,7 @@
     "php": "^8.1",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.33",
+    "open-telemetry/sem-conv": "^1.32",
     "react/http": "^1.11.0"
   },
   "require-dev": {
