@@ -11,6 +11,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 use Throwable;
@@ -28,7 +29,7 @@ class Psr14Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr14',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr14'),
-            'https://opentelemetry.io/schemas/1.30.0',
+            Version::VERSION_1_32_0->url(),
         );
 
         /**
@@ -42,9 +43,8 @@ class Psr14Instrumentation
                 $event = is_object($params[0]) ? $params[0] : null;
                 $builder = $instrumentation->tracer()
                    ->spanBuilder(sprintf('event %s', $event ? $event::class : 'unknown'))
-                   ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                   ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                   ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                   ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                   ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 if ($event) {

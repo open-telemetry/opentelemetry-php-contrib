@@ -41,9 +41,8 @@ class SyncQueue implements LaravelHook
                     ]))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttributes([
-                        TraceAttributes::CODE_FUNCTION_NAME => $function,
-                        TraceAttributes::CODE_NAMESPACE => $class,
-                        TraceAttributes::CODE_FILEPATH => $filename,
+                        TraceAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
+                        TraceAttributes::CODE_FILE_PATH => $filename,
                         TraceAttributes::CODE_LINE_NUMBER => $lineno,
                     ])
                     ->startSpan();

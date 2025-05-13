@@ -47,7 +47,7 @@ Message context:
 
 {
     "resource": {
-        "attributes": [],
+        "attributes": %A
         "dropped_attributes_count": 0
     },
     "scopes": [

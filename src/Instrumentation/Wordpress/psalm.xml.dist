@@ -18,5 +18,15 @@
                 <directory name="./src"/>
             </errorLevel>
         </ArgumentTypeCoercion>
+        <UnusedFunctionCall>
+            <errorLevel type="suppress">
+                <directory name="./src"/>
+            </errorLevel>
+        </UnusedFunctionCall>
+        <UnusedClass>
+            <errorLevel type="suppress">
+                <directory name="./src"/>
+            </errorLevel>
+        </UnusedClass>
     </issueHandlers>
 </psalm>

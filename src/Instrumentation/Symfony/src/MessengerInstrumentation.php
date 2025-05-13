@@ -11,6 +11,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
@@ -38,7 +39,7 @@ final class MessengerInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.symfony_messenger',
             null,
-            'https://opentelemetry.io/schemas/1.30.0',
+            Version::VERSION_1_32_0->url(),
         );
 
         /**
@@ -66,9 +67,8 @@ final class MessengerInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_BUS, $class)
@@ -133,9 +133,8 @@ final class MessengerInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('SEND %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_TRANSPORT, $class)

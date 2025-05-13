@@ -27,7 +27,7 @@ class CodeIgniterInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.codeigniter',
             null,
-            'https://opentelemetry.io/schemas/1.30.0',
+            'https://opentelemetry.io/schemas/1.32.0',
         );
 
         // The method that creates request/response/controller objects is in the same class as the method
@@ -65,9 +65,8 @@ class CodeIgniterInstrumentation
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
                     ->spanBuilder(\sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();

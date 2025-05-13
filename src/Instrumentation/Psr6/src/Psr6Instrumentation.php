@@ -29,7 +29,7 @@ class Psr6Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr6',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr6'),
-            'https://opentelemetry.io/schemas/1.30.0',
+            'https://opentelemetry.io/schemas/1.32.0',
         );
 
         $pre = static function (CacheItemPoolInterface $pool, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
@@ -74,9 +74,8 @@ class Psr6Instrumentation
         return $instrumentation->tracer()
             ->spanBuilder($function)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-            ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-            ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
             ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttribute('cache.operation', $name);
     }
