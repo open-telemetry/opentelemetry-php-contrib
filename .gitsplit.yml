@@ -47,6 +47,8 @@ splits:
   - prefix: "src/Instrumentation/Psr16"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-psr16.git"
   - prefix: "src/Instrumentation/Psr18"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-react-http.git"
+  - prefix: "src/Instrumentation/ReactHTTP"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-psr18.git"
   - prefix: "src/Instrumentation/Slim"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-slim.git"
