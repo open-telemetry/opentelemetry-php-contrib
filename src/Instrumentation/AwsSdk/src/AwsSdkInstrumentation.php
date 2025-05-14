@@ -25,7 +25,7 @@ final class AwsSdkInstrumentation
         $inst = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.aws-sdk',
             null,
-            'https://opentelemetry.io/schemas/1.30.0',
+            'https://opentelemetry.io/schemas/1.32.0',
         );
 
         /**
@@ -51,9 +51,8 @@ final class AwsSdkInstrumentation
                     ->setAttribute(TraceAttributes::RPC_METHOD, $cmd->getName())
                     ->setAttribute(TraceAttributes::RPC_SERVICE, $c->getApi()->getServiceName())
                     ->setAttribute(TraceAttributes::CLOUD_REGION, $c->getRegion())
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $span   = $builder->startSpan();

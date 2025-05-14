@@ -73,11 +73,12 @@ class AwsSdkInstrumentationTest extends TestCase
         $this->assertSame('s3.ListBuckets', $span->getName());
 
         $attrs = $span->getAttributes();
+        $this->assertSame('Aws\AwsClient::execute', $attrs->get('code.function.name'));
         $this->assertSame('aws-api', $attrs->get('rpc.system'));
         $this->assertSame('s3', $attrs->get('rpc.service'));
         $this->assertSame('ListBuckets', $attrs->get('rpc.method'));
-        $this->assertSame('us-west-2', $attrs->get('aws.region'));
-        $this->assertSame(200, $attrs->get('http.status_code'));
-        $this->assertSame('TEST-REQUEST-ID', $attrs->get('aws.requestId'));
+        $this->assertSame('us-west-2', $attrs->get('cloud.region'));
+        $this->assertSame(200, $attrs->get('http.response.status_code'));
+        $this->assertSame('TEST-REQUEST-ID', $attrs->get('aws.request_id'));
     }
 }
