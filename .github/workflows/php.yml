@@ -43,7 +43,7 @@ jobs:
           'Instrumentation/Psr15',
           'Instrumentation/Psr16',
           'Instrumentation/Psr18',
-          'Instrumentation/ReactHTTP',
+          'Instrumentation/ReactHttp',
           'Instrumentation/Slim',
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
