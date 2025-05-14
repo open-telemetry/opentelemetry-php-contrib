@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Propagation\Instana;
 
 use OpenTelemetry\API\Baggage\Propagation\BaggagePropagator;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
@@ -65,7 +66,7 @@ class InstanaPropagator implements TextMapPropagatorInterface
     #[\Override]
     public function extract($carrier, ?PropagationGetterInterface $getter = null, ?ContextInterface $context = null): ContextInterface
     {
-        
+        $context ??= Context::getCurrent();
         foreach ($this->propagators as $propagator) {
             $context = $propagator->extract($carrier, $getter, $context);
         }
