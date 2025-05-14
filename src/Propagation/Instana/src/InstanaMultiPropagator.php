@@ -71,7 +71,7 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
     /**
      * @suppress PhanUndeclaredClassAttribute
      */
-    #[Override]
+    #[\Override]
     public function fields(): array
     {
         return self::FIELDS;
@@ -80,7 +80,7 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
     /**
      * @suppress PhanUndeclaredClassAttribute
      */
-    #[Override]
+    #[\Override]
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
         $setter ??= ArrayAccessGetterSetter::getInstance();
@@ -100,7 +100,7 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
     /**
      * @suppress PhanUndeclaredClassAttribute
      */
-    #[Override]
+    #[\Override]
     public function extract($carrier, ?PropagationGetterInterface $getter = null, ?ContextInterface $context = null): ContextInterface
     {
         $getter ??= ArrayAccessGetterSetter::getInstance();
