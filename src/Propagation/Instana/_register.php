@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 use OpenTelemetry\Contrib\Propagation\Instana\InstanaPropagator;
 use OpenTelemetry\SDK\Registry;
 

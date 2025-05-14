@@ -115,7 +115,6 @@ final class InstanaContextPropagator implements TextMapPropagatorInterface
         if (($traceId === '' &&  $spanId === '') && $level !== null) {
             return (new NonRecordingSpan($spanContext))
                 ->storeInContext($context);
-
         } elseif (!$spanContext->isValid()) {
             return $context;
         }
@@ -161,7 +160,7 @@ final class InstanaContextPropagator implements TextMapPropagatorInterface
         }
 
         if ($spanId && strlen($spanId) < 16) {
-            $spanId =  str_pad($spanId, 16, '0', STR_PAD_LEFT);
+            $spanId = str_pad($spanId, 16, '0', STR_PAD_LEFT);
         }
 
         return SpanContext::createFromRemoteParent(
