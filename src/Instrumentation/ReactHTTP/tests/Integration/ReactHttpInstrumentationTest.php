@@ -52,15 +52,15 @@ class ReactHttpInstrumentationTest extends TestCase
         $sender->method('send')
             ->willReturnCallback(function (RequestInterface $request) {
                 return match ($request->getUri()->getPath()) {
-                    '/success' => resolve(Response::plaintext('Hello world')),
                     '/network_error' => resolve((new Response())->withStatus(400)),
-                    '/unknown_error' => reject(new \Exception('Unknown'))
+                    '/unknown_error' => reject(new \Exception('Unknown')),
+                    default => resolve(Response::plaintext('Hello world'))
                 };
             });
+        /** @psalm-suppress InternalClass,InternalMethod */
         $transaction = new Transaction($sender, $loop);
         $this->browser = new Browser(null, $loop);
         $ref = new \ReflectionProperty($this->browser, 'transaction');
-        $ref->setAccessible(true);
         $ref->setValue($this->browser, $transaction);
 
         /**

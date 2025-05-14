@@ -42,6 +42,7 @@ $root = $tracerProvider->getTracer('react-http-demo')->spanBuilder('root')->star
 Loop::futureTick(async(static function () use ($context, $root) {
     $contextScope = $context->activate();
     $rootScope = $root->activate();
+
     try {
         $browser = new Browser();
 

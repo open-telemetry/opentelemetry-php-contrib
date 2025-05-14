@@ -34,7 +34,7 @@ class ReactHttpInstrumentation
         hook(
             Transaction::class,
             'send',
-            pre: static function (Transaction $transaction, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): ?array {
+            pre: static function (Transaction $transaction, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): array {
                 $request = $params[0];
 
                 $propagator = Globals::propagator();
@@ -44,11 +44,10 @@ class ReactHttpInstrumentation
                     $request = $request->withoutHeader($field);
                 }
 
-                /** @psalm-suppress ArgumentTypeCoercion */
                 $spanBuilder = $instrumentation
                     ->tracer()
                     // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                    ->spanBuilder(sprintf('%s', $request->getMethod()))
+                    ->spanBuilder(sprintf('%s', $request->getMethod()) ?: 'HTTP')
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
@@ -88,6 +87,7 @@ class ReactHttpInstrumentation
 
                 return [$request];
             },
+            /** @psalm-suppress UnusedClosureParam */
             post: static function (Transaction $transaction, array $params, PromiseInterface $promise, ?Throwable $exception): PromiseInterface {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
@@ -111,7 +111,6 @@ class ReactHttpInstrumentation
                         // @codeCoverageIgnoreStart
                         foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                             if ($response->hasHeader($header)) {
-                                /** @psalm-suppress ArgumentTypeCoercion */
                                 $span->setAttribute(
                                     sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
                                     $response->getHeaderLine($header)
@@ -136,7 +135,6 @@ class ReactHttpInstrumentation
                             // @codeCoverageIgnoreStart
                             foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                                 if ($t->getResponse()->hasHeader($header)) {
-                                    /** @psalm-suppress ArgumentTypeCoercion */
                                     $span->setAttribute(
                                         sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
                                         $t->getResponse()->getHeaderLine($header)
