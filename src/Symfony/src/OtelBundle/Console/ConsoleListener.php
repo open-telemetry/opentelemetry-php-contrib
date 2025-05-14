@@ -28,7 +28,7 @@ final class ConsoleListener implements EventSubscriberInterface
         $this->tracer = $tracerProvider->getTracer(
             OtelBundle::instrumentationName(),
             OtelBundle::instrumentationVersion(),
-            'https://opentelemetry.io/schemas/1.30.0',
+            'https://opentelemetry.io/schemas/1.32.0',
         );
     }
 
@@ -54,14 +54,14 @@ final class ConsoleListener implements EventSubscriberInterface
         $name = $command
             ? $command->getName()
             : null;
-        $class = $command
-            ? get_class($command)
+        $fqn = $command
+            ? sprintf('%s::%s', get_class($command), 'run')
             : null;
 
+        $fqn =
         $span = $this->tracer
             ->spanBuilder($name ?? 'command')
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, 'run')
-            ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $fqn)
             ->startSpan();
 
         Context::storage()->attach($span->storeInContext(Context::getCurrent()));

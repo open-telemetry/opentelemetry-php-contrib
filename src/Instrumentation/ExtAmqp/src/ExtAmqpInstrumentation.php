@@ -33,7 +33,7 @@ final class ExtAmqpInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.ext_amqp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-amqp'),
-            'https://opentelemetry.io/schemas/1.24.0',
+            'https://opentelemetry.io/schemas/1.32.0',
         );
 
         /** @psalm-suppress UnusedFunctionCall */
@@ -56,13 +56,12 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder(sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey) . ' publish')
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION, 'publish')
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'publish')
 
                     ->setAttribute('messaging.destination', $routingKey)
                     ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
@@ -74,14 +73,10 @@ final class ExtAmqpInstrumentation
                     ->setAttribute('messaging.rabbitmq.destination.routing.key', $routingKey)
 
                     // network
-                    ->setAttribute(TraceAttributes::NET_PROTOCOL_NAME, 'amqp')
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
-                    ->setAttribute(TraceAttributes::NET_TRANSPORT, 'tcp')
                     ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, 'tcp')
 
-                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $exchange->getConnection()->getHost())
                     ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $exchange->getConnection()->getHost())
-                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $exchange->getConnection()->getPort())
                     ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $exchange->getConnection()->getPort())
                 ;
 
@@ -170,13 +165,12 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder($queueName . ' ' . $method)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION, $method)
+                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, $method)
 
                     ->setAttribute('messaging.destination.kind', 'queue')
 
@@ -186,14 +180,10 @@ final class ExtAmqpInstrumentation
 
                     ->setAttribute(TraceAttributes::MESSAGING_CLIENT_ID, $queue->getConsumerTag())
 
-                    ->setAttribute(TraceAttributes::NET_PROTOCOL_NAME, 'amqp')
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
-                    ->setAttribute(TraceAttributes::NET_TRANSPORT, 'tcp')
                     ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, 'tcp')
 
-                    ->setAttribute(TraceAttributes::NET_PEER_NAME, $queue->getChannel()->getConnection()->getHost())
                     ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $queue->getChannel()->getConnection()->getHost())
-                    ->setAttribute(TraceAttributes::NET_PEER_PORT, $queue->getChannel()->getConnection()->getPort())
                     ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $queue->getChannel()->getConnection()->getPort())
                 ;
 

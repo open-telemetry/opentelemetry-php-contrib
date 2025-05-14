@@ -21,7 +21,7 @@
     "ext-mysqli": "*",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.30",
+    "open-telemetry/sem-conv": "^1.32",
     "symfony/polyfill-mbstring": "^1.31"
   },
   "suggest": {

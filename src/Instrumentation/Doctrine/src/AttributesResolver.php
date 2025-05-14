@@ -74,9 +74,9 @@ final class AttributesResolver
     }
 
     /**
-     * Resolve attribute `db.system`
+     * Resolve attribute `db.system.name`
      */
-    private static function getDbSystem(array $params)
+    private static function getDbSystemName(array $params)
     {
         $dbSystem = $params[1][0]['driver'] ?? null;
 

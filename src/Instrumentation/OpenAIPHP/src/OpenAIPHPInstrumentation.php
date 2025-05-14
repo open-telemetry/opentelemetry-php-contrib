@@ -40,7 +40,7 @@ final class OpenAIPHPInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.openaiphp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-openai-php'),
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_32_0->url(),
         );
 
         self::$totalTokensCounter = $instrumentation->meter()->createCounter(
@@ -93,9 +93,8 @@ final class OpenAIPHPInstrumentation
                     ->spanBuilder(sprintf('openai %s', $resource . '/' . $operation))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     // openai
                     ->setAttribute(OpenAIAttributes::OPENAI_RESOURCE, $resource . '/' . $operation)
