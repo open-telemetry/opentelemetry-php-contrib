@@ -18,7 +18,7 @@
       "OpenTelemetry\\Contrib\\Propagation\\Instana\\": "src/"
     },
     "files": [
-            "_register.php"
+      "_register.php"
     ]
   },
   "require-dev": {
