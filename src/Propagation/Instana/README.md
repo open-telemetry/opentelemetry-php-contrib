@@ -1,6 +1,6 @@
 OpenTelemetry Instana Propagator
 
-The OpenTelemetry Propagator for Instana provides HTTP header propagation for systems that are using IBM Observability by Instana.
+The OpenTelemetry Propagator for Instana provides HTTP header propagation and Baggage propagation for systems that are using IBM Observability by Instana.
 This propagator translates the Instana trace correlation headers (`X-INSTANA-T/X-INSTANA-S/X-INSTANA-L`) into the OpenTelemetry `SpanContext`, and vice versa.
 It does not handle `TraceState`.
 
@@ -14,10 +14,10 @@ composer require open-telemetry/opentelemetry-propagation-instana
 ## Usage
 
 ```
-$propagator = InstanaMultiPropagator::getInstance();
+$propagator = InstanaPropagator::getInstance();
 ```
 
-Both of the above have extract and inject methods available to extract and inject respectively into the header.
+Both of the above have extract and inject methods available to extract and inject respectively into the header. 
 
 ## Propagator Details
 

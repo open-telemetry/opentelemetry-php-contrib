@@ -21,7 +21,7 @@ use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
  * "instana" http headers used for trace context propagation across service
  * boundaries.
  */
-final class InstanaMultiPropagator implements TextMapPropagatorInterface
+final class InstanaContextPropagator implements TextMapPropagatorInterface
 {
     /**
      * The  X-INSTANA-T header is required and is encoded as 32 lower-hex characters.
