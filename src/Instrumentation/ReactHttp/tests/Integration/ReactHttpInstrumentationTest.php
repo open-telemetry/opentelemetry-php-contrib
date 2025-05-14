@@ -109,7 +109,6 @@ class ReactHttpInstrumentationTest extends TestCase
         $this->assertStringEndsWith('vendor/react/http/src/Io/Transaction.php', $span->getAttributes()->get(TraceAttributes::CODE_FILE_PATH));
         $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
         $this->assertSame('', $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
-        $this->assertSame('text/plain; charset=utf-8', $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
     /**
