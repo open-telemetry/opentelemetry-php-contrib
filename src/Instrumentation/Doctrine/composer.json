@@ -20,7 +20,7 @@
         "ext-opentelemetry": "*",
         "doctrine/dbal": "^3 || ^4 || ^5",
         "open-telemetry/api": "^1.0",
-        "open-telemetry/sem-conv": "^1.24"
+        "open-telemetry/sem-conv": "^1.32"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3",

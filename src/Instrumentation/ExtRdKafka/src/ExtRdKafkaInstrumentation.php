@@ -32,7 +32,7 @@ class ExtRdKafkaInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.ext_rdkafka',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-rdkafka'),
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_32_0->url(),
         );
 
         // Start root span and propagate parent if it exists in headers, for each message consumed
@@ -81,9 +81,8 @@ class ExtRdKafkaInstrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('%s %s', TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND, $exchange->getName()))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, TraceAttributeValues::MESSAGING_SYSTEM_KAFKA)
                     ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND)

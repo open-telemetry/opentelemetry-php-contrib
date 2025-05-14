@@ -13,7 +13,7 @@
     "ext-rdkafka": "*",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.30",
+    "open-telemetry/sem-conv": "^1.32",
     "composer-runtime-api": "^2.0"
   },
   "require-dev": {

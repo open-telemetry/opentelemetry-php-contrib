@@ -46,7 +46,7 @@ class CurlInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.curl',
             null,
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_32_0->url(),
         );
 
         hook(
@@ -156,7 +156,7 @@ class CurlInstrumentation
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttributes($curlHandleToAttributes[$params[0]]->getAttributes());
 

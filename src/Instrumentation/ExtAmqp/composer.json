@@ -7,13 +7,14 @@
   "readme": "./README.md",
   "license": "Apache-2.0",
   "minimum-stability": "dev",
+  "prefer-stable": true,
   "require": {
     "php": "^8.2",
     "composer-runtime-api": "^2.0",
     "ext-amqp": "*",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1",
-    "open-telemetry/sem-conv": "^1.30"
+    "open-telemetry/sem-conv": "^1.32"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",

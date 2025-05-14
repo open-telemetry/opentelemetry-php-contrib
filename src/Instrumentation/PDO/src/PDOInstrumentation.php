@@ -27,7 +27,7 @@ class PDOInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.pdo',
             null,
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_32_0->url(),
         );
         $pdoTracker = new PDOTracker();
 
@@ -301,9 +301,8 @@ class PDOInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
                     ->spanBuilder($name)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
     }
     private static function end(?Throwable $exception): void

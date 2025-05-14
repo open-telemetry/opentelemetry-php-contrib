@@ -24,7 +24,7 @@ class IOInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.io',
             null,
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_32_0->url(),
         );
 
         self::_hook($instrumentation, null, 'fopen', 'fopen');
@@ -71,7 +71,7 @@ class IOInstrumentation
         return $instrumentation->tracer()
             ->spanBuilder($name)
             ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-            ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
             ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
     }
     private static function end(?Throwable $exception): void

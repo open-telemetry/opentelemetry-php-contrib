@@ -18,7 +18,7 @@ class CakePHPInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.cakephp',
             null,
-            'https://opentelemetry.io/schemas/1.30.0',
+            'https://opentelemetry.io/schemas/1.32.0',
         );
         Server::hook($instrumentation);
         Controller::hook($instrumentation);
