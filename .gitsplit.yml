@@ -60,6 +60,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-yii.git"
   - prefix: "src/Instrumentation/Doctrine"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-doctrine.git"
+  - prefix: "src/Instrumentation/AwsSdk"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-aws-sdk.git"
   - prefix: "src/Context/Swoole"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-swoole.git"
   - prefix: "src/AutoInstrumentationInstaller"
