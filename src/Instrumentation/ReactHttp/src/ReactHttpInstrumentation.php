@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\ReactHttp;
 
+use Composer\InstalledVersions;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -29,7 +30,8 @@ class ReactHttpInstrumentation
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.react-http',
-            schemaUrl: Version::VERSION_1_32_0->url(),
+            InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-react-http'),
+            Version::VERSION_1_32_0->url()
         );
 
         /** @psalm-suppress UnusedFunctionCall */
@@ -75,18 +77,18 @@ class ReactHttpInstrumentation
                     $spanBuilder->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 }
 
+                $span = $spanBuilder->startSpan();
+                $context = $span->storeInContext($parentContext);
+                $propagator->inject($request, HeadersPropagator::instance(), $context);
+
                 foreach (explode(',', getenv('OTEL_INSTRUMENTATION_HTTP_REQUEST_HEADERS') ?: '') as $header) {
                     if ($request->hasHeader($header)) {
-                        $spanBuilder->setAttribute(
+                        $span->setAttribute(
                             sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, strtolower($header)),
                             $request->getHeader($header)
                         );
                     }
                 }
-
-                $span = $spanBuilder->startSpan();
-                $context = $span->storeInContext($parentContext);
-                $propagator->inject($request, HeadersPropagator::instance(), $context);
 
                 Context::storage()->attach($context);
 
@@ -161,7 +163,7 @@ class ReactHttpInstrumentation
         );
     }
 
-    private static function canonizeMethod(string $method): string
+    private static function canonizeMethod(string $method): ?string
     {
         // RFC9110, RFC5789
         $knownMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'];
@@ -175,7 +177,7 @@ class ReactHttpInstrumentation
             return $method;
         }
 
-        return '';
+        return null;
     }
 
     private static function sanitizeUrl(UriInterface $uri): string

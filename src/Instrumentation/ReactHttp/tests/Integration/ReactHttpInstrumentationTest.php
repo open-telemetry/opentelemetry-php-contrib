@@ -9,6 +9,7 @@ use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\Contrib\Instrumentation\ReactHttp\ReactHttpInstrumentation;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -26,9 +27,6 @@ use React\Http\Message\ResponseException;
 use function React\Promise\reject;
 use function React\Promise\resolve;
 
-/**
- * @covers \OpenTelemetry\Contrib\Instrumentation\ReactHttp\ReactHttpInstrumentation
- */
 class ReactHttpInstrumentationTest extends TestCase
 {
     private Browser $browser;
@@ -92,9 +90,12 @@ class ReactHttpInstrumentationTest extends TestCase
 
     public function test_fulfilled_promise(): void
     {
+        putenv('OTEL_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
+        putenv('OTEL_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=Content-Type');
+
         $this->assertCount(0, $this->storage);
 
-        $this->browser->request('GET', 'http://username@example.com:8888/success?query#fragment', ['Accept' => 'text/plain'])->then();
+        $this->browser->request('GET', 'http://username@example.com:8888/success?query#fragment')->then();
 
         $this->assertCount(1, $this->storage);
 
@@ -106,7 +107,7 @@ class ReactHttpInstrumentationTest extends TestCase
         $this->assertSame('http://REDACTED@example.com:8888/success?query#fragment', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertSame('React\Http\Io\Transaction::send', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION_NAME));
         $this->assertSame(8888, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
-        $this->assertSame(['text/plain'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, 'accept')));
+        $this->assertNotEmpty($span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, 'traceparent')));
         $this->assertStringEndsWith('vendor/react/http/src/Io/Transaction.php', $span->getAttributes()->get(TraceAttributes::CODE_FILE_PATH));
         $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
         $this->assertSame('http', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_NAME));
@@ -116,6 +117,8 @@ class ReactHttpInstrumentationTest extends TestCase
 
     public function test_fulfilled_promise_with_overridden_methods(): void
     {
+        putenv('OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS=CUSTOM');
+
         $this->browser->request('CUSTOM', 'http://example.com/success')->then();
 
         $span = $this->storage->offsetGet(0);
@@ -176,5 +179,12 @@ class ReactHttpInstrumentationTest extends TestCase
         $this->assertSame('exception', $event->getName());
         $this->assertSame('Exception', $event->getAttributes()->get(TraceAttributes::EXCEPTION_TYPE));
         $this->assertSame('Unknown', $event->getAttributes()->get(TraceAttributes::EXCEPTION_MESSAGE));
+    }
+
+    public function test_can_register(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        ReactHttpInstrumentation::register();
     }
 }
