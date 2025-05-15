@@ -1,4 +1,13 @@
-OpenTelemetry Instana Propagator
+[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-propagator-instana/releases)
+[![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
+[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Propagation/Instana)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-propagator-instana)
+[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-instana/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-instana/)
+[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-instana/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-instana/)
+
+This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
+
+# OpenTelemetry Instana Propagator
 
 The OpenTelemetry Propagator for Instana provides HTTP header propagation and Baggage propagation for systems that are using IBM Observability by Instana.
 This propagator translates the Instana trace correlation headers (`X-INSTANA-T/X-INSTANA-S/X-INSTANA-L`) into the OpenTelemetry `SpanContext`, and vice versa.
@@ -17,7 +26,7 @@ composer require open-telemetry/opentelemetry-propagation-instana
 $propagator = InstanaPropagator::getInstance();
 ```
 
-Both of the above have extract and inject methods available to extract and inject respectively into the header. 
+Both of the above have extract and inject methods available to extract and inject respectively into the header.
 
 ## Propagator Details
 
