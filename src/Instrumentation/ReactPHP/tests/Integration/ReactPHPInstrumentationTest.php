@@ -90,8 +90,8 @@ class ReactPHPInstrumentationTest extends TestCase
 
     public function test_fulfilled_promise(): void
     {
-        putenv('OTEL_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
-        putenv('OTEL_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=Content-Type');
+        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
+        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=Content-Type');
 
         $this->assertCount(0, $this->storage);
 

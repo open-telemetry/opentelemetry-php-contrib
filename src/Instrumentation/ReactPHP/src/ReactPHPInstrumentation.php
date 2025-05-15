@@ -81,7 +81,7 @@ class ReactPHPInstrumentation
                 $context = $span->storeInContext($parentContext);
                 $propagator->inject($request, HeadersPropagator::instance(), $context);
 
-                foreach (explode(',', getenv('OTEL_INSTRUMENTATION_HTTP_REQUEST_HEADERS') ?: '') as $header) {
+                foreach (explode(',', getenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS') ?: '') as $header) {
                     if ($request->hasHeader($header)) {
                         $span->setAttribute(
                             sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, strtolower($header)),
@@ -117,7 +117,7 @@ class ReactPHPInstrumentation
                                 ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $response->getStatusCode());
                         }
 
-                        foreach (explode(',', getenv('OTEL_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
+                        foreach (explode(',', getenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
                             if ($response->hasHeader($header)) {
                                 $span->setAttribute(
                                     sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
@@ -140,7 +140,7 @@ class ReactPHPInstrumentation
                                 ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'http')
                                 ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $t->getResponse()->getProtocolVersion());
 
-                            foreach (explode(',', getenv('OTEL_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
+                            foreach (explode(',', getenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
                                 if ($t->getResponse()->hasHeader($header)) {
                                     $span->setAttribute(
                                         sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
