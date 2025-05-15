@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Instrumentation\ReactHttp;
+namespace OpenTelemetry\Contrib\Instrumentation\ReactPHP;
 
 use Composer\InstalledVersions;
 use OpenTelemetry\API\Globals;
@@ -22,15 +22,15 @@ use React\Promise\PromiseInterface;
 use Throwable;
 
 /** @psalm-suppress UnusedClass */
-class ReactHttpInstrumentation
+class ReactPHPInstrumentation
 {
-    public const NAME = 'react-http';
+    public const NAME = 'reactphp';
 
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
-            'io.opentelemetry.contrib.php.react-http',
-            InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-react-http'),
+            'io.opentelemetry.contrib.php.reactphp',
+            InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-reactphp'),
             Version::VERSION_1_32_0->url()
         );
 

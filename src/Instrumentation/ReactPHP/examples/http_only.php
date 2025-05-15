@@ -33,7 +33,7 @@ Sdk::builder()
     ->setAutoShutdown(true)
     ->buildAndRegisterGlobal();
 
-$root = $tracerProvider->getTracer('react-http-demo')->spanBuilder('root')->startSpan();
+$root = $tracerProvider->getTracer('reactphp-demo')->spanBuilder('root')->startSpan();
 $rootScope = $root->activate();
 
 try {

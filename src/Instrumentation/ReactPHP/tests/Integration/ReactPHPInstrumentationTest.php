@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Instrumentation\ReactHttp\tests\Integration;
+namespace OpenTelemetry\Instrumentation\ReactPHP\tests\Integration;
 
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\Contrib\Instrumentation\ReactHttp\ReactHttpInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\ReactPHP\ReactPHPInstrumentation;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -27,7 +27,7 @@ use React\Http\Message\ResponseException;
 use function React\Promise\reject;
 use function React\Promise\resolve;
 
-class ReactHttpInstrumentationTest extends TestCase
+class ReactPHPInstrumentationTest extends TestCase
 {
     private Browser $browser;
 
@@ -185,6 +185,6 @@ class ReactHttpInstrumentationTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        ReactHttpInstrumentation::register();
+        ReactPHPInstrumentation::register();
     }
 }

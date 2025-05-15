@@ -38,7 +38,7 @@ Sdk::builder()
 
 $context = Context::getCurrent();
 
-$root = $tracerProvider->getTracer('react-http-demo')->spanBuilder('root')->startSpan();
+$root = $tracerProvider->getTracer('reactphp-demo')->spanBuilder('root')->startSpan();
 
 $timer = Loop::addPeriodicTimer(1, function () {
     echo 'Some other event loop event' . PHP_EOL;

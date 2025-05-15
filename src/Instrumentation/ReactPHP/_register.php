@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use OpenTelemetry\Contrib\Instrumentation\ReactHttp\ReactHttpInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\ReactPHP\ReactPHPInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
-if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(ReactHttpInstrumentation::NAME) === true) {
+if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(ReactPHPInstrumentation::NAME) === true) {
     return;
 }
 
@@ -15,4 +15,4 @@ if (extension_loaded('opentelemetry') === false) {
     return;
 }
 
-ReactHttpInstrumentation::register();
+ReactPHPInstrumentation::register();

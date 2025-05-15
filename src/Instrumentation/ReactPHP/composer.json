@@ -1,5 +1,5 @@
 {
-  "name": "open-telemetry/opentelemetry-auto-react-http",
+  "name": "open-telemetry/opentelemetry-auto-reactphp",
   "description": "OpenTelemetry auto-instrumentation for ReactPHP's HTTP Browser.",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "reactphp", "async", "instrumentation"],
   "type": "library",
@@ -29,7 +29,7 @@
   },
   "autoload": {
     "psr-4": {
-      "OpenTelemetry\\Contrib\\Instrumentation\\ReactHttp\\": "src/"
+      "OpenTelemetry\\Contrib\\Instrumentation\\ReactPHP\\": "src/"
     },
     "files": [
       "_register.php"
@@ -37,7 +37,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OpenTelemetry\\Tests\\Instrumentation\\ReactHttp\\": "tests/"
+      "OpenTelemetry\\Tests\\Instrumentation\\ReactPHP\\": "tests/"
     }
   },
   "config": {

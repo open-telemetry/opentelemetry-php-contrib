@@ -9,7 +9,7 @@ install and configure the extension and SDK.
 
 Auto-instrumentation hooks are registered via composer, which will:
 
-* create spans automatically for each React HTTP request that is sent
+* create spans automatically for each ReactPHP HTTP Browser request that is sent
 * add a `traceparent` header to the request to facilitate distributed tracing
 
 ## Configuration
@@ -17,7 +17,7 @@ Auto-instrumentation hooks are registered via composer, which will:
 The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
 
 ```shell
-OTEL_PHP_DISABLED_INSTRUMENTATIONS=react-http
+OTEL_PHP_DISABLED_INSTRUMENTATIONS=reactphp
 ```
 
 Custom HTTP methods can replace the known methods via environment variables, e.g.:
