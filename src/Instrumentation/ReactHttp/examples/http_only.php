@@ -12,9 +12,9 @@ use OpenTelemetry\SDK\Trace\SpanExporter\ConsoleSpanExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use Psr\Http\Message\ResponseInterface;
-use React\EventLoop\Loop;
 use React\Http\Browser;
 use React\Http\Message\Request;
+use React\Http\Message\ResponseException;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -34,32 +34,59 @@ Sdk::builder()
     ->buildAndRegisterGlobal();
 
 $root = $tracerProvider->getTracer('react-http-demo')->spanBuilder('root')->startSpan();
+$rootScope = $root->activate();
 
-Loop::futureTick(static function () use ($root) {
-    $rootScope = $root->activate();
+try {
+    $browser = new Browser();
 
-    try {
-        $browser = new Browser();
+    $requests = [
+        //[HTTP/1.1 200 OK] https://postman:password@postman-echo.com/get?q=query-example#fragment-example
+        new Request('GET', 'https://postman:password@postman-echo.com/get?q=query-example#fragment-example'),
+        //[HTTP/1.1 200 OK] https://postman-echo.com/post
+        new Request('POST', 'https://postman-echo.com/post', ['Content-Type' => 'application/json'], '{}'),
+        //[400: HTTP status code 400 (Bad Request)] http://postman-echo.com:443/get
+        new Request('CUSTOM', 'http://postman-echo.com:443/get'),
+        //[0: Invalid request URL given] unknown://postman-echo.com/get
+        new Request('GET', 'unknown://postman-echo.com/get'),
+        //[HTTP/1.1 200 OK] https://postman-echo.com/delay/5
+        new Request('GET', 'https://postman-echo.com/delay/5'),
+    ];
 
-        $requests = [
-            new Request('GET', 'https://postman-echo.com/get'),
-            new Request('POST', 'https://postman-echo.com/post'),
-            new Request('GET', 'https://httpbin.org/does-not-exist'),
-            new Request('GET', 'https://httpbin.org/get'),
-            new Request('PUT', 'localhost:2222/not-found'),
-        ];
-
-        foreach ($requests as $request) {
-            $browser
-                ->request($request->getMethod(), $request->getUri())
-                ->then(function (ResponseInterface $response) {
-                    echo sprintf('[%d] ', $response->getStatusCode()) . json_decode($response->getBody()->getContents())->url . PHP_EOL;
-                }, function (Throwable $t) {
-                    var_dump($t->getMessage());
-                });
-        }
-    } finally {
-        $rootScope->detach();
-        $root->end();
+    foreach ($requests as $request) {
+        $browser
+            ->request($request->getMethod(), $request->getUri())
+            ->then(function (ResponseInterface $response) use ($request) {
+                echo sprintf(
+                    '[HTTP/%s %d %s] %s%s',
+                    $response->getProtocolVersion(),
+                    $response->getStatusCode(),
+                    $response->getReasonPhrase(),
+                    $request->getUri(),
+                    PHP_EOL
+                );
+            }, function (Throwable $t) use ($request) {
+                if (is_a($t, ResponseException::class)) {
+                    $response = $t->getResponse();
+                    echo sprintf(
+                        '[HTTP/%s %d %s] %s%s',
+                        $response->getProtocolVersion(),
+                        $response->getStatusCode(),
+                        $response->getReasonPhrase(),
+                        $request->getUri(),
+                        PHP_EOL
+                    );
+                } else {
+                    echo sprintf(
+                        '[%d: %s] %s%s',
+                        $t->getCode(),
+                        $t->getMessage(),
+                        $request->getUri(),
+                        PHP_EOL
+                    );
+                }
+            });
     }
-});
+} finally {
+    $rootScope->detach();
+    $root->end();
+}

@@ -51,8 +51,13 @@ class ReactHttpInstrumentationTest extends TestCase
         $sender = $this->createMock(Sender::class);
         $sender->method('send')
             ->willReturnCallback(function (RequestInterface $request) {
+                /** @psalm-suppress InternalMethod */
                 return match ($request->getUri()->getPath()) {
-                    '/network_error' => resolve((new Response())->withStatus(400)),
+                    '/network_error' => resolve(
+                        (new Response())
+                            ->withStatus(400)
+                            ->withAddedHeader('Content-Type', 'text/plain; charset=utf-8')
+                    ),
                     '/unknown_error' => reject(new \Exception('Unknown')),
                     default => resolve(Response::plaintext('Hello world'))
                 };
@@ -89,77 +94,79 @@ class ReactHttpInstrumentationTest extends TestCase
     {
         $this->assertCount(0, $this->storage);
 
-        $promise = $this->browser->request('GET', 'http://example.com/success');
-        $promise->then();
+        $this->browser->request('GET', 'http://username@example.com:8888/success?query#fragment', ['Accept' => 'text/plain'])->then();
 
         $this->assertCount(1, $this->storage);
 
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
+        $this->assertSame('GET', $span->getName());
         $this->assertSame('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertNull($span->getAttributes()->get(TraceAttributes::SERVER_PORT));
-        $this->assertSame('http://example.com/success', $span->getAttributes()->get(TraceAttributes::URL_FULL));
-        $this->assertSame('http', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_NAME));
-        $this->assertSame('1.1', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
-        $this->assertSame('', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_BODY_SIZE));
-        $this->assertSame('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
-        $this->assertSame('ReactPHP/1', $span->getAttributes()->get(TraceAttributes::USER_AGENT_ORIGINAL));
+        $this->assertSame('http://REDACTED@example.com:8888/success?query#fragment', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertSame('React\Http\Io\Transaction::send', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION_NAME));
+        $this->assertSame(8888, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+        $this->assertSame(['text/plain'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, 'accept')));
         $this->assertStringEndsWith('vendor/react/http/src/Io/Transaction.php', $span->getAttributes()->get(TraceAttributes::CODE_FILE_PATH));
         $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertSame('', $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+        $this->assertSame('http', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_NAME));
+        $this->assertSame('1.1', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
-    /**
-     * Requires adding the following two lines to php.ini
-     * otel.instrumentation.http.request_headers[]="Accept"
-     * otel.instrumentation.http.response_headers[]="Content-Type"
-     */
-    /*public function test_tracked_headers(): void
+    public function test_fulfilled_promise_with_overridden_methods(): void
     {
-        $this->assertCount(0, $this->storage);
-
-        $promise = $this->browser->request('GET', 'http://example.com/success', ['Accept' => 'text/plain']);
-        $promise->then();
-
-        $this->assertCount(1, $this->storage);
+        $this->browser->request('CUSTOM', 'http://example.com/success')->then();
 
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
-        $this->assertSame('text/plain', $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, 'accept')));
-        $this->assertSame('text/plain; charset=utf-8', $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
-    }*/
+        $this->assertSame('CUSTOM', $span->getName());
+        $this->assertSame('CUSTOM', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertNull($span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
+    }
 
-    public function test_rejected_promise_with_response_exception(): void
+    public function test_fulfilled_promise_with_unknown_method(): void
     {
-        $this->assertCount(0, $this->storage);
+        $this->browser->request('UNKNOWN', 'http://example.com/success')->then();
 
-        $promise = $this->browser->request('GET', 'http://example.com/network_error');
-        $promise->then(null, function () {});
+        $span = $this->storage->offsetGet(0);
+        assert($span instanceof ImmutableSpan);
+        $this->assertSame('HTTP', $span->getName());
+        $this->assertSame('_OTHER', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame('UNKNOWN', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
+    }
 
-        $this->assertCount(1, $this->storage);
+    public function test_fulfilled_promise_with_error(): void
+    {
+        $browser = $this->browser->withRejectErrorResponse(false);
+        $browser->request('GET', 'http://example.com/network_error')->then();
 
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame('400', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
         $this->assertSame(400, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertSame('', $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+    }
+
+    public function test_rejected_promise_with_response_exception(): void
+    {
+        $this->browser->request('GET', 'http://example.com/network_error')->then(null, function () {});
+
+        $span = $this->storage->offsetGet(0);
+        assert($span instanceof ImmutableSpan);
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame('400', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
+        $this->assertSame(400, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
         $event = $span->getEvents()[0];
         $this->assertSame('exception', $event->getName());
         $this->assertSame(ResponseException::class, $event->getAttributes()->get(TraceAttributes::EXCEPTION_TYPE));
         $this->assertSame('HTTP status code 400 (Bad Request)', $event->getAttributes()->get(TraceAttributes::EXCEPTION_MESSAGE));
+        $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
     public function test_rejected_promise_with_unknown_exception(): void
     {
-        $this->assertCount(0, $this->storage);
-
-        $promise = $this->browser->request('GET', 'http://example.com/unknown_error');
-        $promise->then(null, function () {});
-
-        $this->assertCount(1, $this->storage);
+        $this->browser->request('GET', 'http://example.com/unknown_error')->then(null, function () {});
 
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);

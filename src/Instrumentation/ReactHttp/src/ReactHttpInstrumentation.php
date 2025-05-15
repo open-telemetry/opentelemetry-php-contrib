@@ -12,7 +12,9 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 use React\Http\Io\Transaction;
 use React\Http\Message\ResponseException;
 use React\Promise\PromiseInterface;
@@ -27,7 +29,7 @@ class ReactHttpInstrumentation
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.react-http',
-            schemaUrl: 'https://opentelemetry.io/schemas/1.32.0',
+            schemaUrl: Version::VERSION_1_32_0->url(),
         );
 
         /** @psalm-suppress UnusedFunctionCall */
@@ -35,6 +37,7 @@ class ReactHttpInstrumentation
             Transaction::class,
             'send',
             pre: static function (Transaction $transaction, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): array {
+                /** @var \Psr\Http\Message\RequestInterface */
                 $request = $params[0];
 
                 $propagator = Globals::propagator();
@@ -47,37 +50,39 @@ class ReactHttpInstrumentation
                 $spanBuilder = $instrumentation
                     ->tracer()
                     // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                    ->spanBuilder(sprintf('%s', $request->getMethod()) ?: 'HTTP')
+                    ->spanBuilder(self::canonizeMethod($request->getMethod()) ?: 'HTTP')
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, self::canonizeMethod($request->getMethod()) ?: '_OTHER')
                     ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
-                    ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
-                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'http')
-                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
-                    ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                    ->setAttribute(TraceAttributes::URL_FULL, self::sanitizeUrl($request->getUri()))
                     // https://opentelemetry.io/docs/specs/semconv/code/
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function));
 
-                /**
-                 * This cannot be tested with PHPUnit without modifying php.ini with:
-                 * otel.instrumentation.http.request_headers[]="Accept"
-                 */
-                // @codeCoverageIgnoreStart
-                foreach ((array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []) as $header) {
+                // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
+                if ($request->getUri()->getPort()) {
+                    $spanBuilder->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort());
+                }
+                if (self::canonizeMethod($request->getMethod()) !== $request->getMethod()) {
+                    $spanBuilder->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL, $request->getMethod());
+                }
+
+                // https://opentelemetry.io/docs/specs/semconv/code/
+                if ($filename) {
+                    $spanBuilder->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename);
+                }
+                if ($lineno) {
+                    $spanBuilder->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                }
+
+                foreach (explode(',', getenv('OTEL_INSTRUMENTATION_HTTP_REQUEST_HEADERS') ?: '') as $header) {
                     if ($request->hasHeader($header)) {
                         $spanBuilder->setAttribute(
                             sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, strtolower($header)),
-                            $request->getHeaderLine($header)
+                            $request->getHeader($header)
                         );
                     }
                 }
-                // @codeCoverageIgnoreEnd
 
                 $span = $spanBuilder->startSpan();
                 $context = $span->storeInContext($parentContext);
@@ -87,8 +92,7 @@ class ReactHttpInstrumentation
 
                 return [$request];
             },
-            /** @psalm-suppress UnusedClosureParam */
-            post: static function (Transaction $transaction, array $params, PromiseInterface $promise, ?Throwable $exception): PromiseInterface {
+            post: static function (Transaction $transaction, array $params, PromiseInterface $promise): PromiseInterface {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
@@ -102,22 +106,23 @@ class ReactHttpInstrumentation
                     onFulfilled: function (ResponseInterface $response) use ($span) {
                         $span
                             ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode())
-                            ->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
+                            ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'http')
+                            ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
 
-                        /**
-                         * This cannot be tested with PHPUnit without modifying php.ini with:
-                         * otel.instrumentation.http.response_headers[]="Content-Type"
-                         */
-                        // @codeCoverageIgnoreStart
-                        foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
+                        if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
+                            $span
+                                ->setStatus(StatusCode::STATUS_ERROR)
+                                ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $response->getStatusCode());
+                        }
+
+                        foreach (explode(',', getenv('OTEL_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
                             if ($response->hasHeader($header)) {
                                 $span->setAttribute(
                                     sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
-                                    $response->getHeaderLine($header)
+                                    $response->getHeader($header)
                                 );
                             }
                         }
-                        // @codeCoverageIgnoreEnd
 
                         $span->end();
 
@@ -130,18 +135,17 @@ class ReactHttpInstrumentation
                                 ->setStatus(StatusCode::STATUS_ERROR)
                                 ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $t->getCode())
                                 ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $t->getCode())
-                                ->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $t->getResponse()->getHeaderLine('Content-Length'));
+                                ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'http')
+                                ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $t->getResponse()->getProtocolVersion());
 
-                            // @codeCoverageIgnoreStart
-                            foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
+                            foreach (explode(',', getenv('OTEL_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
                                 if ($t->getResponse()->hasHeader($header)) {
                                     $span->setAttribute(
                                         sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
-                                        $t->getResponse()->getHeaderLine($header)
+                                        $t->getResponse()->getHeader($header)
                                     );
                                 }
                             }
-                            // @codeCoverageIgnoreEnd
                         } else {
                             $span
                                 ->setStatus(StatusCode::STATUS_ERROR, $t->getMessage())
@@ -155,5 +159,56 @@ class ReactHttpInstrumentation
                 );
             }
         );
+    }
+
+    private static function canonizeMethod(string $method): string
+    {
+        // RFC9110, RFC5789
+        $knownMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'];
+
+        $overrideMethods = getenv('OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS');
+        if (!empty($overrideMethods)) {
+            $knownMethods = explode(',', $overrideMethods);
+        }
+
+        if (in_array($method, $knownMethods)) {
+            return $method;
+        }
+
+        return '';
+    }
+
+    private static function sanitizeUrl(UriInterface $uri): string
+    {
+        $scheme = $uri->getScheme();
+        if (!empty($scheme)) {
+            $scheme .= '://';
+        }
+
+        $host = $uri->getHost();
+
+        $port = $uri->getPort();
+        if (!empty($port)) {
+            $port = ':' . $port;
+        }
+
+        $userInfo = $uri->getUserInfo();
+        if (!empty($userInfo)) {
+            $userInfo = implode(':', array_fill(0, count(explode(':', $userInfo)), 'REDACTED')) . '@';
+        }
+
+        $path = $uri->getPath();
+
+        $query = $uri->getQuery();
+        if (!empty($query)) {
+            $query = '?' . $query;
+        }
+
+        $fragment = $uri->getFragment();
+        if (!empty($fragment)) {
+            $fragment = '#' . $fragment;
+        }
+
+        return $scheme . $userInfo . $host . $port . $path . $query . $fragment;
     }
 }

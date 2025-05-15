@@ -1,3 +1,5 @@
+This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
+
 # OpenTelemetry ReactPHP HTTP Browser auto-instrumentation
 
 Please read https://opentelemetry.io/docs/instrumentation/php/automatic/ for instructions on how to
@@ -18,9 +20,15 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=react-http
 ```
 
-Request and/or response headers can be added as span attributes by adding to the `php.ini`:
+Custom HTTP methods can replace the known methods via environment variables, e.g.:
 
-```ini
-otel.instrumentation.http.request_headers[]="Accept"
-otel.instrumentation.http.response_headers[]="Content-Type"
+```shell
+OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS="GET,HEAD,POST,PUT,DELETE,CONNECT,OPTIONS,TRACE,PATCH,MyCustomMethod"
+```
+
+Request and/or response headers can be added as span attributes via environment variables, e.g.:
+
+```shell
+OTEL_INSTRUMENTATION_HTTP_REQUEST_HEADERS=Accept
+OTEL_INSTRUMENTATION_HTTP_RESPONSE_HEADERS="Content-Length,Content-Type"
 ```
