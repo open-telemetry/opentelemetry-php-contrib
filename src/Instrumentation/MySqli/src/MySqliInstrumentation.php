@@ -37,7 +37,7 @@ class MySqliInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.mysqli',
             null,
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_32_0->url(),
         );
 
         $tracker = new MySqliTracker();
@@ -408,7 +408,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function constructPreHook(string $spanName, int $paramsOffset, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function constructPreHook(string $spanName, int $paramsOffset, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $attributes = [];
         $attributes[TraceAttributes::SERVER_ADDRESS] = $params[$paramsOffset + 0] ?? get_cfg_var('mysqli.default_host');
@@ -440,7 +440,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function queryPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function queryPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         $mysqli = $obj ? $obj : $params[0];
@@ -492,7 +492,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function nextResultPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function nextResultPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         $mysqli = $obj ? $obj : $params[0];
@@ -558,7 +558,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function preparePreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function preparePreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         $mysqli = $obj ? $obj : $params[0];
@@ -593,7 +593,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function beginTransactionPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function beginTransactionPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
     }
@@ -620,7 +620,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function transactionPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function transactionPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         $mysqli = $obj ? $obj : $params[0];
@@ -687,7 +687,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function stmtExecutePreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function stmtExecutePreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         self::addTransactionLink($tracker, $span, $obj ? $obj : $params[0]);
@@ -711,7 +711,7 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function stmtNextResultPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
+    private static function stmtNextResultPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
 
@@ -746,16 +746,16 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function startSpan(string $spanName, CachedInstrumentation $instrumentation, ?string $class, ?string $function, ?string $filename, ?int $lineno, iterable $attributes) : SpanInterface
+    private static function startSpan(string $spanName, CachedInstrumentation $instrumentation, ?string $class, string $function, ?string $filename, ?int $lineno, iterable $attributes) : SpanInterface
     {
+        $fqn = ($class !== null) ? sprintf('%s::%s', $class, $function) : $function;
         $parent = Context::getCurrent();
         $builder = $instrumentation->tracer()
             ->spanBuilder($spanName)
             ->setParent($parent)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-            ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-            ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $fqn)
+            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
             ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttributes($attributes);
 

@@ -33,7 +33,7 @@ class DoctrineInstrumentation
                 ->setSpanKind(SpanKind::KIND_CLIENT)
                 ->setAttribute(TraceAttributes::SERVER_ADDRESS, AttributesResolver::get(TraceAttributes::SERVER_ADDRESS, func_get_args()))
                 ->setAttribute(TraceAttributes::SERVER_PORT, AttributesResolver::get(TraceAttributes::SERVER_PORT, func_get_args()))
-                ->setAttribute(TraceAttributes::DB_SYSTEM, AttributesResolver::get(TraceAttributes::DB_SYSTEM, func_get_args()))
+                ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, AttributesResolver::get(TraceAttributes::DB_SYSTEM_NAME, func_get_args()))
                 ->setAttribute(TraceAttributes::DB_NAMESPACE, AttributesResolver::get(TraceAttributes::DB_NAMESPACE, func_get_args()));
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -158,10 +158,9 @@ class DoctrineInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
                     ->spanBuilder($name)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
     }
     private static function end(?Throwable $exception): void
     {
@@ -172,7 +171,7 @@ class DoctrineInstrumentation
         $scope->detach();
         $span = Span::fromContext($scope->context());
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

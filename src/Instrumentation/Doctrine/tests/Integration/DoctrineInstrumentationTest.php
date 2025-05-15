@@ -79,7 +79,7 @@ class DoctrineInstrumentationTest extends TestCase
         $this->assertTrue($conn->isConnected());
         $span = $this->storage->offsetGet(0);
         $this->assertSame('Doctrine\DBAL\Driver::connect', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
     }
 
     public function test_connection_exception(): void
