@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use OpenTelemetry\API\Common\Time\Clock;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\SDK\Common\Export\Stream\StreamTransportFactory;
@@ -10,7 +9,7 @@ use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Sdk;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOnSampler;
 use OpenTelemetry\SDK\Trace\SpanExporter\ConsoleSpanExporter;
-use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
+use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use function React\Async\async;
 use function React\Async\await;
@@ -25,7 +24,7 @@ $transport = (new StreamTransportFactory())->create('php://output', 'application
 $exporter = new ConsoleSpanExporter($transport);
 
 $tracerProvider = new TracerProvider(
-    new BatchSpanProcessor($exporter, Clock::getDefault()),
+    new SimpleSpanProcessor($exporter),
     new AlwaysOnSampler(),
     ResourceInfoFactory::emptyResource(),
 );
@@ -54,16 +53,12 @@ Loop::futureTick(async(static function () use ($context, $root, $timer) {
         $browser = new Browser();
 
         $requests = [
-            //[HTTP/1.1 200 OK] https://postman:password@postman-echo.com/get?q=query-example#fragment-example
-            new Request('GET', 'https://postman:password@postman-echo.com/get?q=query-example#fragment-example'),
-            //[HTTP/1.1 200 OK] https://postman-echo.com/post
+            new Request('GET', 'https://postman-echo.com/get'),
+            new Request('GET', 'https://postman-echo.com/stream/33554432'),
             new Request('POST', 'https://postman-echo.com/post', ['Content-Type' => 'application/json'], '{}'),
-            //[400: HTTP status code 400 (Bad Request)] http://postman-echo.com:443/get
             new Request('CUSTOM', 'http://postman-echo.com:443/get'),
-            //[0: Invalid request URL given] unknown://postman-echo.com/get
             new Request('GET', 'unknown://postman-echo.com/get'),
-            //[HTTP/1.1 200 OK] https://postman-echo.com/delay/5
-            new Request('GET', 'https://postman-echo.com/delay/5'),
+            new Request('GET', 'https://postman-echo.com/delay/2'),
         ];
 
         foreach ($requests as $request) {

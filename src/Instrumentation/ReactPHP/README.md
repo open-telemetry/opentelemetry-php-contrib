@@ -12,6 +12,8 @@ Auto-instrumentation hooks are registered via composer, which will:
 * create spans automatically for each ReactPHP HTTP Browser request that is sent
 * add a `traceparent` header to the request to facilitate distributed tracing
 
+Note that span lifetime behavior differs based on how ReactPHP is utilized; see [examples/README.md](examples/README.md) for more information.
+
 ## Configuration
 
 The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
