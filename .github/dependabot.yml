@@ -82,6 +82,7 @@ updates:
       - "/src/Instrumentation/Psr18"
       - "/src/Instrumentation/Psr3"
       - "/src/Instrumentation/Psr6"
+      - "/src/Instrumentation/ReactPHP"
       - "/src/Instrumentation/Slim"
       - "/src/Instrumentation/Symfony"
       - "/src/Instrumentation/Wordpress"
