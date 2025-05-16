@@ -90,12 +90,9 @@ class ReactPHPInstrumentationTest extends TestCase
 
     public function test_fulfilled_promise(): void
     {
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=Content-Type');
-
         $this->assertCount(0, $this->storage);
 
-        $this->browser->request('GET', 'http://username@example.com:8888/success?query#fragment')->then();
+        $this->browser->request('GET', 'http://username@example.com/success?query#fragment')->then();
 
         $this->assertCount(1, $this->storage);
 
@@ -104,27 +101,25 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->assertSame('GET', $span->getName());
         $this->assertSame('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertSame('http://REDACTED@example.com:8888/success?query#fragment', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertSame('http://REDACTED@example.com/success?query#fragment', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertSame('React\Http\Io\Transaction::send', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION_NAME));
-        $this->assertSame(8888, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+        $this->assertSame(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
         $this->assertNotEmpty($span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, 'traceparent')));
         $this->assertStringEndsWith('vendor/react/http/src/Io/Transaction.php', $span->getAttributes()->get(TraceAttributes::CODE_FILE_PATH));
         $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertSame('http', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_NAME));
         $this->assertSame('1.1', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
         $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
     public function test_fulfilled_promise_with_overridden_methods(): void
     {
-        putenv('OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS=CUSTOM');
-
-        $this->browser->request('CUSTOM', 'http://example.com/success')->then();
+        $this->browser->request('CUSTOM', 'http://example.com:8888/success')->then();
 
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
         $this->assertSame('CUSTOM', $span->getName());
         $this->assertSame('CUSTOM', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame(8888, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
         $this->assertNull($span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
     }
 

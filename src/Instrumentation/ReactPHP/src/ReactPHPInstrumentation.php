@@ -49,23 +49,23 @@ class ReactPHPInstrumentation
                     $request = $request->withoutHeader($field);
                 }
 
+                $method = self::canonizeMethod($request->getMethod());
+
                 $spanBuilder = $instrumentation
                     ->tracer()
                     // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                    ->spanBuilder(self::canonizeMethod($request->getMethod()) ?: 'HTTP')
+                    ->spanBuilder($method ?: 'HTTP')
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, self::canonizeMethod($request->getMethod()) ?: '_OTHER')
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $method ?: '_OTHER')
                     ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort() ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80))
                     ->setAttribute(TraceAttributes::URL_FULL, self::sanitizeUrl($request->getUri()))
                     // https://opentelemetry.io/docs/specs/semconv/code/
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function));
 
                 // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                if ($request->getUri()->getPort()) {
-                    $spanBuilder->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort());
-                }
-                if (self::canonizeMethod($request->getMethod()) !== $request->getMethod()) {
+                if ($method !== $request->getMethod()) {
                     $spanBuilder->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL, $request->getMethod());
                 }
 
@@ -81,7 +81,7 @@ class ReactPHPInstrumentation
                 $context = $span->storeInContext($parentContext);
                 $propagator->inject($request, HeadersPropagator::instance(), $context);
 
-                foreach (explode(',', getenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS') ?: '') as $header) {
+                foreach (explode(',', $_ENV['OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS'] ?? '') as $header) {
                     if ($request->hasHeader($header)) {
                         $span->setAttribute(
                             sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, strtolower($header)),
@@ -106,9 +106,9 @@ class ReactPHPInstrumentation
 
                 return $promise->then(
                     onFulfilled: function (ResponseInterface $response) use ($span) {
+                        // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
                         $span
                             ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode())
-                            ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'http')
                             ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
 
                         if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
@@ -117,7 +117,7 @@ class ReactPHPInstrumentation
                                 ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $response->getStatusCode());
                         }
 
-                        foreach (explode(',', getenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
+                        foreach (explode(',', $_ENV['OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS'] ?? '') as $header) {
                             if ($response->hasHeader($header)) {
                                 $span->setAttribute(
                                     sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
@@ -133,14 +133,14 @@ class ReactPHPInstrumentation
                     onRejected: function (Throwable $t) use ($span) {
                         $span->recordException($t);
                         if (is_a($t, ResponseException::class)) {
+                            // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
                             $span
                                 ->setStatus(StatusCode::STATUS_ERROR)
                                 ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $t->getCode())
                                 ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $t->getCode())
-                                ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'http')
                                 ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $t->getResponse()->getProtocolVersion());
 
-                            foreach (explode(',', getenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS') ?: '') as $header) {
+                            foreach (explode(',', $_ENV['OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS'] ?? '') as $header) {
                                 if ($t->getResponse()->hasHeader($header)) {
                                     $span->setAttribute(
                                         sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
@@ -168,7 +168,7 @@ class ReactPHPInstrumentation
         // RFC9110, RFC5789
         $knownMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'];
 
-        $overrideMethods = getenv('OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS');
+        $overrideMethods = $_ENV['OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS'] ?? '';
         if (!empty($overrideMethods)) {
             $knownMethods = explode(',', $overrideMethods);
         }
@@ -182,35 +182,12 @@ class ReactPHPInstrumentation
 
     private static function sanitizeUrl(UriInterface $uri): string
     {
-        $scheme = $uri->getScheme();
-        if (!empty($scheme)) {
-            $scheme .= '://';
-        }
-
-        $host = $uri->getHost();
-
-        $port = $uri->getPort();
-        if (!empty($port)) {
-            $port = ':' . $port;
-        }
-
         $userInfo = $uri->getUserInfo();
-        if (!empty($userInfo)) {
-            $userInfo = implode(':', array_fill(0, count(explode(':', $userInfo)), 'REDACTED')) . '@';
-        }
 
-        $path = $uri->getPath();
-
-        $query = $uri->getQuery();
-        if (!empty($query)) {
-            $query = '?' . $query;
-        }
-
-        $fragment = $uri->getFragment();
-        if (!empty($fragment)) {
-            $fragment = '#' . $fragment;
-        }
-
-        return $scheme . $userInfo . $host . $port . $path . $query . $fragment;
+        return match (true) {
+            str_contains($userInfo, ':') => (string) $uri->withUserInfo('REDACTED', 'REDACTED'),
+            $userInfo !== '' => (string) $uri->withUserInfo('REDACTED'),
+            default => (string) $uri
+        };
     }
 }
