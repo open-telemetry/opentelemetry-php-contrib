@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\ReactPHP;
 
 use Composer\InstalledVersions;
+use GuzzleHttp\Psr7\Query;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -13,6 +14,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\TraceAttributeValues;
 use OpenTelemetry\SemConv\Version;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -25,12 +27,63 @@ use Throwable;
 class ReactPHPInstrumentation
 {
     public const NAME = 'reactphp';
+    /**
+     * The name of the Composer package.
+     *
+     * @see https://getcomposer.org/doc/04-schema.md#name
+     */
+    private const COMPOSER_NAME = 'open-telemetry/opentelemetry-auto-reactphp';
+    /**
+     * The environment variable which overrides the default list of known HTTP methods.
+     * This supports a comma-separated list of case-sensitive known HTTP methods.
+     *
+     * @see https://opentelemetry.io/docs/specs/semconv/attributes-registry/http/#http-request-method
+     */
+    private const ENV_HTTP_KNOWN_METHODS = 'OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS';
+    /**
+     * The environment variable which configures the request headers to be captured (default is none).
+     * This supports a comma-separated list of case-insensitive HTTP header keys.
+     *
+     * @see https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
+     */
+    private const ENV_HTTP_REQUEST_HEADERS = 'OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS';
+    /**
+     * The environment variable which configures the response headers to be captured (default is none).
+     * This supports a comma-separated list of case-insensitive HTTP header keys.
+     *
+     * @see https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
+     */
+    private const ENV_HTTP_RESPONSE_HEADERS = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
+    /**
+     * The `{method}` component of the span name when the original method is not known to the instrumentation.
+     *
+     * @see https://opentelemetry.io/docs/specs/semconv/http/http-spans/#name
+     */
+    private const HTTP_REQUEST_METHOD_HTTP = 'HTTP';
+    /**
+     * Name of this instrumentation library which provides the instrumentation for ReactPHP.
+     *
+     * @see https://opentelemetry.io/docs/specs/otel/glossary/#instrumentation-library
+     */
+    private const INSTRUMENTATION_LIBRARY_NAME = 'io.opentelemetry.contrib.php.reactphp';
+    /**
+     * Query string keys to be redacted by default.
+     *
+     * @see https://opentelemetry.io/docs/specs/semconv/attributes-registry/url/#url-query
+     */
+    private const URL_QUERY_REDACT_KEYS = ['AWSAccessKeyId', 'Signature', 'sig', 'X-Goog-Signature'];
+    /**
+     * Value used to replace any sensitive content in the URL.
+     *
+     * @see https://opentelemetry.io/docs/specs/semconv/attributes-registry/url/#url-full
+     */
+    private const URL_REDACTION = 'REDACTED';
 
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
-            'io.opentelemetry.contrib.php.reactphp',
-            InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-reactphp'),
+            self::INSTRUMENTATION_LIBRARY_NAME,
+            InstalledVersions::getPrettyVersion(self::COMPOSER_NAME),
             Version::VERSION_1_32_0->url()
         );
 
@@ -49,15 +102,16 @@ class ReactPHPInstrumentation
                     $request = $request->withoutHeader($field);
                 }
 
+                /** @var non-empty-string|null */
                 $method = self::canonizeMethod($request->getMethod());
 
                 $spanBuilder = $instrumentation
                     ->tracer()
                     // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                    ->spanBuilder($method ?: 'HTTP')
+                    ->spanBuilder($method ?? self::HTTP_REQUEST_METHOD_HTTP)
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $method ?: '_OTHER')
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $method ?? TraceAttributeValues::HTTP_REQUEST_METHOD_OTHER)
                     ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort() ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80))
                     ->setAttribute(TraceAttributes::URL_FULL, self::sanitizeUrl($request->getUri()))
@@ -65,14 +119,16 @@ class ReactPHPInstrumentation
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function));
 
                 // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                if ($method !== $request->getMethod()) {
+                if ($method === null) {
                     $spanBuilder->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL, $request->getMethod());
                 }
 
                 // https://opentelemetry.io/docs/specs/semconv/code/
+                /** @psalm-suppress RiskyTruthyFalsyComparison */
                 if ($filename) {
                     $spanBuilder->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename);
                 }
+                /** @psalm-suppress RiskyTruthyFalsyComparison */
                 if ($lineno) {
                     $spanBuilder->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 }
@@ -81,7 +137,7 @@ class ReactPHPInstrumentation
                 $context = $span->storeInContext($parentContext);
                 $propagator->inject($request, HeadersPropagator::instance(), $context);
 
-                foreach (explode(',', $_ENV['OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS'] ?? '') as $header) {
+                foreach (explode(',', $_ENV[self::ENV_HTTP_REQUEST_HEADERS] ?? '') as $header) {
                     if ($request->hasHeader($header)) {
                         $span->setAttribute(
                             sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, strtolower($header)),
@@ -98,11 +154,15 @@ class ReactPHPInstrumentation
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
-                if (!$scope || $scope->context() === Context::getCurrent()) {
+                if (!$scope) {
                     return $promise;
                 }
 
                 $span = Span::fromContext($scope->context());
+
+                if (!$span->isRecording()) {
+                    return $promise;
+                }
 
                 return $promise->then(
                     onFulfilled: function (ResponseInterface $response) use ($span) {
@@ -117,7 +177,7 @@ class ReactPHPInstrumentation
                                 ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $response->getStatusCode());
                         }
 
-                        foreach (explode(',', $_ENV['OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS'] ?? '') as $header) {
+                        foreach (explode(',', $_ENV[self::ENV_HTTP_RESPONSE_HEADERS] ?? '') as $header) {
                             if ($response->hasHeader($header)) {
                                 $span->setAttribute(
                                     sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
@@ -140,7 +200,7 @@ class ReactPHPInstrumentation
                                 ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $t->getCode())
                                 ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $t->getResponse()->getProtocolVersion());
 
-                            foreach (explode(',', $_ENV['OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS'] ?? '') as $header) {
+                            foreach (explode(',', $_ENV[self::ENV_HTTP_RESPONSE_HEADERS] ?? '') as $header) {
                                 if ($t->getResponse()->hasHeader($header)) {
                                     $span->setAttribute(
                                         sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, strtolower($header)),
@@ -166,9 +226,19 @@ class ReactPHPInstrumentation
     private static function canonizeMethod(string $method): ?string
     {
         // RFC9110, RFC5789
-        $knownMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'];
+        $knownMethods = [
+            TraceAttributeValues::HTTP_REQUEST_METHOD_GET,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_HEAD,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_POST,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_PUT,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_DELETE,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_CONNECT,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_OPTIONS,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_TRACE,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_PATCH,
+        ];
 
-        $overrideMethods = $_ENV['OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS'] ?? '';
+        $overrideMethods = $_ENV[self::ENV_HTTP_KNOWN_METHODS] ?? '';
         if (!empty($overrideMethods)) {
             $knownMethods = explode(',', $overrideMethods);
         }
@@ -183,11 +253,29 @@ class ReactPHPInstrumentation
     private static function sanitizeUrl(UriInterface $uri): string
     {
         $userInfo = $uri->getUserInfo();
+        if (str_contains($userInfo, ':')) {
+            $uri = $uri->withUserInfo(self::URL_REDACTION, self::URL_REDACTION);
+        } elseif ($userInfo !== '') {
+            $uri = $uri->withUserInfo(self::URL_REDACTION);
+        }
 
-        return match (true) {
-            str_contains($userInfo, ':') => (string) $uri->withUserInfo('REDACTED', 'REDACTED'),
-            $userInfo !== '' => (string) $uri->withUserInfo('REDACTED'),
-            default => (string) $uri
-        };
+        $queryString = $uri->getQuery();
+        // http_build_query(parse_str()) is not idempotent, so using Guzzle’s Query class for now
+        if ($queryString !== '') {
+            $queryParameters = Query::parse($queryString);
+            $queryParameters = array_merge(
+                $queryParameters,
+                array_intersect_key(
+                    array_fill_keys(
+                        self::URL_QUERY_REDACT_KEYS,
+                        self::URL_REDACTION
+                    ),
+                    $queryParameters
+                )
+            );
+            $uri = $uri->withQuery(Query::build($queryParameters));
+        }
+
+        return (string) $uri;
     }
 }

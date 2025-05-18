@@ -92,7 +92,7 @@ class ReactPHPInstrumentationTest extends TestCase
     {
         $this->assertCount(0, $this->storage);
 
-        $this->browser->request('GET', 'http://username@example.com/success?query#fragment')->then();
+        $this->browser->request('GET', 'http://example.com/success?query#fragment')->then();
 
         $this->assertCount(1, $this->storage);
 
@@ -101,7 +101,7 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->assertSame('GET', $span->getName());
         $this->assertSame('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertSame('http://REDACTED@example.com/success?query#fragment', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertSame('http://example.com/success?query#fragment', $span->getAttributes()->get(TraceAttributes::URL_FULL));
         $this->assertSame('React\Http\Io\Transaction::send', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION_NAME));
         $this->assertSame(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
         $this->assertNotEmpty($span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, 'traceparent')));
@@ -111,12 +111,24 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
+    public function test_fulfilled_promise_with_redactions(): void
+    {
+        $this->browser->request('GET', 'http://username@example.com/success')->then();
+
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('http://REDACTED@example.com/success', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+
+        $this->browser->request('GET', 'http://username:password@example.com/success?Signature=private')->then();
+
+        $span = $this->storage->offsetGet(1);
+        $this->assertSame('http://REDACTED:REDACTED@example.com/success?Signature=REDACTED', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+    }
+
     public function test_fulfilled_promise_with_overridden_methods(): void
     {
         $this->browser->request('CUSTOM', 'http://example.com:8888/success')->then();
 
         $span = $this->storage->offsetGet(0);
-        assert($span instanceof ImmutableSpan);
         $this->assertSame('CUSTOM', $span->getName());
         $this->assertSame('CUSTOM', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame(8888, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
@@ -128,7 +140,6 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->browser->request('UNKNOWN', 'http://example.com/success')->then();
 
         $span = $this->storage->offsetGet(0);
-        assert($span instanceof ImmutableSpan);
         $this->assertSame('HTTP', $span->getName());
         $this->assertSame('_OTHER', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame('UNKNOWN', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
@@ -140,7 +151,6 @@ class ReactPHPInstrumentationTest extends TestCase
         $browser->request('GET', 'http://example.com/network_error')->then();
 
         $span = $this->storage->offsetGet(0);
-        assert($span instanceof ImmutableSpan);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame('400', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
         $this->assertSame(400, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
@@ -151,7 +161,6 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->browser->request('GET', 'http://example.com/network_error')->then(null, function () {});
 
         $span = $this->storage->offsetGet(0);
-        assert($span instanceof ImmutableSpan);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame('400', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
         $this->assertSame(400, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
@@ -167,7 +176,6 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->browser->request('GET', 'http://example.com/unknown_error')->then(null, function () {});
 
         $span = $this->storage->offsetGet(0);
-        assert($span instanceof ImmutableSpan);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame('Exception', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
         $event = $span->getEvents()[0];
@@ -181,5 +189,14 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->expectNotToPerformAssertions();
 
         ReactPHPInstrumentation::register();
+    }
+
+    public function test_bail_on_noop(): void
+    {
+        $scope = Configurator::createNoop()->activate();
+        $this->browser->request('GET', 'http://example.com/success')->then();
+        $scope->detach();
+
+        $this->assertCount(0, $this->storage);
     }
 }
