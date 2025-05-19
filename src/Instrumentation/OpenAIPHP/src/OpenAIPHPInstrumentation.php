@@ -193,7 +193,7 @@ final class OpenAIPHPInstrumentation
 
     private static function recordUsage(SpanInterface $span, object $response, ContextInterface $context)
     {
-        if (!property_exists($response, 'usage') || !method_exists($response->usage, 'toArray')) {
+        if (!property_exists($response, 'usage') || !isset($response->usage) || !method_exists($response->usage, 'toArray')) {
             return;
         }
 
