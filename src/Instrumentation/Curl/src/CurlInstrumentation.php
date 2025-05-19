@@ -35,7 +35,7 @@ class CurlInstrumentation
          *                         'handles'=>
          *                              WeakMap[CurlHandle] => {
          *                                  'finished' => bool,
-         *                                  'span' => WeakReference<SpanInterface>
+         *                                  'span' => SpanInterface
          *                              }
          *                      )
          */
@@ -327,7 +327,7 @@ class CurlInstrumentation
                             }
                             $curlSetOptInstrumentationSuppressed = false;
 
-                            $metadata['span'] = WeakReference::create($span);
+                            $metadata['span'] = $span;
                         }
                         $mHandle['started'] = true;
                     }
@@ -339,7 +339,7 @@ class CurlInstrumentation
                         foreach ($handles as $cHandle => &$metadata) {
                             if ($metadata['finished'] == false) {
                                 $metadata['finished'] = true;
-                                self::finishMultiSpan(CURLE_OK, $cHandle, $curlHandleToAttributes, $metadata['span']?->get()); // there is no way to get information if it was OK or not without calling curl_multi_info_read
+                                self::finishMultiSpan(CURLE_OK, $cHandle, $curlHandleToAttributes, $metadata['span']); // there is no way to get information if it was OK or not without calling curl_multi_info_read
                             }
                         }
 
@@ -379,7 +379,7 @@ class CurlInstrumentation
 
                         /** @psalm-suppress PossiblyNullArrayAccess */
                         $currentHandle['finished'] = true;
-                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $currentHandle['span']?->get());
+                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $currentHandle['span']);
                     }
                 }
             }
