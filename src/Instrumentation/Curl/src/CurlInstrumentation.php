@@ -18,7 +18,6 @@ use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use WeakMap;
-use WeakReference;
 
 class CurlInstrumentation
 {
