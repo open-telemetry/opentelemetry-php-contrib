@@ -28,6 +28,12 @@ $propagator = InstanaPropagator::getInstance();
 
 Both of the above have extract and inject methods available to extract and inject respectively into the header.
 
+For Baggage propagation, use opentelemetry's MultiTextMapPropagator, and pass the array list of propagators i.e Instana and Baggage propagator as below.
+
+```
+$propagator = new MultiTextMapPropagator(InstantPropagator::getInstance(), BaggagePropagator::getInstance());
+```
+
 ## Propagator Details
 
 There are three headers that the propagator handles: `X-INSTANA-T` (the trace ID), `X-INSTANA-S` (the parent span ID), and `X-INSTANA-L` (the sampling level).
