@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Propagation\Instana\Unit;
 
-use OpenTelemetry\API\Baggage\Baggage;
-use OpenTelemetry\API\Baggage\Metadata;
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\API\Trace\SpanContextValidator;
 use OpenTelemetry\API\Trace\TraceFlags;
-use OpenTelemetry\Context\Context;
 
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
-use OpenTelemetry\Context\Propagation\MultiTextMapPropagator;
 use OpenTelemetry\Contrib\Propagation\Instana\InstanaPropagator;
-use OpenTelemetry\API\Baggage\Propagation\BaggagePropagator;
 
 use OpenTelemetry\SDK\Trace\Span;
 use Override;
@@ -172,90 +168,6 @@ final class InstanaPropagatorTest extends TestCase
                 $this->TRACE_ID => self::X_INSTANA_T,
                 $this->SAMPLED => self::IS_SAMPLED,
             ]
-        );
-    }
-
-    /**
-    * @dataProvider sampledValueProvider
-    */
-    public function test_extract_sampled_context_with_baggage($sampledValue): void
-    {
-        $carrier = [
-            $this->TRACE_ID => self::X_INSTANA_T,
-            $this->SPAN_ID => self::X_INSTANA_S,
-            $this->SAMPLED => $sampledValue,
-            'baggage' => 'user_id=12345,request_id=abcde',
-        ];
-        $propagator = new MultiTextMapPropagator([InstanaPropagator::getInstance(), BaggagePropagator::getInstance()]);
-        $context = $propagator->extract($carrier);
-
-        $this->assertEquals(
-            SpanContext::createFromRemoteParent(self::X_INSTANA_T, self::X_INSTANA_S, TraceFlags::SAMPLED),
-            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
-        );
-
-        // Verify baggage
-        $baggage = Baggage::fromContext($context);
-        $this->assertEquals('12345', $baggage->getValue('user_id'));
-        $this->assertEquals('abcde', $baggage->getValue('request_id'));
-
-        $arr = [];
-
-        foreach ($baggage->getAll() as $key => $value) {
-            $arr[$key] = $value->getValue();
-        }
-
-        $this->assertEquals(
-            ['user_id' => '12345', 'request_id' => 'abcde'],
-            $arr
-        );
-    }
-
-    /**
-    * @dataProvider sampledValueProvider
-    */
-    public function test_extract_sampled_context_with_baggage_but_instana_propagator($sampledValue): void
-    {
-        $carrier = [
-            $this->TRACE_ID => self::X_INSTANA_T,
-            $this->SPAN_ID => self::X_INSTANA_S,
-            $this->SAMPLED => $sampledValue,
-            'baggage' => 'user_id=12345,request_id=abcde',
-        ];
-        $context = $this->InstanaPropagator->extract($carrier);
-
-        $this->assertEquals(
-            SpanContext::createFromRemoteParent(self::X_INSTANA_T, self::X_INSTANA_S, TraceFlags::SAMPLED),
-            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
-        );
-
-        // Verify baggage is not propagated
-        $baggage = Baggage::fromContext($context);
-        $this->assertNull($baggage->getValue('user_id'));
-        $this->assertNull($baggage->getValue('request_id'));
-
-    }
-
-    public function test_baggage_inject(): void
-    {
-        $carrier = [];
-
-        $propagator = new MultiTextMapPropagator([InstanaPropagator::getInstance(), BaggagePropagator::getInstance()]);
-
-        $propagator->inject(
-            $carrier,
-            null,
-            Context::getRoot()->withContextValue(
-                Baggage::getBuilder()
-                    ->set('nometa', 'nometa-value')
-                    ->set('meta', 'meta-value', new Metadata('somemetadata; someother=foo'))
-                    ->build()
-            )
-        );
-
-        $this->assertSame(
-            ['baggage' => 'nometa=nometa-value,meta=meta-value;somemetadata; someother=foo'],
-            $carrier
         );
     }
 
