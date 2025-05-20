@@ -8,15 +8,16 @@ use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\API\Trace\SpanContextValidator;
 use OpenTelemetry\API\Trace\TraceFlags;
-use OpenTelemetry\Context\Context;
 
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
-use OpenTelemetry\Contrib\Propagation\Instana\InstanaMultiPropagator as InstanaMultiPropagator;
+use OpenTelemetry\Contrib\Propagation\Instana\InstanaPropagator;
+
 use OpenTelemetry\SDK\Trace\Span;
 use Override;
 use PHPUnit\Framework\TestCase;
 
-final class InstanaMultiPropagatorTest extends TestCase
+final class InstanaPropagatorTest extends TestCase
 {
     private const X_INSTANA_T = 'ff000000000000000000000000000041';
     private const X_INSTANA_S = 'ff00000000000041';
@@ -27,13 +28,13 @@ final class InstanaMultiPropagatorTest extends TestCase
     private $SPAN_ID;
     private $SAMPLED;
 
-    private InstanaMultiPropagator $instanaMultiPropagator;
+    private InstanaPropagator $InstanaPropagator;
     
     #[Override]
     protected function setUp(): void
     {
-        $this->instanaMultiPropagator = InstanaMultiPropagator::getInstance();
-        $instanaMultiFields = $this->instanaMultiPropagator->fields();
+        $this->InstanaPropagator = InstanaPropagator::getInstance();
+        $instanaMultiFields = $this->InstanaPropagator->fields();
         $this->TRACE_ID = $instanaMultiFields[0];
         $this->SPAN_ID = $instanaMultiFields[1];
         $this->SAMPLED = $instanaMultiFields[2];
@@ -43,14 +44,14 @@ final class InstanaMultiPropagatorTest extends TestCase
     {
         $this->assertSame(
             ['X-INSTANA-T', 'X-INSTANA-S',  'X-INSTANA-L'],
-            $this->instanaMultiPropagator->fields()
+            $this->InstanaPropagator->fields()
         );
     }
 
     public function test_inject_empty(): void
     {
         $carrier = [];
-        $this->instanaMultiPropagator->inject($carrier);
+        $this->InstanaPropagator->inject($carrier);
         $this->assertEmpty($carrier);
     }
 
@@ -58,7 +59,7 @@ final class InstanaMultiPropagatorTest extends TestCase
     {
         $carrier = [];
         $this
-            ->instanaMultiPropagator
+            ->InstanaPropagator
             ->inject(
                 $carrier,
                 null,
@@ -78,7 +79,7 @@ final class InstanaMultiPropagatorTest extends TestCase
     {
         $carrier = [];
         $this
-            ->instanaMultiPropagator
+            ->InstanaPropagator
             ->inject(
                 $carrier,
                 null,
@@ -102,7 +103,7 @@ final class InstanaMultiPropagatorTest extends TestCase
     {
         $carrier = [];
         $this
-            ->instanaMultiPropagator
+            ->InstanaPropagator
             ->inject(
                 $carrier,
                 null,
@@ -126,7 +127,7 @@ final class InstanaMultiPropagatorTest extends TestCase
     {
         $carrier = [];
         $this
-            ->instanaMultiPropagator
+            ->InstanaPropagator
             ->inject(
                 $carrier,
                 null,
@@ -156,7 +157,7 @@ final class InstanaMultiPropagatorTest extends TestCase
 
         $this->assertEquals(
             SpanContext::createFromRemoteParent(self::X_INSTANA_T, self::X_INSTANA_S, TraceFlags::SAMPLED),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -183,7 +184,7 @@ final class InstanaMultiPropagatorTest extends TestCase
 
         $this->assertEquals(
             SpanContext::createFromRemoteParent(self::X_INSTANA_T, self::X_INSTANA_S, TraceFlags::SAMPLED),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -210,7 +211,7 @@ final class InstanaMultiPropagatorTest extends TestCase
 
         $this->assertEquals(
             SpanContext::createFromRemoteParent(self::X_INSTANA_T, self::X_INSTANA_S),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -237,7 +238,7 @@ final class InstanaMultiPropagatorTest extends TestCase
 
         $this->assertEquals(
             SpanContext::createFromRemoteParent(self::X_INSTANA_T, self::X_INSTANA_S, TraceFlags::DEFAULT),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -262,7 +263,7 @@ final class InstanaMultiPropagatorTest extends TestCase
 
         $this->assertEquals(
             SpanContext::createFromRemoteParent(self::X_INSTANA_T, self::X_INSTANA_S),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -286,7 +287,7 @@ final class InstanaMultiPropagatorTest extends TestCase
                 '0000000000000000',
                 TraceFlags::SAMPLED
             ),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -302,7 +303,7 @@ final class InstanaMultiPropagatorTest extends TestCase
                 '0000000000000000',
                 TraceFlags::DEFAULT
             ),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -313,9 +314,9 @@ final class InstanaMultiPropagatorTest extends TestCase
             $this->SPAN_ID => self::X_INSTANA_S,
             $this->SAMPLED => self::IS_SAMPLED,
         ];
-        $context = $this->instanaMultiPropagator->extract($extractCarrier);
+        $context = $this->InstanaPropagator->extract($extractCarrier);
         $injectCarrier = [];
-        $this->instanaMultiPropagator->inject($injectCarrier, null, $context);
+        $this->InstanaPropagator->inject($injectCarrier, null, $context);
         $this->assertSame($injectCarrier, $extractCarrier);
     }
 
@@ -340,7 +341,7 @@ final class InstanaMultiPropagatorTest extends TestCase
 
         $this->assertEquals(
             SpanContext::createFromRemoteParent('00000000000000004aaba1a52cf8ee09', '0007b5a2e4d86bd1', TraceFlags::SAMPLED),
-            $this->getSpanContext($this->instanaMultiPropagator->extract($carrier))
+            $this->getSpanContext($this->InstanaPropagator->extract($carrier))
         );
     }
 
@@ -403,7 +404,7 @@ final class InstanaMultiPropagatorTest extends TestCase
     {
         $this->assertSame(
             Context::getCurrent(),
-            $this->instanaMultiPropagator->extract($carrier),
+            $this->InstanaPropagator->extract($carrier),
         );
     }
 
