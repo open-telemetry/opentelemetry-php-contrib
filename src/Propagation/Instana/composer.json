@@ -5,6 +5,7 @@
   "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "instana"],
   "type": "library",
   "readme": "./README.md",
+  "license": "Apache-2.0",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
