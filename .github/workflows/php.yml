@@ -61,8 +61,6 @@ jobs:
 
           - project: 'Instrumentation/Curl'
             php-version: 8.1
-          - project: 'Instrumentation/Doctrine'
-            php-version: 8.1
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.1
           - project: 'Instrumentation/ExtRdKafka'
