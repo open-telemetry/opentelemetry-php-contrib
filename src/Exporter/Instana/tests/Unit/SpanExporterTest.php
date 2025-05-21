@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Exporter\Instana\Unit;
+namespace OpenTelemetry\Tests\Exporter\Instana\Unit;
 
 use OpenTelemetry\Contrib\Exporter\Instana\SpanConverter;
 use OpenTelemetry\Contrib\Exporter\Instana\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
-use OpenTelemetry\Contrib\Exporter\Instana\Unit\SpanDataUtil;
-
 
 use PHPUnit\Framework\TestCase;
 

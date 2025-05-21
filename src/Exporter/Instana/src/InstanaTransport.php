@@ -23,6 +23,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
 * Class InstanaTransport - implements the transport interface for data transfer with Instana agent
 * @psalm-suppress MissingTemplateParam
+* @psalm-suppress UnusedProperty
 */
 class InstanaTransport implements TransportInterface
 {

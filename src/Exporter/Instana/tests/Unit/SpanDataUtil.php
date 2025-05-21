@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Exporter\Instana\Unit;
+namespace OpenTelemetry\Tests\Exporter\Instana\Unit;
+
+;
 
 /**
  * This is an modified copy of the following
@@ -137,6 +139,13 @@ class SpanDataUtil implements SDK\SpanDataInterface
     {
         return $this->status;
     }
+    
+    public function setStatus(StatusData $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
 
     #[\Override]
     public function getEndEpochNanos(): int
@@ -156,16 +165,37 @@ class SpanDataUtil implements SDK\SpanDataInterface
         return $this->hasEnded;
     }
 
+    public function setHasEnded(bool $hasEnded): self
+    {
+        $this->hasEnded = $hasEnded;
+
+        return $this;
+    }
+
     #[\Override]
     public function getResource(): ResourceInfo
     {
         return $this->resource;
     }
 
+    public function setResource(ResourceInfo $resource): self
+    {
+        $this->resource = $resource;
+
+        return $this;
+    }
+
     #[\Override]
     public function getInstrumentationScope(): InstrumentationScope
     {
         return $this->instrumentationScope;
+    }
+
+    public function setInstrumentationScope(InstrumentationScope $instrumentationScope): self
+    {
+        $this->instrumentationScope = $instrumentationScope;
+
+        return $this;
     }
 
     #[\Override]

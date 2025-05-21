@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Exporter\Instana\Unit;
+namespace OpenTelemetry\Tests\Exporter\Instana\Unit;
 
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanKind as OtelSpanKind;
@@ -16,7 +16,6 @@ use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScope;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\StatusData;
-use OpenTelemetry\Contrib\Exporter\Instana\Unit\SpanDataUtil as SpanDataUtil;
 
 use PHPUnit\Framework\TestCase;
 
@@ -59,7 +58,7 @@ class SpanConverterTest extends TestCase
                 null,
                 Attributes::create([]),
             ))
-            ->addAttribute('service', ['name' => 'unknown_service:php', 'version' => 'dev-main'])
+            ->addAttribute('service', ['name' => 'instana/opentelemetry-php-exporter', 'version' => 'dev-main'])
             ->addAttribute('net.peer.name', 'authorizationservice.com')
             ->addAttribute('peer.service', 'AuthService')
             ->setResource(
