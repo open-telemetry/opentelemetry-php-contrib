@@ -17,6 +17,7 @@
     "psr-4": {
       "OpenTelemetry\\Contrib\\Aws\\": "src/Aws/src",
       "OpenTelemetry\\Contrib\\Context\\Swoole\\": "src/Context/Swoole/src",
+      "OpenTelemetry\\Contrib\\Exporter\\Instana\\": "src/Exporter/Instana/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Curl\\": "src/Instrumentation/Curl/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\ExtAmqp\\": "src/Instrumentation/ExtAmqp/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\ExtRdKafka\\": "src/Instrumentation/ExtRdKafka/src",
@@ -70,6 +71,7 @@
     "open-telemetry/contrib-aws": "self.version",
     "open-telemetry/contrib-sdk-bundle": "self.version",
     "open-telemetry/context-swoole": "self.version",
+    "open-telemetry/opentelemetry-exporter-instana": "self.version",
     "open-telemetry/opentelemetry-auto-curl": "self.version",
     "open-telemetry/opentelemetry-auto-laravel": "self.version",
     "open-telemetry/opentelemetry-auto-http-async": "self.version",

@@ -22,6 +22,7 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
+          'Exporter/Instana',
           'Instrumentation/CakePHP',
           'Instrumentation/CodeIgniter',
           'Instrumentation/Curl',

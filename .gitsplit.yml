@@ -10,6 +10,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/opentelemetry-meta.git"
   - prefix: "src/Aws"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-aws.git"
+  - prefix: "src/Exporter/Instana"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-instana-exporter.git"
   - prefix: "src/Symfony"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sdk-bundle.git"
   - prefix: "src/Instrumentation/CodeIgniter"
