@@ -21,7 +21,7 @@ use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
  * "instana" http headers used for trace context propagation across service
  * boundaries.
  */
-final class InstanaMultiPropagator implements TextMapPropagatorInterface
+final class InstanaPropagator implements TextMapPropagatorInterface
 {
     /**
      * The  X-INSTANA-T header is required and is encoded as 32 lower-hex characters.
@@ -115,7 +115,6 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
         if (($traceId === '' &&  $spanId === '') && $level !== null) {
             return (new NonRecordingSpan($spanContext))
                 ->storeInContext($context);
-
         } elseif (!$spanContext->isValid()) {
             return $context;
         }
@@ -161,7 +160,7 @@ final class InstanaMultiPropagator implements TextMapPropagatorInterface
         }
 
         if ($spanId && strlen($spanId) < 16) {
-            $spanId =  str_pad($spanId, 16, '0', STR_PAD_LEFT);
+            $spanId = str_pad($spanId, 16, '0', STR_PAD_LEFT);
         }
 
         return SpanContext::createFromRemoteParent(
