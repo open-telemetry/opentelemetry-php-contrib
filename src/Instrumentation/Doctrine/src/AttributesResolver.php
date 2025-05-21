@@ -134,7 +134,10 @@ final class AttributesResolver
 
         $targetName = null;
         if ($matches !== []) {
-            $targetName = $matches[2][0] ?? '';
+            $targetName = $matches[2][0] ?? null;
+        }
+        if ($targetName === null) {
+            return null;
         }
         //strip quotes and backticks from the target name
         $targetName = str_replace(['`', '"', '[', ']'], '', $targetName);
