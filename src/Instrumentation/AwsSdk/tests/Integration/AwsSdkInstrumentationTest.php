@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OpenTelemetry\Contrib\Instrumentation\AwsSdk\AwsSdkInstrumentation
  */
+/** @psalm-suppress TooManyArguments */
 class AwsSdkInstrumentationTest extends TestCase
 {
     private S3Client $client;

@@ -16,8 +16,10 @@ use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 
+/** @psalm-suppress UnusedClass */
 final class AwsSdkInstrumentation
 {
+    /** @psalm-suppress ArgumentTypeCoercion */
     public const NAME = 'aws-sdk';
 
     public static function register(): void
@@ -32,7 +34,8 @@ final class AwsSdkInstrumentation
          * ② Intercept the low‑level `execute` call that actually
          *    performs the HTTP request and has the Command object.
          */
-        hook(
+         /** @psalm-suppress UnusedFunctionCall */
+         hook(
             AwsClient::class,
             'execute',
             pre: static function (
