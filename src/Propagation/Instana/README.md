@@ -31,7 +31,7 @@ Both of the above have extract and inject methods available to extract and injec
 For Baggage propagation, use opentelemetry's MultiTextMapPropagator, and pass the array list of propagators i.e Instana and Baggage propagator as below.
 
 ```
-$propagator = new MultiTextMapPropagator(InstantPropagator::getInstance(), BaggagePropagator::getInstance());
+$propagator = new MultiTextMapPropagator([InstanaPropagator::getInstance(), BaggagePropagator::getInstance()]);
 ```
 
 ## Propagator Details
