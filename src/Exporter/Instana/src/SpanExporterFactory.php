@@ -16,6 +16,9 @@ class SpanExporterFactory implements SpanExporterFactoryInterface
     const DEFAULT_INSTANA_AGENT_HOST = '127.0.0.1';
     const DEFAULT_INSTANA_AGENT_PORT = '42699';
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function create(): SpanExporterInterface
     {

@@ -59,6 +59,9 @@ class InstanaTransport implements TransportInterface
         $this->announce();
     }
 
+    /**
+     * @suppress PhanUndeclaredClassAttribute
+     */
     #[\Override]
     public function contentType(): string
     {
@@ -100,6 +103,9 @@ class InstanaTransport implements TransportInterface
         );
     }
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function shutdown(?CancellationInterface $cancellation = null): bool
     {
@@ -110,6 +116,9 @@ class InstanaTransport implements TransportInterface
         return $this->closed = true;
     }
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function forceFlush(?CancellationInterface $cancellation = null): bool
     {

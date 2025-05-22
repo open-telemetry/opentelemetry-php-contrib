@@ -41,6 +41,9 @@ class SpanExporter implements SpanExporterInterface
         );
     }
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function export(iterable $batch, ?CancellationInterface $cancellation = null): FutureInterface
     {
@@ -54,12 +57,18 @@ class SpanExporter implements SpanExporterInterface
             });
     }
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function shutdown(?CancellationInterface $cancellation = null): bool
     {
         return $this->transport->shutdown($cancellation);
     }
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function forceFlush(?CancellationInterface $cancellation = null): bool
     {

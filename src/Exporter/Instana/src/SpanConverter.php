@@ -38,6 +38,9 @@ class SpanConverter implements SpanConverterInterface
         $this->defaultServiceName = ResourceInfoFactory::defaultResource()->getAttributes()->get(ResourceAttributes::SERVICE_NAME);
     }
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function convert(iterable $spans): array
     {
