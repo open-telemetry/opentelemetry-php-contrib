@@ -60,14 +60,17 @@ class InstanaTransport implements TransportInterface
     }
 
     /**
-     * @suppress PhanUndeclaredClassAttribute
-     */
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function contentType(): string
     {
         return self::CONTENT_TYPE;
     }
 
+    /**
+    * @suppress PhanUndeclaredClassAttribute
+    */
     #[\Override]
     public function send(string $payload, ?CancellationInterface $cancellation = null): FutureInterface
     {
