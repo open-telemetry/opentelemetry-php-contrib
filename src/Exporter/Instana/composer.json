@@ -11,17 +11,10 @@
     ],
     "type": "library",
     "support": {
-        "issues": "https://github.com/instana/opentelemetry-php-exporter/issues",
-        "source": "https://github.com/instana/opentelemetry-php-exporter",
+        "issues": "https://www.ibm.com/support/pages/instana-support",
+        "source": "https://github.com/open-telemetry/opentelemetry-php-contrib/main/src/Exporter/Instana",
         "docs": "https://www.ibm.com/docs/en/instana-observability/current?topic=opentelemetry-php-exporter"
     },
-    "license": "Apache-2.0",
-    "authors": [
-        {
-            "name": "Instana contributors",
-            "homepage": "https://github.com/instana/opentelemetry-php-exporter/graphs/contributors"
-        }
-    ],
     "require": {
         "php": "^8.1",
         "open-telemetry/api": "^1.1",

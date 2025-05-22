@@ -157,6 +157,7 @@ class SpanConverter implements SpanConverterInterface
                     !in_array($matches[2], $extraResponseHeaders);
             }, ARRAY_FILTER_USE_KEY);
 
+            // @phpstan-ignore-next-line
             foreach ($keys as $k => $_v) {
                 unset($instanaSpan['data']['sdk']['custom']['tags']['attributes'][$k]);
             }

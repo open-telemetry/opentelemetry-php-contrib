@@ -35,7 +35,10 @@ class InstanaTransport implements TransportInterface
     private Client $client;
     private ?string $agent_uuid = null;
     private ?int $pid = null;
+    
+    // @phpstan-ignore property.onlyWritten
     private array $secrets = [];
+    // @phpstan-ignore property.onlyWritten
     private array $tracing = [];
 
     private bool $closed = true;
@@ -43,6 +46,7 @@ class InstanaTransport implements TransportInterface
 
     public function __construct(
         private readonly string $endpoint,
+        // @phpstan-ignore property.onlyWritten
         private readonly float $timeout = 0.0
     ) {
         $this->headers += ['Content-Type' => self::CONTENT_TYPE];
