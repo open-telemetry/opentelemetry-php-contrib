@@ -1,8 +1,8 @@
-file_format: "0.3"
+file_format: "0.4"
 
 tracer_provider:
   sampler:
-    contrib_rule_based:
+    php_rule_based:
       rule_sets:
         - rules:
             - attribute: {key: is.important, pattern: ~false~ }

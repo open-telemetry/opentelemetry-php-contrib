@@ -1,6 +1,6 @@
-# Contrib Sampler
+# RuleBasedSampler
 
-Provides additional samplers that are not part of the official specification.
+Allows sampling based on a list of rule sets.
 
 ## Installation
 
@@ -8,9 +8,13 @@ Provides additional samplers that are not part of the official specification.
 composer require open-telemetry/sampler-rule-based
 ```
 
-## RuleBasedSampler
+## Usage
 
-Allows sampling based on a list of rule sets. The first matching rule set will decide the sampling result.
+Provide a list of `RuleSet` instances and a fallback sampler to the `RuleBasedSampler` constructor. Each rule set
+contains a list of rules and a delegate sampler to execute if the rule matches. The rules are evaluated in the order
+they are defined. The first matching rule set will decide the sampling result.
+
+If no rules match, then the fallback sampler is used.
 
 ```php
 $sampler = new RuleBasedSampler(
@@ -27,12 +31,29 @@ $sampler = new RuleBasedSampler(
 );
 ```
 
-### Configuration
+## Configuration
 
-###### Example: drop spans for the /health endpoint
+The RuleBased sampler can be configured through [Declarative Configuration](https://opentelemetry.io/docs/specs/otel/configuration/#declarative-configuration), using the
+key `php_rule_based` under `tracer_provider.sampler.sampler`:
 
 ```yaml
-contrib_rule_based:
+file_format: "0.4"
+
+tracer_provider:
+  sampler:
+    php_rule_based:
+      rule_sets:
+        # ...
+      fallback:
+        # ...
+```
+
+### Examples
+
+Drop spans for the /health endpoint:
+
+```yaml
+php_rule_based:
     rule_sets:
     -   rules:
         -   span_kind: { kind: SERVER }
@@ -42,10 +63,10 @@ contrib_rule_based:
     fallback: # ...
 ```
 
-###### Example: sample spans with at least one sampled link
+Sample spans with at least one sampled link:
 
 ```yaml
-contrib_rule_based:
+php_rule_based:
     rule_sets:
     -   rules: [ link: { sampled: true } ]
         delegate:
@@ -53,10 +74,10 @@ contrib_rule_based:
     fallback: # ...
 ```
 
-###### Example: modeling parent based sampler as rule based sampler
+Modeling parent-based sampler as rule-based sampler:
 
 ```yaml
-rule_based:
+php_rule_based:
     rule_sets:
     -   rules: [ parent: { sampled: true, remote: true } ]
         delegate: # remote_parent_sampled
@@ -67,21 +88,4 @@ rule_based:
     -   rules: [ parent: { sampled: false, remote: false } ]
         delegate: # local_parent_not_sampled
     fallback: # root
-```
-
-## AlwaysRecordingSampler
-
-Records all spans to allow the usage of span processors that generate metrics from spans.
-
-```php
-$sampler = new AlwaysRecordingSampler(
-    new ParentBasedSampler(new AlwaysOnSampler()),
-);
-```
-
-### Configuration
-
-```yaml
-always_recording:
-    sampler: # ...
 ```

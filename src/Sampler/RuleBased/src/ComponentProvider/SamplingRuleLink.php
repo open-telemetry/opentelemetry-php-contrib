@@ -10,6 +10,7 @@ use OpenTelemetry\Config\SDK\Configuration\Context;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\LinkRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
 /**
  * @implements ComponentProvider<SamplingRule>
@@ -31,9 +32,9 @@ final class SamplingRuleLink implements ComponentProvider
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
-        $node = new ArrayNodeDefinition('link');
+        $node = $builder->arrayNode('link');
 
         /** @psalm-suppress PossiblyNullReference */
         $node

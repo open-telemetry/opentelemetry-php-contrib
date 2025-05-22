@@ -7,7 +7,7 @@
         "php": "^8.1",
         "open-telemetry/api": "^1.1.0",
         "open-telemetry/sdk": "^1.1.0",
-        "open-telemetry/sdk-configuration": "^0.0.5"
+        "open-telemetry/sdk-configuration": "^0.0.9"
     },
     "require-dev": {
         "symfony/config": "^5.4 || ^6.4 || ^7.0",
