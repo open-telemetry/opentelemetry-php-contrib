@@ -34,8 +34,8 @@ final class AwsSdkInstrumentation
          * ② Intercept the low‑level `execute` call that actually
          *    performs the HTTP request and has the Command object.
          */
-         /** @psalm-suppress UnusedFunctionCall */
-         hook(
+        /** @psalm-suppress UnusedFunctionCall */
+        hook(
             AwsClient::class,
             'execute',
             pre: static function (
