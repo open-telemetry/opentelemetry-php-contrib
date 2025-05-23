@@ -89,6 +89,7 @@ updates:
       - "/src/Instrumentation/Yii"
       - "/src/Logs/Monolog"
       - "/src/MetaPackages/opentelemetry"
+      - "/src/Propagation/Instana"
       - "/src/Propagation/ServerTiming"
       - "/src/Propagation/TraceResponse"
       - "/src/ResourceDetectors/Azure"
