@@ -1,0 +1,108 @@
+<?php
+// src/Sampler/AWS/RulesCache.php
+namespace OpenTelemetry\Contrib\Sampler\Xray;
+
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
+use OpenTelemetry\SDK\Trace\SamplerInterface;
+use OpenTelemetry\SDK\Trace\SamplingDecision;
+use OpenTelemetry\SDK\Trace\SamplingResult;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+
+class RulesCache implements SamplerInterface
+{
+    private const CACHE_TTL = 3600; // 1hr
+    private Clock $clock;
+    private string $clientId;
+    private ResourceInfo $resource;
+    private SamplerInterface $fallbackSampler;
+    /** @var SamplingRuleApplier[] */
+    private array $appliers = [];
+    private \DateTimeImmutable $updatedAt;
+    
+    public function __construct(Clock $clock, string $clientId, ResourceInfo $resource, SamplerInterface $fallback)
+    {
+        $this->clock = $clock;
+        $this->clientId = $clientId;
+        $this->resource = $resource;
+        $this->fallbackSampler = $fallback;
+        $this->updatedAt = $clock->now();
+    }
+    
+    public function expired(): bool
+    {
+        return $this->clock->now()->getTimestamp() > $this->updatedAt->getTimestamp() + self::CACHE_TTL;
+    }
+    
+    public function updateRules(array $newRules): void
+    {
+        usort($newRules, fn(SamplingRule $a, SamplingRule $b) => $a->compareTo($b));
+        $newAppliers = [];
+        foreach ($newRules as $rule) {
+            // reuse existing applier if same ruleName
+            $found = null;
+            foreach ($this->appliers as $ap) {
+                if ($ap->getRuleName() === $rule->RuleName) {
+                    $found = $ap;
+                    break;
+                }
+            }
+            $applier = $found ?? new SamplingRuleApplier($this->clientId, $this->clock, $rule);
+            // update rule in applier
+            // $applier->setRule($rule);
+            $newAppliers[] = $applier;
+        }
+        $this->appliers  = $newAppliers;
+        $this->updatedAt = $this->clock->now();
+    }
+    
+    public function shouldSample(
+        ContextInterface $parentContext,
+        string $traceId,
+        string $spanName,
+        int $spanKind,
+        AttributesInterface $attributes,
+        array $links,
+    ): SamplingResult
+    {
+        foreach ($this->appliers as $applier) {
+            if ($applier->matches($attributes, $this->resource)) {
+                return $applier->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
+            }
+        }
+        // fallback if no rule matched
+        return $this->fallbackSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
+    }
+    
+    public function nextTargetFetchTime(): \DateTimeImmutable
+    {
+        if (empty($this->appliers)) {
+            return $this->clock->now()->add(new \DateInterval('PT10S'));
+        }
+        $times = array_map(fn($a) => $a->getNextSnapshotTime(), $this->appliers);
+        $min = min($times);
+        return $min < $this->clock->now()
+            ? $this->clock->now()->add(new \DateInterval('PT10S'))
+            : $min;
+    }
+    
+    /** Update reservoir/fixed rates from GetSamplingTargets response */
+    public function updateTargets(array $targets): void
+    {
+        $new = [];
+        foreach ($this->appliers as $applier) {
+            $name = $applier->getRuleName();
+            if (isset($targets[$name])) {
+                $new[] = $applier->withTarget($targets[$name], $this->clock->now());
+            } else {
+                $new[] = $applier;
+            }
+        }
+        $this->appliers = $new;
+    }
+    
+    public function getDescription(): string
+    {
+        return 'RulesCache';
+    }
+}
