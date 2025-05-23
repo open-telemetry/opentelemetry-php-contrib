@@ -1,6 +1,5 @@
 <?php
 
-// src/Instrumentation/AwsSdk/AwsSdkInstrumentation.php
 declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\AwsSdk;
@@ -31,8 +30,8 @@ final class AwsSdkInstrumentation
         );
 
         /**
-         * ② Intercept the low‑level `execute` call that actually
-         *    performs the HTTP request and has the Command object.
+         * Intercept the low‑level `execute` call that actually
+         * performs the HTTP request and has the Command object.
          */
         /** @psalm-suppress UnusedFunctionCall */
         hook(
