@@ -1,11 +1,10 @@
 
 {
-  "name": "open-telemetry/opentelemetry-propagation-instana",
-  "description": "OpenTelemetry Instana propagator.",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "instana"],
+  "name": "open-telemetry/opentelemetry-exporter-instana",
+  "description": "OpenTelemetry Instana exporter.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "exporter", "instana"],
   "type": "library",
   "readme": "./README.md",
-  "license": "Apache-2.0",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
@@ -33,7 +32,8 @@
     "symfony/http-client": "^5.4|^6.0",
     "guzzlehttp/promises": "^1.5|^2",
     "php-http/message-factory": "^1.0",
-    "nyholm/psr7": "^1.5"
+    "nyholm/psr7": "^1.5",
+    "open-telemetry/opentelemetry": "dev-main"
   },
   "config": {
     "allow-plugins": {
