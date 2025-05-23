@@ -31,6 +31,7 @@ class SpanConverterTest extends TestCase
 
     public function test_should_convert_a_span_to_a_payload_for_instana(): void
     {
+        putenv('INSTANA_SERVICE_NAME=instana/opentelemetry-exporter-instana');
         $span = (new SpanDataUtil())
             ->setName('converter.test')
             ->setKind(OtelSpanKind::KIND_CLIENT)
@@ -58,7 +59,7 @@ class SpanConverterTest extends TestCase
                 null,
                 Attributes::create([]),
             ))
-            ->addAttribute('service', ['name' => 'instana/opentelemetry-php-exporter', 'version' => 'dev-main'])
+            ->addAttribute('service', ['name' => 'instana/opentelemetry-exporter-instana', 'version' => 'dev-main'])
             ->addAttribute('net.peer.name', 'authorizationservice.com')
             ->addAttribute('peer.service', 'AuthService')
             ->setResource(
@@ -86,7 +87,7 @@ class SpanConverterTest extends TestCase
         $this->assertSame(2, $instanaSpan['k']);
 
         $this->assertCount(2, $instanaSpan['data']);
-        $this->assertSame('instana/opentelemetry-php-exporter', $instanaSpan['data']['service']);
+        $this->assertSame('instana/opentelemetry-exporter-instana', $instanaSpan['data']['service']);
         $this->assertSame($span->getName(), $instanaSpan['data']['sdk']['name']);
 
         $tags = $instanaSpan['data']['sdk']['custom']['tags'];
@@ -97,7 +98,7 @@ class SpanConverterTest extends TestCase
         $this->assertSame('test-a', $tags['instance']);
 
         $this->assertCount(3, $tags['attributes']);
-        $this->assertSame('unknown_service:php', $tags['attributes']['service']['name']);
+        $this->assertSame('instana/opentelemetry-exporter-instana', $tags['attributes']['service']['name']);
         $this->assertSame('dev-main', $tags['attributes']['service']['version']);
         $this->assertSame('authorizationservice.com', $tags['attributes']['net.peer.name']);
         $this->assertSame('AuthService', $tags['attributes']['peer.service']);
@@ -138,7 +139,7 @@ class SpanConverterTest extends TestCase
 
         $this->assertArrayNotHasKey('p', $instanaSpan);
         $this->assertSame('php', $instanaSpan['n']);
-        $this->assertSame('instana/opentelemetry-php-exporter', $instanaSpan['data']['service']);
+        $this->assertSame('instana/opentelemetry-exporter-instana', $instanaSpan['data']['service']);
         $this->assertSame('test-span-data', $instanaSpan['data']['sdk']['name']);
         $this->assertCount(2, $instanaSpan['data']);
     }

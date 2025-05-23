@@ -28,7 +28,6 @@ class SpanConverter implements SpanConverterInterface
     const OTEL_KEY_DROPPED_ATTRIBUTES_COUNT = 'dropped_attributes_count';
     const OTEL_KEY_DROPPED_EVENTS_COUNT = 'dropped_events_count';
     const OTEL_KEY_DROPPED_LINKS_COUNT = 'dropped_links_count';
-
     private readonly string $defaultServiceName;
 
     public function __construct(
@@ -82,7 +81,10 @@ class SpanConverter implements SpanConverterInterface
         }
 
         $serviceName = $span->getResource()->getAttributes()->get(ResourceAttributes::SERVICE_NAME) ?? $this->defaultServiceName;
-        $instanaSpan['data']['service'] = $_SERVER['INSTANA_SERVICE_NAME'] ?? $serviceName;
+        if (Configuration::has('INSTANA_SERVICE_NAME')) {
+            $serviceName = Configuration::getString('INSTANA_SERVICE_NAME');
+        }
+        $instanaSpan['data']['service'] = $serviceName;
 
         $instanaSpan['data']['sdk']['name'] = $span->getName() ?: 'sdk';
         $instanaSpan['data']['sdk']['custom']['tags'] = [];

@@ -31,8 +31,8 @@ class SpanExporter implements SpanExporterInterface
     }
 
     /**
-     * @throws JsonException
-     */
+    * @throws JsonException
+    */
     protected function serializeTrace(iterable $spans): string
     {
         return json_encode(

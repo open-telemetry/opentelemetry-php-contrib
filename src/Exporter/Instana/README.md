@@ -1,9 +1,9 @@
-[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-instana-exporter/releases)
+[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-exporter-instana/releases)
 [![Issues](https://img.shields.io/badge/issues-pink)](https://www.ibm.com/support/pages/instana-support)
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Exporter/Instana)
-[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-instana-exporter)
-[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-instana-exporter/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-instana-exporter/)
-[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-instana-exporter/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-instana-exporter/)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-exporter-instana)
+[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-instana-exporter/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-exporter-instana/)
+[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-instana-exporter/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-exporter-instana/)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
@@ -26,7 +26,7 @@ curl -s https://getcomposer.org/installer | php
 Install via Composer
 
 ```bash
-composer require instana/contrib-instana-exporter
+composer require instana/opentelemetry-exporter-instana
 ```
 
 ## Usage
@@ -44,7 +44,7 @@ INSTANA_AGENT_PORT=42699
 The service name that is visible in the Instana UI can be configured with the following environment variables. OpenTelemetry provides `OTEL_SERVICE_NAME` (see documentation [here](https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_service_name)) as a way to customize this within the SDK. We also provide `INSTANA_SERVICE_NAME` which will be taken as the highest precedence.
 
 ```bash
-INSTANA_SERVICE_NAME=custom-service-name
+export INSTANA_SERVICE_NAME=custom-service-name
 ```
 
 ## Example
@@ -71,6 +71,6 @@ $span->end();
 $tracerProvider->shutdown();
 ```
 
-## Contributions
+## Issues
 
-This repo is maintained by IBM Instana and is read-only. Issues and other contributions should be reported as part of standard [Instana product support](https://www.ibm.com/support/pages/instana-support).
+This repo is maintained by IBM Instana and is read-only. Issues should be reported as part of standard [Instana product support](https://www.ibm.com/support/pages/instana-support).

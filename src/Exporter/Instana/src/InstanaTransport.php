@@ -55,7 +55,6 @@ class InstanaTransport implements TransportInterface
         }
 
         $this->client = new Client(['base_uri' => $endpoint]);
-
         $this->announce();
     }
 
@@ -233,8 +232,8 @@ class InstanaTransport implements TransportInterface
     }
 
     /**
-     * @psalm-suppress FalsableReturnStatement
-     */
+    * @psalm-suppress FalsableReturnStatement
+    */
     private function getAnnouncementPayload(): string
     {
         $cmdline_args = file_get_contents('/proc/self/cmdline');

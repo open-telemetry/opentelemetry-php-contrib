@@ -1,14 +1,6 @@
 {
-    "name": "instana/opentelemetry-php-exporter",
+    "name": "instana/opentelemetry-exporter-instana",
     "description": "Instana exporter for OpenTelemetry PHP.",
-    "keywords": [
-        "opentelemetry",
-        "otel",
-        "tracing",
-        "contrib",
-        "exporter",
-        "instana"
-    ],
     "type": "library",
     "support": {
         "issues": "https://www.ibm.com/support/pages/instana-support",
