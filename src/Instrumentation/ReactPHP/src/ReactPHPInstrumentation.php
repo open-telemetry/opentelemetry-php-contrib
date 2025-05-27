@@ -270,7 +270,7 @@ class ReactPHPInstrumentation
 
         $sanitizeFields = self::URL_QUERY_REDACT_KEYS;
         $customFields = $_ENV[self::ENV_URL_SANITIZE_FIELD_NAMES] ?? '';
-        if (!empty($customFields)) {
+        if ($customFields !== '') {
             $sanitizeFields = array_merge($sanitizeFields, explode(',', $customFields));
         }
 
