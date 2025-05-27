@@ -56,7 +56,7 @@ class ReactPHPInstrumentation
     private const ENV_HTTP_RESPONSE_HEADERS = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
     /**
      * The environment variable which adds to the URL query parameter keys to redact the values for.
-     * This supports a comma-separated list of case-sensitive known HTTP methods.
+     * This supports a comma-separated list of case-sensitive query parameter keys.
      *
      * Note that this is not currently defined in OTel SemConv, and therefore subject to change.
      *
