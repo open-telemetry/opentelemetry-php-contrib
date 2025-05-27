@@ -28,9 +28,7 @@ use Psr\Http\Message\ResponseInterface;
 class InstanaTransport implements TransportInterface
 {
     use LogsMessagesTrait;
-
     const CONTENT_TYPE = 'application/json';
-    const ATTEMPTS = 3;
 
     private Client $client;
     private ?string $agent_uuid = null;
@@ -47,7 +45,9 @@ class InstanaTransport implements TransportInterface
     public function __construct(
         private readonly string $endpoint,
         // @phpstan-ignore property.onlyWritten
-        private readonly float $timeout = 0.0
+        private readonly float $timeout = 0.0,
+
+        private readonly int $attempts
     ) {
         $this->headers += ['Content-Type' => self::CONTENT_TYPE];
         if ($timeout > 0.0) {
@@ -129,7 +129,7 @@ class InstanaTransport implements TransportInterface
 
     private function announce()
     {
-        for ($attempt = 0; $attempt < self::ATTEMPTS && !$this->performAnnounce(); $attempt++) {
+        for ($attempt = 0; $attempt < $this->attempts && !$this->performAnnounce(); $attempt++) {
             self::logDebug('Discovery request failed, attempt ' . (string) $attempt);
             sleep(5);
         }
@@ -202,7 +202,7 @@ class InstanaTransport implements TransportInterface
         }
 
         // Phase 3) Wait for the agent ready signal.
-        for ($retry = 0; $retry < 5; $retry++) {
+        for ($retry = 0; $retry < 2; $retry++) {
             if ($retry) {
                 self::logDebug('Agent not yet ready, attempt ' . (string) $retry);
             }

@@ -27,8 +27,9 @@ class SpanExporterFactory implements SpanExporterFactoryInterface
 
         $endpoint = $host . ':' . $port;
         $timeout = 10; //s
+        $attempts = 1;
 
-        $transport = new InstanaTransport($endpoint, $timeout);
+        $transport = new InstanaTransport($endpoint, $timeout, $attempts);
 
         $uuid = $transport->getUuid();
         $pid = $transport->getPid();
