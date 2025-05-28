@@ -46,8 +46,7 @@ class InstanaTransport implements TransportInterface
         private readonly string $endpoint,
         // @phpstan-ignore property.onlyWritten
         private readonly float $timeout = 0.0,
-
-        private readonly int $attempts
+        private readonly int $attempts = 1
     ) {
         $this->headers += ['Content-Type' => self::CONTENT_TYPE];
         if ($timeout > 0.0) {
