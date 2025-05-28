@@ -26,7 +26,7 @@ curl -s https://getcomposer.org/installer | php
 Install via Composer
 
 ```bash
-composer require instana/opentelemetry-exporter-instana
+composer require open-telemetry/opentelemetry-exporter-instana
 ```
 
 ## Usage
