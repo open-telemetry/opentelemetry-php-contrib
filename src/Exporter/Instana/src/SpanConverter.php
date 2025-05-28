@@ -13,10 +13,8 @@ use OpenTelemetry\Contrib\Exporter\Instana\SpanKind as InstanaSpanKind;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\EventInterface;
-
 use OpenTelemetry\SDK\Trace\SpanConverterInterface;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
-
 use OpenTelemetry\SemConv\ResourceAttributes;
 
 class SpanConverter implements SpanConverterInterface
@@ -28,6 +26,7 @@ class SpanConverter implements SpanConverterInterface
     const OTEL_KEY_DROPPED_ATTRIBUTES_COUNT = 'dropped_attributes_count';
     const OTEL_KEY_DROPPED_EVENTS_COUNT = 'dropped_events_count';
     const OTEL_KEY_DROPPED_LINKS_COUNT = 'dropped_links_count';
+    
     private readonly string $defaultServiceName;
 
     public function __construct(

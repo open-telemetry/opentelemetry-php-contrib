@@ -7,7 +7,6 @@ namespace OpenTelemetry\Tests\Exporter\Instana\Unit;
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanKind as OtelSpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
-
 use OpenTelemetry\Contrib\Exporter\Instana\SpanConverter;
 use OpenTelemetry\Contrib\Exporter\Instana\SpanKind;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -16,7 +15,6 @@ use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScope;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\StatusData;
-
 use PHPUnit\Framework\TestCase;
 
 class SpanConverterTest extends TestCase

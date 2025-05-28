@@ -2,6 +2,7 @@
     "name": "open-telemetry/opentelemetry-exporter-instana",
     "description": "Instana exporter implementation for OpenTelemetry PHP.",
     "type": "library",
+    "license": "Apache-2.0",
     "support": {
         "issues": "https://www.ibm.com/support/pages/instana-support",
         "source": "https://github.com/open-telemetry/opentelemetry-php-contrib/main/src/Exporter/Instana",

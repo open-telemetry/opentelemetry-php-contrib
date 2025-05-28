@@ -8,7 +8,6 @@ use OpenTelemetry\Contrib\Exporter\Instana\SpanConverter;
 use OpenTelemetry\Contrib\Exporter\Instana\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
-
 use PHPUnit\Framework\TestCase;
 
 class SpanExporterTest extends TestCase

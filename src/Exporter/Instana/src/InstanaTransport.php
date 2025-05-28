@@ -10,13 +10,10 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
-
 use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
-
 use OpenTelemetry\SDK\Common\Future\ErrorFuture;
-
 use OpenTelemetry\SDK\Common\Future\FutureInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -28,17 +25,16 @@ use Psr\Http\Message\ResponseInterface;
 class InstanaTransport implements TransportInterface
 {
     use LogsMessagesTrait;
+
     const CONTENT_TYPE = 'application/json';
 
     private Client $client;
     private ?string $agent_uuid = null;
     private ?int $pid = null;
-    
     // @phpstan-ignore property.onlyWritten
     private array $secrets = [];
     // @phpstan-ignore property.onlyWritten
     private array $tracing = [];
-
     private bool $closed = true;
     private array $headers = [];
 
@@ -151,7 +147,7 @@ class InstanaTransport implements TransportInterface
         $msg = $response->getBody()->getContents();
 
         if ($code != 200 && !array_key_exists('version', json_decode($msg, true))) {
-            self::LogError('Failed to lookup host. Received code ' . (string) $code . ' with message: ' . $msg);
+            self::logError('Failed to lookup host. Received code ' . (string) $code . ' with message: ' . $msg);
             $this->closed = true;
 
             return false;
@@ -175,7 +171,7 @@ class InstanaTransport implements TransportInterface
         self::logDebug('Phase 2 announcement response code ' . (string) $code);
 
         if ($code < 200 || $code >= 300) {
-            self::LogError('Failed announcement. Received code ' . (string) $code . ' with message: ' . $msg);
+            self::logError('Failed announcement. Received code ' . (string) $code . ' with message: ' . $msg);
             $this->closed = true;
 
             return false;
@@ -183,7 +179,7 @@ class InstanaTransport implements TransportInterface
 
         $content = json_decode($msg, true);
         if (!array_key_exists('pid', $content)) {
-            self::LogError('Failed to receive a pid from agent');
+            self::logError('Failed to receive a pid from agent');
             $this->closed = true;
 
             return false;
