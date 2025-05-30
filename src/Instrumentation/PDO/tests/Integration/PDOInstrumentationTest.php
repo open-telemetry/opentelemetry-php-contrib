@@ -5,11 +5,22 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\PDO\Integration;
 
 use ArrayObject;
+use OpenTelemetry\API\Common\Time\TestClock;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Common\Export\InMemoryStorageManager;
+use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
+use OpenTelemetry\SDK\Metrics\Exemplar\ExemplarFilter\AllExemplarFilter;
+use OpenTelemetry\SDK\Metrics\Exemplar\ExemplarFilter\WithSampledTraceExemplarFilter;
+use OpenTelemetry\SDK\Metrics\MeterProvider;
+use OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader;
+use OpenTelemetry\SDK\Metrics\StalenessHandler\ImmediateStalenessHandlerFactory;
+use OpenTelemetry\SDK\Metrics\View\CriteriaViewRegistry;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -26,6 +37,8 @@ class PDOInstrumentationTest extends TestCase
     private ScopeInterface $scope;
     /** @var ArrayObject<array-key, mixed> */
     private ArrayObject $storage;
+    private $metricReader;
+    private $meterProvider;
 
     private function createDB(): PDO
     {
@@ -67,9 +80,24 @@ class PDOInstrumentationTest extends TestCase
                 new InMemoryExporter($this->storage)
             )
         );
+        $clock = new TestClock();
+        $exporter = new \OpenTelemetry\SDK\Metrics\MetricExporter\InMemoryExporter(InMemoryStorageManager::metrics());
+        $this->metricReader = new ExportingReader($exporter);
+        $this->meterProvider = new MeterProvider(
+            null,
+            ResourceInfoFactory::emptyResource(),
+            $clock,
+            Attributes::factory(),
+            new InstrumentationScopeFactory(Attributes::factory()),
+            [$this->metricReader],
+            new CriteriaViewRegistry(),
+            new AllExemplarFilter(),
+            new ImmediateStalenessHandlerFactory(),
+        );
 
         $this->scope = Configurator::create()
             ->withTracerProvider($tracerProvider)
+            ->withMeterProvider($this->meterProvider)
             ->activate();
     }
 
@@ -401,5 +429,29 @@ class PDOInstrumentationTest extends TestCase
                 ],
             ]
         );
+    }
+
+
+    public function test_connection_metrics(): void
+    {
+        $db = self::createDB();
+        $db->exec($this->fillDB());
+
+        $non_utf8_id = mb_convert_encoding('rückwärts', 'ISO-8859-1', 'UTF-8');
+
+        $db->prepare("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
+        $span_db_prepare = $this->storage->offsetGet(2);
+        $this->assertTrue(mb_check_encoding($span_db_prepare->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
+        $this->assertCount(3, $this->storage);
+
+
+
+        $meterProvider = \OpenTelemetry\API\Globals::meterProvider();
+        if ($meterProvider instanceof MeterProvider) {
+            $meterProvider->forceFlush();
+            $meterProvider->shutdown();
+        }
+        $metrics = InMemoryStorageManager::metrics();
+        var_dump($metrics);
     }
 }
