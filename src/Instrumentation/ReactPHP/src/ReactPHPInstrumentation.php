@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\ReactPHP;
 use Composer\InstalledVersions;
 use GuzzleHttp\Psr7\Query;
 use OpenTelemetry\API\Common\Time\Clock;
+use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -172,13 +173,22 @@ class ReactPHPInstrumentation
                     return $promise;
                 }
 
+                //https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#http-client
+                $requestDurationHistogram = $instrumentation->meter()->createHistogram(
+                    'http.client.request.duration',
+                    's',
+                    'Duration of HTTP client requests.',
+                    ['ExplicitBucketBoundaries' => [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]]
+                );
+
                 /** @psalm-var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} */
                 $requestMeta = $scope->offsetGet('requestMeta');
                 $requestMeta['http.request.method'] ??= '_OTHER';
+                /** @var int */
                 $requestStart = $scope->offsetGet('requestStart');
 
                 return $promise->then(
-                    onFulfilled: function (ResponseInterface $response) use ($instrumentation, $requestMeta, $requestStart, $span) {
+                    onFulfilled: function (ResponseInterface $response) use ($requestDurationHistogram, $requestMeta, $requestStart, $span) {
                         $requestEnd = Clock::getDefault()->now();
                         /** @psalm-var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type'?:non-empty-string} */
                         $responseMeta = [
@@ -208,17 +218,14 @@ class ReactPHPInstrumentation
 
                         $span->end($requestEnd);
 
-                        //https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#http-client
-                        $instrumentation->meter()->createHistogram(
-                            'http.client.request.duration',
-                            's',
-                            'Duration of HTTP client requests.',
-                            ['ExplicitBucketBoundaries' => [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]]
-                        )->record($requestEnd - $requestStart, array_merge($requestMeta, $responseMeta));
+                        $requestDurationHistogram->record(
+                            (float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND),
+                            array_merge($requestMeta, $responseMeta)
+                        );
 
                         return $response;
                     },
-                    onRejected: function (Throwable $t) use ($instrumentation, $requestMeta, $requestStart, $span) {
+                    onRejected: function (Throwable $t) use ($requestDurationHistogram, $requestMeta, $requestStart, $span) {
                         $requestEnd = Clock::getDefault()->now();
                         $span->recordException($t);
                         if (is_a($t, ResponseException::class)) {
@@ -255,13 +262,10 @@ class ReactPHPInstrumentation
 
                         $span->end($requestEnd);
 
-                        //https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#http-client
-                        $instrumentation->meter()->createHistogram(
-                            'http.client.request.duration',
-                            's',
-                            'Duration of HTTP client requests.',
-                            ['ExplicitBucketBoundaries' => [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]]
-                        )->record($requestEnd - $requestStart, array_merge($requestMeta, $responseMeta));
+                        $requestDurationHistogram->record(
+                            (float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND),
+                            array_merge($requestMeta, $responseMeta)
+                        );
 
                         throw $t;
                     }
