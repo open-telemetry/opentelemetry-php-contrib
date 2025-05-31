@@ -24,7 +24,8 @@ This library is provides the following:
 - W3C Trace Context:
     - [Trace Context HTTP Request Headers](https://www.w3.org/TR/trace-context/#trace-context-http-headers-format)
 
-> [!NOTE] HTTP Client Span lifetime behavior differs based on how ReactPHP is utilized; see [examples/README.md](examples/README.md) for more information.
+> [!NOTE]
+> HTTP Client Span lifetime behavior differs based on how ReactPHP is utilized; see [examples/README.md](examples/README.md) for more information.
 
 ## Configuration
 
