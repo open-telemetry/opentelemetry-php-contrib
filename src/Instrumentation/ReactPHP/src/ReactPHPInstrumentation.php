@@ -104,7 +104,7 @@ class ReactPHPInstrumentation
                     $request = $request->withoutHeader($field);
                 }
 
-                /** @psalm-var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} */
+                /** @var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} $requestMeta */
                 $requestMeta = [
                     'http.request.method' => self::canonizeMethod($request->getMethod()),
                     'server.address' => $request->getUri()->getHost(),
@@ -181,16 +181,16 @@ class ReactPHPInstrumentation
                     ['ExplicitBucketBoundaries' => [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]]
                 );
 
-                /** @psalm-var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} */
+                /** @var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} $requestMeta */
                 $requestMeta = $scope->offsetGet('requestMeta');
                 $requestMeta['http.request.method'] ??= '_OTHER';
-                /** @var int */
+                /** @var int $requestStart */
                 $requestStart = $scope->offsetGet('requestStart');
 
                 return $promise->then(
                     onFulfilled: function (ResponseInterface $response) use ($requestDurationHistogram, $requestMeta, $requestStart, $span) {
                         $requestEnd = Clock::getDefault()->now();
-                        /** @psalm-var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type'?:non-empty-string} */
+                        /** @var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type'?:non-empty-string} $responseMeta */
                         $responseMeta = [
                             'http.response.status_code' => $response->getStatusCode(),
                             'network.protocol.version' => $response->getProtocolVersion(),
@@ -229,7 +229,7 @@ class ReactPHPInstrumentation
                         $requestEnd = Clock::getDefault()->now();
                         $span->recordException($t);
                         if (is_a($t, ResponseException::class)) {
-                            /** @psalm-var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type':non-empty-string} */
+                            /** @var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type':non-empty-string} $responseMeta */
                             $responseMeta = [
                                 'error.type' => (string) $t->getCode(),
                                 'http.response.status_code' => $t->getCode(),
@@ -251,7 +251,7 @@ class ReactPHPInstrumentation
                                 }
                             }
                         } else {
-                            /** @psalm-var array{'error.type':non-empty-string} */
+                            /** @var array{'error.type':non-empty-string} $responseMeta */
                             $responseMeta = [
                                 'error.type' => $t::class,
                             ];
