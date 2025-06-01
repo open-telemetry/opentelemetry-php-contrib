@@ -10,6 +10,7 @@ use OpenTelemetry\API\Common\Time\Clock;
 use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Metrics\Noop\NoopHistogram;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -83,6 +84,9 @@ class ReactPHPInstrumentation
 
     public static function register(): void
     {
+        /** @var \OpenTelemetry\API\Metrics\HistogramInterface|null */
+        static $histogram;
+
         $instrumentation = new CachedInstrumentation(
             self::INSTRUMENTATION_LIBRARY_NAME,
             InstalledVersions::getPrettyVersion(self::COMPOSER_NAME),
@@ -159,7 +163,7 @@ class ReactPHPInstrumentation
 
                 return [$request];
             },
-            post: static function (Transaction $transaction, array $params, PromiseInterface $promise) use ($instrumentation): PromiseInterface {
+            post: static function (Transaction $transaction, array $params, PromiseInterface $promise) use (&$histogram, $instrumentation): PromiseInterface {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
@@ -169,17 +173,17 @@ class ReactPHPInstrumentation
 
                 $span = Span::fromContext($scope->context());
 
-                if (!$span->isRecording()) {
-                    return $promise;
-                }
-
                 //https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#http-client
-                $requestDurationHistogram = $instrumentation->meter()->createHistogram(
+                $histogram ??= $instrumentation->meter()->createHistogram(
                     'http.client.request.duration',
                     's',
                     'Duration of HTTP client requests.',
                     ['ExplicitBucketBoundaries' => [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]]
                 );
+
+                if (!$span->isRecording() && is_a($histogram, NoopHistogram::class)) {
+                    return $promise;
+                }
 
                 /** @var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} $requestMeta */
                 $requestMeta = $scope->offsetGet('requestMeta');
@@ -188,7 +192,7 @@ class ReactPHPInstrumentation
                 $requestStart = $scope->offsetGet('requestStart');
 
                 return $promise->then(
-                    onFulfilled: function (ResponseInterface $response) use ($requestDurationHistogram, $requestMeta, $requestStart, $span) {
+                    onFulfilled: function (ResponseInterface $response) use ($histogram, $requestMeta, $requestStart, $span) {
                         $requestEnd = Clock::getDefault()->now();
                         /** @var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type'?:non-empty-string} $responseMeta */
                         $responseMeta = [
@@ -218,14 +222,14 @@ class ReactPHPInstrumentation
 
                         $span->end($requestEnd);
 
-                        $requestDurationHistogram->record(
+                        $histogram->record(
                             (float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND),
                             array_merge($requestMeta, $responseMeta)
                         );
 
                         return $response;
                     },
-                    onRejected: function (Throwable $t) use ($requestDurationHistogram, $requestMeta, $requestStart, $span) {
+                    onRejected: function (Throwable $t) use ($histogram, $requestMeta, $requestStart, $span) {
                         $requestEnd = Clock::getDefault()->now();
                         $span->recordException($t);
                         if (is_a($t, ResponseException::class)) {
@@ -262,7 +266,7 @@ class ReactPHPInstrumentation
 
                         $span->end($requestEnd);
 
-                        $requestDurationHistogram->record(
+                        $histogram->record(
                             (float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND),
                             array_merge($requestMeta, $responseMeta)
                         );
