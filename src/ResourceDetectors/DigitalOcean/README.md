@@ -7,43 +7,51 @@
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
-# OpenTelemetry DigitalOcean Resource Detector
+# OpenTelemetry DigitalOcean resource detector
+
+Please see https://opentelemetry.io/docs/languages/php/resources/#custom-resource-detectors for installation and configuration.
+
+## Overview
 
 This package provides an OpenTelemetry `ResourceDetector` which will detect
 resource attributes for DigitalOcean Droplets.
 
 The following OpenTelemetry resource attributes will be detected:
 
-| Resource attribute      | Droplet                |
-|-------------------------|------------------------|
-| cloud.account.id        | auto*                  |
-| cloud.availability_zone |                        |
-| cloud.platform          | `digitalocean_droplet` |
-| cloud.provider          | `digitalocean`         |
-| cloud.region            | auto                   |
-| cloud.resource.id       | auto                   |
+| Resource attribute        | Droplet                           |
+|---------------------------|-----------------------------------|
+| `cloud.account.id`        | auth[^1] (scope `account:read`)   |
+| `cloud.availability_zone` | _not applicable to DigitalOcean_  |
+| `cloud.platform`          | static (`digitalocean_droplet`)   |
+| `cloud.provider`          | static (`digitalocean`)           |
+| `cloud.region`            | auto                              |
+| `cloud.resource.id`       | auto (equals `host.id`)           |
+| `host.arch`               | static (`amd64`)                  |
+| `host.id`                 | auto (equals `cloud.resource.id`) |
+| `host.image.id`           | auth[^1] (scope `droplet:read`)   |
+| `host.image.name`         | auth[^1] (scope `droplet:read`)   |
+| `host.image.version`      | _not applicable to DigitalOcean_  |
+| `host.ip`                 | omitted[^2]                       |
+| `host.mac`                | omitted[^2]                       |
+| `host.name`               | auto                              |
+| `host.type`               | auth[^1] (scope `droplet:read`)   |
+| `os.name`[^3]             | auth[^1] (scope `droplet:read`)   |
+| `os.type`[^3]             | static (`linux`)                  |
 
-_*If a DigitalOcean API personal access token, with the account:read scope, is available to PHP via the `DIGITALOCEAN_ACCESS_TOKEN` environment variable, this resource detector will attempt to read the team UUID for that token and store it as the `cloud.account.id` resource attribute. This has no impact on the other attributes._
+[^1]: If a DigitalOcean API personal access token, with the listed scope, is available to PHP via the `DIGITALOCEAN_ACCESS_TOKEN` environment variable, this resource detector will attempt to read the corresponding values from the API. This has no impact on the other attributes.
+[^2]: These attributes are marked as `Opt-In` within the OpenTelemetry semantic conventions, meaning they should _not_ be included unless the user configures the instrumentation to do so. It is a future todo for this library to support configuration.
+[^3]: These attributes should be combined with a resource detector that includes all of the `os` resource attributes, but if these attributes are detected, they will be provided.
 
-## Requirements
+## Configuration
 
-* OpenTelemetry SDK
+By default, all installed resource detectors are used, and the attributes they detect will be added to the default resources associated with traces, metrics, and logs.
 
-## Installation via composer
+You can also provide a list of specific detectors via the `OTEL_PHP_DETECTORS` config (environment variable or `php.ini` setting):
 
-```bash
-$ composer require open-telemetry/detector-digitalocean
+```shell
+OTEL_PHP_DETECTORS="host,process,digitalocean"
 ```
 
-## Usage
-
-The detector will be automatically registered as part of Composer autoloading.
-
-By default, all built-in and registered custom resource detectors are used, and will be added to the default resources associated with traces, metrics, and logs.
-
-You can also provide a list of detectors via the `OTEL_PHP_DETECTORS` config (environment variable or php.ini setting):
-```php
-putenv('OTEL_PHP_DETECTORS=host,digitalocean,process')
-
-var_dump(ResourceInfoFactory::defaultResource());
+```ini
+OTEL_PHP_DETECTORS="host,process,digitalocean"
 ```
