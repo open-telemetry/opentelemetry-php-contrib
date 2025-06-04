@@ -32,6 +32,7 @@
         <env name="OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS" value="GET,HEAD,POST,PUT,DELETE,CONNECT,OPTIONS,TRACE,PATCH,CUSTOM" />
         <env name="OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS" value="traceparent" />
         <env name="OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS" value="Content-Type" />
+        <env name="OTEL_PHP_INSTRUMENTATION_URL_SANITIZE_FIELD_NAMES" value="password,passwd,pwd,secret" />
         <ini name="date.timezone" value="UTC" />
         <ini name="display_errors" value="On" />
         <ini name="display_startup_errors" value="On" />
