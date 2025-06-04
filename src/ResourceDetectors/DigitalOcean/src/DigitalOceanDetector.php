@@ -34,7 +34,7 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
     {
         $client = Discovery::find();
         $requestFactory = MessageFactoryResolver::create()->resolveRequestFactory();
-        $token = $_ENV[self::ENV_DO_API_TOKEN] ?? '';
+        $token = $_SERVER[self::ENV_DO_API_TOKEN] ?? '';
 
         /** Bail early if wrong environment */
         if (!self::isDigitalOcean()) {
@@ -57,6 +57,9 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
             /** Attributes available without authentication via the link-local IP API */
             $metadataRequest = $requestFactory->createRequest('GET', self::DO_METADATA_ENDPOINT_URL);
             $metadataResponse = $client->sendRequest($metadataRequest);
+            if ($metadataResponse->getStatusCode() !== 200) {
+                throw new UnexpectedValueException('Failed to read the DigitalOcean metadata API.');
+            }
             $metadata = json_decode($metadataResponse->getBody()->getContents(), flags: JSON_THROW_ON_ERROR);
 
             $attributes[ResourceAttributes::CLOUD_REGION] = $metadata->region;
@@ -78,14 +81,15 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
                     )
                     ->withHeader('Authorization', sprintf('Bearer %s', $token));
                 $accountResponse = $client->sendRequest($accountRequest);
+                if ($accountResponse->getStatusCode() !== 200) {
+                    throw new UnexpectedValueException('Failed to read the account endpoint on the DigitalOcean API.');
+                }
                 $account = json_decode($accountResponse->getBody()->getContents(), flags: JSON_THROW_ON_ERROR)->account;
 
                 $attributes[ResourceAttributes::CLOUD_ACCOUNT_ID] = $account->team->uuid;
-            } catch (Throwable $t) {
-                self::logNotice(
-                    'DigitalOcean Access Token found, but unable to get account info',
-                    ['exception' => $t]
-                );
+                self::logInfo('DigitalOcean Access Token found; setting DigitalOcean account ID in resource attributes');
+            } catch (Throwable) {
+                // The token being available and scoped is the abnormal state, so logging the reverse of this catch
             }
 
             try {
@@ -96,17 +100,18 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
                     )
                     ->withHeader('Authorization', sprintf('Bearer %s', $token));
                 $dropletResponse = $client->sendRequest($dropletRequest);
+                if ($dropletResponse->getStatusCode() !== 200) {
+                    throw new UnexpectedValueException('Failed to read the droplet endpoint on the DigitalOcean API.');
+                }
                 $droplet = json_decode($dropletResponse->getBody()->getContents(), flags: JSON_THROW_ON_ERROR)->droplet;
 
                 $attributes[ResourceAttributes::HOST_IMAGE_ID] = (string) $droplet->image->id;
                 $attributes[ResourceAttributes::HOST_IMAGE_NAME] = $droplet->image->name;
                 $attributes[ResourceAttributes::HOST_TYPE] = $droplet->size_slug;
                 $attributes[ResourceAttributes::OS_NAME] = $droplet->image->distribution;
-            } catch (Throwable $t) {
-                self::logNotice(
-                    'DigitalOcean Access Token found, but unable to get Droplet info',
-                    ['exception' => $t]
-                );
+                self::logInfo('DigitalOcean Access Token found; setting additional Droplet info in resource attributes');
+            } catch (Throwable) {
+                // The token being available and scoped is the abnormal state, so logging the reverse of this catch
             }
         }
 
@@ -134,6 +139,6 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
             throw new UnexpectedValueException('Failed to read SMBIOS value from sysfs.');
         }
 
-        return strtolower($dmiValue);
+        return strtolower(trim($dmiValue));
     }
 }
