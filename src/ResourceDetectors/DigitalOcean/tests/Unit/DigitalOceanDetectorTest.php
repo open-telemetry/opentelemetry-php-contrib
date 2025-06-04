@@ -59,6 +59,7 @@ class DigitalOceanDetectorTest extends TestCase
                 if (($_ENV['FAIL_METADATA'] ?? 'false') === 'true') {
                     throw new Exception();
                 }
+
                 /** @psalm-suppress PossiblyFalseArgument */
                 return $responseFactory->createResponse()->withBody(
                     Stream::create(file_get_contents(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'mock-metadata.json'))
