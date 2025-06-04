@@ -93,6 +93,7 @@ updates:
       - "/src/Propagation/TraceResponse"
       - "/src/ResourceDetectors/Azure"
       - "/src/ResourceDetectors/Container"
+      - "/src/ResourceDetectors/DigitalOcean"
       - "/src/Sampler/RuleBased"
       - "/src/Shims/OpenTracing"
       - "/src/Symfony"

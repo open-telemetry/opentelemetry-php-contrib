@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+    backupGlobals="true"
+    backupStaticProperties="false"
+    cacheDirectory="var/cache/phpunit"
+    cacheResult="false"
+    colors="false"
+    executionOrder="random"
+    processIsolation="false"
+    requireCoverageMetadata="true"
+    stopOnError="false"
+    stopOnFailure="false"
+    stopOnIncomplete="false"
+    stopOnRisky="false"
+    stopOnSkipped="false"
+    timeoutForLargeTests="60"
+    timeoutForMediumTests="10"
+    timeoutForSmallTests="1">
+
+    <extensions>
+        <bootstrap class="Zalas\PHPUnit\Globals\AttributeExtension" />
+    </extensions>
+
+    <php>
+        <const name="PHP_OS_FAMILY" value="Linux" />
+        <ini name="date.timezone" value="UTC" />
+        <ini name="display_errors" value="On" />
+        <ini name="display_startup_errors" value="On" />
+        <ini name="error_reporting" value="E_ALL" />
+        <ini name="assert.active" value="True"/>
+        <ini name="assert.exception" value="True"/>
+    </php>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+</phpunit>

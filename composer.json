@@ -39,6 +39,7 @@
       "OpenTelemetry\\Contrib\\Propagation\\ServerTiming\\": "src/Propagation/ServerTiming/src",
       "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/Propagation/TraceResponse/src",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\Container\\": "src/ResourceDetectors/Container/src",
+      "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "src/ResourceDetectors/DigitalOcean/src",
       "OpenTelemetry\\Contrib\\Shim\\OpenTracing\\": "src/Shims/OpenTracing/src",
       "OpenTelemetry\\Contrib\\Symfony\\": "src/Symfony/src"
     },
@@ -59,7 +60,8 @@
       "src/Instrumentation/Slim/_register.php",
       "src/Instrumentation/Symfony/_register.php",
       "src/Instrumentation/Wordpress/_register.php",
-      "src/ResourceDetectors/Container/_register.php"
+      "src/ResourceDetectors/Container/_register.php",
+      "src/ResourceDetectors/DigitalOcean/_register.php"
     ]
   },
   "autoload-dev": {
@@ -91,6 +93,7 @@
     "open-telemetry/opentelemetry-propagation-traceresponse": "self.version",
     "open-telemetry/opentelemetry-logger-monolog": "self.version",
     "open-telemetry/detector-container": "self.version",
+    "open-telemetry/detector-digitalocean": "self.version",
     "open-telemetry/symfony-sdk-bundle": "self.version",
     "open-telemetry/opentracing-shim": "self.version",
     "open-telemetry/test-utils": "self.version"
