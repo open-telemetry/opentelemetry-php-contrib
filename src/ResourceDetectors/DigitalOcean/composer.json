@@ -20,6 +20,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.54",
+        "mikey179/vfsstream": "^1.6.11",
         "nyholm/psr7": "*",
         "phan/phan": "^5.4",
         "phpstan/phpstan": "^1.10.13",

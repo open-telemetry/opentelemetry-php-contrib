@@ -30,6 +30,10 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
     private const DO_PUBLIC_ENDPOINT_URL = 'https://api.digitalocean.com/v2/';
     private const ENV_DO_API_TOKEN = 'DIGITALOCEAN_ACCESS_TOKEN';
 
+    public function __construct(private readonly string $rootPath = '/')
+    {
+    }
+
     public function getResource(): ResourceInfo
     {
         $client = Discovery::find();
@@ -37,7 +41,7 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
         $token = $_SERVER[self::ENV_DO_API_TOKEN] ?? '';
 
         /** Bail early if wrong environment */
-        if (!self::isDigitalOcean()) {
+        if (!$this->isDigitalOcean()) {
             self::logNotice('DigitalOcean resource detector enabled in non-DigitalOcean environment');
 
             return ResourceInfoFactory::emptyResource();
@@ -46,10 +50,10 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
         try {
             /** Attributes available locally - all non-privileged lookups */
             $attributes = [
-                ResourceAttributes::CLOUD_PLATFORM => self::readSMBIOS('product_family'),
-                ResourceAttributes::CLOUD_PROVIDER => self::readSMBIOS('sys_vendor'),
+                ResourceAttributes::CLOUD_PLATFORM => $this->readSMBIOS('product_family'),
+                ResourceAttributes::CLOUD_PROVIDER => $this->readSMBIOS('sys_vendor'),
                 ResourceAttributes::HOST_ARCH => ResourceAttributeValues::HOST_ARCH_AMD64,
-                ResourceAttributes::HOST_ID => self::readSMBIOS('board_asset_tag'),
+                ResourceAttributes::HOST_ID => $this->readSMBIOS('board_asset_tag'),
                 ResourceAttributes::HOST_NAME => gethostname(),
                 ResourceAttributes::OS_TYPE => ResourceAttributeValues::OS_TYPE_LINUX,
             ];
@@ -118,10 +122,10 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
         return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
     }
 
-    private static function isDigitalOcean(): bool
+    private function isDigitalOcean(): bool
     {
         try {
-            $sysVendor = self::readSMBIOS('sys_vendor');
+            $sysVendor = $this->readSMBIOS('sys_vendor');
         } catch (UnexpectedValueException) {
             return false;
         }
@@ -132,9 +136,9 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
         return true;
     }
 
-    private static function readSMBIOS(string $dmiKeyword): string
+    private function readSMBIOS(string $dmiKeyword): string
     {
-        $dmiValue = file_get_contents(sprintf('/sys/devices/virtual/dmi/id/%s', $dmiKeyword));
+        $dmiValue = file_get_contents(sprintf('%ssys/devices/virtual/dmi/id/%s', $this->rootPath, $dmiKeyword));
         if ($dmiValue === false) {
             throw new UnexpectedValueException('Failed to read SMBIOS value from sysfs.');
         }
