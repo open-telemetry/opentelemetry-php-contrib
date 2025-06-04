@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Resource\Detector\DigitalOcean;
 
-use Exception;
 use Http\Discovery\Psr18Client;
 use Nyholm\Psr7\Stream;
 use OpenTelemetry\SDK\Common\Adapter\HttpDiscovery\MessageFactoryResolver;
