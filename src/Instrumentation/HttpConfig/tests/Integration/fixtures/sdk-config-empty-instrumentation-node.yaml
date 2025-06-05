@@ -1,0 +1,6 @@
+file_format: '0.4'
+instrumentation/development: &config
+  php:
+    http:
+
+instrumentation: *config # OpenTelemetry uses outdated 'instrumentation' key

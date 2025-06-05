@@ -72,6 +72,7 @@ updates:
       - "/src/Instrumentation/ExtRdKafka"
       - "/src/Instrumentation/Guzzle"
       - "/src/Instrumentation/HttpAsyncClient"
+      - "/src/Instrumentation/HttpConfig"
       - "/src/Instrumentation/IO"
       - "/src/Instrumentation/Laravel"
       - "/src/Instrumentation/MongoDB"
