@@ -31,6 +31,7 @@ jobs:
           'Instrumentation/ExtRdKafka',
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
+          'Instrumentation/HttpConfig',
           'Instrumentation/IO',
           'Instrumentation/Laravel',
           'Instrumentation/MongoDB',
