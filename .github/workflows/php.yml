@@ -54,6 +54,7 @@ jobs:
           'Propagation/TraceResponse',
           'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
+          'ResourceDetectors/DigitalOcean',
           'Sampler/RuleBased',
           'Shims/OpenTracing',
           'Symfony',
