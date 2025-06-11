@@ -9,17 +9,23 @@ This is a read-only subtree split of https://github.com/open-telemetry/opentelem
 
 # OpenTelemetry ReactPHP HTTP Browser auto-instrumentation
 
+This is an OpenTelemetry auto-instrumentation package for the [ReactPHP HTTP library](https://reactphp.org/http/). Currently only the Browser (client) component is instrumented.
+
 Please read https://opentelemetry.io/docs/instrumentation/php/automatic/ for instructions on how to
 install and configure the extension and SDK.
 
 ## Overview
 
-Auto-instrumentation hooks are registered via composer, which will:
+This library is provides the following:
 
-* create spans automatically for each ReactPHP HTTP Browser request that is sent
-* add a `traceparent` header to the request to facilitate distributed tracing
+- OpenTelemetry Semantic Conventions v1.32.0:
+    - [HTTP Client Spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span) - required and HTTP header (opt-in) attributes only
+    - [HTTP Client Metrics](https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#http-client) - required attributes only
+- W3C Trace Context:
+    - [Trace Context HTTP Request Headers](https://www.w3.org/TR/trace-context/#trace-context-http-headers-format)
 
-Note that span lifetime behavior differs based on how ReactPHP is utilized; see [examples/README.md](examples/README.md) for more information.
+> [!NOTE]
+> HTTP Client Span lifetime behavior differs based on how ReactPHP is utilized; see [examples/README.md](examples/README.md) for more information.
 
 ## Configuration
 
