@@ -35,10 +35,16 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=reactphp
 ```
 
-Custom HTTP methods can replace the known methods via environment variables, e.g.:
+Custom HTTP methods can replace the known methods via an environment variable, e.g.:
 
 ```shell
 OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS="GET,HEAD,POST,PUT,DELETE,CONNECT,OPTIONS,TRACE,PATCH,MyCustomMethod"
+```
+
+Additional HTTP query string parameters can be redacted via an environment variable, e.g.,
+
+```shell
+OTEL_PHP_INSTRUMENTATION_URL_SANITIZE_FIELD_NAMES="password,passwd,pwd,secret"
 ```
 
 Request and/or response headers can be added as span attributes via environment variables, e.g.:

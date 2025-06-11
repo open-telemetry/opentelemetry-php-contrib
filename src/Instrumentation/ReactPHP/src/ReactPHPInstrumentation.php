@@ -57,6 +57,15 @@ class ReactPHPInstrumentation
      */
     private const ENV_HTTP_RESPONSE_HEADERS = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
     /**
+     * The environment variable which adds to the URL query parameter keys to redact the values for.
+     * This supports a comma-separated list of case-sensitive query parameter keys.
+     *
+     * Note that this is not currently defined in OTel SemConv, and therefore subject to change.
+     *
+     * @see https://github.com/open-telemetry/semantic-conventions/issues/877
+     */
+    private const ENV_URL_SANITIZE_FIELD_NAMES = 'OTEL_PHP_INSTRUMENTATION_URL_SANITIZE_FIELD_NAMES';
+    /**
      * The `{method}` component of the span name when the original method is not known to the instrumentation.
      *
      * @see https://opentelemetry.io/docs/specs/semconv/http/http-spans/#name
@@ -313,6 +322,12 @@ class ReactPHPInstrumentation
             $uri = $uri->withUserInfo(self::URL_REDACTION);
         }
 
+        $sanitizeFields = self::URL_QUERY_REDACT_KEYS;
+        $customFields = $_ENV[self::ENV_URL_SANITIZE_FIELD_NAMES] ?? '';
+        if ($customFields !== '') {
+            $sanitizeFields = array_merge($sanitizeFields, explode(',', $customFields));
+        }
+
         $queryString = $uri->getQuery();
         // http_build_query(parse_str()) is not idempotent, so using Guzzle’s Query class for now
         if ($queryString !== '') {
@@ -321,7 +336,7 @@ class ReactPHPInstrumentation
                 $queryParameters,
                 array_intersect_key(
                     array_fill_keys(
-                        self::URL_QUERY_REDACT_KEYS,
+                        $sanitizeFields,
                         self::URL_REDACTION
                     ),
                     $queryParameters
