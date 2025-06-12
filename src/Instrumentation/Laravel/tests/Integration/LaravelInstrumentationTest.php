@@ -111,7 +111,11 @@ class LaravelInstrumentationTest extends TestCase
                 
                 // Test delete
                 $found->delete();
-                
+
+		// Test create for destroy
+		$created2 = TestModel::create(['name' => 'test']);
+		TestModel::destroy([$created2->id]);
+
                 return response()->json(['status' => 'ok']);
             } catch (\Exception $e) {
                 return response()->json([
@@ -176,6 +180,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('test_models', $updateSpan->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('update', $updateSpan->getAttributes()->get('laravel.eloquent.operation'));
         
+	
         // Delete span
         $deleteSpan = array_values(array_filter($eloquentSpans, function ($span) {
             return $span->getAttributes()->get('laravel.eloquent.operation') === 'delete';
@@ -183,7 +188,17 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::delete', $deleteSpan->getName());
         $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $deleteSpan->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $deleteSpan->getAttributes()->get('laravel.eloquent.table'));
-        $this->assertSame('delete', $deleteSpan->getAttributes()->get('laravel.eloquent.operation'));
+	$this->assertSame('delete', $deleteSpan->getAttributes()->get('laravel.eloquent.operation'));
+
+	
+        // Destroy span
+        $deleteSpan = array_values(array_filter($eloquentSpans, function ($span) {
+            return $span->getAttributes()->get('laravel.eloquent.operation') === 'destroy';
+        }))[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::destroy', $deleteSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $deleteSpan->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $deleteSpan->getAttributes()->get('laravel.eloquent.table'));
+	$this->assertSame('destroy', $deleteSpan->getAttributes()->get('laravel.eloquent.operation'));
     }
 
     public function test_low_cardinality_route_span_name(): void
