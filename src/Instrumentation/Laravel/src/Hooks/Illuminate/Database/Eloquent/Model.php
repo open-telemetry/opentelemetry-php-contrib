@@ -189,7 +189,11 @@ class Model implements LaravelHook
         hook(
             EloquentModel::class,
             'destroy',
-            pre: function ($model, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            pre: function (string $modelClassName, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                // The class-string is passed to the $model argument, because \Illuminate\Database\Eloquent\Model::destroy is static method.
+                // Therefore, create a class instance from a class-string, and then get the table name from the getTable function.
+                $model = new $modelClassName();
+
                 $builder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder($model::class . '::destroy')
