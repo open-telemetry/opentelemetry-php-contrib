@@ -165,7 +165,6 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('test_models', $updateSpan->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('update', $updateSpan->getAttributes()->get('laravel.eloquent.operation'));
         
-	
         // Delete span
         $deleteSpan = array_values(array_filter($eloquentSpans, function ($span) {
             return $span->getAttributes()->get('laravel.eloquent.operation') === 'delete';
@@ -173,7 +172,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::delete', $deleteSpan->getName());
         $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $deleteSpan->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $deleteSpan->getAttributes()->get('laravel.eloquent.table'));
-	    $this->assertSame('delete', $deleteSpan->getAttributes()->get('laravel.eloquent.operation'));
+        $this->assertSame('delete', $deleteSpan->getAttributes()->get('laravel.eloquent.operation'));
     }
 
     public function test_eloquent_static_operations(): void
