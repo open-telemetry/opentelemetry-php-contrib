@@ -37,10 +37,6 @@
     },
     "files": [
       "_register.php"
-    ],
-    "classmap": [
-      "/home/grzegorz/work/opentelemetry-php/src/SDK/Metrics/Util",
-      "/home/grzegorz/work/opentelemetry-php/src/SDK/Util"
     ]
   },
   "autoload-dev": {
@@ -50,8 +46,7 @@
   },
   "config": {
     "allow-plugins": {
-      "php-http/discovery": false,
-      "tbachert/spi": true
+      "php-http/discovery": false
     }
   }
 }

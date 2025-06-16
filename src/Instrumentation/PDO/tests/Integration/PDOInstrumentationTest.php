@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\PDO\Integration;
 
 use ArrayObject;
 use OpenTelemetry\API\Common\Time\TestClock;
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -14,11 +15,13 @@ use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Export\InMemoryStorageManager;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
+use OpenTelemetry\SDK\Metrics\Data\Metric;
+use OpenTelemetry\SDK\Metrics\Data\Sum;
+use OpenTelemetry\SDK\Metrics\Data\Temporality;
 use OpenTelemetry\SDK\Metrics\Exemplar\ExemplarFilter\AllExemplarFilter;
-use OpenTelemetry\SDK\Metrics\Exemplar\ExemplarFilter\WithSampledTraceExemplarFilter;
 use OpenTelemetry\SDK\Metrics\MeterProvider;
 use OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader;
-use OpenTelemetry\SDK\Metrics\StalenessHandler\ImmediateStalenessHandlerFactory;
+use OpenTelemetry\SDK\Metrics\StalenessHandler\DelayedStalenessHandlerFactory;
 use OpenTelemetry\SDK\Metrics\View\CriteriaViewRegistry;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
@@ -28,6 +31,7 @@ use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\TestUtils\TraceStructureAssertionTrait;
 use PDO;
+use PDOException;
 use PHPUnit\Framework\TestCase;
 
 class PDOInstrumentationTest extends TestCase
@@ -39,6 +43,7 @@ class PDOInstrumentationTest extends TestCase
     private ArrayObject $storage;
     private $metricReader;
     private $meterProvider;
+    private $metricExporter;
 
     private function createDB(): PDO
     {
@@ -81,8 +86,11 @@ class PDOInstrumentationTest extends TestCase
             )
         );
         $clock = new TestClock();
-        $exporter = new \OpenTelemetry\SDK\Metrics\MetricExporter\InMemoryExporter(InMemoryStorageManager::metrics());
-        $this->metricReader = new ExportingReader($exporter);
+        $this->metricExporter = new \OpenTelemetry\SDK\Metrics\MetricExporter\InMemoryExporter(
+            InMemoryStorageManager::metrics(),
+            Temporality::CUMULATIVE
+        );
+        $this->metricReader = new ExportingReader($this->metricExporter);
         $this->meterProvider = new MeterProvider(
             null,
             ResourceInfoFactory::emptyResource(),
@@ -92,7 +100,7 @@ class PDOInstrumentationTest extends TestCase
             [$this->metricReader],
             new CriteriaViewRegistry(),
             new AllExemplarFilter(),
-            new ImmediateStalenessHandlerFactory(),
+            new DelayedStalenessHandlerFactory($clock, 20),
         );
 
         $this->scope = Configurator::create()
@@ -163,7 +171,7 @@ class PDOInstrumentationTest extends TestCase
 
     public function test_constructor_exception(): void
     {
-        $this->expectException(\PDOException::class);
+        $this->expectException(PDOException::class);
         $this->expectExceptionMessage('could not find driver');
         new PDO('unknown:foo');
     }
@@ -431,7 +439,6 @@ class PDOInstrumentationTest extends TestCase
         );
     }
 
-
     public function test_connection_metrics(): void
     {
         $db = self::createDB();
@@ -439,19 +446,76 @@ class PDOInstrumentationTest extends TestCase
 
         $non_utf8_id = mb_convert_encoding('rückwärts', 'ISO-8859-1', 'UTF-8');
 
-        $db->prepare("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
+        $stmt = $db->prepare("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
         $span_db_prepare = $this->storage->offsetGet(2);
         $this->assertTrue(mb_check_encoding($span_db_prepare->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(3, $this->storage);
 
+        $stmt->execute();
+        $stmt->fetchAll();
+        unset($db);
 
+        $meterProvider = Globals::meterProvider();
+        if ($meterProvider instanceof MeterProvider) {
+            $meterProvider->forceFlush();
+            $meterProvider->shutdown();
+        }
 
-        $meterProvider = \OpenTelemetry\API\Globals::meterProvider();
+        $metricStats = [];
+        /** @var Metric $metric */
+        foreach (InMemoryStorageManager::metrics() as $metric) {
+            $metricStats[$metric->name] ??= [];
+            $metricStats[$metric->name][] = $metric->data;
+        }
+        self::assertCount(2, $metricStats['db.client.connection.count']);
+        self::assertCount(2, $metricStats['db.client.connection.pending_requests']);
+        self::assertCount(2, $metricStats['db.client.operation.duration']);
+        self::assertCount(2, $metricStats['db.client.response.returned_rows']);
+
+        // check count metrics:
+        $this->checkMetricSum($metricStats['db.client.connection.count'], 2, 2);
+        $this->checkMetricSum($metricStats['db.client.connection.pending_requests'], 0, 2);
+        $this->checkMetricDataPointsCount($metricStats['db.client.operation.duration'], 2);
+        $this->checkMetricDataPointsCount($metricStats['db.client.response.returned_rows'], 2);
+    }
+
+    public function test_error_info_in_silent_mode(): void
+    {
+        $db = self::createDB();
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $db->exec($this->fillDB());
+
+        $db->query('SELECT id FROM non_existing_table');
+
+        $meterProvider = Globals::meterProvider();
         if ($meterProvider instanceof MeterProvider) {
             $meterProvider->forceFlush();
             $meterProvider->shutdown();
         }
         $metrics = InMemoryStorageManager::metrics();
-        var_dump($metrics);
+        self::assertTrue(true);
+    }
+
+    public function checkMetricDataPointsCount($metrics, $expectedCount): void
+    {
+        $sum = 0;
+        /** @var Sum $point */
+        foreach ($metrics as $point) {
+            $sum += $point->dataPoints[0]->count;
+        }
+        self::assertEquals($expectedCount, $sum);
+    }
+
+    public function checkMetricSum($metrics, $expectedSum, ?int $count = null): void
+    {
+        $sum = 0;
+        /** @var Sum $point */
+        foreach ($metrics as $point) {
+            $sum += $point->dataPoints[0]->value;
+        }
+        self::assertEquals($expectedSum, $sum);
+        if ($count) {
+            self::assertCount($count, $metrics);
+        }
     }
 }
