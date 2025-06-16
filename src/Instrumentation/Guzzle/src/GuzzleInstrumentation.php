@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Guzzle;
 
 use function get_cfg_var;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Promise\PromiseInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -120,6 +121,12 @@ class GuzzleInstrumentation
                         return $response;
                     },
                     onRejected: function (\Throwable $t) use ($span) {
+                        if ($t instanceof BadResponseException && $t->hasResponse()) {
+                            $response = $t->getResponse();
+                            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                            $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getBody()->getSize());
+                        }
                         $span->recordException($t);
                         $span->setStatus(StatusCode::STATUS_ERROR, $t->getMessage());
                         $span->end();

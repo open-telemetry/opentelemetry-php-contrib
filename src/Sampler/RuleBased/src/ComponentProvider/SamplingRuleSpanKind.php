@@ -11,6 +11,7 @@ use OpenTelemetry\Config\SDK\Configuration\Context;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\SpanKindRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
 /**
  * @implements ComponentProvider<SamplingRule>
@@ -36,9 +37,9 @@ final class SamplingRuleSpanKind implements ComponentProvider
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
-        $node = new ArrayNodeDefinition('span_kind');
+        $node = $builder->arrayNode('span_kind');
 
         /** @psalm-suppress PossiblyNullReference */
         $node
