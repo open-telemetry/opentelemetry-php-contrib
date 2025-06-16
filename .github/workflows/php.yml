@@ -22,6 +22,7 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
+          'Instrumentation/AwsSdk',
           'Instrumentation/CakePHP',
           'Instrumentation/CodeIgniter',
           'Instrumentation/Curl',
@@ -53,6 +54,7 @@ jobs:
           'Propagation/TraceResponse',
           'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
+          'ResourceDetectors/DigitalOcean',
           'Sampler/RuleBased',
           'Shims/OpenTracing',
           'Symfony',
