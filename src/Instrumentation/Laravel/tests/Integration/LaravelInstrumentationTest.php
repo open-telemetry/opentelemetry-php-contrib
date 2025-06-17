@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel;
 
 /** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase

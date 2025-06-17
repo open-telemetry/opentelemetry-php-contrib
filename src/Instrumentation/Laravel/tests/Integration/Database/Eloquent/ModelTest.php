@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel;
 
-use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 use Illuminate\Support\Facades\DB;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
 /**
  * Integration test for Eloquent\Model hooks
@@ -54,7 +56,7 @@ class ModelTest extends TestCase
         return array_values(
             array_filter(
                 iterator_to_array($this->storage),
-                fn ($span) => 
+                fn ($span) =>
                     $span instanceof \OpenTelemetry\SDK\Trace\ImmutableSpan &&
                     $span->getAttributes()->has('laravel.eloquent.operation')
             )
@@ -83,11 +85,11 @@ class ModelTest extends TestCase
         $spans = $this->filterOnlyEloquentSpans();
 
         // spans contains 2 eloquent spans for 'find' and 'get', because it method internally calls 'getModels' method.
-        $this->assertCount(2, $spans); 
+        $this->assertCount(2, $spans);
 
         foreach ($spans as $span) {
             $this->assertSame(
-                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', 
+                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel',
                 $span->getAttributes()->get('laravel.eloquent.model')
             );
             $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
@@ -162,7 +164,7 @@ class ModelTest extends TestCase
 
         foreach ($spans as $span) {
             $this->assertSame(
-                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', 
+                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel',
                 $span->getAttributes()->get('laravel.eloquent.model')
             );
             $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
