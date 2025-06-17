@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel;
+namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Database\Eloquent;
 
 use Illuminate\Support\Facades\DB;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel;
