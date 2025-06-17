@@ -4,6 +4,7 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel;
 
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 use Illuminate\Support\Facades\DB;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel;
 
 /**
  * Integration test for Eloquent\Model hooks
@@ -23,9 +24,11 @@ class ModelTest extends TestCase
 
     public function setUp(): void
     {
+        parent::setUp();
+
         // Setup database table for fixture model
         DB::statement('CREATE TABLE IF NOT EXISTS test_models(
-                id BIGINTEGER,
+                id BIGINT,
                 name VARCHAR(255),
                 created_at DATETIME,
                 updated_at DATETIME
@@ -36,6 +39,157 @@ class ModelTest extends TestCase
     public function tearDown(): void
     {
         // Reset table
-        DB::statement('DROP IF EXISTS test_models');
+        DB::statement('DROP TABLE IF EXISTS test_models');
+
+        parent::tearDown();
+    }
+
+    /**
+     * @return \OpenTelemetry\SDK\Trace\ImmutableSpan[]
+     */
+    private function filterOnlyEloquentSpans(): array
+    {
+        // SQL spans be mixed up in storage because \Illuminate\Support\Facades\DB called.
+        // So, filtering only spans has attribute named 'laravel.eloquent.operation'.
+        return array_values(
+            array_filter(
+                iterator_to_array($this->storage),
+                fn ($span) => 
+                    $span instanceof \OpenTelemetry\SDK\Trace\ImmutableSpan &&
+                    $span->getAttributes()->has('laravel.eloquent.operation')
+            )
+        );
+    }
+
+    public function test_create(): void
+    {
+        TestModel::create(['id' => 1, 'name' => 'test']);
+
+        $spans = $this->filterOnlyEloquentSpans();
+
+        $this->assertCount(1, $spans);
+
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::create', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('create', $span->getAttributes()->get('laravel.eloquent.operation'));
+    }
+
+    public function test_find_and_get_models(): void
+    {
+        TestModel::find(1);
+
+        $spans = $this->filterOnlyEloquentSpans();
+
+        // spans contains 2 eloquent spans for 'find' and 'get', because it method internally calls 'getModels' method.
+        $this->assertCount(2, $spans); 
+
+        foreach ($spans as $span) {
+            $this->assertSame(
+                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', 
+                $span->getAttributes()->get('laravel.eloquent.model')
+            );
+            $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+
+            $operation = $span->getAttributes()->get('laravel.eloquent.operation');
+            $this->assertSame(
+                match ($operation) {
+                    'find' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::find',
+                    'get' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get'
+                },
+                $span->getName(),
+            );
+        }
+    }
+
+    public function test_perform_insert(): void
+    {
+        // Illuminate\Database\Eloquent\Model::performInsert is called from Illuminate\Database\Eloquent\Model::save.
+        // Mark as exists = false required, because performUpdate called if exists = true.
+        $model = (new TestModel())->newInstance(['id' => 1, 'name' => 'test'], false);
+        $model->save();
+        
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(1, $spans);
+
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::create', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('create', $span->getAttributes()->get('laravel.eloquent.operation'));
+    }
+
+    public function test_perform_update(): void
+    {
+        // Illuminate\Database\Eloquent\Model::performInsert is called from Illuminate\Database\Eloquent\Model::save.
+        // Mark as exists = true required, because performInsert called if exists = false.
+        $model = (new TestModel())->newInstance(['id' => 1, 'name' => 'test'], true);
+        $model->save();
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(1, $spans);
+
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::update', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('update', $span->getAttributes()->get('laravel.eloquent.operation'));
+    }
+
+    public function test_get_models(): void
+    {
+        TestModel::get();
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(1, $spans);
+
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('get', $span->getAttributes()->get('laravel.eloquent.operation'));
+    }
+
+    public function test_destory(): void
+    {
+        TestModel::destroy([1]);
+
+        $spans = $this->filterOnlyEloquentSpans();
+
+        // spans contains 2 eloquent spans for 'destroy' and 'get', because it method internally calls 'getModels' method.
+        $this->assertCount(2, $spans);
+
+        foreach ($spans as $span) {
+            $this->assertSame(
+                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', 
+                $span->getAttributes()->get('laravel.eloquent.model')
+            );
+            $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+
+            $operation = $span->getAttributes()->get('laravel.eloquent.operation');
+            $this->assertSame(
+                match ($operation) {
+                    'destroy' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::destroy',
+                    'get' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get'
+                },
+                $span->getName(),
+            );
+        }
+    }
+
+    public function test_refresh(): void
+    {
+        $model = new TestModel();
+        $model->refresh(); // no effect
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(1, $spans);
+
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::refresh', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('refresh', $span->getAttributes()->get('laravel.eloquent.operation'));
     }
 }
