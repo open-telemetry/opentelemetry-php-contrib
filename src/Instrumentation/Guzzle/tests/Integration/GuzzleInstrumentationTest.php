@@ -9,12 +9,15 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Promise\RejectedPromise;
 use GuzzleHttp\Promise\Utils;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -164,7 +167,58 @@ class GuzzleInstrumentationTest extends TestCase
 
         $this->mock->append(new Response());
         $this->client->get('/');
+    }
 
+    /**
+     * @dataProvider promiseProvider
+     * @link https://github.com/open-telemetry/opentelemetry-php/issues/1623
+     */
+    public function test_transfer_promises_execute_for_sync_requests(PromiseInterface $promise, bool $expectedException): void
+    {
+        /**
+         * Approximate the Curl handler's behaviour of returning a FulfilledPromise without any
+         * additional promise chaining, so that post hook receives a FulfilledPromise.
+         */
+        $handler = function () use ($promise): PromiseInterface {
+            return $promise;
+        };
+        $handlerStack = HandlerStack::create($handler);
+
+        $client = new Client([
+            'handler' => $handlerStack,
+            'base_uri' => 'https://example.com/',
+            'http_errors' => false,
+            'allow_redirects' => false,
+        ]);
+        $this->assertCount(0, $this->storage);
+
+        $request = new Request('GET', 'https://example.com/foo');
+
+        try {
+            $client->send($request);
+        } catch (\Throwable $e) {
+            if (!$expectedException) {
+                throw $e;
+            }
+        }
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        assert($span instanceof ImmutableSpan);
+        if ($expectedException) {
+            $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+            $this->assertSame('Test exception', $span->getStatus()->getDescription());
+        } else {
+            $this->assertSame(201, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        }
+    }
+
+    public static function promiseProvider(): array
+    {
+        return [
+            'fulfilled' => [new FulfilledPromise(new Response(201)), false],
+            'rejected' => [new RejectedPromise(new \RuntimeException('Test exception')), true],
+        ];
     }
 
     /**
