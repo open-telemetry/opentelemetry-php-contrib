@@ -185,6 +185,7 @@ class DoctrineInstrumentation
             }
         );
     }
+
     private static function makeBuilder(
         CachedInstrumentation $instrumentation,
         string $name,

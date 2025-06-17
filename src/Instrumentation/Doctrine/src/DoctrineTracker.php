@@ -6,28 +6,24 @@ namespace OpenTelemetry\Contrib\Instrumentation\Doctrine;
 
 use Doctrine\DBAL\Driver\Statement;
 use OpenTelemetry\API\Trace\SpanContextInterface;
-use WeakMap;
-use WeakReference;
 
 /**
  * @internal
  */
 class DoctrineTracker
 {
-    private WeakMap $statementToSpanContextMap;
-
-    public function __construct()
-    {
-        $this->statementToSpanContextMap = new WeakMap();
+    public function __construct(
+        private \SplObjectStorage $statementToSpanContextMap = new \SplObjectStorage(),
+    ) {
     }
 
     public function trackStatement(Statement $statement, SpanContextInterface $context): void
     {
-        $this->statementToSpanContextMap[$statement] = WeakReference::create($context);
+        $this->statementToSpanContextMap[$statement] = $context;
     }
 
     public function getSpanContextForStatement(Statement $statement): ?SpanContextInterface
     {
-        return $this->statementToSpanContextMap[$statement]?->get();
+        return $this->statementToSpanContextMap[$statement] ?? null;
     }
 }

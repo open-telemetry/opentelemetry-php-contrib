@@ -138,6 +138,21 @@ class DoctrineInstrumentationTest extends TestCase
         $this->assertEquals($prepare->getContext(), $execute->getLinks()[0]->getSpanContext(), 'execute span is linked to prepare span');
     }
 
+    public function test_tracked_span_context_when_prepare_span_flushed(): void
+    {
+        $connection =  self::createConnection();
+        $statement = self::fillDB();
+        $connection->executeStatement($statement);
+
+        $stmt = $connection->prepare('SELECT * FROM `technology` WHERE name = :name');
+        $this->storage->exchangeArray([]); //removes the reference to prepared span, including the tracked SpanContext
+        $stmt->bindValue('name', 'PHP');
+        $stmt->executeQuery();
+
+        $execute = $this->storage->offsetGet(0);
+        $this->assertCount(1, $execute->getLinks());
+    }
+
     public function test_query_with_bind_variables(): void
     {
         $connection =  self::createConnection();
