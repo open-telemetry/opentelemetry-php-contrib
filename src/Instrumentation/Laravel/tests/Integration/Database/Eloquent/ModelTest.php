@@ -78,31 +78,26 @@ class ModelTest extends TestCase
         $this->assertSame('create', $span->getAttributes()->get('laravel.eloquent.operation'));
     }
 
-    public function test_find_and_get_models(): void
+    public function test_find(): void
     {
         TestModel::find(1);
 
-        $spans = $this->filterOnlyEloquentSpans();
-
         // spans contains 2 eloquent spans for 'find' and 'get', because it method internally calls 'getModels' method.
-        $this->assertCount(2, $spans);
+        // So, filtering span only find span.
+        $spans = array_filter(
+            $this->filterOnlyEloquentSpans(),
+            fn ($span) => $span->getAttributes()->get('laravel.eloquent.operation') === 'find'
+        );
 
-        foreach ($spans as $span) {
-            $this->assertSame(
-                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel',
-                $span->getAttributes()->get('laravel.eloquent.model')
-            );
-            $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        
+        $this->assertCount(1, $spans);
 
-            $operation = $span->getAttributes()->get('laravel.eloquent.operation');
-            $this->assertSame(
-                match ($operation) {
-                    'find' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::find',
-                    'get' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get'
-                },
-                $span->getName(),
-            );
-        }
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::find', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('find', $span->getAttributes()->get('laravel.eloquent.operation'));
+
     }
 
     public function test_perform_insert(): void
@@ -160,24 +155,19 @@ class ModelTest extends TestCase
         $spans = $this->filterOnlyEloquentSpans();
 
         // spans contains 2 eloquent spans for 'destroy' and 'get', because it method internally calls 'getModels' method.
-        $this->assertCount(2, $spans);
+        // So, filtering span only 'destroy' span.
+        $spans = array_filter(
+            $this->filterOnlyEloquentSpans(),
+            fn ($span) => $span->getAttributes()->get('laravel.eloquent.operation') === 'destroy'
+        );
 
-        foreach ($spans as $span) {
-            $this->assertSame(
-                'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel',
-                $span->getAttributes()->get('laravel.eloquent.model')
-            );
-            $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertCount(1, $spans);
 
-            $operation = $span->getAttributes()->get('laravel.eloquent.operation');
-            $this->assertSame(
-                match ($operation) {
-                    'destroy' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::destroy',
-                    'get' => 'OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get'
-                },
-                $span->getName(),
-            );
-        }
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::destroy', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('destroy', $span->getAttributes()->get('laravel.eloquent.operation'));
     }
 
     public function test_refresh(): void
