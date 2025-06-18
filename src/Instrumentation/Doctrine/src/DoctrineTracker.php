@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Doctrine;
 
 use Doctrine\DBAL\Driver\Statement;
 use OpenTelemetry\API\Trace\SpanContextInterface;
+use WeakMap;
 
 /**
  * @internal
@@ -13,7 +14,7 @@ use OpenTelemetry\API\Trace\SpanContextInterface;
 class DoctrineTracker
 {
     public function __construct(
-        private \SplObjectStorage $statementToSpanContextMap = new \SplObjectStorage(),
+        private WeakMap $statementToSpanContextMap = new WeakMap(),
     ) {
     }
 
