@@ -10,6 +10,7 @@ use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
 /**
  * Integration test for Eloquent\Model hooks
+ * @psalm-suppress UnusedClass
  */
 class ModelTest extends TestCase
 {
