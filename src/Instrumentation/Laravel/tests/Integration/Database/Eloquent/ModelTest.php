@@ -84,12 +84,13 @@ class ModelTest extends TestCase
 
         // spans contains 2 eloquent spans for 'find' and 'get', because it method internally calls 'getModels' method.
         // So, filtering span only find span.
-        $spans = array_filter(
-            $this->filterOnlyEloquentSpans(),
-            fn ($span) => $span->getAttributes()->get('laravel.eloquent.operation') === 'find'
+        $spans = array_values(
+            array_filter(
+                $this->filterOnlyEloquentSpans(),
+                fn ($span) => $span->getAttributes()->get('laravel.eloquent.operation') === 'find'
+            )
         );
 
-        
         $this->assertCount(1, $spans);
 
         $span = $spans[0];
@@ -152,13 +153,13 @@ class ModelTest extends TestCase
     {
         TestModel::destroy([1]);
 
-        $spans = $this->filterOnlyEloquentSpans();
-
         // spans contains 2 eloquent spans for 'destroy' and 'get', because it method internally calls 'getModels' method.
         // So, filtering span only 'destroy' span.
-        $spans = array_filter(
-            $this->filterOnlyEloquentSpans(),
-            fn ($span) => $span->getAttributes()->get('laravel.eloquent.operation') === 'destroy'
+        $spans = array_values(
+            array_filter(
+                $this->filterOnlyEloquentSpans(),
+                fn ($span) => $span->getAttributes()->get('laravel.eloquent.operation') === 'destroy'
+            )
         );
 
         $this->assertCount(1, $spans);
