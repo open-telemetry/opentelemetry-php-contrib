@@ -39,14 +39,6 @@ class ModelTest extends TestCase
         ');
     }
 
-    public function tearDown(): void
-    {
-        // Reset table
-        DB::statement('DROP TABLE IF EXISTS test_models');
-
-        parent::tearDown();
-    }
-
     /**
      * @return \OpenTelemetry\SDK\Trace\ImmutableSpan[]
      */
