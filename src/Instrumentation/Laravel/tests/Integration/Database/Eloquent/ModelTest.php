@@ -128,6 +128,21 @@ class ModelTest extends TestCase
         $this->assertSame('update', $span->getAttributes()->get('laravel.eloquent.operation'));
     }
 
+    public function test_delete(): void
+    {
+        $model = new TestModel();
+        $model->delete(); // no effect
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(1, $spans);
+
+        $span = $spans[0];
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::delete', $span->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('delete', $span->getAttributes()->get('laravel.eloquent.operation'));
+    }
+
     public function test_get_models(): void
     {
         TestModel::get();
