@@ -17,6 +17,7 @@
     "psr-4": {
       "OpenTelemetry\\Contrib\\Aws\\": "src/Aws/src",
       "OpenTelemetry\\Contrib\\Context\\Swoole\\": "src/Context/Swoole/src",
+      "OpenTelemetry\\Contrib\\Exporter\\Instana\\": "src/Exporter/Instana/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\CakePHP\\": "src/Instrumentation/CakePHP/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\CodeIgniter\\": "src/Instrumentation/CodeIgniter/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\Curl\\": "src/Instrumentation/Curl/src",
@@ -93,6 +94,7 @@
     "open-telemetry/opentelemetry-auto-codeigniter": "self.version",
     "open-telemetry/opentelemetry-auto-curl": "self.version",
     "open-telemetry/opentelemetry-auto-ext-amqp": "self.version",
+    "open-telemetry/opentelemetry-exporter-instana": "self.version",
     "open-telemetry/opentelemetry-auto-ext-rdkafka": "self.version",
     "open-telemetry/opentelemetry-auto-guzzle": "self.version",
     "open-telemetry/opentelemetry-auto-http-async": "self.version",
