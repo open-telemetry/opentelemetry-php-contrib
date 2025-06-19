@@ -55,9 +55,9 @@ final class AttributesResolver
     /**
      * Resolve attribute `server.address`
      */
-    private static function getServerAddress(array $params): string
+    private static function getServerAddress(array $params): ?string
     {
-        return $params[1][0]['host'] ?? 'unknown';
+        return $params[1][0]['host'] ?? null;
     }
 
     /**
@@ -107,7 +107,7 @@ final class AttributesResolver
 
     /**
      * Resolve attribute `db.query.text`
-     * No sanitization is implemented because implicitly the query is expected to be expressed as a preparated statement
+     * No sanitization is implemented because implicitly the query is expected to be expressed as a prepared statement
      * which happen automatically in Doctrine if parameters are bound to the query.
      */
     private static function getDbQueryText(array $params): string
@@ -115,9 +115,34 @@ final class AttributesResolver
         return $params[1][0] ?? 'undefined';
     }
 
-    private static function getDbNamespace(array $params): string
+    private static function getDbNamespace(array $params): ?string
     {
-        return $params[1][0]['dbname'] ?? 'unknown';
+        return $params[1][0]['dbname'] ?? null;
+    }
+
+    public static function getTarget(array $params): ?string
+    {
+        $query = $params[0] ?? null;
+
+        if (!$query) {
+            return null;
+        }
+
+        // Fetch target name
+        $matches = [];
+        preg_match_all('/( from| into| update| join)\s*([a-zA-Z0-9`"[\]_]+)/i', $query, $matches);
+
+        $targetName = null;
+        if ($matches !== []) {
+            $targetName = $matches[2][0] ?? null;
+        }
+        if ($targetName === null) {
+            return null;
+        }
+        //strip quotes and backticks from the target name
+        $targetName = str_replace(['`', '"', '[', ']'], '', $targetName);
+
+        return $targetName;
     }
 
     /**
@@ -125,6 +150,14 @@ final class AttributesResolver
      * See https://opentelemetry.io/docs/specs/semconv/database/database-spans/#generating-a-summary-of-the-query-text
      */
     public static function getDbQuerySummary(array $params): string
+    {
+        $operationName = self::getDbOperationName($params);
+        $targetName = self::getTarget($params);
+
+        return $operationName . ($targetName ? ' ' . $targetName : '');
+    }
+
+    public static function getDbOperationName(array $params): string
     {
         $query = $params[0] ?? null;
 
@@ -136,19 +169,6 @@ final class AttributesResolver
         $operationName = explode(' ', $query);
         $operationName = $operationName[0];
 
-        // Fetch target name
-        $matches = [];
-        preg_match_all('/( from| into| update| join)\s*([a-zA-Z0-9`"[\]_]+)/i', $query, $matches);
-
-        $targetName = null;
-        if (strtolower($operationName) == 'select') {
-            if ($matches[2]) {
-                $targetName = implode(' ', $matches[2]);
-            }
-        } elseif ($matches) {
-            $targetName = $matches[2][0] ?? '';
-        }
-
-        return $operationName . ($targetName ? ' ' . $targetName : '');
+        return $operationName;
     }
 }
