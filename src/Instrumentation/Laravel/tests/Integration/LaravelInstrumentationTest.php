@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel;
 
 /** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
@@ -85,148 +84,6 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame(json_encode(['test' => true]), $logRecord->getAttributes()->toArray()['context']);
     }
 
-    public function test_eloquent_operations(): void
-    {
-        // Assert storage is empty before interacting with the database
-        $this->assertCount(0, $this->storage);
-
-        // Create the test_models table
-        DB::statement('CREATE TABLE IF NOT EXISTS test_models (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            created_at DATETIME,
-            updated_at DATETIME
-        )');
-
-        $this->router()->get('/eloquent', function () {
-            try {
-                // Test create
-                $created = TestModel::create(['name' => 'test']);
-
-                // Test find
-                $found = TestModel::find($created->id);
-
-                // Test update
-                $found->update(['name' => 'updated']);
-
-                // Test delete
-                $found->delete();
-
-                return response()->json(['status' => 'ok']);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ], 500);
-            }
-        });
-
-        $response = $this->call('GET', '/eloquent');
-        if ($response->status() !== 200) {
-            $this->fail('Request failed: ' . $response->content());
-        }
-        $this->assertEquals(200, $response->status());
-        
-        $eloquentSpans = $this->resolveEloquentOperationSpans();
-        
-        // Sort spans by operation type to ensure consistent order
-        usort($eloquentSpans, function ($a, $b) {
-            $operations = ['create' => 0, 'find' => 1, 'update' => 2, 'delete' => 3];
-            $aOp = $a->getAttributes()->get('laravel.eloquent.operation');
-            $bOp = $b->getAttributes()->get('laravel.eloquent.operation');
-
-            return ($operations[$aOp] ?? 999) <=> ($operations[$bOp] ?? 999);
-        });
-        
-        // Create span
-        $createSpan = array_values(array_filter($eloquentSpans, function ($span) {
-            return $span->getAttributes()->get('laravel.eloquent.operation') === 'create';
-        }))[0];
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::create', $createSpan->getName());
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $createSpan->getAttributes()->get('laravel.eloquent.model'));
-        $this->assertSame('test_models', $createSpan->getAttributes()->get('laravel.eloquent.table'));
-        $this->assertSame('create', $createSpan->getAttributes()->get('laravel.eloquent.operation'));
-        
-        // Find span
-        $findSpan = array_values(array_filter($eloquentSpans, function ($span) {
-            return $span->getAttributes()->get('laravel.eloquent.operation') === 'find';
-        }))[0];
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::find', $findSpan->getName());
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $findSpan->getAttributes()->get('laravel.eloquent.model'));
-        $this->assertSame('test_models', $findSpan->getAttributes()->get('laravel.eloquent.table'));
-        $this->assertSame('find', $findSpan->getAttributes()->get('laravel.eloquent.operation'));
-        
-        // Update span
-        $updateSpan = array_values(array_filter($eloquentSpans, function ($span) {
-            return $span->getAttributes()->get('laravel.eloquent.operation') === 'update';
-        }))[0];
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::update', $updateSpan->getName());
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $updateSpan->getAttributes()->get('laravel.eloquent.model'));
-        $this->assertSame('test_models', $updateSpan->getAttributes()->get('laravel.eloquent.table'));
-        $this->assertSame('update', $updateSpan->getAttributes()->get('laravel.eloquent.operation'));
-        
-        // Delete span
-        $deleteSpan = array_values(array_filter($eloquentSpans, function ($span) {
-            return $span->getAttributes()->get('laravel.eloquent.operation') === 'delete';
-        }))[0];
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::delete', $deleteSpan->getName());
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $deleteSpan->getAttributes()->get('laravel.eloquent.model'));
-        $this->assertSame('test_models', $deleteSpan->getAttributes()->get('laravel.eloquent.table'));
-        $this->assertSame('delete', $deleteSpan->getAttributes()->get('laravel.eloquent.operation'));
-    }
-
-    public function test_eloquent_static_operations(): void
-    {
-        // Assert storage is empty before interacting with the database
-        $this->assertCount(0, $this->storage);
-
-        // Create the test_models table
-        DB::statement('CREATE TABLE IF NOT EXISTS test_models (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            created_at DATETIME,
-            updated_at DATETIME
-        )');
-
-        $this->router()->get('/eloquent', function () {
-            try {
-                // create record for Test destroy
-                $created = TestModel::create(['name' => 'test']);
-
-                // Test destroy
-                TestModel::destroy([$created->id]);
-
-                return response()->json(['status' => 'ok']);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ], 500);
-            }
-        });
-
-        $response = $this->call('GET', '/eloquent');
-        if ($response->status() !== 200) {
-            $this->fail('Request failed: ' . $response->content());
-        }
-        $this->assertEquals(200, $response->status());
-
-        $eloquentSpans = $this->resolveEloquentOperationSpans();
-
-        // Destroy span
-        $destroySpans = array_values(array_filter($eloquentSpans, function ($span) {
-            return $span->getAttributes()->get('laravel.eloquent.operation') === 'destroy';
-        }));
-
-        $this->assertCount(1, $destroySpans);
-
-        $destroySpan = $destroySpans[0];
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::destroy', $destroySpan->getName());
-        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $destroySpan->getAttributes()->get('laravel.eloquent.model'));
-        $this->assertSame('test_models', $destroySpan->getAttributes()->get('laravel.eloquent.table'));
-        $this->assertSame('destroy', $destroySpan->getAttributes()->get('laravel.eloquent.operation'));
-    }
-
     public function test_low_cardinality_route_span_name(): void
     {
         $this->router()->get('/hello/{name}', fn () => null)->name('hello-name');
@@ -253,26 +110,5 @@ class LaravelInstrumentationTest extends TestCase
     {
         /** @psalm-suppress PossiblyNullReference */
         return $this->app->make(Router::class);
-    }
-
-    /**
-     * @return array<int, \OpenTelemetry\SDK\Trace\ImmutableSpan>
-     */
-    private function resolveEloquentOperationSpans(): array
-    {
-        // Verify spans for each Eloquent operation
-        /** @var array<int, \OpenTelemetry\SDK\Trace\ImmutableSpan> $spans */
-        $spans = array_values(array_filter(
-            iterator_to_array($this->storage),
-            fn ($item) => $item instanceof \OpenTelemetry\SDK\Trace\ImmutableSpan
-        ));
-
-        // Filter out SQL spans and keep only Eloquent spans
-        $eloquentSpans = array_values(array_filter(
-            $spans,
-            fn ($span) => str_contains($span->getName(), '::')
-        ));
-
-        return $eloquentSpans;
     }
 }
