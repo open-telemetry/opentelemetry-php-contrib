@@ -1,0 +1,51 @@
+{
+    "name": "open-telemetry/detector-digitalocean",
+    "description": "OpenTelemetry resource detector for DigitalOcean",
+    "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "digitalocean", "detector"],
+    "type": "library",
+    "homepage": "https://opentelemetry.io/docs/php",
+    "readme": "./README.md",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.1",
+        "ext-json": "*",
+        "fig/http-message-util": "^1.1.5",
+        "open-telemetry/api": "^1.0",
+        "open-telemetry/sdk": "^1.0",
+        "open-telemetry/sem-conv": "^1.32",
+        "psr/http-client-implementation": "^1.0",
+        "psr/http-factory-implementation": "^1.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.54",
+        "mikey179/vfsstream": "^1.6.11",
+        "nyholm/psr7": "*",
+        "phan/phan": "^5.4",
+        "phpstan/phpstan": "^1.10.13",
+        "phpstan/phpstan-phpunit": "^1.3",
+        "phpunit/phpunit": "^10 || ^11",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "vimeo/psalm": "6.4.0",
+        "zalas/phpunit-globals": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "src/"
+        },
+        "files": [
+          "_register.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    }
+}
