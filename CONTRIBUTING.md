@@ -6,9 +6,9 @@ For more information about the maintainer role, see the [community repository](h
 
 ### Approvers
 
-- [Levi Morrison](https://github.com/morrisonlevi), Datadog
-- [Austin Schoen](https://github.com/AustinSchoen), Mailchimp
-- [Beniamin Calota](https://github.com/beniamin), eMag
+- [Ago Allikmaa](https://github.com/agoallikmaa)
+- [Cedriz Ziel](https://github.com/cedricziel)
+- [Chris Lightfoot-Wild](https://github.com/ChrisLightfootWild)
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).
 
