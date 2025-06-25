@@ -15,7 +15,6 @@ For more information about the approver role, see the [community repository](htt
 
 ### Triagers
 
-- [Jodee Varney](https://github.com/jodeev), Splunk
 
 For more information about the triager role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#triagers).
 
