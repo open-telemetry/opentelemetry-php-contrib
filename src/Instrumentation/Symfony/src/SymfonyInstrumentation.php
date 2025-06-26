@@ -48,11 +48,11 @@ final class SymfonyInstrumentation
                 $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
                 $method = $request?->getMethod() ?? 'unknown';
                 $controller = $request?->attributes?->get('_controller');
-                                
+
                 if (!is_callable($controller, true, $controllerName)) {
                     $controllerName = 'sub-request';
                 }
-                
+
                 $name = ($type === HttpKernelInterface::SUB_REQUEST)
                     ? sprintf('%s %s', $method, $controllerName)
                     : $method;
