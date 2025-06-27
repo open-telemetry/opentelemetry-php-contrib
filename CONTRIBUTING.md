@@ -1,6 +1,6 @@
 ### Maintainers
 
-- [Bob Strecansky](https://github.com/bobstrecansky), Mailchimp
+- [Bob Strecansky](https://github.com/bobstrecansky), Intuit
 - [Brett McBride](https://github.com/brettmc), Deakin University
 
 For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
