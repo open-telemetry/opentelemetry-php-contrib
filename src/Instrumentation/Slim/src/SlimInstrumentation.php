@@ -78,7 +78,8 @@ class SlimInstrumentation
 
                 return [$request];
             },
-            post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception): ?ResponseInterface {
+            post: static function (App $app, array $params, ?ResponseInterface $response, ?Throwable $exception) use ($instrumentation): ?ResponseInterface {
+                $request = ($params[0] instanceof ServerRequestInterface) ? $params[0] : null;
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return $response;
@@ -95,7 +96,7 @@ class SlimInstrumentation
                     }
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, (int) $response->getHeaderLine('Content-Length'));
 
                     if (self::$supportsResponsePropagation) {
                         // Propagate server-timing header to response, if ServerTimingPropagator is present
@@ -112,6 +113,9 @@ class SlimInstrumentation
                     }
                 }
                 $span->end();
+                if ($request) {
+                    PsrServerRequestMetrics::generate($instrumentation->meter(), $request, $response, $exception);
+                }
 
                 return $response;
             }

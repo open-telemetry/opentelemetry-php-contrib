@@ -10,3 +10,8 @@ parameters:
     excludePaths:
         analyseAndScan:
             - tests/Unit
+    ignoreErrors:
+        -
+            message: "#Access to an undefined property .*#"
+            paths:
+                - tests/Integration/SlimInstrumentationTest.php
