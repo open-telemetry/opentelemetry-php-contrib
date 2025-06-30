@@ -13,6 +13,7 @@ use OpenTelemetry\Contrib\Sampler\RuleBased\RuleSet;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
 /**
  * @implements ComponentProvider<SamplerInterface>
@@ -49,9 +50,9 @@ final class SamplerRuleBased implements ComponentProvider
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
-        $node = new ArrayNodeDefinition('contrib_rule_based');
+        $node = $builder->arrayNode('php_rule_based');
 
         /** @psalm-suppress PossiblyNullReference */
         $node
@@ -59,7 +60,7 @@ final class SamplerRuleBased implements ComponentProvider
                 ->arrayNode('rule_sets')
                     ->arrayPrototype()
                         ->children()
-                            ->append($registry->componentArrayList('rules', SamplingRule::class)->isRequired()->cannotBeEmpty())
+                            ->append($registry->componentList('rules', SamplingRule::class)->isRequired()->cannotBeEmpty())
                             ->append($registry->component('delegate', SamplerInterface::class)->isRequired())
                         ->end()
                     ->end()
