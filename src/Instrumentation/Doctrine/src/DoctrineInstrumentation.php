@@ -180,7 +180,7 @@ class DoctrineInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
             },
-            post: static function (\Doctrine\DBAL\Driver\Statement $statement, array $params, ResultInterface $result, ?Throwable $exception) {
+            post: static function (\Doctrine\DBAL\Driver\Statement $statement, array $params, ?ResultInterface $result, ?Throwable $exception) {
                 self::end($exception);
             }
         );
