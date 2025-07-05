@@ -95,7 +95,7 @@ class DoctrineInstrumentationTest extends TestCase
         ]);
     }
 
-    public function test_statement_execution(): void
+    public function test_connection_execute_statement(): void
     {
         $connection =  self::createConnection();
         $statement = self::fillDB();
@@ -201,5 +201,40 @@ class DoctrineInstrumentationTest extends TestCase
 
         $sth = $connection->prepare('SELECT * FROM `technology`');
         $this->assertSame(2, count($sth->executeQuery()->fetchAllAssociative()));
+    }
+
+    public function test_statement_execute(): void
+    {
+        $connection =  self::createConnection();
+        $statement = self::fillDB();
+        $connection->executeStatement($statement);
+        $stmt = $connection->prepare('SELECT * FROM `technology`');
+        $this->storage->exchangeArray([]);
+        $stmt->executeQuery();
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('Doctrine::execute', $span->getName());
+        $this->assertSame('execute', $span->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+    }
+
+    public function test_statement_execute_error(): void
+    {
+        $connection =  self::createConnection();
+        $statement = self::fillDB();
+        $connection->executeStatement($statement);
+        $stmt = $connection->prepare('insert into technology(name, date) values (?, ?);');
+        $this->storage->exchangeArray([]);
+        $e = null;
+
+        try {
+            $stmt->executeQuery();
+        } catch (\Throwable $e) {
+            // do nothing
+        }
+        $this->assertNotNull($e);
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('Error', $span->getStatus()->getCode());
+        $this->assertStringContainsString('Unable to execute', $span->getStatus()->getDescription());
     }
 }
