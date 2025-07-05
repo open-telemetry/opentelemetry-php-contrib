@@ -1,0 +1,16 @@
+{
+    "droplet": {
+        "id": 10000000,
+        "name": "test-server",
+        "image": {
+            "id": 9999999,
+            "name": "Debian 11 (bullseye)",
+            "distribution": "Debian"
+        },
+        "size_slug": "s-1vcpu-1gb",
+        "region": {
+            "name": "Amsterdam 1",
+            "slug": "ams1"
+        }
+    }
+}

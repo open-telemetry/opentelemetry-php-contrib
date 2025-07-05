@@ -6,6 +6,8 @@ namespace OpenTelemetry\Contrib\Instrumentation\ReactPHP;
 
 use Composer\InstalledVersions;
 use GuzzleHttp\Psr7\Query;
+use OpenTelemetry\API\Common\Time\Clock;
+use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -55,6 +57,15 @@ class ReactPHPInstrumentation
      */
     private const ENV_HTTP_RESPONSE_HEADERS = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
     /**
+     * The environment variable which adds to the URL query parameter keys to redact the values for.
+     * This supports a comma-separated list of case-sensitive query parameter keys.
+     *
+     * Note that this is not currently defined in OTel SemConv, and therefore subject to change.
+     *
+     * @see https://github.com/open-telemetry/semantic-conventions/issues/877
+     */
+    private const ENV_URL_SANITIZE_FIELD_NAMES = 'OTEL_PHP_INSTRUMENTATION_URL_SANITIZE_FIELD_NAMES';
+    /**
      * The `{method}` component of the span name when the original method is not known to the instrumentation.
      *
      * @see https://opentelemetry.io/docs/specs/semconv/http/http-spans/#name
@@ -81,6 +92,9 @@ class ReactPHPInstrumentation
 
     public static function register(): void
     {
+        /** @var \OpenTelemetry\API\Metrics\HistogramInterface|null */
+        static $histogram;
+
         $instrumentation = new CachedInstrumentation(
             self::INSTRUMENTATION_LIBRARY_NAME,
             InstalledVersions::getPrettyVersion(self::COMPOSER_NAME),
@@ -102,24 +116,28 @@ class ReactPHPInstrumentation
                     $request = $request->withoutHeader($field);
                 }
 
-                /** @var non-empty-string|null */
-                $method = self::canonizeMethod($request->getMethod());
+                /** @var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} $requestMeta */
+                $requestMeta = [
+                    'http.request.method' => self::canonizeMethod($request->getMethod()),
+                    'server.address' => $request->getUri()->getHost(),
+                    'server.port' => $request->getUri()->getPort() ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80),
+                ];
 
                 $spanBuilder = $instrumentation
                     ->tracer()
                     // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                    ->spanBuilder($method ?? self::HTTP_REQUEST_METHOD_HTTP)
+                    ->spanBuilder($requestMeta['http.request.method'] ?? self::HTTP_REQUEST_METHOD_HTTP)
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $method ?? TraceAttributeValues::HTTP_REQUEST_METHOD_OTHER)
-                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort() ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80))
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $requestMeta['http.request.method'] ?? TraceAttributeValues::HTTP_REQUEST_METHOD_OTHER)
+                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, $requestMeta['server.address'])
+                    ->setAttribute(TraceAttributes::SERVER_PORT, $requestMeta['server.port'])
                     ->setAttribute(TraceAttributes::URL_FULL, self::sanitizeUrl($request->getUri()))
                     // https://opentelemetry.io/docs/specs/semconv/code/
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function));
 
                 // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
-                if ($method === null) {
+                if ($requestMeta['http.request.method'] === null) {
                     $spanBuilder->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL, $request->getMethod());
                 }
 
@@ -133,7 +151,8 @@ class ReactPHPInstrumentation
                     $spanBuilder->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 }
 
-                $span = $spanBuilder->startSpan();
+                $requestStart = Clock::getDefault()->now();
+                $span = $spanBuilder->setStartTimestamp($requestStart)->startSpan();
                 $context = $span->storeInContext($parentContext);
                 $propagator->inject($request, HeadersPropagator::instance(), $context);
 
@@ -146,11 +165,13 @@ class ReactPHPInstrumentation
                     }
                 }
 
-                Context::storage()->attach($context);
+                $scope = Context::storage()->attach($context);
+                $scope->offsetSet('requestMeta', $requestMeta);
+                $scope->offsetSet('requestStart', $requestStart);
 
                 return [$request];
             },
-            post: static function (Transaction $transaction, array $params, PromiseInterface $promise): PromiseInterface {
+            post: static function (Transaction $transaction, array $params, PromiseInterface $promise) use (&$histogram, $instrumentation): PromiseInterface {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
@@ -160,21 +181,42 @@ class ReactPHPInstrumentation
 
                 $span = Span::fromContext($scope->context());
 
-                if (!$span->isRecording()) {
+                //https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#http-client
+                $histogram ??= $instrumentation->meter()->createHistogram(
+                    'http.client.request.duration',
+                    's',
+                    'Duration of HTTP client requests.',
+                    ['ExplicitBucketBoundaries' => [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]]
+                );
+
+                if (!$span->isRecording() && !$histogram->isEnabled()) {
                     return $promise;
                 }
 
+                /** @var array{'http.request.method':non-empty-string|null,'server.address':non-empty-string,'server.port':int} $requestMeta */
+                $requestMeta = $scope->offsetGet('requestMeta');
+                $requestMeta['http.request.method'] ??= '_OTHER';
+                /** @var int $requestStart */
+                $requestStart = $scope->offsetGet('requestStart');
+
                 return $promise->then(
-                    onFulfilled: function (ResponseInterface $response) use ($span) {
+                    onFulfilled: function (ResponseInterface $response) use ($histogram, $requestMeta, $requestStart, $span) {
+                        $requestEnd = Clock::getDefault()->now();
+                        /** @var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type'?:non-empty-string} $responseMeta */
+                        $responseMeta = [
+                            'http.response.status_code' => $response->getStatusCode(),
+                            'network.protocol.version' => $response->getProtocolVersion(),
+                        ];
                         // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
                         $span
-                            ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode())
-                            ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                            ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $responseMeta['http.response.status_code'])
+                            ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $responseMeta['network.protocol.version']);
 
-                        if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
+                        if ($responseMeta['http.response.status_code'] >= 400 && $responseMeta['http.response.status_code'] < 600) {
                             $span
                                 ->setStatus(StatusCode::STATUS_ERROR)
-                                ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $response->getStatusCode());
+                                ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $responseMeta['http.response.status_code']);
+                            $responseMeta['error.type'] = (string) $responseMeta['http.response.status_code'];
                         }
 
                         foreach (explode(',', $_ENV[self::ENV_HTTP_RESPONSE_HEADERS] ?? '') as $header) {
@@ -186,19 +228,31 @@ class ReactPHPInstrumentation
                             }
                         }
 
-                        $span->end();
+                        $span->end($requestEnd);
+
+                        $histogram->record(
+                            (float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND),
+                            array_merge($requestMeta, $responseMeta)
+                        );
 
                         return $response;
                     },
-                    onRejected: function (Throwable $t) use ($span) {
+                    onRejected: function (Throwable $t) use ($histogram, $requestMeta, $requestStart, $span) {
+                        $requestEnd = Clock::getDefault()->now();
                         $span->recordException($t);
                         if (is_a($t, ResponseException::class)) {
+                            /** @var array{'http.response.status_code':int,'network.protocol.version':non-empty-string,'error.type':non-empty-string} $responseMeta */
+                            $responseMeta = [
+                                'error.type' => (string) $t->getCode(),
+                                'http.response.status_code' => $t->getCode(),
+                                'network.protocol.version' => $t->getResponse()->getProtocolVersion(),
+                            ];
                             // https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-client-span
                             $span
                                 ->setStatus(StatusCode::STATUS_ERROR)
-                                ->setAttribute(TraceAttributes::ERROR_TYPE, (string) $t->getCode())
-                                ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $t->getCode())
-                                ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $t->getResponse()->getProtocolVersion());
+                                ->setAttribute(TraceAttributes::ERROR_TYPE, $responseMeta['error.type'])
+                                ->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $responseMeta['http.response.status_code'])
+                                ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $responseMeta['network.protocol.version']);
 
                             foreach (explode(',', $_ENV[self::ENV_HTTP_RESPONSE_HEADERS] ?? '') as $header) {
                                 if ($t->getResponse()->hasHeader($header)) {
@@ -209,12 +263,21 @@ class ReactPHPInstrumentation
                                 }
                             }
                         } else {
+                            /** @var array{'error.type':non-empty-string} $responseMeta */
+                            $responseMeta = [
+                                'error.type' => $t::class,
+                            ];
                             $span
                                 ->setStatus(StatusCode::STATUS_ERROR, $t->getMessage())
-                                ->setAttribute(TraceAttributes::ERROR_TYPE, $t::class);
+                                ->setAttribute(TraceAttributes::ERROR_TYPE, $responseMeta['error.type']);
                         }
 
-                        $span->end();
+                        $span->end($requestEnd);
+
+                        $histogram->record(
+                            (float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND),
+                            array_merge($requestMeta, $responseMeta)
+                        );
 
                         throw $t;
                     }
@@ -259,6 +322,12 @@ class ReactPHPInstrumentation
             $uri = $uri->withUserInfo(self::URL_REDACTION);
         }
 
+        $sanitizeFields = self::URL_QUERY_REDACT_KEYS;
+        $customFields = $_ENV[self::ENV_URL_SANITIZE_FIELD_NAMES] ?? '';
+        if ($customFields !== '') {
+            $sanitizeFields = array_merge($sanitizeFields, explode(',', $customFields));
+        }
+
         $queryString = $uri->getQuery();
         // http_build_query(parse_str()) is not idempotent, so using Guzzle’s Query class for now
         if ($queryString !== '') {
@@ -267,7 +336,7 @@ class ReactPHPInstrumentation
                 $queryParameters,
                 array_intersect_key(
                     array_fill_keys(
-                        self::URL_QUERY_REDACT_KEYS,
+                        $sanitizeFields,
                         self::URL_REDACTION
                     ),
                     $queryParameters

@@ -111,7 +111,7 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
-    public function test_fulfilled_promise_with_redactions(): void
+    public function test_fulfilled_promise_with_required_redactions(): void
     {
         $this->browser->request('GET', 'http://username@example.com/success')->then();
 
@@ -122,6 +122,14 @@ class ReactPHPInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(1);
         $this->assertSame('http://REDACTED:REDACTED@example.com/success?Signature=REDACTED', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+    }
+
+    public function test_fulfilled_promise_with_custom_redactions(): void
+    {
+        $this->browser->request('GET', 'http://example.com/success?password=private')->then();
+
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('http://example.com/success?password=REDACTED', $span->getAttributes()->get(TraceAttributes::URL_FULL));
     }
 
     public function test_fulfilled_promise_with_overridden_methods(): void
