@@ -21,7 +21,7 @@
     "psalm/plugin-phpunit": "^0.19.3",
     "open-telemetry/api": "^1.4",
     "open-telemetry/sdk": "^1.6",
-    "open-telemetry/sdk-configuration": "^0.0.10",
+    "open-telemetry/sdk-configuration": "^0.1.0",
     "phpunit/phpunit": "^10.5",
     "vimeo/psalm": "^6.7",
     "symfony/yaml": "^6.4"
