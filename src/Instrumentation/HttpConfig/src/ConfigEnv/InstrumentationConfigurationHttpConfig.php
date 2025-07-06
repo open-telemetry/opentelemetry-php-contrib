@@ -13,6 +13,7 @@ use OpenTelemetry\Contrib\Instrumentation\HttpConfig\HttpConfig;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\DefaultSanitizer;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\MultiSanitizer;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\RedactSensitiveQueryStringValuesSanitizer;
+use Override;
 
 /**
  * @implements EnvComponentLoader<InstrumentationConfiguration>
@@ -20,6 +21,7 @@ use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\RedactSensitiv
 final class InstrumentationConfigurationHttpConfig implements EnvComponentLoader
 {
 
+    #[Override]
     public function load(EnvResolver $env, EnvComponentLoaderRegistry $registry, Context $context): InstrumentationConfiguration
     {
         $sanitizers = [new DefaultSanitizer()];
@@ -33,6 +35,7 @@ final class InstrumentationConfigurationHttpConfig implements EnvComponentLoader
         );
     }
 
+    #[Override]
     public function name(): string
     {
         return HttpConfig::class;

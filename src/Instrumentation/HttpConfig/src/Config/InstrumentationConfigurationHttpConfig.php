@@ -16,6 +16,7 @@ use OpenTelemetry\Contrib\Instrumentation\HttpConfig\HttpServerConfig;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\DefaultSanitizer;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\MultiSanitizer;
+use Override;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
@@ -53,6 +54,7 @@ final class InstrumentationConfigurationHttpConfig implements ComponentProvider
      *     known_http_methods: list<string>,
      * } $properties
      */
+    #[Override]
     public function createPlugin(array $properties, Context $context): InstrumentationConfiguration
     {
         return new HttpConfig(
@@ -85,6 +87,7 @@ final class InstrumentationConfigurationHttpConfig implements ComponentProvider
         );
     }
 
+    #[Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
         $node = $builder->arrayNode('http');
