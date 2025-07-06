@@ -9,6 +9,7 @@ use OpenTelemetry\API\Configuration\Config\ComponentProviderRegistry;
 use OpenTelemetry\API\Configuration\Context;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\RedactSensitiveQueryStringValuesSanitizer;
+use Override;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
@@ -23,11 +24,13 @@ final class UriSanitizerRedactQueryStringValues implements ComponentProvider
      *     query_keys: list<string>,
      * } $properties
      */
+    #[Override]
     public function createPlugin(array $properties, Context $context): UriSanitizer
     {
         return new RedactSensitiveQueryStringValuesSanitizer($properties['query_keys']);
     }
 
+    #[Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
         $node = $builder->arrayNode('redact_query_string_values');

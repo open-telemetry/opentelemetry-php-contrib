@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer;
 
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer;
+use Override;
 use Psr\Http\Message\UriInterface;
 use function strlen;
 use function strpos;
@@ -22,6 +23,7 @@ final class RedactSensitiveQueryStringValuesSanitizer implements UriSanitizer
     ) {
     }
 
+    #[Override]
     public function sanitize(UriInterface $uri): UriInterface
     {
         $query = $uri->getQuery();

@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer;
 use function array_key_first;
 use function count;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer;
+use Override;
 use Psr\Http\Message\UriInterface;
 
 final class MultiSanitizer implements UriSanitizer
@@ -32,6 +33,7 @@ final class MultiSanitizer implements UriSanitizer
         };
     }
 
+    #[Override]
     public function sanitize(UriInterface $uri): UriInterface
     {
         foreach ($this->sanitizers as $sanitizer) {
