@@ -5,12 +5,11 @@ namespace OpenTelemetry\Contrib\Sampler\Xray;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
-use OpenTelemetry\SDK\Trace\SamplingParameters;
 use OpenTelemetry\SDK\Trace\SamplingResult;
-use OpenTelemetry\SDK\Trace\SamplingDecision;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOffSampler;
 use OpenTelemetry\SDK\Trace\Sampler\TraceIdRatioBasedSampler;
+use OpenTelemetry\SemConv\TraceAttributes;
 
 class SamplingRuleApplier
 {
@@ -34,7 +33,7 @@ class SamplingRuleApplier
         $this->statistics = $stats ?? new Statistics();
         
         if ($rule->ReservoirSize > 0) {
-            $this->reservoirSampler = new RateLimitingSampler($rule->ReservoirSize, $clock);
+            $this->reservoirSampler = new RateLimitingSampler($rule->ReservoirSize);
             $this->borrowing = true;
         } else {
             $this->reservoirSampler = new AlwaysOffSampler();
@@ -45,51 +44,37 @@ class SamplingRuleApplier
         $this->reservoirEndTime = new \DateTimeImmutable('@'.PHP_INT_MAX);
         $this->nextSnapshotTime = $clock->now();
     }
-
-    /**
-     * Private full constructor: accept *all* fields.
-     * Used by withTarget() to clone with new samplers & timings.
-     */
-    private function __constructFull(
-        string            $clientId,
-        Clock             $clock,
-        SamplingRule      $rule,
-        SamplerInterface  $reservoirSampler,
-        SamplerInterface  $fixedRateSampler,
-        bool              $borrowing,
-        Statistics        $statistics,
-        \DateTimeImmutable $reservoirEndTime,
-        \DateTimeImmutable $nextSnapshotTime
-    ) {
-        $this->clientId        = $clientId;
-        $this->clock           = $clock;
-        $this->rule            = $rule;
-        $this->reservoirSampler= $reservoirSampler;
-        $this->fixedRateSampler= $fixedRateSampler;
-        $this->borrowing       = $borrowing;
-        $this->statistics      = $statistics;
-        $this->reservoirEndTime= $reservoirEndTime;
-        $this->nextSnapshotTime= $nextSnapshotTime;
-    }
-    
     
     public function matches(AttributesInterface $attributes, ResourceInfo $resource): bool
     {
         // Extract HTTP path
-        $httpTarget = $attributes->get('http.target') 
+        $httpTarget = $attributes->get(TraceAttributes::HTTP_TARGET) 
             ?? (
-                null !== $attributes->get('http.url')
-                    ? (preg_match('~^[^:]+://[^/]+(/.*)?$~', $attributes->get('http.url'), $m) 
+                null !== $attributes->get(TraceAttributes::HTTP_URL)
+                    ? (preg_match('~^[^:]+://[^/]+(/.*)?$~', $attributes->get(TraceAttributes::HTTP_URL), $m) 
                         ? ($m[1] ?? '/') 
                         : null
                     )
                     : null
             );
 
-        $httpMethod = $attributes->get('http.method') ?? null;
-        $httpHost   = $attributes->get('http.host')   ?? null;
-        $serviceName= $resource->getAttributes()->get('service.name') ?? '';
-        $cloudPlat  = $resource->getAttributes()->get('cloud.platform') ?? null;
+        if (empty($httpTarget)) {
+            // Extract HTTP path
+            $httpTarget = $attributes->get(TraceAttributes::URL_PATH) 
+                ?? (
+                    null !== $attributes->get(TraceAttributes::URL_FULL)
+                        ? (preg_match('~^[^:]+://[^/]+(/.*)?$~', $attributes->get(TraceAttributes::URL_FULL), $m) 
+                            ? ($m[1] ?? '/') 
+                            : null
+                        )
+                        : null
+                );
+        }
+
+        $httpMethod = $attributes->get(TraceAttributes::HTTP_METHOD) ?? $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD);
+        $httpHost   = $attributes->get(TraceAttributes::HTTP_HOST)   ?? null;
+        $serviceName= $resource->getAttributes()->get(TraceAttributes::SERVICE_NAME) ?? '';
+        $cloudPlat  = $resource->getAttributes()->get(TraceAttributes::CLOUD_PLATFORM) ?? null;
         $serviceType= Matcher::getXRayCloudPlatform($cloudPlat);
 
         // ARN: ECS container ARN or Lambda faas.id
@@ -213,5 +198,9 @@ class SamplingRuleApplier
     public function getRuleName(): string
     {
         return $this->ruleName;
+    }
+
+    public function setRule($rule) {
+        $this->rule = $rule;
     }
 }

@@ -5,13 +5,13 @@ namespace OpenTelemetry\Contrib\Sampler\Xray;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
-use OpenTelemetry\SDK\Trace\SamplingDecision;
 use OpenTelemetry\SDK\Trace\SamplingResult;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 
 class RulesCache implements SamplerInterface
 {
     private const CACHE_TTL = 3600; // 1hr
+    public const DEFAULT_TARGET_INTERVAL_SEC = 10;
     private Clock $clock;
     private string $clientId;
     private ResourceInfo $resource;
@@ -48,8 +48,9 @@ class RulesCache implements SamplerInterface
                 }
             }
             $applier = $found ?? new SamplingRuleApplier($this->clientId, $this->clock, $rule);
+            
             // update rule in applier
-            // $applier->setRule($rule);
+            $applier->setRule($rule);
             $newAppliers[] = $applier;
         }
         $this->appliers  = $newAppliers;
@@ -76,13 +77,15 @@ class RulesCache implements SamplerInterface
     
     public function nextTargetFetchTime(): \DateTimeImmutable
     {
+        $defaultPollingTime = $this->clock->now()->add(new \DateInterval('PT'.self::DEFAULT_TARGET_INTERVAL_SEC.'S'));
+        
         if (empty($this->appliers)) {
-            return $this->clock->now()->add(new \DateInterval('PT10S'));
+            return $defaultPollingTime;
         }
         $times = array_map(fn($a) => $a->getNextSnapshotTime(), $this->appliers);
         $min = min($times);
         return $min < $this->clock->now()
-            ? $this->clock->now()->add(new \DateInterval('PT10S'))
+            ? $defaultPollingTime
             : $min;
     }
     
@@ -100,9 +103,20 @@ class RulesCache implements SamplerInterface
         }
         $this->appliers = $new;
     }
+
+    public function getAppliers(): array
+    {
+        return $this->appliers;
+    }
+
     
     public function getDescription(): string
     {
         return 'RulesCache';
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 }

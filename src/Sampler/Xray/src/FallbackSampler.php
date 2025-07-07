@@ -8,14 +8,14 @@ use OpenTelemetry\SDK\Trace\Sampler\TraceIdRatioBasedSampler;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SamplingResult;
 
-class FallbackSampler extends SamplerInterface
+class FallbackSampler implements SamplerInterface
 {
     private SamplerInterface $reservoir;
     private SamplerInterface $fixedRate;
     
-    public function __construct(Clock $clock)
+    public function __construct()
     {
-        $this->reservoir = new RateLimitingSampler(1, $clock);  // 1/sec
+        $this->reservoir = new RateLimitingSampler(1);  // 1/sec
         $this->fixedRate = new TraceIdRatioBasedSampler(0.05);  // 5%
     }
     
@@ -36,6 +36,6 @@ class FallbackSampler extends SamplerInterface
     
     public function getDescription(): string
     {
-        return 'AWSXRayFallbackSampler';
+        return 'FallbackSampler{fallback sampling with sampling config of 1 req/sec and 5% of additional requests';
     }
 }

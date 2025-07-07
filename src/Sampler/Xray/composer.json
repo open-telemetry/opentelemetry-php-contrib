@@ -6,9 +6,10 @@
     "require": {
         "php": "^8.1",
         "aws/aws-sdk-php": "^3.0",                    
-        "react/event-loop": "^1.2",                  
-        "open-telemetry/sdk": "^1.1.0",              
-        "open-telemetry/sampler-rule-based": "dev-main"
+        "open-telemetry/api": "^1.1.0",
+        "open-telemetry/sdk": "^1.1.0",
+        "open-telemetry/sdk-configuration": "^0.0.5",
+        "open-telemetry/sem-conv": "^1.32"
     },
     "require-dev": {
         "symfony/config": "^5.4 || ^6.4 || ^7.0",

@@ -2,7 +2,7 @@
 // src/Sampler/AWS/SamplingRule.php
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
-class SamplingRule implements \JsonSerializable, \Comparable
+class SamplingRule implements \JsonSerializable
 {
     public string $RuleName;
     public int $Priority;

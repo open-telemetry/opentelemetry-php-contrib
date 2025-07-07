@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/RateLimiter.php
 
 namespace OpenTelemetry\Contrib\Sampler\Xray;
@@ -41,6 +43,7 @@ class RateLimiter
 
         if ($this->tokens > 0) {
             $this->tokens--;
+
             return true;
         }
 

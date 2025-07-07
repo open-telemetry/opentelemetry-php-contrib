@@ -5,8 +5,11 @@ namespace OpenTelemetry\Contrib\Sampler\Xray;
 class Matcher
 {
     private static array $xrayCloudPlatform = [
-        'aws_ecs'   => 'AWS::ECS::Container',
-        'aws_lambda'=> 'AWS::Lambda::Function',
+        'aws_ec2' => 'AWS::EC2::Instance',
+        'aws_ecs' => 'AWS::ECS::Container',
+        'aws_eks' => 'AWS::EKS::Container',
+        'aws_elastic_beanstalk' => 'AWS::ElasticBeanstalk::Environment',
+        'aws_lambda' => 'AWS::Lambda::Function',
     ];
 
     /**
