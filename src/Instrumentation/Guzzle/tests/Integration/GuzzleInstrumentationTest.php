@@ -6,14 +6,18 @@ namespace OpenTelemetry\Instrumentation\HttpAsyncClient\tests\Integration;
 
 use ArrayObject;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Promise\RejectedPromise;
 use GuzzleHttp\Promise\Utils;
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
@@ -163,6 +167,100 @@ class GuzzleInstrumentationTest extends TestCase
 
         $this->mock->append(new Response());
         $this->client->get('/');
+    }
 
+    /**
+     * @dataProvider promiseProvider
+     * @link https://github.com/open-telemetry/opentelemetry-php/issues/1623
+     */
+    public function test_transfer_promises_execute_for_sync_requests(PromiseInterface $promise, bool $expectedException): void
+    {
+        /**
+         * Approximate the Curl handler's behaviour of returning a FulfilledPromise without any
+         * additional promise chaining, so that post hook receives a FulfilledPromise.
+         */
+        $handler = function () use ($promise): PromiseInterface {
+            return $promise;
+        };
+        $handlerStack = HandlerStack::create($handler);
+
+        $client = new Client([
+            'handler' => $handlerStack,
+            'base_uri' => 'https://example.com/',
+            'http_errors' => false,
+            'allow_redirects' => false,
+        ]);
+        $this->assertCount(0, $this->storage);
+
+        $request = new Request('GET', 'https://example.com/foo');
+
+        try {
+            $client->send($request);
+        } catch (\Throwable $e) {
+            if (!$expectedException) {
+                throw $e;
+            }
+        }
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        assert($span instanceof ImmutableSpan);
+        if ($expectedException) {
+            $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+            $this->assertSame('Test exception', $span->getStatus()->getDescription());
+        } else {
+            $this->assertSame(201, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        }
+    }
+
+    public static function promiseProvider(): array
+    {
+        return [
+            'fulfilled' => [new FulfilledPromise(new Response(201)), false],
+            'rejected' => [new RejectedPromise(new \RuntimeException('Test exception')), true],
+        ];
+    }
+
+    /**
+     * @dataProvider exceptionProvider
+     */
+    public function test_exceptions_enabled_sets_response_attributes($response, ?int $expected = null): void
+    {
+        $client = new Client([
+            'handler' => $this->handlerStack,
+            'base_uri' => 'https://example.com/',
+            'http_errors' => true,
+            'exceptions' => true,
+        ]);
+        $this->mock->append($response);
+        $this->assertCount(0, $this->storage);
+
+        try {
+            $client->send(new Request('GET', 'https://example.com/error'));
+        } catch (\Exception $e) {
+            // Expected exception
+        }
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $attributes = $span->getAttributes()->toArray();
+        if ($expected) {
+            $this->assertSame($expected, $attributes[TraceAttributes::HTTP_RESPONSE_STATUS_CODE]);
+            $this->assertGreaterThan(0, $attributes[TraceAttributes::HTTP_RESPONSE_BODY_SIZE]);
+            $this->assertArrayHasKey(TraceAttributes::NETWORK_PROTOCOL_VERSION, $attributes);
+        } else {
+            $this->assertArrayNotHasKey(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $attributes);
+        }
+    }
+
+    public static function exceptionProvider(): array
+    {
+        return [
+            '400 Bad Request' => [new Response(400, [], 'Bad Request'), 400],
+            '404 Not Found' => [new Response(404, [], 'Not Found'), 404],
+            '500 Internal Server Error' => [new Response(500, [], 'Internal Server Error'), 500],
+            '503 Service Unavailable' => [new Response(503, [], 'Service Unavailable'), 503],
+            'network connection error' => [new ConnectException('network error', new Request('GET', 'https://example.com/error'))],
+            'runtime exception' => [new \RuntimeException('runtime error')],
+        ];
     }
 }

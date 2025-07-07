@@ -53,6 +53,7 @@ class AwsSdkInstrumentationTest extends TestCase
             'region'   => 'us-west-2',
             'version'  => 'latest',
             'handler'  => $this->mock,
+            'credentials' => false,
         ]);
     }
 

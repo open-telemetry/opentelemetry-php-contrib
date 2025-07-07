@@ -1,19 +1,21 @@
-Maintainers ([@open-telemetry/php-maintainers](https://github.com/orgs/open-telemetry/teams/php-maintainers)):
+### Maintainers
 
-- [Bob Strecansky](https://github.com/bobstrecansky), Mailchimp
+- [Bob Strecansky](https://github.com/bobstrecansky), Intuit
+- [Brett McBride](https://github.com/brettmc), Deakin University
 
-Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer)
+For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 
-Approvers ([@open-telemetry/php-approvers](https://github.com/orgs/open-telemetry/teams/php-approvers)):
+### Approvers
 
-- [Levi Morrison](https://github.com/morrisonlevi), Datadog
-- [Austin Schoen](https://github.com/AustinSchoen), Mailchimp
-- [Beniamin Calota](https://github.com/beniamin), eMag
+- [Ago Allikmaa](https://github.com/agoallikmaa)
+- [Cedriz Ziel](https://github.com/cedricziel)
+- [Chris Lightfoot-Wild](https://github.com/ChrisLightfootWild)
 
-Find more information about the approver role in the [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)
+For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
-Triagers ([@open-telemetry/php-triagers](https://github.com/orgs/open-telemetry/teams/php-triagers)):
+### Triagers
 
-- [Jodee Varney](https://github.com/jodeev), Splunk
+
+For more information about the triager role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#triager).
 
 Find more information about the triager role in the [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#triager)

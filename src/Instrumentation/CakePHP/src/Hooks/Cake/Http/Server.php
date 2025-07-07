@@ -26,7 +26,7 @@ class Server implements CakeHook
             \Cake\Http\Server::class,
             'run',
             pre: function (\Cake\Http\Server $server, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                $request = $params[0];
+                $request = $params[0] ?? null;
                 assert($request === null || $request instanceof ServerRequestInterface);
 
                 $request = $this->buildSpan($request, $class, $function, $filename, $lineno);

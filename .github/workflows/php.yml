@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -22,6 +25,7 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
+          'Exporter/Instana',
           'Instrumentation/AwsSdk',
           'Instrumentation/CakePHP',
           'Instrumentation/CodeIgniter',
@@ -54,6 +58,7 @@ jobs:
           'Propagation/TraceResponse',
           'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
+          'ResourceDetectors/DigitalOcean',
           'Sampler/RuleBased',
           'Shims/OpenTracing',
           'Symfony',
@@ -62,8 +67,6 @@ jobs:
         exclude:
 
           - project: 'Instrumentation/Curl'
-            php-version: 8.1
-          - project: 'Instrumentation/Doctrine'
             php-version: 8.1
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.1

@@ -1,6 +1,5 @@
 <?php
 
-// src/Instrumentation/AwsSdk/AwsSdkInstrumentation.php
 declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\AwsSdk;
@@ -31,11 +30,11 @@ final class AwsSdkInstrumentation
         );
 
         /**
-         * ② Intercept the low‑level `execute` call that actually
-         *    performs the HTTP request and has the Command object.
+         * Intercept the low‑level `execute` call that actually
+         * performs the HTTP request and has the Command object.
          */
-         /** @psalm-suppress UnusedFunctionCall */
-         hook(
+        /** @psalm-suppress UnusedFunctionCall */
+        hook(
             AwsClient::class,
             'execute',
             pre: static function (
@@ -75,8 +74,8 @@ final class AwsSdkInstrumentation
                 $scope->detach();
 
                 if ($result instanceof ResultInterface && isset($result['@metadata'])) {
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $result['@metadata']['statusCode']);
-                    $span->setAttribute(TraceAttributes::AWS_REQUEST_ID, $result['@metadata']['headers']['x-amz-request-id']);
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $result['@metadata']['statusCode']); // @phan-suppress-current-line PhanTypeMismatchDimFetch
+                    $span->setAttribute(TraceAttributes::AWS_REQUEST_ID, $result['@metadata']['headers']['x-amz-request-id']); // @phan-suppress-current-line PhanTypeMismatchDimFetch
                 }
                 if ($ex) {
                     if ($ex instanceof AwsException && $ex->getAwsRequestId() !== null) {
