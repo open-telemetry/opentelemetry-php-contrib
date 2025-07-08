@@ -23,6 +23,7 @@ jobs:
         php-version: ['8.1', '8.2', '8.3', '8.4']
         # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
         project: [
+          'AutoInstrumentationInstaller',
           'Aws',
           'Context/Swoole',
           'Exporter/Instana',
@@ -52,6 +53,7 @@ jobs:
           'Instrumentation/Slim',
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
+          'MetaPackages/opentelemetry',
           'Logs/Monolog',
           'Propagation/Instana',
           'Propagation/ServerTiming',
