@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Aws\Unit\Lambda;
 
-use OpenTelemetry\Aws\Lambda\Detector;
+use OpenTelemetry\Contrib\Aws\Lambda\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
