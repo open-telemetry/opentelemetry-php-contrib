@@ -159,6 +159,13 @@ class Model implements LaravelHook
             'getModels',
             pre: function ($builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $model = $builder->getModel();
+
+                if ($model instanceof \MongoDB\Laravel\Eloquent\Model) {
+                    $statement = json_encode($builder->getQuery()->toMql());
+                } else {
+                    $statement = $builder->getQuery()->toSql();
+                }
+
                 $builder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder($model::class . '::get')
@@ -169,7 +176,7 @@ class Model implements LaravelHook
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'get')
-                    ->setAttribute('db.statement', $builder->getQuery()->toSql());
+                    ->setAttribute('db.statement', $statement);
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
