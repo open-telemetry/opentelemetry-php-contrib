@@ -15,7 +15,7 @@
   },
   "autoload": {
     "psr-4": {
-      "OpenTelemetry\\Aws\\": "src/Aws/src",
+      "OpenTelemetry\\Contrib\\Aws\\": "src/Aws/src",
       "OpenTelemetry\\Contrib\\Context\\Swoole\\": "src/Context/Swoole/src",
       "OpenTelemetry\\Contrib\\Exporter\\Instana\\": "src/Exporter/Instana/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\AwsSdk\\": "src/Instrumentation/AwsSdk/src",
@@ -48,7 +48,7 @@
       "OpenTelemetry\\Contrib\\Propagation\\Instana\\": "src/Propagation/Instana/src",
       "OpenTelemetry\\Contrib\\Propagation\\ServerTiming\\": "src/Propagation/ServerTiming/src",
       "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/Propagation/TraceResponse/src",
-      "OpenTelemetry\\Azure\\": "src/ResourceDetectors/Azure/src",
+      "OpenTelemetry\\Contrib\\Resource\\Detector\\Azure\\": "src/ResourceDetectors/Azure/src",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\Container\\": "src/ResourceDetectors/Container/src",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "src/ResourceDetectors/DigitalOcean/src",
       "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\": "src/Sampler/RuleBased/src",
@@ -117,7 +117,7 @@
       "OpenTelemetry\\Tests\\Instrumentation\\Symfony\\tests\\": "src/Instrumentation/Symfony/tests",
       "OpenTelemetry\\Tests\\Instrumentation\\Wordpress\\": "src/Instrumentation/Wordpress/tests",
       "OpenTelemetry\\Tests\\Instrumentation\\Yii\\": "src/Instrumentation/Yii/tests",
-      "OpenTelemetry\\Tests\\Azure\\": "src/ResourceDetectors/Azure/tests",
+      "OpenTelemetry\\Tests\\Resource\\Detector\\Azure\\": "src/ResourceDetectors/Azure/tests",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "src/ResourceDetectors/DigitalOcean/tests",
       "OpenTelemetry\\Tests\\Contrib\\Symfony\\": "src/Symfony/tests",
       "OpenTelemetry\\TestUtils\\Tests\\": "src/Utils/Test/tests"
