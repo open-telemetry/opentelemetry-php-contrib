@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Azure\Unit\AppService;
+namespace OpenTelemetry\Tests\Resource\Detector\Azure\Unit\AppService;
 
 use AssertWell\PHPUnitGlobalState\EnvironmentVariables;
-use OpenTelemetry\Azure\AppService\Detector;
+use OpenTelemetry\Contrib\Resource\Detector\Azure\AppService\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
