@@ -47,8 +47,14 @@ final class SymfonyInstrumentation
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
                 $method = $request?->getMethod() ?? 'unknown';
+                $controller = $request?->attributes?->get('_controller');
+
+                if (!is_callable($controller, true, $controllerName)) {
+                    $controllerName = 'sub-request';
+                }
+
                 $name = ($type === HttpKernelInterface::SUB_REQUEST)
-                    ? sprintf('%s %s', $method, $request?->attributes?->get('_controller') ?? 'sub-request')
+                    ? sprintf('%s %s', $method, $controllerName)
                     : $method;
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
