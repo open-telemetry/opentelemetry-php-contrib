@@ -76,7 +76,7 @@ class AWSXRaySamplerClient
         $docs = [];
         foreach ($statistics as $d) {
             $docs[] = [
-                'ClientID'     => $d->ClientId,
+                'ClientID'     => $d->ClientID,
                 'RuleName'     => $d->RuleName,
                 'RequestCount' => $d->RequestCount,
                 'SampleCount'  => $d->SampleCount,

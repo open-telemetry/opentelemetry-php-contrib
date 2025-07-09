@@ -4,7 +4,7 @@ namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 class SamplingStatisticsDocument
 {
-    public string $ClientId;
+    public string $ClientID;
     public string $RuleName;
     public int    $RequestCount;
     public int    $SampleCount;
@@ -13,7 +13,7 @@ class SamplingStatisticsDocument
     
     public function __construct(string $clientId, string $ruleName, int $req, int $samp, int $borrow, float $ts)
     {
-        $this->ClientId     = $clientId;
+        $this->ClientID     = $clientId;
         $this->RuleName     = $ruleName;
         $this->RequestCount = $req;
         $this->SampleCount  = $samp;

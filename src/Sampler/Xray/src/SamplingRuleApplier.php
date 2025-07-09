@@ -48,31 +48,17 @@ class SamplingRuleApplier
     public function matches(AttributesInterface $attributes, ResourceInfo $resource): bool
     {
         // Extract HTTP path
-        $httpTarget = $attributes->get(TraceAttributes::HTTP_TARGET) 
-            ?? (
-                null !== $attributes->get(TraceAttributes::HTTP_URL)
-                    ? (preg_match('~^[^:]+://[^/]+(/.*)?$~', $attributes->get(TraceAttributes::HTTP_URL), $m) 
-                        ? ($m[1] ?? '/') 
-                        : null
-                    )
-                    : null
-            );
-
-        if (empty($httpTarget)) {
-            // Extract HTTP path
-            $httpTarget = $attributes->get(TraceAttributes::URL_PATH) 
-                ?? (
-                    null !== $attributes->get(TraceAttributes::URL_FULL)
-                        ? (preg_match('~^[^:]+://[^/]+(/.*)?$~', $attributes->get(TraceAttributes::URL_FULL), $m) 
-                            ? ($m[1] ?? '/') 
-                            : null
-                        )
-                        : null
-                );
+        $httpTarget = $attributes->get(TraceAttributes::HTTP_TARGET) ?? $attributes->get(TraceAttributes::URL_PATH);
+        $httpUrl = $attributes->get(TraceAttributes::HTTP_URL) ?? $attributes->get(TraceAttributes::URL_FULL);
+        if ($httpTarget == null && isset($httpUrl)) {
+            $httpTarget = parse_url($httpUrl, PHP_URL_PATH);
         }
 
         $httpMethod = $attributes->get(TraceAttributes::HTTP_METHOD) ?? $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD);
-        $httpHost   = $attributes->get(TraceAttributes::HTTP_HOST)   ?? null;
+        if ($httpMethod == "_OTHER") {
+            $httpMethod = $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL);
+        }
+        $httpHost   = $attributes->get(TraceAttributes::HTTP_HOST)   ?? $attributes->get(TraceAttributes::SERVER_ADDRESS) ;
         $serviceName= $resource->getAttributes()->get(TraceAttributes::SERVICE_NAME) ?? '';
         $cloudPlat  = $resource->getAttributes()->get(TraceAttributes::CLOUD_PLATFORM) ?? null;
         $serviceType= Matcher::getXRayCloudPlatform($cloudPlat);

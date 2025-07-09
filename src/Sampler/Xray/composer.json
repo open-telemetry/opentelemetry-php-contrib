@@ -25,7 +25,8 @@
     "autoload": {
         "psr-4": {
             "OpenTelemetry\\Contrib\\Sampler\\Xray\\": "src/"
-        }
+        },
+        "classmap": ["src/AWSXRayRemoteSampler.php"]
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
