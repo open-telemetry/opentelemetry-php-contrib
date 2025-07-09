@@ -18,7 +18,7 @@ declare(strict_types=1);
  * limitations under the License.
  */
 
-namespace OpenTelemetry\Azure\AppService;
+namespace OpenTelemetry\Contrib\Resource\Detector\Azure\AppService;
 
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
