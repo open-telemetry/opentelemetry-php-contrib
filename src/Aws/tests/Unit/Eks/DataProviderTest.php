@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Aws\Unit\Eks;
 
-use OpenTelemetry\Aws\Eks\DataProvider;
+use OpenTelemetry\Contrib\Aws\Eks\DataProvider;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
