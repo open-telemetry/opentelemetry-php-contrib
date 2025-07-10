@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-use OpenTelemetry\Contrib\Sampler\Xray\AWSXRaySamplerClient;
 use GuzzleHttp\Psr7\Response;
-use OpenTelemetry\Contrib\Sampler\Xray\SamplingStatisticsDocument;
+use OpenTelemetry\Contrib\Sampler\Xray\AWSXRaySamplerClient;
 use OpenTelemetry\Contrib\Sampler\Xray\SamplingRule;
+use OpenTelemetry\Contrib\Sampler\Xray\SamplingStatisticsDocument;
+use PHPUnit\Framework\TestCase;
 
 final class AWSXRaySamplerClientTest extends TestCase
 {
@@ -92,12 +93,12 @@ final class AWSXRaySamplerClientTest extends TestCase
 
         $t1 = $resp->SamplingTargetDocuments[0];
         $this->assertSame('test', $t1->RuleName);
-        $this->assertSame(30,     $t1->ReservoirQuota);
-        $this->assertSame(0.10,   $t1->FixedRate);
+        $this->assertSame(30, $t1->ReservoirQuota);
+        $this->assertSame(0.10, $t1->FixedRate);
 
         $t2 = $resp->SamplingTargetDocuments[1];
         $this->assertSame('Default', $t2->RuleName);
-        $this->assertSame(0,         $t2->ReservoirQuota);
-        $this->assertSame(0.05,      $t2->FixedRate);
+        $this->assertSame(0, $t2->ReservoirQuota);
+        $this->assertSame(0.05, $t2->FixedRate);
     }
 }

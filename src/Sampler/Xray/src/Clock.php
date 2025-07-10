@@ -14,6 +14,6 @@ class Clock
     
     public function toUnixMillis(\DateTimeImmutable $dt): float
     {
-        return ($dt->getTimestamp() * 1000) + ($dt->format('v') / 1);
+        return $dt->getTimestamp() * 1000;
     }
 }

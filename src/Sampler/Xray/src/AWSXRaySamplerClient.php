@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * A lightweight HTTP client for AWS X-Ray sampling endpoints.
@@ -34,7 +33,6 @@ class AWSXRaySamplerClient
     /**
      * Fetches all sampling rules from X-Ray by paging through NextToken.
      *
-     * @throws GuzzleException on HTTP errors.
      * @return SamplingRule[]  Array of SamplingRule instances.
      */
     public function getSamplingRules(): array
@@ -70,7 +68,6 @@ class AWSXRaySamplerClient
      * Sends current statistics documents to X-Ray and returns the decoded response.
      *
      * @param SamplingStatisticsDocument[] $statistics
-     * @throws GuzzleException on HTTP errors.
      * @return object|null  stdClass of the X-Ray GetSamplingTargets response.
      */
     public function getSamplingTargets(array $statistics): ?object

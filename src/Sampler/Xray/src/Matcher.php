@@ -51,7 +51,7 @@ class Matcher
     /**
      * Map OpenTelemetry cloud.platform values to X-Ray service type strings.
      */
-    public static function getXRayCloudPlatform(?string $platform): string
+    public static function getXRayCloudPlatform(string $platform): string
     {
         return self::$xrayCloudPlatform[$platform] ?? '';
     }
