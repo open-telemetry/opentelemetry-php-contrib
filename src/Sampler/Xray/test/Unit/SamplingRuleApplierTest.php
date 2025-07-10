@@ -1,16 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-use OpenTelemetry\Contrib\Sampler\Xray\SamplingRuleApplier;
-use OpenTelemetry\Contrib\Sampler\Xray\SamplingRule;
+use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Contrib\Sampler\Xray\Clock;
+use OpenTelemetry\Contrib\Sampler\Xray\SamplingRule;
+use OpenTelemetry\Contrib\Sampler\Xray\SamplingRuleApplier;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SamplingResult;
-use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\SemConv\TraceAttributes;
+use PHPUnit\Framework\TestCase;
 
 final class SamplingRuleApplierTest extends TestCase
 {
@@ -29,7 +30,14 @@ final class SamplingRuleApplierTest extends TestCase
             1,
             0.5,
             0,
-            '*', '*', '*', '*', '*', '*', 1, []
+            '*',
+            '*',
+            '*',
+            '*',
+            '*',
+            '*',
+            1,
+            []
         );
         $applier = new SamplingRuleApplier('client', $this->clock, $rule);
 
@@ -79,7 +87,7 @@ final class SamplingRuleApplierTest extends TestCase
         $resource = ResourceInfo::create(Attributes::create([
             TraceAttributes::SERVICE_NAME   => 'MyService',
             TraceAttributes::CLOUD_PLATFORM => 'aws_ecs',
-            'aws.ecs.container.arn'         => 'arn:aws:ecs:123'
+            'aws.ecs.container.arn'         => 'arn:aws:ecs:123',
         ]));
 
         $this->assertTrue(
@@ -96,7 +104,14 @@ final class SamplingRuleApplierTest extends TestCase
             1,
             0.5,
             0,
-            '*', '*', '*', '*', '*', '*', 1, []
+            '*',
+            '*',
+            '*',
+            '*',
+            '*',
+            '*',
+            1,
+            []
         );
         $applier = new SamplingRuleApplier('client', $this->clock, $rule);
 
@@ -146,7 +161,7 @@ final class SamplingRuleApplierTest extends TestCase
         $resource = ResourceInfo::create(Attributes::create([
             TraceAttributes::SERVICE_NAME   => 'MyService',
             TraceAttributes::CLOUD_PLATFORM => 'aws_ecs',
-            'aws.ecs.container.arn'         => 'arn:aws:ecs:123'
+            'aws.ecs.container.arn'         => 'arn:aws:ecs:123',
         ]));
 
         $this->assertTrue(
@@ -184,7 +199,7 @@ final class SamplingRuleApplierTest extends TestCase
         $resource = ResourceInfo::create(Attributes::create([
             TraceAttributes::SERVICE_NAME   => 'MyService',
             TraceAttributes::CLOUD_PLATFORM => 'aws_ecs',
-            'aws.ecs.container.arn'         => 'arn:aws:ecs:123'
+            'aws.ecs.container.arn'         => 'arn:aws:ecs:123',
         ]));
 
         $this->assertFalse(
@@ -209,12 +224,15 @@ final class SamplingRuleApplierTest extends TestCase
 
         // Inject mocks via reflection
         $ref = new \ReflectionClass($applier);
-        $propRes = $ref->getProperty('reservoirSampler'); $propRes->setAccessible(true);
+        $propRes = $ref->getProperty('reservoirSampler');
+        $propRes->setAccessible(true);
         $propRes->setValue($applier, $reservoirMock);
-        $propFix = $ref->getProperty('fixedRateSampler'); $propFix->setAccessible(true);
+        $propFix = $ref->getProperty('fixedRateSampler');
+        $propFix->setAccessible(true);
         $propFix->setValue($applier, $fixedMock);
         // Ensure borrowing = true
-        $propBorrow = $ref->getProperty('borrowing'); $propBorrow->setAccessible(true);
+        $propBorrow = $ref->getProperty('borrowing');
+        $propBorrow->setAccessible(true);
         $propBorrow->setValue($applier, true);
 
         $context = $this->createMock(ContextInterface::class);
@@ -248,9 +266,11 @@ final class SamplingRuleApplierTest extends TestCase
             ->willReturn(new SamplingResult(SamplingResult::RECORD_AND_SAMPLE, [], null));
 
         $ref = new \ReflectionClass($applier);
-        $propRes = $ref->getProperty('reservoirSampler'); $propRes->setAccessible(true);
+        $propRes = $ref->getProperty('reservoirSampler');
+        $propRes->setAccessible(true);
         $propRes->setValue($applier, $reservoirMock);
-        $propFix = $ref->getProperty('fixedRateSampler'); $propFix->setAccessible(true);
+        $propFix = $ref->getProperty('fixedRateSampler');
+        $propFix->setAccessible(true);
         $propFix->setValue($applier, $fixedMock);
 
         $context = $this->createMock(ContextInterface::class);

@@ -1,8 +1,9 @@
 <?php
+
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
 use OpenTelemetry\Contrib\Sampler\Xray\RateLimiter;
+use PHPUnit\Framework\TestCase;
 
 final class RateLimiterTest extends TestCase
 {

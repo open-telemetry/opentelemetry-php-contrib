@@ -1,14 +1,17 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/SamplingRuleApplier.php
+
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
-use OpenTelemetry\SDK\Trace\SamplerInterface;
-use OpenTelemetry\SDK\Trace\SamplingResult;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\Sampler\AlwaysOffSampler;
 use OpenTelemetry\SDK\Trace\Sampler\TraceIdRatioBasedSampler;
+use OpenTelemetry\SDK\Trace\SamplerInterface;
+use OpenTelemetry\SDK\Trace\SamplingResult;
 use OpenTelemetry\SemConv\TraceAttributes;
 
 class SamplingRuleApplier
@@ -41,7 +44,7 @@ class SamplingRuleApplier
         }
         
         $this->fixedRateSampler = new TraceIdRatioBasedSampler($rule->FixedRate);
-        $this->reservoirEndTime = new \DateTimeImmutable('@'.PHP_INT_MAX);
+        $this->reservoirEndTime = new \DateTimeImmutable('@' . PHP_INT_MAX);
         $this->nextSnapshotTime = $clock->now();
     }
     
@@ -55,7 +58,7 @@ class SamplingRuleApplier
         }
 
         $httpMethod = $attributes->get(TraceAttributes::HTTP_METHOD) ?? $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD);
-        if ($httpMethod == "_OTHER") {
+        if ($httpMethod == '_OTHER') {
             $httpMethod = $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL);
         }
         $httpHost   = $attributes->get(TraceAttributes::HTTP_HOST)   ?? $attributes->get(TraceAttributes::SERVER_ADDRESS) ;
@@ -69,15 +72,14 @@ class SamplingRuleApplier
             ?? '';
 
         return Matcher::attributeMatch($attributes->toArray(), $this->rule->Attributes)
-            && Matcher::wildcardMatch($httpTarget,    $this->rule->UrlPath)
-            && Matcher::wildcardMatch($httpMethod,    $this->rule->HttpMethod)
-            && Matcher::wildcardMatch($httpHost,      $this->rule->Host)
-            && Matcher::wildcardMatch($serviceName,   $this->rule->ServiceName)
-            && Matcher::wildcardMatch($serviceType,   $this->rule->ServiceType)
-            && Matcher::wildcardMatch($arn,           $this->rule->ResourceArn);
+            && Matcher::wildcardMatch($httpTarget, $this->rule->UrlPath)
+            && Matcher::wildcardMatch($httpMethod, $this->rule->HttpMethod)
+            && Matcher::wildcardMatch($httpHost, $this->rule->Host)
+            && Matcher::wildcardMatch($serviceName, $this->rule->ServiceName)
+            && Matcher::wildcardMatch($serviceType, $this->rule->ServiceType)
+            && Matcher::wildcardMatch($arn, $this->rule->ResourceArn);
     }
 
-    
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,
@@ -85,24 +87,27 @@ class SamplingRuleApplier
         int $spanKind,
         AttributesInterface $attributes,
         array $links,
-    ): SamplingResult 
-    {
+    ): SamplingResult {
         $this->statistics->requestCount++;
         $now = $this->clock->now();
         if ($now < $this->reservoirEndTime) {
-            $res = $this->reservoirSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);;
+            $res = $this->reservoirSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
+            ;
             if ($res->getDecision() !== SamplingResult::DROP) {
                 if ($this->borrowing) {
                     $this->statistics->borrowCount++;
                 }
                 $this->statistics->sampleCount++;
+
                 return $res;
             }
         }
-        $res = $this->fixedRateSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);;
+        $res = $this->fixedRateSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
+        ;
         if ($res->getDecision() !== SamplingResult::DROP) {
             $this->statistics->sampleCount++;
         }
+
         return $res;
     }
     
@@ -151,7 +156,7 @@ class SamplingRuleApplier
             $newReservoirSampler = $quota > 0
                 ? new RateLimitingSampler($quota)
                 : new AlwaysOffSampler();
-            $newReservoirEndTime = \DateTimeImmutable::createFromFormat('U', (string)$ttlSeconds)
+            $newReservoirEndTime = \DateTimeImmutable::createFromFormat('U', (string) $ttlSeconds)
                 ?: $newReservoirEndTime;
         } else {
             // if no quota provided, turn off reservoir
@@ -175,7 +180,6 @@ class SamplingRuleApplier
         return $clone;
     }
 
-    
     public function getNextSnapshotTime(): \DateTimeImmutable
     {
         return $this->nextSnapshotTime;
@@ -186,7 +190,8 @@ class SamplingRuleApplier
         return $this->ruleName;
     }
 
-    public function setRule($rule) {
+    public function setRule($rule)
+    {
         $this->rule = $rule;
     }
 }

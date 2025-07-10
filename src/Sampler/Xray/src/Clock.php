@@ -1,5 +1,8 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/Clock.php
+
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 class Clock

@@ -1,24 +1,26 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/AWSXRayRemoteSampler.php
 
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 use DateTimeImmutable;
 use Exception;
-use OpenTelemetry\SDK\Trace\Sampler\ParentBased;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
-use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\Sampler\ParentBased;
+use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SamplingResult;
 
-
-class AWSXRayRemoteSampler implements SamplerInterface {
+class AWSXRayRemoteSampler implements SamplerInterface
+{
     private SamplerInterface $root;
     public function __construct(
         ResourceInfo $resource,
-        string       $host,
-        int          $rulePollingIntervalMillis = 60
+        string $host,
+        int $rulePollingIntervalMillis = 60
     ) {
         $this->root = new ParentBased(new _AWSXRayRemoteSampler($resource, $host, $rulePollingIntervalMillis));
     }
@@ -30,8 +32,7 @@ class AWSXRayRemoteSampler implements SamplerInterface {
         int $spanKind,
         AttributesInterface $attributes,
         array $links,
-    ): SamplingResult
-    {
+    ): SamplingResult {
         return $this->root->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
 
@@ -76,8 +77,8 @@ class _AWSXRayRemoteSampler implements SamplerInterface
      */
     public function __construct(
         ResourceInfo $resource,
-        string       $awsProxyEndpoint = self::DEFAULT_AWS_PROXY_ENDPOINT,
-        int          $pollingInterval = self::DEFAULT_RULES_POLLING_INTERVAL_SECONDS
+        string $awsProxyEndpoint = self::DEFAULT_AWS_PROXY_ENDPOINT,
+        int $pollingInterval = self::DEFAULT_RULES_POLLING_INTERVAL_SECONDS
     ) {
         $this->clock                   = new Clock();
         $this->fallback                = new FallbackSampler();
@@ -108,8 +109,8 @@ class _AWSXRayRemoteSampler implements SamplerInterface
 
         // 2) Schedule next fetch times with jitter
         $now                           = $this->clock->now();
-        $this->nextRulesFetchTime      = $now->modify('+ '.$this->rulePollingJitterMillis + $this->rulePollingIntervalMillis.' milliseconds');
-        $this->nextTargetFetchTime     = $now->modify('+ '.$this->targetPollingJitterMillis + $this->targetPollingIntervalMillis.' milliseconds');
+        $this->nextRulesFetchTime      = $now->modify('+ ' . $this->rulePollingJitterMillis + $this->rulePollingIntervalMillis . ' milliseconds');
+        $this->nextTargetFetchTime     = $now->modify('+ ' . $this->targetPollingJitterMillis + $this->targetPollingIntervalMillis . ' milliseconds');
     }
 
     /**
@@ -122,8 +123,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
         int $spanKind,
         AttributesInterface $attributes,
         array $links,
-    ): SamplingResult
-    {
+    ): SamplingResult {
         $now = $this->clock->now();
 
         // 1) Refresh rules if needed
@@ -166,7 +166,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
 
             $nextTargetFetchInterval = $nextTargetFetchInterval * 1000;
             
-            $this->nextTargetFetchTime = $now->modify('+ '.$this->targetPollingJitterMillis + $nextTargetFetchInterval.' milliseconds');
+            $this->nextTargetFetchTime = $now->modify('+ ' . $this->targetPollingJitterMillis + $nextTargetFetchInterval . ' milliseconds');
 
         }
 
@@ -175,6 +175,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
         if ($this->rulesCache->expired()) {
             return $this->fallback->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
         }
+
         // delegate
         return $this->rulesCache->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
@@ -187,7 +188,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
         } catch (Exception $e) {
             // ignore error
         }
-        $this->nextRulesFetchTime = $now->modify('+ '.$this->rulePollingJitterMillis + $this->rulePollingIntervalMillis.' milliseconds');
+        $this->nextRulesFetchTime = $now->modify('+ ' . $this->rulePollingJitterMillis + $this->rulePollingIntervalMillis . ' milliseconds');
     }
 
     public function getDescription(): string

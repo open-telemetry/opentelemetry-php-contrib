@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/AWSXRaySamplerClient.php
 
 namespace OpenTelemetry\Contrib\Sampler\Xray;
@@ -32,8 +34,8 @@ class AWSXRaySamplerClient
     /**
      * Fetches all sampling rules from X-Ray by paging through NextToken.
      *
-     * @return SamplingRule[]  Array of SamplingRule instances.
      * @throws GuzzleException on HTTP errors.
+     * @return SamplingRule[]  Array of SamplingRule instances.
      */
     public function getSamplingRules(): array
     {
@@ -68,8 +70,8 @@ class AWSXRaySamplerClient
      * Sends current statistics documents to X-Ray and returns the decoded response.
      *
      * @param SamplingStatisticsDocument[] $statistics
-     * @return object|null  stdClass of the X-Ray GetSamplingTargets response.
      * @throws GuzzleException on HTTP errors.
+     * @return object|null  stdClass of the X-Ray GetSamplingTargets response.
      */
     public function getSamplingTargets(array $statistics): ?object
     {

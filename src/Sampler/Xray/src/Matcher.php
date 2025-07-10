@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 class Matcher
@@ -25,6 +27,7 @@ class Matcher
                 return false;
             }
         }
+
         return true;
     }
 
@@ -41,6 +44,7 @@ class Matcher
         }
         // escape regex, then replace \* with .*
         $regex = '/^' . str_replace('\*', '.*', preg_quote($pattern, '/')) . '$/';
+
         return (bool) preg_match($regex, $value);
     }
 

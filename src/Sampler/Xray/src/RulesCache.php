@@ -1,12 +1,15 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/RulesCache.php
+
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SamplingResult;
-use OpenTelemetry\SDK\Resource\ResourceInfo;
 
 class RulesCache implements SamplerInterface
 {
@@ -36,7 +39,7 @@ class RulesCache implements SamplerInterface
     
     public function updateRules(array $newRules): void
     {
-        usort($newRules, fn(SamplingRule $a, SamplingRule $b) => $a->compareTo($b));
+        usort($newRules, fn (SamplingRule $a, SamplingRule $b) => $a->compareTo($b));
         $newAppliers = [];
         foreach ($newRules as $rule) {
             // reuse existing applier if same ruleName
@@ -44,6 +47,7 @@ class RulesCache implements SamplerInterface
             foreach ($this->appliers as $ap) {
                 if ($ap->getRuleName() === $rule->RuleName) {
                     $found = $ap;
+
                     break;
                 }
             }
@@ -64,26 +68,27 @@ class RulesCache implements SamplerInterface
         int $spanKind,
         AttributesInterface $attributes,
         array $links,
-    ): SamplingResult
-    {
+    ): SamplingResult {
         foreach ($this->appliers as $applier) {
             if ($applier->matches($attributes, $this->resource)) {
                 return $applier->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
             }
         }
+
         // fallback if no rule matched
         return $this->fallbackSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
     
     public function nextTargetFetchTime(): \DateTimeImmutable
     {
-        $defaultPollingTime = $this->clock->now()->add(new \DateInterval('PT'.self::DEFAULT_TARGET_INTERVAL_SEC.'S'));
+        $defaultPollingTime = $this->clock->now()->add(new \DateInterval('PT' . self::DEFAULT_TARGET_INTERVAL_SEC . 'S'));
         
         if (empty($this->appliers)) {
             return $defaultPollingTime;
         }
-        $times = array_map(fn($a) => $a->getNextSnapshotTime(), $this->appliers);
+        $times = array_map(fn ($a) => $a->getNextSnapshotTime(), $this->appliers);
         $min = min($times);
+
         return $min < $this->clock->now()
             ? $defaultPollingTime
             : $min;
@@ -109,7 +114,6 @@ class RulesCache implements SamplerInterface
         return $this->appliers;
     }
 
-    
     public function getDescription(): string
     {
         return 'RulesCache';

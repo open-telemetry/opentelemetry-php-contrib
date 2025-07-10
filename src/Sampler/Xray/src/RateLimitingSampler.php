@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/RateLimitingSampler.php
 
 namespace OpenTelemetry\Contrib\Sampler\Xray;
@@ -31,8 +33,7 @@ class RateLimitingSampler implements SamplerInterface
         int $spanKind,
         AttributesInterface $attributes,
         array $links,
-    ): SamplingResult
-    {
+    ): SamplingResult {
         if ($this->limiter->tryAcquire()) {
             return new SamplingResult(SamplingResult::RECORD_AND_SAMPLE, [], null);
         }

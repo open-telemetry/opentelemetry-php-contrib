@@ -1,5 +1,8 @@
 <?php
+
+declare(strict_types=1);
 // src/Sampler/AWS/FallbackSampler.php
+
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
 use OpenTelemetry\Context\ContextInterface;
@@ -31,6 +34,7 @@ class FallbackSampler implements SamplerInterface
         if ($res->getDecision() !== SamplingResult::DROP) {
             return $res;
         }
+
         return $this->fixedRate->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
     

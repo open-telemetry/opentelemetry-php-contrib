@@ -1,16 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-use OpenTelemetry\Contrib\Sampler\Xray\_AWSXRayRemoteSampler;
-use OpenTelemetry\Contrib\Sampler\Xray\Clock;
-use OpenTelemetry\Contrib\Sampler\Xray\RulesCache;
-use OpenTelemetry\Contrib\Sampler\Xray\AWSXRaySamplerClient;
-use OpenTelemetry\Contrib\Sampler\Xray\FallbackSampler;
-use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Contrib\Sampler\Xray\_AWSXRayRemoteSampler;
+use OpenTelemetry\Contrib\Sampler\Xray\AWSXRaySamplerClient;
+use OpenTelemetry\Contrib\Sampler\Xray\Clock;
+use OpenTelemetry\Contrib\Sampler\Xray\FallbackSampler;
+use OpenTelemetry\Contrib\Sampler\Xray\RulesCache;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\SamplingResult;
+use PHPUnit\Framework\TestCase;
 
 final class AWSXRayRemoteSamplerTest extends TestCase
 {
@@ -26,7 +27,7 @@ final class AWSXRayRemoteSamplerTest extends TestCase
             ->willReturn($dummyRules);
         $mockClient->expects($this->once())
             ->method('getSamplingTargets')
-            ->willReturn((object)[
+            ->willReturn((object) [
                 'SamplingTargetDocuments' => [],
                 'Interval' => 5,
                 'LastRuleModification' => 0,
@@ -73,7 +74,9 @@ final class AWSXRayRemoteSamplerTest extends TestCase
         // 5) Call shouldSample
         $result = $sampler->shouldSample(
             $this->createMock(ContextInterface::class),
-            'traceId', 'spanName', 1,
+            'traceId',
+            'spanName',
+            1,
             Attributes::create([]),
             []
         );
@@ -112,7 +115,9 @@ final class AWSXRayRemoteSamplerTest extends TestCase
 
         $result = $sampler->shouldSample(
             $this->createMock(ContextInterface::class),
-            't', 'n', 1,
+            't',
+            'n',
+            1,
             Attributes::create([]),
             []
         );
