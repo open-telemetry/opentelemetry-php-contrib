@@ -1,87 +1,51 @@
-# Contrib Sampler
+# AWS X-Ray Sampler
 
-Provides additional samplers that are not part of the official specification.
+Provides a sampler which can get sampling configurations from AWS X-Ray to make sampling decisions. See: [AWS X-Ray Sampling](https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-sampling)
 
 ## Installation
 
 ```shell
-composer require open-telemetry/sampler-rule-based
+composer require open-telemetry/contrib-aws-xray-sampler
 ```
 
-## RuleBasedSampler
-
-Allows sampling based on a list of rule sets. The first matching rule set will decide the sampling result.
+## Configuration
+You can configure the `AWSXRayRemoteSampler` as per the following example.
+Note that you will need to configure your [OpenTelemetry Collector for
+X-Ray remote sampling](https://aws-otel.github.io/docs/getting-started/remote-sampling).
 
 ```php
-$sampler = new RuleBasedSampler(
-    [
-        new RuleSet(
-            [
-                new SpanKindRule(Kind::Server),
-                new AttributeRule('url.path', '~^/health$~'),
-            ],
-            new AlwaysOffSampler(),
-        ),
-    ],
-    new AlwaysOnSampler(),
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/vendor/autoload.php';
+
+use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Trace\SpanExporter\ConsoleSpanExporterFactory;
+use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\Contrib\Sampler\Xray\AWSXRayRemoteSampler;
+
+$resource = ResourceInfo::create(Attributes::create([
+    'service.name'   => 'MyServiceName',
+    'service.version'=> '1.0.0',
+    'cloud.provider' => 'aws',
+]));
+
+$xraySampler = new AWSXRayRemoteSampler(
+    $resource,
+    'http://localhost:2000',
+    2
 );
-```
 
-### Configuration
-
-###### Example: drop spans for the /health endpoint
-
-```yaml
-contrib_rule_based:
-    rule_sets:
-    -   rules:
-        -   span_kind: { kind: SERVER }
-        -   attribute: { key: url.path, pattern: ~^/health$~ }
-        delegate:
-            always_off: {}
-    fallback: # ...
-```
-
-###### Example: sample spans with at least one sampled link
-
-```yaml
-contrib_rule_based:
-    rule_sets:
-    -   rules: [ link: { sampled: true } ]
-        delegate:
-            always_on: {}
-    fallback: # ...
-```
-
-###### Example: modeling parent based sampler as rule based sampler
-
-```yaml
-rule_based:
-    rule_sets:
-    -   rules: [ parent: { sampled: true, remote: true } ]
-        delegate: # remote_parent_sampled
-    -   rules: [ parent: { sampled: false, remote: true } ]
-        delegate: # remote_parent_not_sampled
-    -   rules: [ parent: { sampled: true, remote: false } ]
-        delegate: # local_parent_sampled
-    -   rules: [ parent: { sampled: false, remote: false } ]
-        delegate: # local_parent_not_sampled
-    fallback: # root
-```
-
-## AlwaysRecordingSampler
-
-Records all spans to allow the usage of span processors that generate metrics from spans.
-
-```php
-$sampler = new AlwaysRecordingSampler(
-    new ParentBasedSampler(new AlwaysOnSampler()),
-);
-```
-
-### Configuration
-
-```yaml
-always_recording:
-    sampler: # ...
+$tracerProvider = TracerProvider::builder()
+    ->setResource($resource)
+    ->setSampler($xraySampler)
+    ->addSpanProcessor(
+        new SimpleSpanProcessor(
+            (new ConsoleSpanExporterFactory())->create()
+        )
+    )
+    ->build();
 ```
