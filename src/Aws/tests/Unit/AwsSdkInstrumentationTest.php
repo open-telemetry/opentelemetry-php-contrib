@@ -6,8 +6,8 @@ namespace OpenTelemetry\Tests\Aws\Unit;
 
 use DG\BypassFinals;
 use OpenTelemetry\API\Trace\TracerInterface;
-use OpenTelemetry\Aws\AwsSdkInstrumentation;
-use OpenTelemetry\Aws\Xray\Propagator;
+use OpenTelemetry\Contrib\Aws\AwsSdkInstrumentation;
+use OpenTelemetry\Contrib\Aws\Xray\Propagator;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
 

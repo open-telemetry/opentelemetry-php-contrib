@@ -18,7 +18,7 @@ declare(strict_types=1);
  * limitations under the License.
  */
 
-namespace OpenTelemetry\Azure\Vm;
+namespace OpenTelemetry\Contrib\Resource\Detector\Azure\Vm;
 
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
