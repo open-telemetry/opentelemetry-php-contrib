@@ -57,11 +57,13 @@ updates:
   # Maintain dependencies for all packages
   - package-ecosystem: "composer"
     directories:
-      - "/examples/aws/AwsClientApp"
       - "/examples/instrumentation/Wordpress"
       - "/src/AutoInstrumentationInstaller"
       - "/src/Aws"
+      - "/src/Aws/examples/AwsClientApp"
       - "/src/Context/Swoole"
+      - "/src/Exporter/Instana"
+      - "/src/Instrumentation/AwsSdk"
       - "/src/Instrumentation/CakePHP"
       - "/src/Instrumentation/CodeIgniter"
       - "/src/Instrumentation/Curl"
