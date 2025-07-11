@@ -13,6 +13,7 @@ use OpenTelemetry\SDK\Trace\SamplingResult;
 use OpenTelemetry\SemConv\TraceAttributes;
 use PHPUnit\Framework\TestCase;
 
+/** @psalm-suppress UnusedMethodCall */
 final class SamplingRuleApplierTest extends TestCase
 {
     private Clock $clock;

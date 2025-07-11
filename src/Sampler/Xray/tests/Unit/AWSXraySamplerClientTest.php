@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\Contrib\Sampler\Xray\AWSXRaySamplerClient;
-use OpenTelemetry\Contrib\Sampler\Xray\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\Xray\SamplingStatisticsDocument;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @psalm-suppress UnusedMethodCall
+ * @psalm-suppress UndefinedInterfaceMethod
+ * @psalm-suppress PossiblyInvalidArrayAccess
+ * @psalm-suppress PossiblyFalseArgument
+*/
 final class AWSXRaySamplerClientTest extends TestCase
 {
-    private string $rulesJson;
-    private string $targetsJson;
+    private string|false $rulesJson;
+    private string|false $targetsJson;
 
     protected function setUp(): void
     {
@@ -42,14 +47,12 @@ final class AWSXRaySamplerClientTest extends TestCase
         // 4) Assertions: two rules, correct mapping
         $this->assertCount(2, $rules);
 
-        /** @var SamplingRule $r1 */
         $r1 = $rules[0];
         $this->assertSame('Default', $r1->RuleName);
         $this->assertSame(0.05, $r1->FixedRate);
         $this->assertSame(100, $r1->ReservoirSize);
         $this->assertEquals(['foo'=>'bar','abc'=>'1234'], $r1->Attributes);
 
-        /** @var SamplingRule $r2 */
         $r2 = $rules[1];
         $this->assertSame('test', $r2->RuleName);
         $this->assertSame(0.11, $r2->FixedRate);

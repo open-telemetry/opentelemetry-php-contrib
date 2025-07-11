@@ -17,6 +17,7 @@ class SamplingRule implements \JsonSerializable
     public string $ServiceName;
     public string $ServiceType;
     public string $UrlPath;
+    /** @psalm-suppress PossiblyUnusedProperty */
     public int $Version;
     public array $Attributes;
     

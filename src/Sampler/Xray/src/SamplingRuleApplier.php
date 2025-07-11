@@ -55,13 +55,14 @@ class SamplingRuleApplier
         $httpUrl = $attributes->get(TraceAttributes::HTTP_URL) ?? $attributes->get(TraceAttributes::URL_FULL); // @phan-suppress-current-line PhanDeprecatedClassConstant
         if ($httpTarget == null && isset($httpUrl)) {
             $httpTarget = parse_url($httpUrl, PHP_URL_PATH);
+            $httpTarget = $httpTarget ? $httpTarget : null;
         }
 
         $httpMethod = $attributes->get(TraceAttributes::HTTP_METHOD) ?? $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD); // @phan-suppress-current-line PhanDeprecatedClassConstant
         if ($httpMethod == '_OTHER') {
             $httpMethod = $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL);
         }
-        $httpHost   = $attributes->get(TraceAttributes::HTTP_HOST)   ?? $attributes->get(TraceAttributes::SERVER_ADDRESS) ; // @phan-suppress-current-line PhanDeprecatedClassConstant
+        $httpHost   = $attributes->get(TraceAttributes::HTTP_HOST)   ?? $attributes->get(TraceAttributes::SERVER_ADDRESS); // @phan-suppress-current-line PhanDeprecatedClassConstant
         $serviceName= $resource->getAttributes()->get(TraceAttributes::SERVICE_NAME) ?? '';
         $cloudPlat  = $resource->getAttributes()->get(TraceAttributes::CLOUD_PLATFORM) ?? '';
         $serviceType= Matcher::getXRayCloudPlatform($cloudPlat);
@@ -80,6 +81,7 @@ class SamplingRuleApplier
             && Matcher::wildcardMatch($arn, $this->rule->ResourceArn);
     }
 
+    /** @psalm-suppress ArgumentTypeCoercion */
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,

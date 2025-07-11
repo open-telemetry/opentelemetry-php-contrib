@@ -14,6 +14,7 @@ use OpenTelemetry\SDK\Trace\Sampler\ParentBased;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SamplingResult;
 
+/** @psalm-suppress UnusedClass */
 class AWSXRayRemoteSampler implements SamplerInterface
 {
     private SamplerInterface $root;
@@ -58,6 +59,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
     private AWSXRaySamplerClient $client;
 
     private int $rulePollingIntervalMillis;
+    /** @psalm-suppress UnusedProperty */
     private int $targetPollingIntervalMillis;
     private DateTimeImmutable $nextRulesFetchTime;
     private DateTimeImmutable $nextTargetFetchTime;
@@ -109,8 +111,8 @@ class _AWSXRayRemoteSampler implements SamplerInterface
 
         // 2) Schedule next fetch times with jitter
         $now                           = $this->clock->now();
-        $this->nextRulesFetchTime      = $now->modify('+ ' . $this->rulePollingJitterMillis + $this->rulePollingIntervalMillis . ' milliseconds');
-        $this->nextTargetFetchTime     = $now->modify('+ ' . $this->targetPollingJitterMillis + $this->targetPollingIntervalMillis . ' milliseconds');
+        $this->nextRulesFetchTime      = $now->modify('+ ' . ($this->rulePollingJitterMillis + $this->rulePollingIntervalMillis) . ' milliseconds');
+        $this->nextTargetFetchTime     = $now->modify('+ ' . ($this->targetPollingJitterMillis + $this->targetPollingIntervalMillis) . ' milliseconds');
     }
 
     /**
@@ -166,7 +168,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
 
             $nextTargetFetchInterval = $nextTargetFetchInterval * 1000;
             
-            $this->nextTargetFetchTime = $now->modify('+ ' . $this->targetPollingJitterMillis + $nextTargetFetchInterval . ' milliseconds');
+            $this->nextTargetFetchTime = $now->modify('+ ' . ($this->targetPollingJitterMillis + $nextTargetFetchInterval) . ' milliseconds');
 
         }
 
@@ -188,7 +190,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
         } catch (Exception $e) {
             // ignore error
         }
-        $this->nextRulesFetchTime = $now->modify('+ ' . $this->rulePollingJitterMillis + $this->rulePollingIntervalMillis . ' milliseconds');
+        $this->nextRulesFetchTime = $now->modify('+ ' . ($this->rulePollingJitterMillis + $this->rulePollingIntervalMillis) . ' milliseconds');
     }
 
     public function getDescription(): string

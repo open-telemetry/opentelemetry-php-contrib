@@ -13,6 +13,7 @@ use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\SamplingResult;
 use PHPUnit\Framework\TestCase;
 
+/** @psalm-suppress UnusedMethodCall */
 final class AWSXRayRemoteSamplerTest extends TestCase
 {
     public function testShouldSampleUpdatesRulesAndTargets(): void

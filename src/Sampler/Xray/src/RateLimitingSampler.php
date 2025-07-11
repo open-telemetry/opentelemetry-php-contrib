@@ -43,6 +43,6 @@ class RateLimitingSampler implements SamplerInterface
 
     public function getDescription(): string
     {
-        return sprintf('RateLimitingSampler{rate limiting sampling with sampling config of %d req/sec and 0% of additional requests}', $this->limiter->getCapacity());
+        return sprintf('RateLimitingSampler{rate limiting sampling with sampling config of %d req/sec and 0%% of additional requests}', $this->limiter->getCapacity());
     }
 }

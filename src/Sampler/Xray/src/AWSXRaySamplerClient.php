@@ -14,6 +14,7 @@ use GuzzleHttp\Client as HttpClient;
 class AWSXRaySamplerClient
 {
     private HttpClient $httpClient;
+    /** @psalm-suppress UnusedProperty */
     private string $host;
 
     /**
