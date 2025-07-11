@@ -1,0 +1,42 @@
+{
+  "name": "open-telemetry/opentelemetry-propagation-service-name",
+  "description": "OpenTelemetry service-name propagator.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "propagator", "service-name"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.1",
+    "open-telemetry/context": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Propagation\\ServiceName\\": "src/"
+    },
+    "files": [
+      "_register.php"
+    ]
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "phan/phan": "^5.0",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.19.2",
+    "open-telemetry/sdk": "^1.0",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^4|^5|^6",
+    "symfony/http-client": "^5.4|^6.0",
+    "guzzlehttp/promises": "^1.5|^2",
+    "php-http/message-factory": "^1.0",
+    "nyholm/psr7": "^1.5"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
+  }
+}

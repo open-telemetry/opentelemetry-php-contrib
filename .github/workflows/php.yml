@@ -57,6 +57,7 @@ jobs:
           'Propagation/CloudTrace',
           'Propagation/Instana',
           'Propagation/ServerTiming',
+          'Propagation/ServiceName',
           'Propagation/TraceResponse',
           'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
