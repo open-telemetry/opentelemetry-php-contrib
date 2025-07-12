@@ -124,7 +124,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== 'undefined') {
-                    $sqlStatement = self::appendSqlComments($sqlStatement);
+                    $sqlStatement = self::appendSqlComments($sqlStatement, true);
                     $span->setAttributes([
                         DbAttributes::DB_QUERY_TEXT => $sqlStatement,
                     ]);
@@ -160,7 +160,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== 'undefined') {
-                    $sqlStatement = self::appendSqlComments($sqlStatement);
+                    $sqlStatement = self::appendSqlComments($sqlStatement, true);
                     $span->setAttributes([
                         DbAttributes::DB_QUERY_TEXT => $sqlStatement,
                     ]);
@@ -368,5 +368,30 @@ class PDOInstrumentation
         }
 
         return filter_var(get_cfg_var('otel.instrumentation.pdo.distribute_statement_to_linked_spans'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+    }
+
+    private static function isSqlCommenterEnabled(): bool
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
+            return Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER', false);
+        }
+
+        return filter_var(get_cfg_var('otel.instrumentation.pdo.sql_commenter'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+    }
+
+    private static function appendSqlComments(string $query, bool $withTraceContext): string
+    {
+        $comments = [];
+        if ($withTraceContext) {
+            $comments = Opentelemetry::getTraceContextValues();
+        }
+        foreach (Opentelemetry::getServiceNameValues() as $key => $value) {
+            $comments[$key] = $value;
+        }
+        $query = trim($query);
+        $hasSemicolon = $query[-1] === ';';
+        $query = rtrim($query, ';');
+
+        return $query . Utils::formatComments(array_filter($comments)) . ($hasSemicolon ? ';' : '');
     }
 }
