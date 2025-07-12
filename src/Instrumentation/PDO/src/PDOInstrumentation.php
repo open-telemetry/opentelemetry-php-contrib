@@ -112,8 +112,9 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+                $sqlStatement = mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8');
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $sqlStatement);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -122,6 +123,18 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+                if (self::isSqlCommenterEnabled() && $sqlStatement !== 'undefined') {
+                    $sqlStatement = self::appendSqlComments($sqlStatement);
+                    $span->setAttributes([
+                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
+                    ]);
+
+                    return [
+                        0 => $sqlStatement,
+                    ];
+                }
+
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
@@ -135,8 +148,9 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+                $sqlStatement = mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8');
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $sqlStatement);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -145,6 +159,18 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+                if (self::isSqlCommenterEnabled() && $sqlStatement !== 'undefined') {
+                    $sqlStatement = self::appendSqlComments($sqlStatement);
+                    $span->setAttributes([
+                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
+                    ]);
+
+                    return [
+                        0 => $sqlStatement,
+                    ];
+                }
+
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
@@ -158,8 +184,9 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::prepare', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+                $sqlStatement = mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8');
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $sqlStatement);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -168,6 +195,18 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+                if (self::isSqlCommenterEnabled() && $sqlStatement !== 'undefined') {
+                    $sqlStatement = self::appendSqlComments($sqlStatement, false);
+                    $span->setAttributes([
+                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
+                    ]);
+
+                    return [
+                        0 => $sqlStatement,
+                    ];
+                }
+
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) use ($pdoTracker) {
                 if ($statement instanceof PDOStatement) {
