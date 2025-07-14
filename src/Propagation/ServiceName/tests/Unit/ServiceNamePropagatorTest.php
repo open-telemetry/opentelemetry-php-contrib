@@ -49,4 +49,11 @@ final class ServiceNamePropagatorTest extends TestCase
         $context = $this->serviceNamePropagator->extract($carrier);
         $this->assertSame(Context::getCurrent(), $context);
     }
+
+    public function test_no_extract(): void
+    {
+        $carrier = ['service.name' => 'foo-service'];
+        $context = $this->serviceNamePropagator->extract($carrier);
+        $this->assertSame(Context::getCurrent(), $context);
+    }
 }
