@@ -20,10 +20,8 @@ use OpenTelemetry\SemConv\ResourceAttributes;
  */
 final class ServiceNamePropagator implements TextMapPropagatorInterface
 {
-    private const SERVICE_NAME = 'service.name';
-
     private const FIELDS = [
-        self::SERVICE_NAME,
+        ResourceAttributes::SERVICE_NAME,
     ];
 
     private static ?self $instance = null;
@@ -59,7 +57,7 @@ final class ServiceNamePropagator implements TextMapPropagatorInterface
         $resource = $detector->getResource();
 
         if ($resource->getAttributes()->has(ResourceAttributes::SERVICE_NAME)) {
-            $setter->set($carrier, self::SERVICE_NAME, $resource->getAttributes()->get(ResourceAttributes::SERVICE_NAME));
+            $setter->set($carrier, ResourceAttributes::SERVICE_NAME, $resource->getAttributes()->get(ResourceAttributes::SERVICE_NAME));
         }
     }
 
