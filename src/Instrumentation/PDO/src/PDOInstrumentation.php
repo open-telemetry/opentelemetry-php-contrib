@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -417,10 +418,14 @@ class PDOInstrumentation
     {
         $comments = [];
         if ($withTraceContext) {
-            $comments = Opentelemetry::getTraceContextValues();
+            $prop = TraceContextPropagator::getInstance();
+            $prop->inject($comments);
         }
-        foreach (Opentelemetry::getServiceNameValues() as $key => $value) {
-            $comments[$key] = $value;
+        if (class_exists('OpenTelemetry\Contrib\Propagation\ServiceName\ServiceNamePropagator')) {
+            /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+            $prop = new \OpenTelemetry\Contrib\Propagation\ServiceName\ServiceNamePropagator();
+            /** @phan-suppress-next-line PhanAccessMethodInternal,PhanUndeclaredClassMethod */
+            $prop->inject($comments);
         }
         $query = trim($query);
         if (self::isSqlCommenterPrepend()) {
