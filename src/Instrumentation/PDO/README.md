@@ -34,3 +34,21 @@ or environment variable:
 ```shell
 OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
 ```
+
+The [sqlcommenter](https://google.github.io/sqlcommenter/) feature can be enabled using configuration directive:
+```
+otel.instrumentation.pdo.sql_commenter = true
+```
+or environment variable:
+```shell
+OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER=true
+```
+
+and its attribute can be configured using the following configuration directive:
+```
+otel.instrumentation.pdo.sql_commenter_attribute = true
+```
+or environment variable:
+```shell
+OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_ATTRIBUTE=true
+```
