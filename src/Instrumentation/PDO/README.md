@@ -35,6 +35,7 @@ or environment variable:
 OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
 ```
 
+### SQL Commenter feature
 The [sqlcommenter](https://google.github.io/sqlcommenter/) feature can be enabled using configuration directive:
 ```
 otel.instrumentation.pdo.sql_commenter = true
@@ -43,10 +44,18 @@ or environment variable:
 ```shell
 OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER=true
 ```
-
-and its attribute can be configured using the following configuration directive:
+This feature by default will append a SQL comment to the query statement with the information about the code that executed the query.
+The SQL comment can be configured to prepend to the query statement using the following configuration directive:
 ```
-otel.instrumentation.pdo.sql_commenter_attribute = true
+otel.instrumentation.pdo.sql_commenter.prepend = true
+```
+or environment variable:
+```shell
+OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND=true
+```
+The modified query statement by default will not update `TraceAttributes::DB_QUERY_TEXT` due to high cardinality risk, but it can be configured using the following configuration directive:
+```
+otel.instrumentation.pdo.sql_commenter.attribute = true
 ```
 or environment variable:
 ```shell
