@@ -1,7 +1,9 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+declare(strict_types=1);
+
 use OpenTelemetry\Contrib\Instrumentation\PDO\Opentelemetry;
+use PHPUnit\Framework\TestCase;
 
 class OpentelemetryTest extends TestCase
 {
