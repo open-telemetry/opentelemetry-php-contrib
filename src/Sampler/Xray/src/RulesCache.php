@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
+use OpenTelemetry\API\Common\Time\Clock;
+use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
@@ -13,28 +15,26 @@ use OpenTelemetry\SDK\Trace\SamplingResult;
 
 class RulesCache implements SamplerInterface
 {
-    private const CACHE_TTL = 3600; // 1hr
+    private const CACHE_TTL = 3600 * ClockInterface::NANOS_PER_SECOND; // 1hr
     public const DEFAULT_TARGET_INTERVAL_SEC = 10;
-    private Clock $clock;
     private string $clientId;
     private ResourceInfo $resource;
     private SamplerInterface $fallbackSampler;
     /** @var SamplingRuleApplier[] */
     private array $appliers = [];
-    private \DateTimeImmutable $updatedAt;
+    private int $updatedAt;
     
-    public function __construct(Clock $clock, string $clientId, ResourceInfo $resource, SamplerInterface $fallback)
+    public function __construct(string $clientId, ResourceInfo $resource, SamplerInterface $fallback)
     {
-        $this->clock = $clock;
         $this->clientId = $clientId;
         $this->resource = $resource;
         $this->fallbackSampler = $fallback;
-        $this->updatedAt = $clock->now();
+        $this->updatedAt = Clock::getDefault()->now();
     }
     
     public function expired(): bool
     {
-        return $this->clock->now()->getTimestamp() > $this->updatedAt->getTimestamp() + self::CACHE_TTL;
+        return Clock::getDefault()->now() > $this->updatedAt + self::CACHE_TTL;
     }
     
     public function updateRules(array $newRules): void
@@ -51,14 +51,14 @@ class RulesCache implements SamplerInterface
                     break;
                 }
             }
-            $applier = $found ?? new SamplingRuleApplier($this->clientId, $this->clock, $rule);
+            $applier = $found ?? new SamplingRuleApplier($this->clientId, $rule);
             
             // update rule in applier
             $applier->setRule($rule);
             $newAppliers[] = $applier;
         }
         $this->appliers  = $newAppliers;
-        $this->updatedAt = $this->clock->now();
+        $this->updatedAt = Clock::getDefault()->now();
     }
     
     public function shouldSample(
@@ -79,9 +79,9 @@ class RulesCache implements SamplerInterface
         return $this->fallbackSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
     
-    public function nextTargetFetchTime(): \DateTimeImmutable
+    public function nextTargetFetchTime(): int
     {
-        $defaultPollingTime = $this->clock->now()->add(new \DateInterval('PT' . self::DEFAULT_TARGET_INTERVAL_SEC . 'S'));
+        $defaultPollingTime = Clock::getDefault()->now() + (self::DEFAULT_TARGET_INTERVAL_SEC * ClockInterface::NANOS_PER_SECOND);
         
         if (empty($this->appliers)) {
             return $defaultPollingTime;
@@ -89,7 +89,7 @@ class RulesCache implements SamplerInterface
         $times = array_map(fn ($a) => $a->getNextSnapshotTime(), $this->appliers);
         $min = min($times);
 
-        return $min < $this->clock->now()
+        return $min < Clock::getDefault()->now()
             ? $defaultPollingTime
             : $min;
     }
@@ -101,7 +101,7 @@ class RulesCache implements SamplerInterface
         foreach ($this->appliers as $applier) {
             $name = $applier->getRuleName();
             if (isset($targets[$name])) {
-                $new[] = $applier->withTarget($targets[$name], $this->clock->now());
+                $new[] = $applier->withTarget($targets[$name], Clock::getDefault()->now());
             } else {
                 $new[] = $applier;
             }
@@ -119,7 +119,7 @@ class RulesCache implements SamplerInterface
         return 'RulesCache';
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): int
     {
         return $this->updatedAt;
     }

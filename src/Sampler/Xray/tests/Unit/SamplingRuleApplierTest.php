@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use OpenTelemetry\API\Common\Time\Clock;
 use OpenTelemetry\Context\ContextInterface;
-use OpenTelemetry\Contrib\Sampler\Xray\Clock;
 use OpenTelemetry\Contrib\Sampler\Xray\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\Xray\SamplingRuleApplier;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -16,13 +16,6 @@ use PHPUnit\Framework\TestCase;
 /** @psalm-suppress UnusedMethodCall */
 final class SamplingRuleApplierTest extends TestCase
 {
-    private Clock $clock;
-
-    protected function setUp(): void
-    {
-        $this->clock = new Clock();
-    }
-
     public function testWildcardRuleMatchesAnyAttributesOldSemanticConventions(): void
     {
         // Rule with all wildcards and no specific attributes
@@ -40,7 +33,7 @@ final class SamplingRuleApplierTest extends TestCase
             1,
             []
         );
-        $applier = new SamplingRuleApplier('client', $this->clock, $rule);
+        $applier = new SamplingRuleApplier('client', $rule);
 
         // Attributes that should all match '*'
         $attrs = Attributes::create([
@@ -76,7 +69,7 @@ final class SamplingRuleApplierTest extends TestCase
             1,
             ['env' => 'prod']
         );
-        $applier = new SamplingRuleApplier('client', $this->clock, $rule);
+        $applier = new SamplingRuleApplier('client', $rule);
 
         // Matching attributes
         $attrs = Attributes::create([
@@ -114,7 +107,7 @@ final class SamplingRuleApplierTest extends TestCase
             1,
             []
         );
-        $applier = new SamplingRuleApplier('client', $this->clock, $rule);
+        $applier = new SamplingRuleApplier('client', $rule);
 
         // Attributes that should all match '*'
         $attrs = Attributes::create([
@@ -150,7 +143,7 @@ final class SamplingRuleApplierTest extends TestCase
             1,
             ['env' => 'prod']
         );
-        $applier = new SamplingRuleApplier('client', $this->clock, $rule);
+        $applier = new SamplingRuleApplier('client', $rule);
 
         // Matching attributes
         $attrs = Attributes::create([
@@ -188,7 +181,7 @@ final class SamplingRuleApplierTest extends TestCase
             1,
             ['env' => 'prod']
         );
-        $applier = new SamplingRuleApplier('client', $this->clock, $rule);
+        $applier = new SamplingRuleApplier('client', $rule);
 
         // Attributes with wrong HTTP method
         $attrs = Attributes::create([
@@ -212,7 +205,7 @@ final class SamplingRuleApplierTest extends TestCase
     public function testShouldSample_incrementsStatistics_andHonorsReservoirSamplerDecision(): void
     {
         $rule = new SamplingRule('r', 1, 0.0, 1, '*', '*', '*', '*', '*', '*', 1, []);
-        $applier = new SamplingRuleApplier('c', new Clock(), $rule, null);
+        $applier = new SamplingRuleApplier('c', $rule, null);
 
         // Mock reservoirSampler to RECORD
         $reservoirMock = $this->createMock(SamplerInterface::class);
@@ -244,7 +237,7 @@ final class SamplingRuleApplierTest extends TestCase
         $this->assertSame(SamplingResult::RECORD_AND_SAMPLE, $result->getDecision());
 
         // Snapshot statistics
-        $now = new \DateTimeImmutable();
+        $now = Clock::getDefault()->now();
         $statsDoc = $applier->snapshot($now);
 
         $this->assertSame(1, $statsDoc->RequestCount);
@@ -255,7 +248,7 @@ final class SamplingRuleApplierTest extends TestCase
     public function testShouldSample_onReservoirDrop_usesFixedRateSampler_andIncrementsSampleCountOnly(): void
     {
         $rule = new SamplingRule('r2', 1, 1.0, 0, '*', '*', '*', '*', '*', '*', 1, []);
-        $applier = new SamplingRuleApplier('c2', new Clock(), $rule, null);
+        $applier = new SamplingRuleApplier('c2', $rule, null);
 
         // reservoirSampler: always DROP
         $reservoirMock = $this->createMock(SamplerInterface::class);
@@ -280,7 +273,7 @@ final class SamplingRuleApplierTest extends TestCase
         $result = $applier->shouldSample($context, 't2', 's2', 0, $attributes, []);
         $this->assertSame(SamplingResult::RECORD_AND_SAMPLE, $result->getDecision());
 
-        $now = new \DateTimeImmutable();
+        $now = Clock::getDefault()->now();
         $statsDoc = $applier->snapshot($now);
         $this->assertSame(1, $statsDoc->RequestCount);
         $this->assertSame(1, $statsDoc->SampleCount);
@@ -290,7 +283,7 @@ final class SamplingRuleApplierTest extends TestCase
     public function testSnapshot_resetsStatisticsAfterCapture(): void
     {
         $rule = new SamplingRule('r3', 1, 0.0, 1, '*', '*', '*', '*', '*', '*', 1, []);
-        $applier = new SamplingRuleApplier('c3', new Clock(), $rule, null);
+        $applier = new SamplingRuleApplier('c3', $rule, null);
 
         // simulate stats by reflection
         $refStats = new \ReflectionProperty($applier, 'statistics');
@@ -300,7 +293,7 @@ final class SamplingRuleApplierTest extends TestCase
         $stats->sampleCount  = 2;
         $stats->borrowCount  = 1;
 
-        $now = new \DateTimeImmutable();
+        $now = Clock::getDefault()->now();
         $doc1 = $applier->snapshot($now);
         $this->assertSame(5, $doc1->RequestCount);
         $this->assertSame(2, $doc1->SampleCount);

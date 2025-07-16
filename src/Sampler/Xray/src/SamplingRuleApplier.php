@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 
+use OpenTelemetry\API\Common\Time\Clock;
+use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
@@ -18,19 +20,17 @@ class SamplingRuleApplier
 {
     private string $clientId;
     private SamplingRule $rule;
-    private Clock $clock;
     private SamplerInterface $reservoirSampler;
     private SamplerInterface $fixedRateSampler;
     private bool $borrowing;
     private Statistics $statistics;
-    private \DateTimeImmutable $reservoirEndTime;
-    private \DateTimeImmutable $nextSnapshotTime;
+    private int $reservoirEndTime;
+    private int $nextSnapshotTime;
     private string $ruleName;
     
-    public function __construct(string $clientId, Clock $clock, SamplingRule $rule, ?Statistics $stats = null)
+    public function __construct(string $clientId, SamplingRule $rule, ?Statistics $stats = null)
     {
         $this->clientId   = $clientId;
-        $this->clock      = $clock;
         $this->rule       = $rule;
         $this->ruleName   = $rule->RuleName;
         $this->statistics = $stats ?? new Statistics();
@@ -44,8 +44,8 @@ class SamplingRuleApplier
         }
         
         $this->fixedRateSampler = new TraceIdRatioBasedSampler($rule->FixedRate);
-        $this->reservoirEndTime = new \DateTimeImmutable('@' . PHP_INT_MAX);
-        $this->nextSnapshotTime = $clock->now();
+        $this->reservoirEndTime = PHP_INT_MAX;
+        $this->nextSnapshotTime = Clock::getDefault()->now();
     }
     
     public function matches(AttributesInterface $attributes, ResourceInfo $resource): bool
@@ -91,7 +91,7 @@ class SamplingRuleApplier
         array $links,
     ): SamplingResult {
         $this->statistics->requestCount++;
-        $now = $this->clock->now();
+        $now = Clock::getDefault()->now();
         if ($now < $this->reservoirEndTime) {
             $res = $this->reservoirSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
             ;
@@ -104,8 +104,8 @@ class SamplingRuleApplier
                 return $res;
             }
         }
+
         $res = $this->fixedRateSampler->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
-        ;
         if ($res->getDecision() !== SamplingResult::DROP) {
             $this->statistics->sampleCount++;
         }
@@ -113,9 +113,9 @@ class SamplingRuleApplier
         return $res;
     }
     
-    public function snapshot(\DateTimeImmutable $now): SamplingStatisticsDocument
+    public function snapshot(int $now): SamplingStatisticsDocument
     {
-        $ts = $this->clock->toUnixMillis($now);
+        $ts = intdiv($now, ClockInterface::NANOS_PER_MILLISECOND);
         $req = $this->statistics->requestCount;
         $smp = $this->statistics->sampleCount;
         $brw = $this->statistics->borrowCount;
@@ -139,9 +139,9 @@ class SamplingRuleApplier
      * returning a new applier with updated reservoir & fixed-rate samplers.
      *
      * @param object             $targetDoc  stdClass from AWS SDK getSamplingTargets()
-     * @param \DateTimeImmutable $now        “now” timestamp for computing next snapshot
+     * @param int                $now        “now” timestamp for computing next snapshot
      */
-    public function withTarget(object $targetDoc, \DateTimeImmutable $now): self
+    public function withTarget(object $targetDoc, int $now): self
     {
         // 1) Determine new fixed-rate sampler
         if (isset($targetDoc->FixedRate)) {
@@ -151,14 +151,14 @@ class SamplingRuleApplier
         }
 
         // 2) Determine new reservoir sampler & end time
-        $newReservoirEndTime = new \DateTimeImmutable('9999-12-31T23:59:59+00:00');
+        $newReservoirEndTime = PHP_INT_MAX;
         if (isset($targetDoc->ReservoirQuota, $targetDoc->ReservoirQuotaTTL)) {
             $quota      = (int) floor($targetDoc->ReservoirQuota);
             $ttlSeconds = (int) floor($targetDoc->ReservoirQuotaTTL);
             $newReservoirSampler = $quota > 0
                 ? new RateLimitingSampler($quota)
                 : new AlwaysOffSampler();
-            $newReservoirEndTime = \DateTimeImmutable::createFromFormat('U', (string) $ttlSeconds)
+            $newReservoirEndTime = $ttlSeconds * ClockInterface::NANOS_PER_SECOND
                 ?: $newReservoirEndTime;
         } else {
             // if no quota provided, turn off reservoir
@@ -169,7 +169,7 @@ class SamplingRuleApplier
         $intervalSec = isset($targetDoc->Interval)
             ? (int) $targetDoc->Interval
             : 10;
-        $newNextSnapshotTime = $now->add(new \DateInterval("PT{$intervalSec}S"));
+        $newNextSnapshotTime = $now + ($intervalSec * ClockInterface::NANOS_PER_SECOND);
 
         // 4) Clone & patch
         $clone = clone $this;
@@ -182,7 +182,7 @@ class SamplingRuleApplier
         return $clone;
     }
 
-    public function getNextSnapshotTime(): \DateTimeImmutable
+    public function getNextSnapshotTime(): int
     {
         return $this->nextSnapshotTime;
     }

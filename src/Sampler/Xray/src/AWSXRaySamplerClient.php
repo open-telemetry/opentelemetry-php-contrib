@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-// src/Sampler/AWS/AWSXRaySamplerClient.php
 
 namespace OpenTelemetry\Contrib\Sampler\Xray;
 

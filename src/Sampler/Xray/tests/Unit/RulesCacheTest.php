@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use OpenTelemetry\Contrib\Sampler\Xray\Clock;
 use OpenTelemetry\Contrib\Sampler\Xray\RulesCache;
 use OpenTelemetry\Contrib\Sampler\Xray\SamplingRule;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -12,12 +11,10 @@ use PHPUnit\Framework\TestCase;
 
 final class RulesCacheTest extends TestCase
 {
-    private Clock $clock;
     private ResourceInfo $resource;
 
     protected function setUp(): void
     {
-        $this->clock = new Clock();
         $this->resource = ResourceInfo::create(Attributes::create([
             'service.name'   => 'test-service',
             'cloud.platform' => 'aws_ecs',
@@ -27,7 +24,7 @@ final class RulesCacheTest extends TestCase
     public function testUpdateRulesSortsByPriorityThenName(): void
     {
         $fallback = new AlwaysOffSampler();
-        $cache = new RulesCache($this->clock, 'client', $this->resource, $fallback);
+        $cache = new RulesCache('client', $this->resource, $fallback);
 
         $rule1 = new SamplingRule('b', 2, 0.1, 0, '*', '*', '*', '*', '*', '*', 1, []);
         $rule2 = new SamplingRule('a', 1, 0.1, 0, '*', '*', '*', '*', '*', '*', 1, []);
@@ -48,7 +45,7 @@ final class RulesCacheTest extends TestCase
     public function testUpdateRulesReusesExistingAppliers(): void
     {
         $fallback = new AlwaysOffSampler();
-        $cache = new RulesCache($this->clock, 'client', $this->resource, $fallback);
+        $cache = new RulesCache('client', $this->resource, $fallback);
 
         $ruleA1 = new SamplingRule('ruleA', 1, 0.1, 0, '*', '*', '*', '*', '*', '*', 1, []);
         $ruleB  = new SamplingRule('ruleB', 1, 0.1, 0, '*', '*', '*', '*', '*', '*', 1, []);
@@ -83,7 +80,7 @@ final class RulesCacheTest extends TestCase
     public function testUpdateTargetsClonesMatchingAppliers(): void
     {
         $fallback = new AlwaysOffSampler();
-        $cache = new RulesCache($this->clock, 'client', $this->resource, $fallback);
+        $cache = new RulesCache('client', $this->resource, $fallback);
 
         $ruleA = new SamplingRule('ruleA', 1, 0.1, 5, '*', '*', '*', '*', '*', '*', 1, []);
         $ruleB = new SamplingRule('ruleB', 1, 0.1, 5, '*', '*', '*', '*', '*', '*', 1, []);

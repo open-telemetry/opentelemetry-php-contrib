@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
+use OpenTelemetry\API\Common\Time\Clock;
+use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Contrib\Sampler\Xray\_AWSXRayRemoteSampler;
 use OpenTelemetry\Contrib\Sampler\Xray\AWSXRaySamplerClient;
-use OpenTelemetry\Contrib\Sampler\Xray\Clock;
 use OpenTelemetry\Contrib\Sampler\Xray\FallbackSampler;
 use OpenTelemetry\Contrib\Sampler\Xray\RulesCache;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -66,11 +67,11 @@ final class AWSXRayRemoteSamplerTest extends TestCase
         $ref->getProperty('fallback')->setValue($sampler, $this->createMock(FallbackSampler::class));
 
         // 4) Force fetch times into the past so updates run
-        $now = (new Clock())->now();
+        $now = Clock::getDefault()->now();
         $ref->getProperty('nextRulesFetchTime')->setAccessible(true);
-        $ref->getProperty('nextRulesFetchTime')->setValue($sampler, $now->sub(new DateInterval('PT1S')));
+        $ref->getProperty('nextRulesFetchTime')->setValue($sampler, $now - (1 * ClockInterface::NANOS_PER_SECOND));
         $ref->getProperty('nextTargetFetchTime')->setAccessible(true);
-        $ref->getProperty('nextTargetFetchTime')->setValue($sampler, $now->sub(new DateInterval('PT1S')));
+        $ref->getProperty('nextTargetFetchTime')->setValue($sampler, $now - (1 * ClockInterface::NANOS_PER_SECOND));
 
         // 5) Call shouldSample
         $result = $sampler->shouldSample(
