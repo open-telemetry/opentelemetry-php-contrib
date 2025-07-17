@@ -44,6 +44,19 @@ or environment variable:
 ```shell
 OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER=true
 ```
+To select which database(s) to opt-in, specify the database(s) using configuration directive:
+
+Valid values are `postgresql`, `mysql`, `sqlite`, `mssql`, `oracle`, `db2`, `other_sql` and `all` (default).
+
+```
+otel.instrumentation.pdo.sql_commenter.database[]=postgresql
+otel.instrumentation.pdo.sql_commenter.database[]=mysql
+```
+or environment variable:
+```shell
+OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_DATABASE=postgresql,mysql
+```
+
 This feature by default will append a SQL comment to the query statement with the information about the code that executed the query.
 The SQL comment can be configured to prepend to the query statement using the following configuration directive:
 ```
