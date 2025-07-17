@@ -431,7 +431,7 @@ class PDOInstrumentation
             return $values;
         }
 
-        return (array) (get_cfg_var('otel.instrumentation.pdo.sql_commenter.database') ?: [self::ALL]);
+        return (array) (get_cfg_var('otel.instrumentation.pdo.sql_commenter.database') ?: []);
     }
 
     private static function addSqlComments(string $query, bool $withTraceContext): string

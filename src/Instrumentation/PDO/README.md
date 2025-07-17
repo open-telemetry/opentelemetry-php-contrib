@@ -46,7 +46,7 @@ OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER=true
 ```
 To select which database(s) to opt-in, specify the database(s) using configuration directive:
 
-Valid values are `postgresql`, `mysql`, `sqlite`, `mssql`, `oracle`, `db2`, `other_sql` and `all` (default).
+Valid values are `postgresql`, `mysql`, `sqlite`, `mssql`, `oracle`, `db2`, `other_sql` and `all`.
 
 ```
 otel.instrumentation.pdo.sql_commenter.database[]=postgresql
