@@ -131,7 +131,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterSupportedDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
+                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
                         $sqlStatement = self::addSqlComments($sqlStatement, true);
                         if (self::isSqlCommenterAttributeEnabled()) {
                             $span->setAttributes([
@@ -174,7 +174,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterSupportedDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
+                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
                         $sqlStatement = self::addSqlComments($sqlStatement, true);
                         if (self::isSqlCommenterAttributeEnabled()) {
                             $span->setAttributes([
@@ -217,7 +217,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterSupportedDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
+                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
                         $sqlStatement = self::addSqlComments($sqlStatement, false);
                         if (self::isSqlCommenterAttributeEnabled()) {
                             $span->setAttributes([
@@ -424,11 +424,11 @@ class PDOInstrumentation
 
     private static function getSqlCommenterDatabase(): array
     {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-            return Configuration::getList('OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_DATABASE', [self::ALL]);
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_DATABASE', [])) > 0) {
+            return $values;
         }
 
-        return filter_var(get_cfg_var('otel.instrumentation.pdo.sql_commenter.database'), FILTER_REQUIRE_ARRAY, FILTER_NULL_ON_FAILURE) ?? [self::ALL];
+        return (array) (get_cfg_var('otel.instrumentation.pdo.sql_commenter.database') ?: [self::ALL]);
     }
 
     private static function addSqlComments(string $query, bool $withTraceContext): string
@@ -455,10 +455,10 @@ class PDOInstrumentation
 
     }
 
-    private static function isSQLCommenterSupportedDatabase(string $db) : bool
+    private static function isSQLCommenterOptInDatabase(string $db) : bool
     {
-        $supported = self::getSqlCommenterDatabase();
+        $optInList = self::getSqlCommenterDatabase();
 
-        return in_array(strtolower($db), $supported) || in_array(self::ALL, $supported);
+        return in_array(strtolower($db), $optInList) || in_array(self::ALL, $optInList);
     }
 }
