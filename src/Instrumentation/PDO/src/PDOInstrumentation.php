@@ -131,6 +131,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
+                    /** @psalm-suppress PossiblyInvalidCast */
                     if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
                         $sqlStatement = self::addSqlComments($sqlStatement, true);
                         if (self::isSqlCommenterAttributeEnabled()) {
@@ -174,6 +175,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
+                    /** @psalm-suppress PossiblyInvalidCast */
                     if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
                         $sqlStatement = self::addSqlComments($sqlStatement, true);
                         if (self::isSqlCommenterAttributeEnabled()) {
@@ -217,6 +219,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
+                    /** @psalm-suppress PossiblyInvalidCast */
                     if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
                         $sqlStatement = self::addSqlComments($sqlStatement, false);
                         if (self::isSqlCommenterAttributeEnabled()) {
