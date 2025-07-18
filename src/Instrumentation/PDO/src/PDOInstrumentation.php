@@ -23,7 +23,6 @@ class PDOInstrumentation
 {
     public const NAME = 'pdo';
     private const UNDEFINED = 'undefined';
-
     private const ALL = 'all';
 
     public static function register(): void
