@@ -91,7 +91,6 @@ updates:
       - "/src/MetaPackages/opentelemetry"
       - "/src/Propagation/Instana"
       - "/src/Propagation/ServerTiming"
-      - "/src/Propagation/ServiceName"
       - "/src/Propagation/TraceResponse"
       - "/src/ResourceDetectors/Azure"
       - "/src/ResourceDetectors/Container"

@@ -55,7 +55,6 @@ jobs:
           'Logs/Monolog',
           'Propagation/Instana',
           'Propagation/ServerTiming',
-          'Propagation/ServiceName',
           'Propagation/TraceResponse',
           'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
