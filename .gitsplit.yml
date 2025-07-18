@@ -78,8 +78,6 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-instana.git"
   - prefix: "src/Propagation/ServerTiming"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-server-timing.git"
-  - prefix: "src/Propagation/ServiceName"
-    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-service-name.git"
   - prefix: "src/Propagation/TraceResponse"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-traceresponse.git"
   - prefix: "src/ResourceDetectors/Azure"

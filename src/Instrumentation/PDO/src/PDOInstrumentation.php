@@ -133,7 +133,7 @@ class PDOInstrumentation
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
                     /** @psalm-suppress PossiblyInvalidCast */
                     if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
-                        $sqlStatement = self::addSqlComments($sqlStatement, true);
+                        $sqlStatement = self::addSqlComments($sqlStatement);
                         if (self::isSqlCommenterAttributeEnabled()) {
                             $span->setAttributes([
                                 DbAttributes::DB_QUERY_TEXT => $sqlStatement,
@@ -177,7 +177,7 @@ class PDOInstrumentation
                 if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
                     /** @psalm-suppress PossiblyInvalidCast */
                     if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
-                        $sqlStatement = self::addSqlComments($sqlStatement, true);
+                        $sqlStatement = self::addSqlComments($sqlStatement);
                         if (self::isSqlCommenterAttributeEnabled()) {
                             $span->setAttributes([
                                 DbAttributes::DB_QUERY_TEXT => $sqlStatement,
@@ -204,12 +204,8 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::prepare', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $sqlStatement = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
-                if (!is_string($sqlStatement)) {
-                    $sqlStatement = self::UNDEFINED;
-                }
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $sqlStatement);
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -218,23 +214,6 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
-                if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    /** @psalm-suppress PossiblyInvalidCast */
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
-                        $sqlStatement = self::addSqlComments($sqlStatement, false);
-                        if (self::isSqlCommenterAttributeEnabled()) {
-                            $span->setAttributes([
-                                DbAttributes::DB_QUERY_TEXT => $sqlStatement,
-                            ]);
-                        }
-
-                        return [
-                            0 => $sqlStatement,
-                        ];
-                    }
-                }
-
-                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) use ($pdoTracker) {
                 if ($statement instanceof PDOStatement) {
@@ -434,19 +413,11 @@ class PDOInstrumentation
         return (array) (get_cfg_var('otel.instrumentation.pdo.sql_commenter.database') ?: []);
     }
 
-    private static function addSqlComments(string $query, bool $withTraceContext): string
+    private static function addSqlComments(string $query): string
     {
         $comments = [];
-        if ($withTraceContext) {
-            $prop = TraceContextPropagator::getInstance();
-            $prop->inject($comments);
-        }
-        if (class_exists('OpenTelemetry\Contrib\Propagation\ServiceName\ServiceNamePropagator')) {
-            /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-            $prop = new \OpenTelemetry\Contrib\Propagation\ServiceName\ServiceNamePropagator();
-            /** @phan-suppress-next-line PhanAccessMethodInternal,PhanUndeclaredClassMethod */
-            $prop->inject($comments);
-        }
+        $prop = TraceContextPropagator::getInstance();
+        $prop->inject($comments);
         $query = trim($query);
         if (self::isSqlCommenterPrepend()) {
             return Utils::formatComments(array_filter($comments)) . $query;
