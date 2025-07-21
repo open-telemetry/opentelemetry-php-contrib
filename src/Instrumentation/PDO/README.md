@@ -36,7 +36,7 @@ OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
 ```
 
 ### SQL Commenter feature
-The [sqlcommenter](https://google.github.io/sqlcommenter/) feature can be enabled using configuration directive, currently it can be used with `postgresql` and `mysql` drivers.:
+The [sqlcommenter](https://google.github.io/sqlcommenter/) feature can be enabled using configuration directive, currently it can be used with `postgresql` and `mysql` drivers only.
 ```
 otel.instrumentation.pdo.sql_commenter = true
 ```
