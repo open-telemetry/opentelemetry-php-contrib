@@ -24,7 +24,6 @@ class PDOInstrumentation
 {
     public const NAME = 'pdo';
     private const UNDEFINED = 'undefined';
-    private const ALL = 'all';
 
     public static function register(): void
     {
@@ -403,15 +402,6 @@ class PDOInstrumentation
         return filter_var(get_cfg_var('otel.instrumentation.pdo.sql_commenter.attribute'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     }
 
-    private static function getSqlCommenterDatabase(): array
-    {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_DATABASE', [])) > 0) {
-            return $values;
-        }
-
-        return (array) (get_cfg_var('otel.instrumentation.pdo.sql_commenter.database') ?: []);
-    }
-
     private static function addSqlComments(string $query): string
     {
         $comments = [];
@@ -429,8 +419,6 @@ class PDOInstrumentation
 
     private static function isSQLCommenterOptInDatabase(string $db) : bool
     {
-        $optInList = self::getSqlCommenterDatabase();
-
-        return in_array(strtolower($db), $optInList) || in_array(self::ALL, $optInList);
+        return $db == "postgresql" || $db == "mysql";
     }
 }
