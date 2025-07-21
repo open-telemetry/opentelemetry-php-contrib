@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -415,8 +415,7 @@ class PDOInstrumentation
     private static function addSqlComments(string $query): string
     {
         $comments = [];
-        $prop = TraceContextPropagator::getInstance();
-        $prop->inject($comments);
+        Globals::propagator()->inject($comments);
         $query = trim($query);
         if (self::isSqlCommenterPrepend()) {
             return Utils::formatComments(array_filter($comments)) . $query;
