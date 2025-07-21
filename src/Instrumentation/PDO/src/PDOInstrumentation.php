@@ -418,6 +418,6 @@ class PDOInstrumentation
 
     private static function isSQLCommenterOptInDatabase(string $db) : bool
     {
-        return $db == "postgresql" || $db == "mysql";
+        return $db == 'postgresql' || $db == 'mysql';
     }
 }
