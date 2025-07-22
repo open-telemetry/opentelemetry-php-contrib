@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\PostgreSql;
 
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\SemConv\TraceAttributes;
+use SplQueue;
 use WeakMap;
 use WeakReference;
 use PgSql\Connection;
@@ -17,13 +18,44 @@ final class PgSqlTracker
 {
 
     private WeakMap $connectionAttributes;
+
     private WeakMap $connectionStatements;
+
+    /**
+     * @var WeakMap<Connection, SplQueue<WeakReference<?SpanContextInterface>>
+    */
+    private WeakMap $connectionAsyncLink;
+
     public function __construct()
     {
         // /** @psalm-suppress PropertyTypeCoercion */
         $this->connectionAttributes = new WeakMap();
         $this->connectionStatements = new WeakMap();
+        $this->connectionAsyncLink = new WeakMap(); // maps connection to SplQueue with links
     }
+
+    public function addAsyncLinkForConnection(Connection $connection, SpanContextInterface $spanContext) {
+
+        if (!$this->connectionAsyncLink->offsetExists($connection)) {
+            $this->connectionAsyncLink[$connection] = new SplQueue();
+        }
+        $this->connectionAsyncLink[$connection]->push(WeakReference::create($spanContext));
+    }
+
+    public function getAsyncLinkForConnection(Connection $connection) : ?SpanContextInterface
+    {
+        if (!$this->connectionAsyncLink->offsetExists($connection)) {
+            return null;
+        }
+
+        if ($this->connectionAsyncLink[$connection]->isEmpty()) {
+            return null;
+        }
+
+
+        return $this->connectionAsyncLink[$connection]->pop()->get();
+    }
+
 
     public function addConnectionStatement(Connection $connection, string $statementName, string $query)
     {
@@ -48,7 +80,7 @@ final class PgSqlTracker
     {
         return $this->connectionAttributes[$connection] ?? [];
     }
-    private function splitQueries(string $sql)
+    public static function splitQueries(string $sql)
     {
         // Normalize line endings to \n
         $sql = preg_replace("/\r\n|\n\r|\r/", "\n", $sql);

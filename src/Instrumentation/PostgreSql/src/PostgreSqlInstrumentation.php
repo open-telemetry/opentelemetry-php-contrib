@@ -30,10 +30,6 @@ class PostgreSqlInstrumentation
 
 //TODO Large objet - track by PgLob instance
 //pg_query_params, pg_select
-//pg_send_execute
-//pg_send_prepare
-//pg_send_query
-//pg_send_query_params
 
         // https://opentelemetry.io/docs/specs/semconv/database/postgresql/
         $instrumentation = new CachedInstrumentation(
@@ -117,7 +113,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_prepare', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::preparePostHook($instrumentation, $tracker, ...$args);
+                self::preparePostHook($instrumentation, $tracker, false, ...$args);
             }
         );
 
@@ -128,10 +124,9 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_execute', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::executePostHook($instrumentation, $tracker, ...$args);
+                self::executePostHook($instrumentation, false, $tracker, ...$args);
             }
         );
-
 
         hook(
             null,
@@ -141,6 +136,59 @@ class PostgreSqlInstrumentation
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_send_prepare',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_send_prepare', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::preparePostHook($instrumentation, $tracker, true,  ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_send_execute',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_send_execute', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::executePostHook($instrumentation, $tracker, true,  ...$args);
+            }
+        );
+        hook(
+            null,
+            'pg_send_query',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_send_query', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::sendQueryPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+        hook(
+            null,
+            'pg_send_query_params',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_send_query_params', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::sendQueryParamsPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_get_result',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_get_result', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::getResultPostHook($instrumentation, $tracker, ...$args);
             }
         );
 
@@ -158,7 +206,7 @@ class PostgreSqlInstrumentation
         if ($retVal instanceof Connection) {
             $tracker->storeConnectionAttributes($retVal, $params[0]);
         }
-        self::endSpan([], $exception, $retVal === false ? "Connection error" : null);
+        self::endSpan([], $exception, $retVal == false ? "Connection error" : null);
     }
 
     /** @param non-empty-string $spanName */
@@ -169,7 +217,7 @@ class PostgreSqlInstrumentation
 
     private static function basicPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, ?array $attributes, bool $dropIfNoError, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
-        $errorStatus = $retVal === false ? pg_last_error($params[0]) : null;
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         if ($dropIfNoError && $errorStatus === null && $exception === null) {
             self::dropSpan();
             return;
@@ -186,7 +234,7 @@ class PostgreSqlInstrumentation
             $attributes[TraceAttributes::DB_NAMESPACE] = mb_convert_encoding($params[1], 'UTF-8');
         }
 
-        $errorStatus = $retVal === false ? pg_last_error($params[0]) : null;
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         if ($dropIfNoError && $errorStatus === null && $exception === null) {
             self::dropSpan();
             return;
@@ -194,23 +242,60 @@ class PostgreSqlInstrumentation
         self::endSpan($attributes, $exception, $errorStatus);
     }
 
-    private static function preparePostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    private static function preparePostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $async, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
 
         $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[2], 'UTF-8');
         $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[2]);
 
-        $errorStatus = $retVal === false ? pg_last_error($params[0]) : null;
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
 
-        if ($retVal !== false) {
+        if ($retVal != false) {
             $tracker->addConnectionStatement($params[0], $params[1], $params[2]);
+
+            if ($async) {
+                $tracker->addAsyncLinkForConnection($params[0], Span::getCurrent()->getContext());
+            }
+
         }
 
         self::endSpan($attributes, $exception, $errorStatus);
     }
 
-    private static function executePostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+
+    private static function sendQueryParamsPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = $tracker->getConnectionAttributes($params[0]);
+
+        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+
+        if ($retVal != false) {
+            $tracker->addAsyncLinkForConnection($params[0], Span::getCurrent()->getContext());
+        }
+
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function getResultPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = $tracker->getConnectionAttributes($params[0]);
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+
+        if ($retVal !== false) {
+            if ($linkedContext = $tracker->getAsyncLinkForConnection($params[0])) {
+                Span::getCurrent()->addLink($linkedContext);
+            }
+        }
+
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function executePostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $async, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
 
@@ -220,7 +305,30 @@ class PostgreSqlInstrumentation
             $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($query);
         }
 
-        $errorStatus = $retVal === false ? pg_last_error($params[0]) : null;
+        if ($retVal != false) {
+            if ($async) {
+                $tracker->addAsyncLinkForConnection($params[0], Span::getCurrent()->getContext());
+            }
+        }
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function sendQueryPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = $tracker->getConnectionAttributes($params[0]);
+
+        $queries = PgSqlTracker::splitQueries($params[1]);
+        $queriesCount = count($queries);
+        for ($i = 0; $i < $queriesCount; $i++) {
+            $tracker->addAsyncLinkForConnection($params[0], Span::getCurrent()->getContext());
+        }
+
+        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
     }
 
@@ -231,7 +339,7 @@ class PostgreSqlInstrumentation
         $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
         $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
 
-        $errorStatus = $retVal === false ? pg_last_error($params[0]) : null;
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
     }
 
@@ -247,6 +355,8 @@ class PostgreSqlInstrumentation
             ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
             ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
             ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+            ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, 'postgresql')
+            ->setAttribute(TraceAttributes::DB_SYSTEM, 'postgresql')
             ->setAttributes($attributes);
 
         $span = $builder->startSpan();
