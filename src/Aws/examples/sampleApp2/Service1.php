@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright The OpenTelemetry Authors
  *
@@ -21,17 +22,17 @@ namespace Examples\Aws\SampleApp2;
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
-use OpenTelemetry\Aws\Xray\IdGenerator;
-use OpenTelemetry\Aws\Xray\Propagator;
+use OpenTelemetry\Contrib\Aws\Xray\IdGenerator;
+use OpenTelemetry\Contrib\Aws\Xray\Propagator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
 use OpenTelemetry\SDK\Trace\PropagationMap;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\Trace as API;
 
-class Service2
+class Service1
 {
-    private const LIMIT = 50;
+    private const LIMIT = 100;
 
     private $tracer;
     private $carrier;
@@ -45,24 +46,19 @@ class Service2
     {
         $Exporter = new OTLPExporter();
         $map = new PropagationMap();
-        
+
         // Create a tracer object that uses the AWS X-Ray ID Generator to
         // generate trace IDs in the correct format
         $tracer = (new TracerProvider(null, null, new IdGenerator()))
             ->addSpanProcessor(new SimpleSpanProcessor($Exporter))
             ->getTracer('io.opentelemetry.contrib.php');
-        
+
         // Extract the SpanContext from the carrier
         $spanContext = Propagator::extract($this->carrier, $map);
 
         // Do some kind of operation
         $i = 0;
-        $j = 0;
         while ($i < self::LIMIT) {
-            while ($j < self::LIMIT) {
-                $j += $i + $j;
-                $j++;
-            }
             $i++;
         }
 
@@ -71,7 +67,7 @@ class Service2
 
         // Set some dummy attributes
         $childSpan->setAttribute('service_2', 'microservice')
-                ->setAttribute('action_item', (string) $j);
+                ->setAttribute('action_item', (string) $i);
 
         // End child span
         $childSpan->end();

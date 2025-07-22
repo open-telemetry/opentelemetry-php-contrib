@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Aws;
+namespace OpenTelemetry\Contrib\Aws;
 
 use Aws\CommandInterface;
 use Aws\Middleware;

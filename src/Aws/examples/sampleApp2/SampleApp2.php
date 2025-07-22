@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright The OpenTelemetry Authors
  *
@@ -21,8 +22,8 @@ namespace Examples\Aws\SampleApp2;
 
 require __DIR__ . '/../../../vendor/autoload.php';
 
-use OpenTelemetry\Aws\Xray\IdGenerator;
-use OpenTelemetry\Aws\Xray\Propagator;
+use OpenTelemetry\Contrib\Aws\Xray\IdGenerator;
+use OpenTelemetry\Contrib\Aws\Xray\Propagator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
 use OpenTelemetry\SDK\Trace\PropagationMap;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
