@@ -5,14 +5,10 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Unit;
 
 use OpenTelemetry\Contrib\Instrumentation\PDO\ContextPropagation;
-use PHPUnit\Framework\Attributes\BackupGlobals;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(ContextPropagation::class)]
 class ContextPropagationTest extends TestCase
 {
-    #[BackupGlobals(true)]
     public function testIsEnabledReturnsTrue()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION'] = true;
@@ -20,7 +16,6 @@ class ContextPropagationTest extends TestCase
         $this->assertTrue($result);
     }
 
-    #[BackupGlobals(true)]
     public function testIsEnabledReturnsFalse()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION'] = false;
@@ -28,7 +23,6 @@ class ContextPropagationTest extends TestCase
         $this->assertFalse($result);
     }
 
-    #[BackupGlobals(true)]
     public function testIsPrependReturnsTrue()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = true;
@@ -36,7 +30,6 @@ class ContextPropagationTest extends TestCase
         $this->assertTrue($result);
     }
 
-    #[BackupGlobals(true)]
     public function testIsPrependReturnsFalse()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = false;
@@ -44,7 +37,6 @@ class ContextPropagationTest extends TestCase
         $this->assertFalse($result);
     }
 
-    #[BackupGlobals(true)]
     public function testIsAttributeEnabledReturnsTrue()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_ATTRIBUTE'] = true;
@@ -52,7 +44,6 @@ class ContextPropagationTest extends TestCase
         $this->assertTrue($result);
     }
 
-    #[BackupGlobals(true)]
     public function testIsAttributeEnabledReturnsFalse()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_ATTRIBUTE'] = false;
@@ -60,7 +51,6 @@ class ContextPropagationTest extends TestCase
         $this->assertFalse($result);
     }
 
-    #[BackupGlobals(true)]
     public function testAddSqlCommentsPrepend()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = true;
@@ -74,7 +64,6 @@ class ContextPropagationTest extends TestCase
         $this->assertEquals("/*key1='value1',key2='value2',key3='value3'*/SELECT 1;", $result);
     }
 
-    #[BackupGlobals(true)]
     public function testAddSqlCommentsAppend()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = false;
