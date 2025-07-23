@@ -128,11 +128,13 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
-                if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
+                if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
                     /** @psalm-suppress PossiblyInvalidCast */
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
-                        $sqlStatement = self::addSqlComments($sqlStatement);
-                        if (self::isSqlCommenterAttributeEnabled()) {
+                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && ContextPropagation::isOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
+                        $comments = [];
+                        Globals::propagator()->inject($comments);
+                        $sqlStatement = ContextPropagation::addSqlComments($sqlStatement, $comments);
+                        if (ContextPropagation::isAttributeEnabled()) {
                             $span->setAttributes([
                                 DbAttributes::DB_QUERY_TEXT => $sqlStatement,
                             ]);
@@ -172,11 +174,13 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
-                if (self::isSqlCommenterEnabled() && $sqlStatement !== self::UNDEFINED) {
+                if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
                     /** @psalm-suppress PossiblyInvalidCast */
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && self::isSQLCommenterOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
-                        $sqlStatement = self::addSqlComments($sqlStatement);
-                        if (self::isSqlCommenterAttributeEnabled()) {
+                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && ContextPropagation::isOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
+                        $comments = [];
+                        Globals::propagator()->inject($comments);
+                        $sqlStatement = ContextPropagation::addSqlComments($sqlStatement, $comments);
+                        if (ContextPropagation::isAttributeEnabled()) {
                             $span->setAttributes([
                                 DbAttributes::DB_QUERY_TEXT => $sqlStatement,
                             ]);
@@ -373,52 +377,5 @@ class PDOInstrumentation
         }
 
         return filter_var(get_cfg_var('otel.instrumentation.pdo.distribute_statement_to_linked_spans'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-    }
-
-    private static function isSqlCommenterEnabled(): bool
-    {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-            return Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER', false);
-        }
-
-        return filter_var(get_cfg_var('otel.instrumentation.pdo.sql_commenter'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-    }
-
-    private static function isSqlCommenterPrepend(): bool
-    {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-            return Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND', false);
-        }
-
-        return filter_var(get_cfg_var('otel.instrumentation.pdo.sql_commenter.prepend'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-    }
-
-    private static function isSqlCommenterAttributeEnabled(): bool
-    {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-            return Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_ATTRIBUTE', false);
-        }
-
-        return filter_var(get_cfg_var('otel.instrumentation.pdo.sql_commenter.attribute'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-    }
-
-    private static function addSqlComments(string $query): string
-    {
-        $comments = [];
-        Globals::propagator()->inject($comments);
-        $query = trim($query);
-        if (self::isSqlCommenterPrepend()) {
-            return Utils::formatComments(array_filter($comments)) . $query;
-        }
-        $hasSemicolon = $query !== '' && $query[strlen($query) - 1] === ';';
-        $query = rtrim($query, ';');
-
-        return $query . Utils::formatComments(array_filter($comments)) . ($hasSemicolon ? ';' : '');
-
-    }
-
-    private static function isSQLCommenterOptInDatabase(string $db) : bool
-    {
-        return $db == 'postgresql' || $db == 'mysql';
     }
 }
