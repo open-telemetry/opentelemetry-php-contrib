@@ -10,6 +10,8 @@ use Illuminate\Log\LogManager;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\API\Logs\Severity;
+use OpenTelemetry\SDK\Common\Exception\StackTraceFormatter;
+use Throwable;
 use TypeError;
 
 class LogWatcher extends Watcher
@@ -54,6 +56,7 @@ class LogWatcher extends Watcher
 
         $attributes = [
             'context' => json_encode(array_filter($log->context)),
+            ...$this->parseExceptionFromContext($log->context),
         ];
 
         $logger = $this->instrumentation->logger();
@@ -64,5 +67,23 @@ class LogWatcher extends Watcher
             ->setAttributes($attributes);
 
         $logger->emit($record);
+    }
+
+    private function parseExceptionFromContext(array $context): array
+    {
+        if (
+            ! isset($context['exception']) ||
+            ! $context['exception'] instanceof Throwable
+        ) {
+            return [];
+        }
+
+        $exception = $context['exception'];
+
+        return [
+            'exception.type' => $exception::class,
+            'exception.message' => $exception->getMessage(),
+            'exception.stacktrace' => StackTraceFormatter::format($exception),
+        ];
     }
 }
