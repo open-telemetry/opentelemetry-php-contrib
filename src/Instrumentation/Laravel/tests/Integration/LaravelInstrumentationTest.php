@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
+use Exception;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -104,6 +105,16 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
         $this->assertSame('GET', $span->getName());
+    }
+
+    public function test_records_exception_in_logs(): void
+    {
+        $this->router()->get('/exception', fn () => throw new Exception('Test exception'));
+        $this->call('GET', '/exception');
+        $logRecord = $this->storage[0];
+        $this->assertEquals(Exception::class, $logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_TYPE));
+        $this->assertEquals('Test exception', $logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_MESSAGE));
+        $this->assertNotNull($logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_STACKTRACE));
     }
 
     private function router(): Router
