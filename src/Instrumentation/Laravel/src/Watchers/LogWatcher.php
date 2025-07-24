@@ -54,9 +54,21 @@ class LogWatcher extends Watcher
             // Should this fail, we should continue to emit the LogRecord.
         }
 
+        $contextToEncode = array_filter($log->context);
+
+        $exception = $this->getExceptionFromContext($log->context);
+
+        if ($exception !== null) {
+            unset($contextToEncode['exception']);
+        }
+
         $attributes = [
-            'context' => json_encode(array_filter($log->context)),
-            ...$this->parseExceptionFromContext($log->context),
+            'context' => json_encode($contextToEncode),
+            ...$exception !== null ? [
+                'exception.type' => $exception::class,
+                'exception.message' => $exception->getMessage(),
+                'exception.stacktrace' => StackTraceFormatter::format($exception),
+            ] : [],
         ];
 
         $logger = $this->instrumentation->logger();
@@ -69,21 +81,15 @@ class LogWatcher extends Watcher
         $logger->emit($record);
     }
 
-    private function parseExceptionFromContext(array $context): array
+    private function getExceptionFromContext(array $context): ?Throwable
     {
         if (
             ! isset($context['exception']) ||
             ! $context['exception'] instanceof Throwable
         ) {
-            return [];
+            return null;
         }
 
-        $exception = $context['exception'];
-
-        return [
-            'exception.type' => $exception::class,
-            'exception.message' => $exception->getMessage(),
-            'exception.stacktrace' => StackTraceFormatter::format($exception),
-        ];
+        return $context['exception'];
     }
 }
