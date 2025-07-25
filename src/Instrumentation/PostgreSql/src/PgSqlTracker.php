@@ -10,6 +10,7 @@ use SplQueue;
 use WeakMap;
 use WeakReference;
 use PgSql\Connection;
+use PgSql\Lob;
 
 /**
  * @phan-file-suppress PhanNonClassMethodCall
@@ -26,12 +27,18 @@ final class PgSqlTracker
     */
     private WeakMap $connectionAsyncLink;
 
+        /**
+     * @var WeakMap<Lob, WeakReference<Connection>>
+    */
+    private WeakMap $connectionLargeObjects;
+
     public function __construct()
     {
         // /** @psalm-suppress PropertyTypeCoercion */
         $this->connectionAttributes = new WeakMap();
         $this->connectionStatements = new WeakMap();
         $this->connectionAsyncLink = new WeakMap(); // maps connection to SplQueue with links
+        $this->connectionLargeObjects = new WeakMap(); // maps Lob to Connection
     }
 
     public function addAsyncLinkForConnection(Connection $connection, SpanContextInterface $spanContext) {
@@ -80,6 +87,19 @@ final class PgSqlTracker
     {
         return $this->connectionAttributes[$connection] ?? [];
     }
+
+    public function trackConnectionFromLob(Connection $connection, Lob $lob)
+    {
+        $this->connectionLargeObjects[$lob] = WeakReference::create($connection);
+    }
+
+    public function getConnectionFromLob(Lob $lob) : ?Connection {
+        if ($this->connectionLargeObjects->offsetExists($lob)) {
+            return $this->connectionLargeObjects[$lob]->get();
+        }
+        return null;
+    }
+
     public static function splitQueries(string $sql)
     {
         // Normalize line endings to \n

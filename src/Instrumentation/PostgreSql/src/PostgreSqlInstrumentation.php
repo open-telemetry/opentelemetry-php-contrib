@@ -13,6 +13,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 
 use OpenTelemetry\Context\Context;
+use PgSql\Lob;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
@@ -28,8 +29,9 @@ class PostgreSqlInstrumentation
     public static function register(): void
     {
 
+        //TODO DB_OPERATION_BATCH_SIZE
 //TODO Large objet - track by PgLob instance
-//pg_query_params, pg_select
+//db.response.status_code
 
         // https://opentelemetry.io/docs/specs/semconv/database/postgresql/
         $instrumentation = new CachedInstrumentation(
@@ -139,6 +141,18 @@ class PostgreSqlInstrumentation
             }
         );
 
+
+        hook(
+            null,
+            'pg_select',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_select', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::selectPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
         hook(
             null,
             'pg_send_prepare',
@@ -192,6 +206,82 @@ class PostgreSqlInstrumentation
             }
         );
 
+        hook(
+            null,
+            'pg_lo_open',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_lo_open', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::loOpenPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_lo_write',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_lo_write', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::loWritePostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_lo_read',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_lo_read', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::loReadPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_lo_read_all',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_lo_read_all', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::loReadAllPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_lo_unlink',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_lo_unlink', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::loUnlinkPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_lo_import',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_lo_import', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::loImportExportPostHook($instrumentation, $tracker, 'IMPORT', ...$args);
+            }
+        );
+
+        hook(
+            null,
+            'pg_lo_export',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::basicPreHook('pg_lo_export', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::loImportExportPostHook($instrumentation, $tracker, 'EXPORT', ...$args);
+            }
+        );
     }
 
     /** @param non-empty-string $spanName */
@@ -284,15 +374,19 @@ class PostgreSqlInstrumentation
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
 
-        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
-
         if ($retVal !== false) {
             if ($linkedContext = $tracker->getAsyncLinkForConnection($params[0])) {
                 Span::getCurrent()->addLink($linkedContext);
             }
+            self::endSpan($attributes, $exception, null);
+        } else {
+            // pg_get_result() returns false when there are no more pending results.
+            // This is normal and expected behavior — it is designed for polling.
+            // A false return value simply means there are no results currently available.
+            // There’s no point in creating a span that won’t be linked to any operation.
+            self::dropSpan();
         }
 
-        self::endSpan($attributes, $exception, $errorStatus);
     }
 
     private static function executePostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $async, $obj, array $params, mixed $retVal, ?\Throwable $exception)
@@ -338,6 +432,134 @@ class PostgreSqlInstrumentation
 
         $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
         $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function selectPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = $tracker->getConnectionAttributes($params[0]);
+
+        if ($retVal != false) {
+            $table = $params[1];
+            $conditions = $params[2];
+            $query = null;
+
+            if (empty($conditions)) {
+                if (PHP_VERSION_ID >= 80400) {
+                    $query = "SELECT * FROM {$table}";
+                } else {
+                    $query = null;
+                }
+            } else {
+                $where = implode(' AND ', array_map(
+                    fn($k, $v) => is_null($v) ? "$k IS NULL" : "$k = '$v'",
+                    array_keys($conditions),
+                    $conditions
+                ));
+                $query = "SELECT * FROM {$table} WHERE {$where}";
+            }
+
+            if ($query) {
+                $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
+            }
+            $attributes[TraceAttributes::DB_OPERATION_NAME] = 'SELECT';
+        }
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function loOpenPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = $tracker->getConnectionAttributes($params[0]);
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'OPEN';
+
+        if ($retVal instanceof Lob) {
+            $tracker->trackConnectionFromLob($params[0], $retVal);
+        }
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function loWritePostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = [];
+        $lob = $params[0];
+        if ($lob instanceof Lob) {
+            if ($connection = $tracker->getConnectionFromLob($lob)) {
+                $attributes = $tracker->getConnectionAttributes($connection);
+            }
+            if ($retVal !== false) {
+                $attributes['db.postgres.bytes_written'] = $retVal;
+            }
+        }
+
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'WRITE';
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function loReadPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = [];
+        $lob = $params[0];
+        if ($lob instanceof Lob) {
+            if ($connection = $tracker->getConnectionFromLob($lob)) {
+                $attributes = $tracker->getConnectionAttributes($connection);
+            }
+            if ($retVal !== false) {
+                $attributes['db.postgres.bytes_read'] = $params[1];
+            }
+        }
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'READ';
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function loReadAllPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = [];
+
+        $lob = $params[0];
+        if ($lob instanceof Lob) {
+            if ($connection = $tracker->getConnectionFromLob($lob)) {
+                $attributes = $tracker->getConnectionAttributes($connection);
+            }
+            if ($retVal !== false) {
+                $attributes['db.postgres.bytes_read'] = $retVal;
+            }
+        }
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'READ';
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+    private static function loUnlinkPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = $tracker->getConnectionAttributes($params[0]);
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'DELETE';
+
+        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
+        self::endSpan($attributes, $exception, $errorStatus);
+    }
+
+
+    private static function loImportExportPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, string $operation, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    {
+        $attributes = [];
+
+        $lob = $params[0];
+        if ($lob instanceof Lob) {
+            if ($connection = $tracker->getConnectionFromLob($lob)) {
+                $attributes = $tracker->getConnectionAttributes($connection);
+            }
+        }
+        $attributes[TraceAttributes::DB_OPERATION_NAME] = $operation;
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
