@@ -129,20 +129,27 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    /** @psalm-suppress PossiblyInvalidCast */
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && ContextPropagation::isOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
-                        $comments = [];
-                        Globals::propagator()->inject($comments);
-                        $sqlStatement = ContextPropagation::addSqlComments($sqlStatement, $comments);
-                        if (ContextPropagation::isAttributeEnabled()) {
-                            $span->setAttributes([
-                                DbAttributes::DB_QUERY_TEXT => $sqlStatement,
-                            ]);
-                        }
+                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes)) {
+                        /** @psalm-suppress PossiblyInvalidCast */
+                        switch ((string) $attributes[TraceAttributes::DB_SYSTEM_NAME]) {
+                            case 'postgresql':
+                            case 'mysql':
+                                $comments = [];
+                                Globals::propagator()->inject($comments);
+                                $sqlStatement = SqlCommentPropagator::inject($sqlStatement, $comments);
+                                if (ContextPropagation::isAttributeEnabled()) {
+                                    $span->setAttributes([
+                                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
+                                    ]);
+                                }
 
-                        return [
-                            0 => $sqlStatement,
-                        ];
+                                return [
+                                    0 => $sqlStatement,
+                                ];
+                            default:
+                                // Do nothing, not a database we want to propagate
+                                break;
+                        }
                     }
                 }
 
@@ -175,20 +182,27 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    /** @psalm-suppress PossiblyInvalidCast */
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes) && ContextPropagation::isOptInDatabase((string) ($attributes[TraceAttributes::DB_SYSTEM_NAME]))) {
-                        $comments = [];
-                        Globals::propagator()->inject($comments);
-                        $sqlStatement = ContextPropagation::addSqlComments($sqlStatement, $comments);
-                        if (ContextPropagation::isAttributeEnabled()) {
-                            $span->setAttributes([
-                                DbAttributes::DB_QUERY_TEXT => $sqlStatement,
-                            ]);
-                        }
+                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes)) {
+                        /** @psalm-suppress PossiblyInvalidCast */
+                        switch ((string) $attributes[TraceAttributes::DB_SYSTEM_NAME]) {
+                            case 'postgresql':
+                            case 'mysql':
+                                $comments = [];
+                                Globals::propagator()->inject($comments);
+                                $sqlStatement = SqlCommentPropagator::inject($sqlStatement, $comments);
+                                if (ContextPropagation::isAttributeEnabled()) {
+                                    $span->setAttributes([
+                                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
+                                    ]);
+                                }
 
-                        return [
-                            0 => $sqlStatement,
-                        ];
+                                return [
+                                    0 => $sqlStatement,
+                                ];
+                            default:
+                                // Do nothing, not a database we want to propagate
+                                break;
+                        }
                     }
                 }
 
