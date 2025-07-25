@@ -11,21 +11,21 @@ class SqlCommentPropagatorTest extends TestCase
 {
     public function testIsPrependReturnsTrue()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = true;
+        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND'] = true;
         $result = SqlCommentPropagator::isPrepend();
         $this->assertTrue($result);
     }
 
     public function testIsPrependReturnsFalse()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = false;
+        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND'] = false;
         $result = SqlCommentPropagator::isPrepend();
         $this->assertFalse($result);
     }
 
     public function testInjectPrepend()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = true;
+        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND'] = true;
         $comments = [
             'key1' => 'value1',
             'key2' => 'value2',
@@ -38,7 +38,7 @@ class SqlCommentPropagatorTest extends TestCase
 
     public function testInjectAppend()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION_PREPEND'] = false;
+        $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND'] = false;
         $comments = [
             'key1' => 'value1',
             'key2' => 'value2',
