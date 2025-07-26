@@ -18,7 +18,7 @@ declare(strict_types=1);
  * limitations under the License.
  */
 
-namespace OpenTelemetry\Aws\Ec2;
+namespace OpenTelemetry\Contrib\Aws\Ec2;
 
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;

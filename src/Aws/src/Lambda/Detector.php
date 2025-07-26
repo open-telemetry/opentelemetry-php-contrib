@@ -18,7 +18,7 @@ declare(strict_types=1);
  * limitations under the License.
  */
 
-namespace OpenTelemetry\Aws\Lambda;
+namespace OpenTelemetry\Contrib\Aws\Lambda;
 
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
