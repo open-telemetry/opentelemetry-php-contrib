@@ -18,6 +18,10 @@ services:
       MONGODB_HOST: ${MONGODB_HOST:-mongodb}
       MONGODB_PORT: ${MONGODB_PORT:-27017}
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      PGSQL_HOST: ${PGSQL_HOST:-postgres}
+      PGSQL_DATABASE: ${PGSQL_DATABASE:-postgres}
+      PGSQL_USER: ${PGSQL_USER:-postgres}
+      PGSQL_PASSWD: ${PGSQL_PASSWD:-postgres_password}
 
   zipkin:
     image: openzipkin/zipkin-slim
@@ -88,3 +92,11 @@ services:
       retries: 3
     volumes:
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres:
+    image: postgres:17
+    hostname: postgres
+    ports:
+      - "5432:5432/tcp"
+    environment:
+      POSTGRES_PASSWORD: postgres_password
