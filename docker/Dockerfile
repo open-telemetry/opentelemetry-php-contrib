@@ -8,6 +8,7 @@ RUN install-php-extensions \
         mongodb \
         amqp \
         rdkafka \
-        mysqli
+        mysqli \
+        pgsql
 
 USER php
