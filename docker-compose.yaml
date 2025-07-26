@@ -100,3 +100,8 @@ services:
       - "5432:5432/tcp"
     environment:
       POSTGRES_PASSWORD: postgres_password
+    healthcheck:
+      test: psql -c 'SELECT 1' -h localhost postgres postgres
+      interval: 1s
+      timeout: 30s
+      retries: 10
