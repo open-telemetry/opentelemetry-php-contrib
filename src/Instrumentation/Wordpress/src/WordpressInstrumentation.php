@@ -16,6 +16,7 @@ use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
+use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 /**
