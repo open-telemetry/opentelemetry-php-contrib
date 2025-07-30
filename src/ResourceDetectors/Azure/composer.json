@@ -35,7 +35,7 @@
     },
     "autoload": {
         "psr-4": {
-            "OpenTelemetry\\Azure\\": "src/"
+            "OpenTelemetry\\Contrib\\Resource\\Detector\\Azure\\": "src/"
         },
         "files": [
           "_register.php"
@@ -43,7 +43,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "OpenTelemetry\\Tests\\Azure\\": "tests/"
+            "OpenTelemetry\\Tests\\Resource\\Detector\\Azure\\": "tests/"
         }
     },
     "config": {

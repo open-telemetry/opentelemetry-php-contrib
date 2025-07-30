@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Azure\Unit\ContainerApps;
+namespace OpenTelemetry\Tests\Resource\Detector\Azure\Unit\ContainerApps;
 
 use AssertWell\PHPUnitGlobalState\EnvironmentVariables;
-use OpenTelemetry\Azure\ContainerApps\Detector;
+use OpenTelemetry\Contrib\Resource\Detector\Azure\ContainerApps\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;

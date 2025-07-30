@@ -18,7 +18,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Aws\Xray;
+namespace OpenTelemetry\Contrib\Aws\Xray;
 
 use OpenTelemetry\SDK\Trace\IdGeneratorInterface;
 use OpenTelemetry\SDK\Trace\RandomIdGenerator;
