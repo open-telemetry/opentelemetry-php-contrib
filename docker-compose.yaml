@@ -100,9 +100,9 @@ services:
       POSTGRES_USER: otel_user
       POSTGRES_PASSWORD: otel_passwd
     healthcheck:
-      test: psql -c 'SELECT 1' -h localhost -U otel_user otel_db
+      test: ["CMD-SHELL", "PGPASSWORD=otel_passwd psql -U otel_user -d otel_db -h 127.0.0.1 -c 'SELECT 1'"]
       interval: 30s
-      timeout: 30s
+      timeout: 90s
       retries: 3
     volumes:
       - ./docker/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
