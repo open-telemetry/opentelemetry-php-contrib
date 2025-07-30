@@ -312,8 +312,10 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertSame('pg_connect', $this->storage->offsetGet($offset)->getName());
         $offset++;
 
-        // Use condition matching one row from init.sql
-        $conditions = ['email' => 'jane.smith@example.com'];
+        $conditions = [
+            'name' => 'Jane Smith',
+            'email' => 'jane.smith@example.com',
+        ];
         $result = pg_select($conn, 'users', $conditions);
 
         $this->assertIsArray($result);
@@ -323,7 +325,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertAttributes($offset, [
             TraceAttributes::DB_OPERATION_NAME => 'SELECT',
             TraceAttributes::DB_COLLECTION_NAME => 'users',
-            TraceAttributes::DB_QUERY_TEXT => "SELECT * FROM users WHERE email = 'jane.smith@example.com'",
+            TraceAttributes::DB_QUERY_TEXT => "SELECT * FROM users WHERE name = 'Jane Smith' AND email = 'jane.smith@example.com'",
         ]);
         $offset++;
 
