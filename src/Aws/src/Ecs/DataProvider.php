@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Aws\Ecs;
+namespace OpenTelemetry\Contrib\Aws\Ecs;
 
 class DataProvider
 {

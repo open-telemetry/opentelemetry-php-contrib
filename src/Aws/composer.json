@@ -33,7 +33,7 @@
     },
     "autoload": {
         "psr-4": {
-            "OpenTelemetry\\Aws\\": "src/"
+            "OpenTelemetry\\Contrib\\Aws\\": "src/"
         }
     },
     "autoload-dev": {

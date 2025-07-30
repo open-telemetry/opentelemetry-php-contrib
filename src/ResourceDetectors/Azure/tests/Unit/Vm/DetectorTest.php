@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Azure\Unit\Vm;
+namespace OpenTelemetry\Tests\Resource\Detector\Azure\Unit\Vm;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
-use OpenTelemetry\Azure\Vm\Detector;
+use OpenTelemetry\Contrib\Resource\Detector\Azure\Vm\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;

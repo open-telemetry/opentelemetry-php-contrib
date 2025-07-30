@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright The OpenTelemetry Authors
  *
@@ -23,8 +24,8 @@ use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
 use GuzzleHttp\Client;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\Aws\Xray\IdGenerator;
-use OpenTelemetry\Aws\Xray\Propagator;
+use OpenTelemetry\Contrib\Aws\Xray\IdGenerator;
+use OpenTelemetry\Contrib\Aws\Xray\Propagator;
 use OpenTelemetry\Contrib\OtlpGrpc\Exporter as OTLPExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;

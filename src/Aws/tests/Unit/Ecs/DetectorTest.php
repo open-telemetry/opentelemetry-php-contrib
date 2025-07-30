@@ -10,8 +10,8 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use OpenTelemetry\API\LoggerHolder;
-use OpenTelemetry\Aws\Ecs\DataProvider;
-use OpenTelemetry\Aws\Ecs\Detector;
+use OpenTelemetry\Contrib\Aws\Ecs\DataProvider;
+use OpenTelemetry\Contrib\Aws\Ecs\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
@@ -36,7 +36,7 @@ class DetectorTest extends TestCase
     private const ECS_ENV_VAR_V3_KEY = 'ECS_CONTAINER_METADATA_URI';
     private const ECS_ENV_VAR_V4_VAL = 'ecs_metadata_v4_uri';
     private const ECS_ENV_VAR_V3_VAL = 'ecs_metadata_v3_uri';
-    
+
     private const CLOUD_PROVIDER     = 'aws';
     private const CLOUD_PLATFORM     = 'aws_ecs';
 
