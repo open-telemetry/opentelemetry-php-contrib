@@ -29,10 +29,6 @@ class PostgreSqlInstrumentation
     public static function register(): void
     {
 
-        //TODO DB_OPERATION_BATCH_SIZE
-//TODO Large objet - track by PgLob instance
-//db.response.status_code
-
         // https://opentelemetry.io/docs/specs/semconv/database/postgresql/
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.postgresql',
@@ -69,7 +65,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_convert', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::tableOperationsPostHook($instrumentation, $tracker, true,  ...$args);
+                self::tableOperationsPostHook($instrumentation, $tracker, true, null, ...$args);
             }
         );
 
@@ -82,7 +78,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_copy_from', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::tableOperationsPostHook($instrumentation, $tracker, false, ...$args);
+                self::tableOperationsPostHook($instrumentation, $tracker, false, null, ...$args);
             }
         );
 
@@ -93,7 +89,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_copy_to', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::tableOperationsPostHook($instrumentation, $tracker, false, ...$args);
+                self::tableOperationsPostHook($instrumentation, $tracker, false, null, ...$args);
             }
         );
 
@@ -104,7 +100,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_delete', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::tableOperationsPostHook($instrumentation, $tracker, false, ...$args);
+                self::tableOperationsPostHook($instrumentation, $tracker, false, 'DELETE', ...$args);
             }
         );
 
@@ -126,7 +122,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_execute', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::executePostHook($instrumentation, false, $tracker, ...$args);
+                self::executePostHook($instrumentation, $tracker, false,  ...$args);
             }
         );
 
@@ -315,13 +311,16 @@ class PostgreSqlInstrumentation
         self::endSpan($attributes, $exception, $errorStatus);
     }
 
-    private static function tableOperationsPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $dropIfNoError, $obj, array $params, mixed $retVal, ?\Throwable $exception)
+    private static function tableOperationsPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $dropIfNoError, ?string $operationName, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $connection = $params[0];
         $attributes = null;
         if ($connection instanceof Connection) {
             $attributes = $tracker->getConnectionAttributes($connection);
-            $attributes[TraceAttributes::DB_NAMESPACE] = mb_convert_encoding($params[1], 'UTF-8');
+            $attributes[TraceAttributes::DB_COLLECTION_NAME] = mb_convert_encoding($params[1], 'UTF-8');
+            if ($operationName) {
+                $attributes[TraceAttributes::DB_OPERATION_NAME] = $operationName;
+            }
         }
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
@@ -464,6 +463,7 @@ class PostgreSqlInstrumentation
             if ($query) {
                 $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
             }
+            $attributes[TraceAttributes::DB_COLLECTION_NAME] = mb_convert_encoding($table, 'UTF-8');
             $attributes[TraceAttributes::DB_OPERATION_NAME] = 'SELECT';
         }
 
@@ -511,9 +511,6 @@ class PostgreSqlInstrumentation
             if ($connection = $tracker->getConnectionFromLob($lob)) {
                 $attributes = $tracker->getConnectionAttributes($connection);
             }
-            if ($retVal !== false) {
-                $attributes['db.postgres.bytes_read'] = $params[1];
-            }
         }
         $attributes[TraceAttributes::DB_OPERATION_NAME] = 'READ';
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
@@ -551,14 +548,7 @@ class PostgreSqlInstrumentation
 
     private static function loImportExportPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, string $operation, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
-        $attributes = [];
-
-        $lob = $params[0];
-        if ($lob instanceof Lob) {
-            if ($connection = $tracker->getConnectionFromLob($lob)) {
-                $attributes = $tracker->getConnectionAttributes($connection);
-            }
-        }
+        $attributes = $tracker->getConnectionAttributes($params[0]);
         $attributes[TraceAttributes::DB_OPERATION_NAME] = $operation;
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
