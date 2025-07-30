@@ -6,11 +6,12 @@ namespace OpenTelemetry\Tests\Instrumentation\PostgreSql\Integration;
 
 use OpenTelemetry\Contrib\Instrumentation\PostgreSql\PgSqlTracker;
 use PHPUnit\Framework\TestCase;
+
 class PgSqlTrackerTest extends TestCase
 {
     public function test_query_split(): void
     {
-        $sql = "SELECT 1; SELECT 2;";
+        $sql = 'SELECT 1; SELECT 2;';
         $queries = PgSqlTracker::splitQueries($sql);
 
         $this->assertSame(['SELECT 1;', 'SELECT 2;'], $queries);
@@ -18,7 +19,7 @@ class PgSqlTrackerTest extends TestCase
 
     public function test_parse_standard_connection_string(): void
     {
-        $result = PgSqlTracker::parsePgConnString("host=localhost port=5432 dbname=mydb user=otel password=secret");
+        $result = PgSqlTracker::parsePgConnString('host=localhost port=5432 dbname=mydb user=otel password=secret');
 
         $this->assertSame('localhost', $result['host']);
         $this->assertSame('5432', $result['port']);
@@ -37,7 +38,7 @@ class PgSqlTrackerTest extends TestCase
     }
     public function test_parse_socket_only(): void
     {
-        $result = PgSqlTracker::parsePgConnString("dbname=mydb user=postgres");
+        $result = PgSqlTracker::parsePgConnString('dbname=mydb user=postgres');
 
         $this->assertArrayNotHasKey('host', $result);
         $this->assertSame('mydb', $result['dbname']);
@@ -46,13 +47,13 @@ class PgSqlTrackerTest extends TestCase
 
     public function test_parse_empty_string(): void
     {
-        $result = PgSqlTracker::parsePgConnString("");
+        $result = PgSqlTracker::parsePgConnString('');
         $this->assertSame([], $result);
     }
 
     public function test_parse_attributes_from_connstring_with_host(): void
     {
-        $connString = "host=localhost port=5432 dbname=testdb user=otel";
+        $connString = 'host=localhost port=5432 dbname=testdb user=otel';
         $attrs = PgSqlTracker::parseAttributesFromConnectionString($connString);
 
         $this->assertSame('localhost', $attrs['server.address']);
@@ -63,15 +64,15 @@ class PgSqlTrackerTest extends TestCase
 
     public function test_parse_attributes_from_connstring_socket(): void
     {
-        $connString = "dbname=testdb user=otel";
+        $connString = 'dbname=testdb user=otel';
         $attrs = PgSqlTracker::parseAttributesFromConnectionString($connString);
 
-        $this->assertSame(null, $attrs['server.address']);
+        $this->assertNull($attrs['server.address']);
         $this->assertSame('testdb', $attrs['db.namespace']);
         $this->assertSame('postgresql', $attrs['db.system.name']);
     }
 
-   public function test_basic_split(): void
+    public function test_basic_split(): void
     {
         $sql = "SELECT * FROM users; INSERT INTO logs (message) VALUES ('test');";
         $expected = [
@@ -107,7 +108,7 @@ class PgSqlTrackerTest extends TestCase
         $result = PgSqlTracker::splitQueries($sql);
         $this->assertEquals($expected, $result);
     }
-     public function test_empty_input(): void
+    public function test_empty_input(): void
     {
         $sql = "\n\n\t  ";
         $expected = [];
@@ -116,4 +117,3 @@ class PgSqlTrackerTest extends TestCase
     }
 
 }
-

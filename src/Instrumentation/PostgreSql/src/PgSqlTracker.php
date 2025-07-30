@@ -6,11 +6,11 @@ namespace OpenTelemetry\Contrib\Instrumentation\PostgreSql;
 
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\SemConv\TraceAttributes;
+use PgSql\Connection;
+use PgSql\Lob;
 use SplQueue;
 use WeakMap;
 use WeakReference;
-use PgSql\Connection;
-use PgSql\Lob;
 
 /**
  * @phan-file-suppress PhanNonClassMethodCall
@@ -21,17 +21,17 @@ final class PgSqlTracker
     private WeakMap $connectionAttributes;
 
     /**
-     * @var WeakMap<Connection, string>
+     * WeakMap<Connection, string>
     */
-     private WeakMap $connectionStatements;
+    private WeakMap $connectionStatements;
 
     /**
-     * @var WeakMap<Connection, SplQueue<WeakReference<?SpanContextInterface>>
+     * WeakMap<Connection, SplQueue<WeakReference<?SpanContextInterface>>>
     */
     private WeakMap $connectionAsyncLink;
 
     /**
-     * @var WeakMap<Lob, WeakReference<Connection>>
+     * WeakMap<Lob, WeakReference<Connection>>
     */
     private WeakMap $connectionLargeObjects;
 
@@ -44,7 +44,8 @@ final class PgSqlTracker
         $this->connectionLargeObjects = new WeakMap(); // maps Lob to Connection
     }
 
-    public function addAsyncLinkForConnection(Connection $connection, SpanContextInterface $spanContext) {
+    public function addAsyncLinkForConnection(Connection $connection, SpanContextInterface $spanContext)
+    {
 
         if (!$this->connectionAsyncLink->offsetExists($connection)) {
             $this->connectionAsyncLink[$connection] = new SplQueue();
@@ -62,10 +63,8 @@ final class PgSqlTracker
             return null;
         }
 
-
         return $this->connectionAsyncLink[$connection]->pop()->get();
     }
-
 
     public function addConnectionStatement(Connection $connection, string $statementName, string $query)
     {
@@ -75,10 +74,12 @@ final class PgSqlTracker
         $this->connectionStatements[$connection][$statementName] = $query;
     }
 
-    public function getStatementQuery(Connection $connection, string $statementName) : ?string {
+    public function getStatementQuery(Connection $connection, string $statementName) : ?string
+    {
         if ($this->connectionStatements->offsetExists($connection)) {
             return $this->connectionStatements[$connection][$statementName] ?? null;
         }
+
         return null;
     }
 
@@ -96,10 +97,12 @@ final class PgSqlTracker
         $this->connectionLargeObjects[$lob] = WeakReference::create($connection);
     }
 
-    public function getConnectionFromLob(Lob $lob) : ?Connection {
+    public function getConnectionFromLob(Lob $lob) : ?Connection
+    {
         if ($this->connectionLargeObjects->offsetExists($lob)) {
             return $this->connectionLargeObjects[$lob]->get();
         }
+
         return null;
     }
 
@@ -175,8 +178,8 @@ final class PgSqlTracker
         return $queries;
     }
 
-
-    public static function parsePgConnString(string $conninfo): array {
+    public static function parsePgConnString(string $conninfo): array
+    {
         $result = [];
         $length = strlen($conninfo);
         $i = 0;
@@ -222,6 +225,7 @@ final class PgSqlTracker
                     } elseif ($conninfo[$i] === $quote) {
                         // End of quoted value
                         $i++;
+
                         break;
                     } else {
                         $value .= $conninfo[$i++];
@@ -248,7 +252,8 @@ final class PgSqlTracker
         return $result;
     }
 
-    public static function parseAttributesFromConnectionString(string $connectionString) {
+    public static function parseAttributesFromConnectionString(string $connectionString)
+    {
         $connectionData = self::parsePgConnString($connectionString);
 
         $addr = $connectionData['host'] ?? $connectionData['hostaddr'] ?? null;
@@ -257,6 +262,7 @@ final class PgSqlTracker
         $attributes[TraceAttributes::SERVER_PORT] = $addr !== null ? ($connectionData['port'] ?? null) : null;
         $attributes[TraceAttributes::DB_NAMESPACE] = $connectionData['dbname'] ?? $connectionData['user'] ?? null;
         $attributes[TraceAttributes::DB_SYSTEM_NAME] =  'postgresql';
+
         return $attributes;
     }
 

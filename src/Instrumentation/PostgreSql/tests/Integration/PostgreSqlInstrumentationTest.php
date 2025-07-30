@@ -15,10 +15,9 @@ use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
 use PgSql\Connection;
-use PgSql\Result;
 use PgSql\Lob;
+use PgSql\Result;
 use PHPUnit\Framework\TestCase;
-use Throwable;
 
 class PostgreSqlInstrumentationTest extends TestCase
 {
@@ -81,9 +80,11 @@ class PostgreSqlInstrumentationTest extends TestCase
     }
     public function test_pg_connect(): void
     {
-        $conn = pg_connect("host=" .$this->pgsqlHost . " dbname=".$this->database." user=".$this->user." password=".$this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
+        $this->assertInstanceOf(Connection::class, $conn);
         pg_close($conn);
-        $conn = pg_pconnect("host=" .$this->pgsqlHost . " dbname=".$this->database." user=".$this->user." password=".$this->passwd);
+        $conn = pg_pconnect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
+        $this->assertInstanceOf(Connection::class, $conn);
         pg_close($conn);
 
         $offset = 0;
@@ -97,7 +98,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_query(): void
     {
-        $conn = pg_connect("host=" .$this->pgsqlHost . " dbname=".$this->database." user=".$this->user." password=".$this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertTrue($conn instanceof Connection);
 
         $offset = 0;
@@ -125,7 +126,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_convert(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -149,7 +150,6 @@ class PostgreSqlInstrumentationTest extends TestCase
         $converted = @pg_convert($conn, 'users', $data);
         $this->assertFalse($converted);
 
-
         $this->assertSame('pg_convert', actual: $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
             TraceAttributes::DB_COLLECTION_NAME => 'users',
@@ -166,7 +166,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_copy_from(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -187,7 +187,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         ]);
         $offset++;
 
-        $del = pg_query($conn, "DELETE FROM users WHERE id IN (2000, 2001)");
+        $del = pg_query($conn, 'DELETE FROM users WHERE id IN (2000, 2001)');
         $this->assertTrue($del !== false);
 
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
@@ -205,7 +205,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_copy_to(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -230,7 +230,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_delete(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -266,7 +266,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_prepare_and_execute(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -284,7 +284,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $offset++;
 
         $execute = pg_execute($conn, 'select_user_stmt', ['john.doe@example.com']);
-        $this->assertInstanceOf(Result::class, $prepare);
+        $this->assertInstanceOf(Result::class, $execute);
 
         $this->assertSame('pg_execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
@@ -305,7 +305,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_select(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -335,7 +335,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_send_prepare_and_execute(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -351,7 +351,6 @@ class PostgreSqlInstrumentationTest extends TestCase
             TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
         ]);
         $offset++;
-
 
         $prepareResult = pg_get_result($conn);
         $this->assertInstanceOf(Result::class, $prepareResult);
@@ -388,7 +387,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_send_query(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -415,7 +414,6 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertNotEmpty($row);
         $this->assertSame('John Doe', $row['name']);
 
-
         pg_close($conn);
 
         $this->assertCount($offset, $this->storage);
@@ -424,7 +422,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_send_query_params(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -451,11 +449,9 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertSame('pg_get_result', $this->storage->offsetGet($offset)->getName());
         $offset++;
 
-
         $row = pg_fetch_assoc($result);
         $this->assertNotEmpty($row);
         $this->assertSame('Jane Smith', $row['name']);
-
 
         pg_close($conn);
 
@@ -465,7 +461,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
     public function test_pg_lo_read_write_unlink(): void
     {
-        $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
         $this->assertInstanceOf(Connection::class, $conn);
 
         $offset = 0;
@@ -483,6 +479,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         // Create new large object
         $oid = pg_lo_create($conn);
+        $this->assertIsInt($oid);
 
         $fd = pg_lo_open($conn, $oid, 'w');
         $this->assertInstanceOf(Lob::class, $fd);
@@ -497,7 +494,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertSame('pg_lo_write', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
             TraceAttributes::DB_OPERATION_NAME => 'WRITE',
-            'db.postgres.bytes_written' => 19
+            'db.postgres.bytes_written' => 19,
         ]);
         $offset++;
 
@@ -507,7 +504,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertSame("Hello Postgres LOB\n", $data);
         $this->assertSame('pg_lo_read', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'READ'
+            TraceAttributes::DB_OPERATION_NAME => 'READ',
         ]);
         $offset++;
 
@@ -515,12 +512,11 @@ class PostgreSqlInstrumentationTest extends TestCase
         ob_start();
         $readBytes = pg_lo_read_all($fd);
         $output = ob_get_clean();
-        $this->assertIsInt($readBytes);
         $this->assertSame("Hello Postgres LOB\n", $output);
         $this->assertSame('pg_lo_read_all', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
             TraceAttributes::DB_OPERATION_NAME => 'READ',
-            'db.postgres.bytes_read' => 19
+            'db.postgres.bytes_read' => 19,
         ]);
         $offset++;
 
@@ -544,58 +540,60 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertDatabaseAttributesForAllSpans($offset);
     }
 
-public function test_pg_lo_import_and_export(): void
-{
-    $conn = pg_connect("host=" . $this->pgsqlHost . " dbname=" . $this->database . " user=" . $this->user . " password=" . $this->passwd);
-    $this->assertInstanceOf(Connection::class, $conn);
+    public function test_pg_lo_import_and_export(): void
+    {
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
+        $this->assertInstanceOf(Connection::class, $conn);
 
-    $offset = 0;
-    $this->assertSame('pg_connect', $this->storage->offsetGet($offset)->getName());
-    $offset++;
+        $offset = 0;
+        $this->assertSame('pg_connect', $this->storage->offsetGet($offset)->getName());
+        $offset++;
 
-    pg_query($conn, 'BEGIN');
-    $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
-    $this->assertAttributes($offset, [
-        TraceAttributes::DB_QUERY_TEXT => 'BEGIN',
-        TraceAttributes::DB_OPERATION_NAME => 'BEGIN',
-    ]);
-    $offset++;
+        pg_query($conn, 'BEGIN');
+        $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_QUERY_TEXT => 'BEGIN',
+            TraceAttributes::DB_OPERATION_NAME => 'BEGIN',
+        ]);
+        $offset++;
 
-    $inputPath = tempnam(sys_get_temp_dir(), 'pg-in-');
-    $expectedContent = "LOB FILE CONTENT\n";
-    file_put_contents($inputPath, $expectedContent);
+        $inputPath = tempnam(sys_get_temp_dir(), 'pg-in-');
+        $this->assertIsString($inputPath);
+        $expectedContent = "LOB FILE CONTENT\n";
+        file_put_contents($inputPath, $expectedContent);
 
-    $oid = pg_lo_import($conn, $inputPath);
-    $this->assertIsInt($oid);
-    $this->assertSame('pg_lo_import', $this->storage->offsetGet($offset)->getName());
-    $offset++;
+        $oid = pg_lo_import($conn, $inputPath);
+        $this->assertIsInt($oid);
+        $this->assertSame('pg_lo_import', $this->storage->offsetGet($offset)->getName());
+        $offset++;
 
-    $outputPath = tempnam(sys_get_temp_dir(), 'pg-out-');
-    $this->assertTrue(pg_lo_export($conn, $oid, $outputPath));
-    $this->assertSame('pg_lo_export', $this->storage->offsetGet($offset)->getName());
-    $offset++;
+        $outputPath = tempnam(sys_get_temp_dir(), 'pg-out-');
+        $this->assertIsString($outputPath);
+        $this->assertTrue(pg_lo_export($conn, $oid, $outputPath));
+        $this->assertSame('pg_lo_export', $this->storage->offsetGet($offset)->getName());
+        $offset++;
 
-    $actualContent = file_get_contents($outputPath);
-    $this->assertSame($expectedContent, $actualContent);
+        $actualContent = file_get_contents($outputPath);
+        $this->assertSame($expectedContent, $actualContent);
 
-    $this->assertTrue(pg_lo_unlink($conn, $oid));
-    $this->assertSame('pg_lo_unlink', $this->storage->offsetGet($offset)->getName());
-    $offset++;
+        $this->assertTrue(pg_lo_unlink($conn, $oid));
+        $this->assertSame('pg_lo_unlink', $this->storage->offsetGet($offset)->getName());
+        $offset++;
 
-    pg_query($conn, 'COMMIT');
-    $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
-    $this->assertAttributes($offset, [
-        TraceAttributes::DB_QUERY_TEXT => 'COMMIT',
-        TraceAttributes::DB_OPERATION_NAME => 'COMMIT',
-    ]);
-    $offset++;
+        pg_query($conn, 'COMMIT');
+        $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_QUERY_TEXT => 'COMMIT',
+            TraceAttributes::DB_OPERATION_NAME => 'COMMIT',
+        ]);
+        $offset++;
 
-    @unlink($inputPath);
-    @unlink($outputPath);
-    pg_close($conn);
+        @unlink($inputPath);
+        @unlink($outputPath);
+        pg_close($conn);
 
-    $this->assertCount($offset, $this->storage);
-    $this->assertDatabaseAttributesForAllSpans($offset);
-}
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
 
 }

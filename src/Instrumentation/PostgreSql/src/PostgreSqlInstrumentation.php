@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\PostgreSql;
 
-use PgSql\Connection;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
-
 use OpenTelemetry\Context\Context;
-use PgSql\Lob;
+
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
+use PgSql\Connection;
+use PgSql\Lob;
 
 /**
  * @phan-file-suppress PhanParamTooFewUnpack
@@ -69,8 +69,6 @@ class PostgreSqlInstrumentation
             }
         );
 
-
-
         hook(
             null,
             'pg_copy_from',
@@ -122,7 +120,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_execute', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::executePostHook($instrumentation, $tracker, false,  ...$args);
+                self::executePostHook($instrumentation, $tracker, false, ...$args);
             }
         );
 
@@ -136,7 +134,6 @@ class PostgreSqlInstrumentation
                 self::queryPostHook($instrumentation, $tracker, ...$args);
             }
         );
-
 
         hook(
             null,
@@ -156,7 +153,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_send_prepare', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::preparePostHook($instrumentation, $tracker, true,  ...$args);
+                self::preparePostHook($instrumentation, $tracker, true, ...$args);
             }
         );
 
@@ -167,7 +164,7 @@ class PostgreSqlInstrumentation
                 self::basicPreHook('pg_send_execute', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
-                self::executePostHook($instrumentation, $tracker, true,  ...$args);
+                self::executePostHook($instrumentation, $tracker, true, ...$args);
             }
         );
         hook(
@@ -292,23 +289,13 @@ class PostgreSqlInstrumentation
         if ($retVal instanceof Connection) {
             $tracker->storeConnectionAttributes($retVal, $params[0]);
         }
-        self::endSpan([], $exception, $retVal == false ? "Connection error" : null);
+        self::endSpan([], $exception, $retVal == false ? 'Connection error' : null);
     }
 
     /** @param non-empty-string $spanName */
     private static function basicPreHook(string $spanName, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
-    }
-
-    private static function basicPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, ?array $attributes, bool $dropIfNoError, $obj, array $params, mixed $retVal, ?\Throwable $exception)
-    {
-        $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
-        if ($dropIfNoError && $errorStatus === null && $exception === null) {
-            self::dropSpan();
-            return;
-        }
-        self::endSpan($attributes, $exception, $errorStatus);
     }
 
     private static function tableOperationsPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $dropIfNoError, ?string $operationName, $obj, array $params, mixed $retVal, ?\Throwable $exception)
@@ -326,6 +313,7 @@ class PostgreSqlInstrumentation
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         if ($dropIfNoError && $errorStatus === null && $exception === null) {
             self::dropSpan();
+
             return;
         }
         self::endSpan($attributes, $exception, $errorStatus);
@@ -351,7 +339,6 @@ class PostgreSqlInstrumentation
 
         self::endSpan($attributes, $exception, $errorStatus);
     }
-
 
     private static function sendQueryParamsPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
@@ -453,7 +440,7 @@ class PostgreSqlInstrumentation
                 }
             } else {
                 $where = implode(' AND ', array_map(
-                    fn($k, $v) => is_null($v) ? "$k IS NULL" : "$k = '$v'",
+                    fn (string $k, $v) => null === $v ? $k . ' IS NULL' : $k . " = '$v'",
                     array_keys($conditions),
                     $conditions
                 ));
@@ -545,7 +532,6 @@ class PostgreSqlInstrumentation
         self::endSpan($attributes, $exception, $errorStatus);
     }
 
-
     private static function loImportExportPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, string $operation, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
@@ -625,6 +611,5 @@ class PostgreSqlInstrumentation
 
         return null;
     }
-
 
 }
