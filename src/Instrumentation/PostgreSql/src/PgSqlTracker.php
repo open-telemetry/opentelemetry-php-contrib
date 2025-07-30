@@ -20,14 +20,17 @@ final class PgSqlTracker
 
     private WeakMap $connectionAttributes;
 
-    private WeakMap $connectionStatements;
+    /**
+     * @var WeakMap<Connection, string>
+    */
+     private WeakMap $connectionStatements;
 
     /**
      * @var WeakMap<Connection, SplQueue<WeakReference<?SpanContextInterface>>
     */
     private WeakMap $connectionAsyncLink;
 
-        /**
+    /**
      * @var WeakMap<Lob, WeakReference<Connection>>
     */
     private WeakMap $connectionLargeObjects;

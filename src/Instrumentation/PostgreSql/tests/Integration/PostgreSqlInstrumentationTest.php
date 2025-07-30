@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\PostgreSql\Integration;
 
 use ArrayObject;
-use mysqli;
-use mysqli_result;
-use mysqli_sql_exception;
-use mysqli_stmt;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -35,15 +31,6 @@ class PostgreSqlInstrumentationTest extends TestCase
     private string $user;
     private string $passwd;
     private string $database;
-
-
-// pg_lo_open
-// pg_lo_write
-// pg_lo_read
-// pg_lo_read_all
-// pg_lo_unlink
-// pg_lo_import
-// pg_lo_export
 
     public function setUp(): void
     {
