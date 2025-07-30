@@ -16,6 +16,7 @@ use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
+use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 /**
@@ -92,7 +93,7 @@ class WordpressInstrumentation
 
                 $span = $instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s', $request->getMethod()))
+                    ->spanBuilder(sprintf('%s %s', $request->getMethod(), self::getScriptNameFromRequest($request)))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
@@ -182,5 +183,10 @@ class WordpressInstrumentation
         }
 
         $span->end();
+    }
+
+    private static function getScriptNameFromRequest(ServerRequestInterface $request): string
+    {
+        return $request->getServerParams()['SCRIPT_NAME'] ?? '/';
     }
 }
