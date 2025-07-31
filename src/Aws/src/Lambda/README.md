@@ -5,8 +5,8 @@ This package supports manual instrumentation for the AWS Lambda functions writte
 ## Using the AWS Lambda Instrumentation with AWS Lambda Functions
 Below is a example on how to setup AWS Lambda Instrumentation:
 
-1. Follow the steps in this [README](../../README.md) to install the AWS Contrib Depedency.
-2. Follw the example below:
+1. Follow the steps in this [README](../../README.md) to install the AWS Contrib Dependency.
+2. Follow the example below to apply the wrapper and get your handler function instrumented:
 ```php
 <?php
 // index.php
