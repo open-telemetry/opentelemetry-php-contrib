@@ -114,7 +114,6 @@ class WordpressInstrumentation
 
                     if (function_exists('is_404') && is_404()) {
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, 404);
-                        $span->setStatus(StatusCode::STATUS_ERROR);
                     }
                     //@todo check for other errors?
 
