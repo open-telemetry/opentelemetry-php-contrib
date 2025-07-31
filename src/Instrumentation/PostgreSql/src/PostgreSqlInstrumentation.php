@@ -549,11 +549,11 @@ class PostgreSqlInstrumentation
             ->spanBuilder($spanName)
             ->setParent($parent)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-            ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-            ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, ($class ? $class . '::' : '') . $function)
+            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
             ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, 'postgresql')
+            // @phan-suppress-next-line PhanDeprecatedClassConstant
             ->setAttribute(TraceAttributes::DB_SYSTEM, 'postgresql')
             ->setAttributes($attributes);
 
