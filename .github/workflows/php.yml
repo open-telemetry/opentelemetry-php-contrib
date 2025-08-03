@@ -41,6 +41,7 @@ jobs:
           'Instrumentation/MySqli',
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
+          'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
           'Instrumentation/Psr3',
           'Instrumentation/Psr6',
@@ -78,6 +79,8 @@ jobs:
             php-version: 8.1
           - project: 'Instrumentation/PDO'
             php-version: 8.1
+          - project: 'Instrumentation/PostgreSql'
+            php-version: 8.1
     steps:
     - uses: actions/checkout@v4
 
@@ -86,7 +89,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli
+        extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -150,6 +153,11 @@ jobs:
       if: ${{ matrix.project == 'Instrumentation/MySqli' }}
       run: |
         docker compose up  mysql -d --wait
+
+    - name: Start PostgreSql
+      if: ${{ matrix.project == 'Instrumentation/PostgreSql' }}
+      run: |
+        docker compose up  postgresql -d --wait
 
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}

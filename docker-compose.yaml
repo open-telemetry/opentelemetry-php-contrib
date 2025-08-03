@@ -18,6 +18,7 @@ services:
       MONGODB_HOST: ${MONGODB_HOST:-mongodb}
       MONGODB_PORT: ${MONGODB_PORT:-27017}
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgresql}
 
   zipkin:
     image: openzipkin/zipkin-slim
@@ -88,3 +89,20 @@ services:
       retries: 3
     volumes:
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgresql:
+    image: postgres:17.5
+    hostname: postgresql
+    ports:
+      - "5432:5432/tcp"
+    environment:
+      POSTGRES_DB: otel_db
+      POSTGRES_USER: otel_user
+      POSTGRES_PASSWORD: otel_passwd
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=otel_passwd psql -U otel_user -d otel_db -h 127.0.0.1 -c 'SELECT 1'"]
+      interval: 30s
+      timeout: 90s
+      retries: 3
+    volumes:
+      - ./docker/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
