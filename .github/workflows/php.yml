@@ -54,6 +54,7 @@ jobs:
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
           'Logs/Monolog',
+          'Propagation/CloudTrace',
           'Propagation/Instana',
           'Propagation/ServerTiming',
           'Propagation/TraceResponse',
