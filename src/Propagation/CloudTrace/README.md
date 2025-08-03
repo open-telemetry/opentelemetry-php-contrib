@@ -2,8 +2,8 @@
 [![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Propagation/CloudTrace)
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/extension-propagator-cloudtrace)
-[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-instana/v/unstable)](https://packagist.org/packages/open-telemetry/extension-propagator-cloudtrace/)
-[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-instana/v/stable)](https://packagist.org/packages/open-telemetry/extension-propagator-cloudtrace/)
+[![Latest Version](http://poser.pugx.org/open-telemetry/extension-propagator-cloudtrace/v/unstable)](https://packagist.org/packages/open-telemetry/extension-propagator-cloudtrace/)
+[![Stable](http://poser.pugx.org/open-telemetry/extension-propagator-cloudtrace/v/stable)](https://packagist.org/packages/open-telemetry/extension-propagator-cloudtrace/)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
