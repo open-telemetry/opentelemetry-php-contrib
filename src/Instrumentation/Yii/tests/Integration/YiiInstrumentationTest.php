@@ -165,17 +165,25 @@ class YiiInstrumentationTest extends AbstractTest
 
 class SiteController extends Controller
 {
+    /**
+     * @return mixed
+     */
     public function actionIndex()
     {
-        return \Yii::createObject([
+        /** @var array{class: class-string, format: string, content: string} $config */
+        $config = [
             'class' => 'yii\web\Response',
             'format' => \yii\web\Response::FORMAT_RAW,
             'content' => 'hello',
-        ]);
+    ];
+
+        return \Yii::createObject($config);
     }
 
+    /** @psalm-suppress MoreSpecificReturnType */
     public function actions()
     {
+        /** @psalm-suppress LessSpecificReturnStatement */
         return [
             'error' => [
                 'class' => 'yii\web\ErrorAction',
