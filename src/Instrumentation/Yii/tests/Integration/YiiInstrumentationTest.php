@@ -20,7 +20,7 @@ class YiiInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('SiteController.actionIndex', $this->storage[0]->getName());
+        $this->assertEquals('GET SiteController.actionIndex', $this->storage[0]->getName());
         $this->assertEquals('http://example.com/site/index', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
@@ -40,7 +40,7 @@ class YiiInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('SiteController.error', $this->storage[0]->getName());
+        $this->assertEquals('GET SiteController.error', $this->storage[0]->getName());
         $this->assertEquals('http://example.com/site/error', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
@@ -56,7 +56,7 @@ class YiiInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('SiteController.actionThrow', $this->storage[0]->getName());
+        $this->assertEquals('GET SiteController.actionThrow', $this->storage[0]->getName());
         $this->assertEquals('http://example.com/site/throw', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
@@ -82,7 +82,7 @@ class YiiInstrumentationTest extends AbstractTest
 
         $attributes = $span->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('SiteController.actionIndex', $this->storage[0]->getName());
+        $this->assertEquals('GET SiteController.actionIndex', $this->storage[0]->getName());
         $this->assertEquals('http://example.com/site/index', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
