@@ -28,7 +28,7 @@ class CurlInstrumentation
 
     public static function register(): void
     {
-        /* @var WeakMap<CurlHandle, CurlHandleMetadata> */
+        // @var WeakMap<CurlHandle, CurlHandleMetadata>
         $curlHandleToAttributes = new WeakMap();
 
         /** @var WeakMap<CurlMultiHandle, array> $curlMultiToHandle
@@ -77,6 +77,7 @@ class CurlInstrumentation
 
                 if (!isset($curlHandleToAttributes[$params[0]])) {
                     self::logDebug('Curl handle is not tracked', ['retVal' => $retVal, 'params' => $params]);
+
                     return;
                 }
 
@@ -101,6 +102,7 @@ class CurlInstrumentation
 
                 if (!isset($curlHandleToAttributes[$params[0]])) {
                     self::logDebug('Curl handle is not tracked', ['retVal' => $retVal, 'params' => $params]);
+
                     return;
                 }
 
@@ -118,11 +120,13 @@ class CurlInstrumentation
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if (!($params[0] instanceof CurlHandle && $retVal instanceof CurlHandle)) {
                     self::logDebug('curl_copy_handle', ['retVal' => $retVal, 'params' => $params]);
+
                     return;
                 }
 
                 if (!isset($curlHandleToAttributes[$params[0]])) {
                     self::logDebug('curl_copy_handle. Handle is not tracked', ['retVal' => $retVal, 'params' => $params]);
+
                     return;
                 }
 
