@@ -63,7 +63,7 @@ class CodeIgniterInstrumentation
                 $request = ($extractedRequest instanceof RequestInterface) ? $extractedRequest : null;
                  
                 // Get the HTTP method from the request and store it for later use
-                self::$httpMethod = $request ? $request->getMethod() : 'unknown';
+                self::$httpMethod = $request?->getMethod() ?? $_SERVER['REQUEST_METHOD'] ?? 'unknown';
                 /** @psalm-suppress ArgumentTypeCoercion,DeprecatedMethod */
                 $spanBuilder = $instrumentation
                     ->tracer()
