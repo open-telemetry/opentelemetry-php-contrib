@@ -78,6 +78,7 @@ updates:
       - "/src/Instrumentation/MySqli"
       - "/src/Instrumentation/OpenAIPHP"
       - "/src/Instrumentation/PDO"
+      - "/src/Instrumentation/PostgreSql"
       - "/src/Instrumentation/Psr14"
       - "/src/Instrumentation/Psr15"
       - "/src/Instrumentation/Psr16"
