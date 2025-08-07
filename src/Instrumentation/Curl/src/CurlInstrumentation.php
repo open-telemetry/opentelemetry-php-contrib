@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Curl;
 
 use CurlHandle;
 use CurlMultiHandle;
+use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
@@ -21,11 +22,13 @@ use WeakMap;
 
 class CurlInstrumentation
 {
+    use LogsMessagesTrait;
+
     public const NAME = 'curl';
 
     public static function register(): void
     {
-        /** @var WeakMap<CurlHandle, CurlHandleMetadata> */
+        // @var WeakMap<CurlHandle, CurlHandleMetadata>
         $curlHandleToAttributes = new WeakMap();
 
         /** @var WeakMap<CurlMultiHandle, array> $curlMultiToHandle
@@ -72,7 +75,12 @@ class CurlInstrumentation
                     return;
                 }
 
-                /** @psalm-suppress PossiblyNullReference */
+                if (!isset($curlHandleToAttributes[$params[0]])) {
+                    self::logDebug('Curl handle is not tracked', ['retVal' => $retVal, 'params' => $params]);
+
+                    return;
+                }
+
                 $curlHandleToAttributes[$params[0]]->updateFromCurlOption($params[1], $params[2]);
             }
         );
@@ -92,6 +100,12 @@ class CurlInstrumentation
                     return;
                 }
 
+                if (!isset($curlHandleToAttributes[$params[0]])) {
+                    self::logDebug('Curl handle is not tracked', ['retVal' => $retVal, 'params' => $params]);
+
+                    return;
+                }
+
                 foreach ($params[1] as $option => $value) {
                     /** @psalm-suppress PossiblyNullReference */
                     $curlHandleToAttributes[$params[0]]->updateFromCurlOption($option, $value);
@@ -101,26 +115,22 @@ class CurlInstrumentation
 
         hook(
             null,
-            'curl_close',
-            pre: static function ($obj, array $params) use ($curlHandleToAttributes) {
-                if (count($params) > 0 && $params[0] instanceof CurlHandle) {
-                    $curlHandleToAttributes->offsetUnset($params[0]);
-                }
-            },
-            post: null
-        );
-
-        hook(
-            null,
             'curl_copy_handle',
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
-                if ($params[0] instanceof CurlHandle && $retVal instanceof CurlHandle) {
-                    /** @psalm-suppress PossiblyNullReference
-                     *  @psalm-suppress PossiblyNullArgument
-                     */
-                    $curlHandleToAttributes[$retVal] = $curlHandleToAttributes[$params[0]];
+                if (!($params[0] instanceof CurlHandle && $retVal instanceof CurlHandle)) {
+                    self::logDebug('curl_copy_handle', ['retVal' => $retVal, 'params' => $params]);
+
+                    return;
                 }
+
+                if (!isset($curlHandleToAttributes[$params[0]])) {
+                    self::logDebug('curl_copy_handle. Handle is not tracked', ['retVal' => $retVal, 'params' => $params]);
+
+                    return;
+                }
+
+                $curlHandleToAttributes[$retVal] = $curlHandleToAttributes[$params[0]];
             }
         );
 
@@ -143,13 +153,19 @@ class CurlInstrumentation
                     return;
                 }
 
-                /** @psalm-suppress PossiblyNullReference */
-                $spanName = $curlHandleToAttributes[$params[0]]->getAttributes()[TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_exec';
+                $spanName = 'curl_exec';
+                $attributes = [];
+
+                if (isset($curlHandleToAttributes[$params[0]])) {
+                    $attributes = $curlHandleToAttributes[$params[0]]->getAttributes();
+                    $spanName = $attributes[TraceAttributes::HTTP_REQUEST_METHOD] ?? $spanName;
+                } else {
+                    self::logDebug('Curl handle is not tracked', ['params' => $params]);
+                }
 
                 $propagator = Globals::propagator();
                 $parent = Context::getCurrent();
 
-                /** @psalm-suppress PossiblyNullReference */
                 $builder = $instrumentation->tracer()
                     ->spanBuilder($spanName)
                     ->setParent($parent)
@@ -157,37 +173,38 @@ class CurlInstrumentation
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttributes($curlHandleToAttributes[$params[0]]->getAttributes());
+                    ->setAttributes($attributes);
 
                 $span = $builder->startSpan();
                 $context = $span->storeInContext($parent);
-                $propagator->inject($curlHandleToAttributes[$params[0]], HeadersPropagator::instance(), $context);
+                if (isset($curlHandleToAttributes[$params[0]])) {
+                    $propagator->inject($curlHandleToAttributes[$params[0]], HeadersPropagator::instance(), $context);
+                }
 
                 Context::storage()->attach($context);
 
-                $curlSetOptInstrumentationSuppressed = true;
+                if (!isset($curlHandleToAttributes[$params[0]])) {
+                    return;
+                }
 
-                /** @psalm-suppress PossiblyNullReference */
+                $curlSetOptInstrumentationSuppressed = true;
                 $headers = $curlHandleToAttributes[$params[0]]->getRequestHeadersToSend();
                 if ($headers) {
                     curl_setopt($params[0], CURLOPT_HTTPHEADER, $headers);
                 }
 
                 if (self::isResponseHeadersCapturingEnabled()) {
-                    /** @psalm-suppress PossiblyNullReference */
                     curl_setopt($params[0], CURLOPT_HEADERFUNCTION, $curlHandleToAttributes[$params[0]]->getResponseHeaderCaptureFunction());
                 }
 
                 if (self::isRequestHeadersCapturingEnabled()) {
-                    /** @psalm-suppress PossiblyNullReference */
                     if (!$curlHandleToAttributes[$params[0]]->isVerboseEnabled()) { // we let go of captuing request headers because CURLINFO_HEADER_OUT is disabling CURLOPT_VERBOSE
                         curl_setopt($params[0], CURLINFO_HEADER_OUT, true);
+                    } else {
+                        self::logDebug('Request headers won\'t be captured because verbose mode is disabled', ['params' => $params]);
                     }
-                    //TODO log?
-
                 }
                 $curlSetOptInstrumentationSuppressed = false;
-
             },
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
                 if (!($params[0] instanceof CurlHandle)) {
@@ -213,12 +230,15 @@ class CurlInstrumentation
                     $span->setAttribute(TraceAttributes::ERROR_TYPE, 'cURL error (' . $errno . ')');
                 }
 
-                /** @psalm-suppress PossiblyNullReference */
-                $capturedHeaders = $curlHandleToAttributes[$params[0]]->getCapturedResponseHeaders();
-                foreach (self::getResponseHeadersToCapture() as $headerToCapture) {
-                    if (($value = $capturedHeaders[strtolower($headerToCapture)] ?? null) != null) {
-                        $span->setAttribute(sprintf('http.response.header.%s', strtolower(string: $headerToCapture)), $value);
+                if (isset($curlHandleToAttributes[$params[0]])) {
+                    $capturedHeaders = $curlHandleToAttributes[$params[0]]->getCapturedResponseHeaders();
+                    foreach (self::getResponseHeadersToCapture() as $headerToCapture) {
+                        if (($value = $capturedHeaders[strtolower($headerToCapture)] ?? null) != null) {
+                            $span->setAttribute(sprintf('http.response.header.%s', strtolower(string: $headerToCapture)), $value);
+                        }
                     }
+                } else {
+                    self::logDebug('Curl handle is not tracked', ['params' => $params]);
                 }
 
                 $span->end();
