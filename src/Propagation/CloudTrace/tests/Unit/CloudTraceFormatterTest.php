@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Unit\Extension\Propagator\CloudTrace;
+namespace OpenTelemetry\Tests\Propagation\CloudTrace\Unit;
 
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\API\Trace\TraceFlags;
-use OpenTelemetry\Extension\Propagator\CloudTrace\CloudTraceFormatter;
+use OpenTelemetry\Contrib\Propagation\CloudTrace\CloudTraceFormatter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

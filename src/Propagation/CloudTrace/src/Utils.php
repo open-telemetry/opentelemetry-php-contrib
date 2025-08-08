@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Extension\Propagator\CloudTrace;
+namespace OpenTelemetry\Contrib\Propagation\CloudTrace;
 
 /**
  * This class contains utilities that are used by the CloudTracePropagator.

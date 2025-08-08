@@ -73,7 +73,7 @@ splits:
   - prefix: "src/MetaPackages/opentelemetry"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/opentelemetry-meta.git"
   - prefix: "src/Propagation/CloudTrace"
-    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/extension-propagator-cloudtrace.git"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-cloudtrace.git"
   - prefix: "src/Propagation/Instana"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-instana.git"
   - prefix: "src/Propagation/ServerTiming"

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Unit\Extension\Propagator\CloudTrace;
+namespace OpenTelemetry\Tests\Propagation\CloudTrace\Unit;
 
-use OpenTelemetry\Extension\Propagator\CloudTrace\Utils;
+use OpenTelemetry\Contrib\Propagation\CloudTrace\Utils;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
