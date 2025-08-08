@@ -1,9 +1,9 @@
-[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/extension-propagator-cloudtrace/releases)
+[![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-propagator-cloudtrace/releases)
 [![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Propagation/CloudTrace)
-[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/extension-propagator-cloudtrace)
-[![Latest Version](http://poser.pugx.org/open-telemetry/extension-propagator-cloudtrace/v/unstable)](https://packagist.org/packages/open-telemetry/extension-propagator-cloudtrace/)
-[![Stable](http://poser.pugx.org/open-telemetry/extension-propagator-cloudtrace/v/stable)](https://packagist.org/packages/open-telemetry/extension-propagator-cloudtrace/)
+[![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-propagator-cloudtrace)
+[![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-propagator-cloudtrace/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-cloudtrace/)
+[![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-propagator-cloudtrace/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-cloudtrace/)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
@@ -17,7 +17,7 @@ and returns the correct span context. It only attaches to existing X-Cloud-Trace
 ## Installation
 
 ```sh
-composer require open-telemetry/extension-propagator-cloudtrace
+composer require open-telemetry/opentelemetry-propagation-cloudtrace
 ```
 
 ## Usage
