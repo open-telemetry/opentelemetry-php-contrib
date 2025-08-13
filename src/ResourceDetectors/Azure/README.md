@@ -18,6 +18,7 @@ resource attributes for these Azure services:
 The following OpenTelemetry resource attributes will be detected:
 
 | Resource attribute      | VM       | App Service       | Containers           |
+| ----------------------- | -------- | ----------------- | -------------------- |
 | cloud.platform          | azure_vm | azure_app_service | azure_container_apps |
 | cloud.provider          | azure    | azure             | azure                |
 | cloud.resource.id       | auto     | auto              |                      |

@@ -1,7 +1,15 @@
 {
-  "name": "open-telemetry/opentelemetry-auto-pdo",
-  "description": "OpenTelemetry auto-instrumentation for PDO",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "pdo", "instrumentation"],
+  "name": "open-telemetry/opentelemetry-auto-postgresql",
+  "version": "dev-main",
+  "description": "OpenTelemetry auto-instrumentation for postgresql",
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "postgresql",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
@@ -10,10 +18,10 @@
   "prefer-stable": true,
   "require": {
     "php": "^8.2",
-    "ext-pdo": "*",
+    "ext-pgsql": "*",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.36",
+    "open-telemetry/sem-conv": "^1.30",
     "symfony/polyfill-mbstring": "^1.31"
   },
   "suggest": {
@@ -27,13 +35,12 @@
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
-    "open-telemetry/test-utils": "^0.2.0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "6.4.0"
   },
   "autoload": {
     "psr-4": {
-      "OpenTelemetry\\Contrib\\Instrumentation\\PDO\\": "src/"
+      "OpenTelemetry\\Contrib\\Instrumentation\\PostgreSql\\": "src/"
     },
     "files": [
       "_register.php"
@@ -41,7 +48,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OpenTelemetry\\Tests\\Instrumentation\\PDO\\": "tests/"
+      "OpenTelemetry\\Tests\\Instrumentation\\PostgreSql\\": "tests/"
     }
   },
   "config": {

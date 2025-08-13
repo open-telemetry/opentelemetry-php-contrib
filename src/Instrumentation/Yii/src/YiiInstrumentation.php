@@ -140,8 +140,14 @@ class YiiInstrumentation
                 $span = Span::fromContext($scope->context());
                 $actionName = $action instanceof InlineAction ? $action->actionMethod : $action->id;
                 $route = YiiInstrumentation::normalizeRouteName(get_class($controller), $actionName);
+
+                // Get the HTTP method from the request
+                $request = $controller->request;
+                $method = $request->getMethod();
+
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span->updateName($route);
+                // Update span name to follow OpenTelemetry HTTP naming convention: {http.method} {http.route}
+                $span->updateName(sprintf('%s %s', $method, $route));
                 $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
             },
             post: null

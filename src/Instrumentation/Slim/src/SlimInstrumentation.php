@@ -12,6 +12,12 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -53,22 +59,22 @@ class SlimInstrumentation
                 $builder = $instrumentation->tracer()
                     ->spanBuilder(sprintf('%s', $request?->getMethod() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
                     $parent = Globals::propagator()->extract($request->getHeaders());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, $request->getUri()->__toString())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
-                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
-                        ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
+                        ->setAttribute(UrlAttributes::URL_FULL, $request->getUri()->__toString())
+                        ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                        ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                        ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                        ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                        ->setAttribute(ServerAttributes::SERVER_PORT, $request->getUri()->getPort())
+                        ->setAttribute(UrlAttributes::URL_SCHEME, $request->getUri()->getScheme())
+                        ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
                         ->startSpan();
                     $request = $request->withAttribute(SpanInterface::class, $span);
                 } else {
@@ -93,9 +99,9 @@ class SlimInstrumentation
                     if ($response->getStatusCode() >= 400) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
+                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
 
                     if (self::$supportsResponsePropagation) {
                         // Propagate server-timing header to response, if ServerTimingPropagator is present
@@ -144,7 +150,7 @@ class SlimInstrumentation
                 if (!$route instanceof RouteInterface) {
                     return;
                 }
-                $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route->getName() ?? $route->getPattern());
+                $span->setAttribute(HttpAttributes::HTTP_ROUTE, $route->getName() ?? $route->getPattern());
                 $span->updateName(sprintf('%s %s', $request->getMethod(), $route->getName() ?? $route->getPattern()));
             }
         );
@@ -162,9 +168,9 @@ class SlimInstrumentation
                 $callable = $params[0];
                 $name = CallableFormatter::format($callable);
                 $builder = $instrumentation->tracer()->spanBuilder($name)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },

@@ -14,7 +14,8 @@
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.32",
     "nyholm/psr7": "^1",
-    "nyholm/psr7-server": "^1"
+    "nyholm/psr7-server": "^1",
+    "psr/http-message": "2.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
