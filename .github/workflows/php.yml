@@ -62,6 +62,7 @@ jobs:
           'ResourceDetectors/Container',
           'ResourceDetectors/DigitalOcean',
           'Sampler/RuleBased',
+          'Sampler/Xray',
           'Shims/OpenTracing',
           'Symfony',
           'Utils/Test'
