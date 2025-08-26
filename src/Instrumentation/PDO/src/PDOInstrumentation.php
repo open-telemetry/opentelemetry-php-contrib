@@ -12,7 +12,8 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Version;
 use PDO;
 use PDOStatement;
@@ -27,7 +28,7 @@ class PDOInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.pdo',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
         $pdoTracker = new PDOTracker();
 
@@ -112,7 +113,7 @@ class PDOInstrumentation
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 if ($class === PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -135,7 +136,7 @@ class PDOInstrumentation
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 if ($class === PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -158,7 +159,7 @@ class PDOInstrumentation
                 $builder = self::makeBuilder($instrumentation, 'PDO::prepare', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
                 if ($class === PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -244,7 +245,7 @@ class PDOInstrumentation
                 $attributes = $pdoTracker->trackedAttributesForStatement($statement);
                 if (self::isDistributeStatementToLinkedSpansEnabled()) {
                     /** @psalm-suppress InvalidArrayAssignment */
-                    $attributes[TraceAttributes::DB_QUERY_TEXT] = $statement->queryString;
+                    $attributes[DbAttributes::DB_QUERY_TEXT] = $statement->queryString;
                 }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDOStatement::fetchAll', $function, $class, $filename, $lineno)
@@ -271,7 +272,7 @@ class PDOInstrumentation
 
                 if (self::isDistributeStatementToLinkedSpansEnabled()) {
                     /** @psalm-suppress InvalidArrayAssignment */
-                    $attributes[TraceAttributes::DB_QUERY_TEXT] = $statement->queryString;
+                    $attributes[DbAttributes::DB_QUERY_TEXT] = $statement->queryString;
                 }
 
                 /** @psalm-suppress ArgumentTypeCoercion */
@@ -301,9 +302,9 @@ class PDOInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
                     ->spanBuilder($name)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
     }
     private static function end(?Throwable $exception): void
     {
