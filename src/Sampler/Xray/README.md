@@ -5,7 +5,7 @@ Provides a sampler which can get sampling configurations from AWS X-Ray to make 
 ## Installation
 
 ```shell
-composer require open-telemetry/contrib-aws-xray-sampler
+composer require open-telemetry/sampler-aws-xray
 ```
 
 ## Configuration

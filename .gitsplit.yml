@@ -86,6 +86,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-detector-digitalocean.git"
   - prefix: "src/Sampler/RuleBased"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sampler-rulebased.git"
+  - prefix: "src/Sampler/Xray"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sampler-aws-xray.git"
   - prefix: "src/Shims/OpenTracing"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-shim-opentracing.git"
   - prefix: "src/Utils/Test"

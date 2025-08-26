@@ -1,5 +1,5 @@
 {
-    "name": "open-telemetry/contrib-aws-xray-sampler",
+    "name": "open-telemetry/sampler-aws-xray",
     "description": "AWS X-Ray Remote Sampler for OpenTelemetry PHP Contrib",
     "type": "library",
     "license": "Apache-2.0",
