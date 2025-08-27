@@ -53,7 +53,9 @@ class PhpSessionInstrumentation
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
             },
-            post: static function ($object, ?array $params, mixed $return, ?Throwable $exception) use ($function) {
+            post: static function ($object, ?array $params, mixed $return, ?Throwable $exception) use ($instrumentation, $name, $function) {
+                $builder = self::makeBuilder($instrumentation, $name, $function);
+                self::addParams($builder, $function, $params);
                 self::end($exception, $function);
             }
         );
@@ -82,8 +84,10 @@ class PhpSessionInstrumentation
 
         switch ($function) {
             case 'session_start':
-                $isSessionActive = !empty(session_id());
-                $span->setAttribute('php.session.status', $isSessionActive ? 'active' : 'inactive');
+                $sessionId = session_id();
+                if (!empty($sessionId)) {
+                    $span->setAttribute('php.session.status', session_status());
+                }
                 // Add session cookie parameters
                 $cookieParams = session_get_cookie_params();
                 $index = 0;
@@ -99,19 +103,15 @@ class PhpSessionInstrumentation
             case 'session_write_close':
             case 'session_unset':
             case 'session_abort':
-                $sessionId = session_id();
-                $sessionName = session_name();
-            
+                $sessionId =  session_id();
                 // Add session information
                 if (!empty($sessionId)) {
                     $span->setAttribute('php.session.id', $sessionId);
-                    $span->setAttribute('php.session.name', $sessionName);
+                    $span->setAttribute('php.session.name', session_name());
                 }
-
-                break;
+                // no break
             case 'session_destroy':
                 break;
-
         }
         
         if ($exception) {
@@ -143,6 +143,13 @@ class PhpSessionInstrumentation
                 break;
                 
             case 'session_destroy':
+                $sessionId =  session_id();
+                // Add session information
+                if (!empty($sessionId)) {
+                    $builder->setAttribute('php.session.id', $sessionId);
+                    $builder->setAttribute('php.session.name', session_name());
+                }
+
                 // No parameters to add for session_destroy
                 break;
         }

@@ -49,7 +49,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         // Verify the span was created
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
-        
+        echo session_status();
         // Check span name
         $this->assertEquals('session.start', $span->getName());
         
@@ -65,7 +65,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         // Check session information
         $this->assertEquals(session_id(), $attributes->get('php.session.id'));
         $this->assertEquals(session_name(), $attributes->get('php.session.name'));
-        $this->assertEquals('active', $attributes->get('php.session.status'));
+        $this->assertEquals(session_status(), $attributes->get('php.session.status'));
         
         // Check cookie parameters
         $cookieParams = session_get_cookie_params();
@@ -111,6 +111,10 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $attributes = $span->getAttributes();
 
         $this->assertEquals('session_destroy', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+
+        // Check session information
+        $this->assertNotNull($attributes->get('php.session.id'));
+        $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
         $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
