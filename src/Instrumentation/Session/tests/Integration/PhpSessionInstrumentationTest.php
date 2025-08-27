@@ -43,7 +43,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
             'read_and_close' => true,
             'cookie_lifetime' => 3600,
         ];
-        
+    
         session_start($options);
         
         // Verify the span was created
@@ -71,7 +71,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $cookieParams = session_get_cookie_params();
         foreach ($cookieParams as $key => $value) {
             if (is_scalar($value)) {
-                $this->assertEquals($value, $attributes->get("php.session.cookie.$key"));
+                $this->assertEquals('<redacted>', $attributes->get("php.session.cookie.$key"));
             }
         }
         

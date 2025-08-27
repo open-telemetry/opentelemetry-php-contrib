@@ -91,7 +91,7 @@ class PhpSessionInstrumentation
             $cookieParams = session_get_cookie_params();
             foreach ($cookieParams as $key => $value) {
                 if (is_scalar($value)) {
-                    $span->setAttribute("php.session.cookie.$key", $value);
+                    $span->setAttribute("php.session.cookie.$key", '<redacted>');
                 }
             }
         } elseif ($function === 'session_write_close') {
