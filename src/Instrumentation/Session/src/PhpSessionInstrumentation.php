@@ -79,52 +79,41 @@ class PhpSessionInstrumentation
         }
         $scope->detach();
         $span = Span::fromContext($scope->context());
-        
-        // Add session-specific attributes in the post hook
-        if ($function === 'session_start') {
-            $isSessionActive = !empty(session_id());
-            $span->setAttribute('php.session.id', session_id());
-            $span->setAttribute('php.session.name', session_name());
-            $span->setAttribute('php.session.status', $isSessionActive ? 'active' : 'inactive');
 
-            // Add session cookie parameters
-            $cookieParams = session_get_cookie_params();
-            foreach ($cookieParams as $key => $value) {
-                if (is_scalar($value)) {
-                    $span->setAttribute("php.session.cookie.$key", '<redacted>');
+        switch ($function) {
+            case 'session_start':
+                $isSessionActive = !empty(session_id());
+                $span->setAttribute('php.session.status', $isSessionActive ? 'active' : 'inactive');
+                // Add session cookie parameters
+                $cookieParams = session_get_cookie_params();
+                $index = 0;
+                ksort($cookieParams);
+                foreach ($cookieParams as $key => $value) {
+                    if (is_scalar($value)) {
+                        $span->setAttribute("php.session.cookie.key[$index]", $key);
+                    }
+                    $index++;
+                    
                 }
-            }
-        } elseif ($function === 'session_write_close') {
-            $sessionId = session_id();
-            $sessionName = session_name();
+                // no break
+            case 'session_write_close':
+            case 'session_unset':
+            case 'session_abort':
+                $sessionId = session_id();
+                $sessionName = session_name();
             
-            // Add session information
-            if (!empty($sessionId)) {
-                $span->setAttribute('php.session.id', $sessionId);
-                $span->setAttribute('php.session.name', $sessionName);
-            }
-            
-        } elseif ($function === 'session_unset') {
-            $sessionId = session_id();
-            $sessionName = session_name();
-            
-            // Add session information
-            if (!empty($sessionId)) {
-                $span->setAttribute('php.session.id', $sessionId);
-                $span->setAttribute('php.session.name', $sessionName);
-            }
-            
-        } elseif ($function === 'session_abort') {
-            $sessionId = session_id();
-            $sessionName = session_name();
-            
-            // Add session information
-            if (!empty($sessionId)) {
-                $span->setAttribute('php.session.id', $sessionId);
-                $span->setAttribute('php.session.name', $sessionName);
-            }
+                // Add session information
+                if (!empty($sessionId)) {
+                    $span->setAttribute('php.session.id', $sessionId);
+                    $span->setAttribute('php.session.name', $sessionName);
+                }
+
+                break;
+            case 'session_destroy':
+                break;
 
         }
+        
         if ($exception) {
             $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
