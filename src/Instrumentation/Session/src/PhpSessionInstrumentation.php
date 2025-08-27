@@ -25,7 +25,7 @@ class PhpSessionInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.session',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         self::_hook($instrumentation, null, 'session_start', 'session.start');
@@ -44,9 +44,10 @@ class PhpSessionInstrumentation
         hook(
             class: $class,
             function: $function,
+            /** @psalm-suppress UnusedClosureParam */
             pre: static function ($object, ?array $params, ?string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $name) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = self::makeBuilder($instrumentation, $name, $function, $filename, $lineno);
+                $builder = self::makeBuilder($instrumentation, $name, $function);
                 self::addParams($builder, $function, $params);
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -61,17 +62,13 @@ class PhpSessionInstrumentation
     private static function makeBuilder(
         CachedInstrumentation $instrumentation,
         string $name,
-        string $function,
-        ?string $filename,
-        ?int $lineno
+        string $function
     ): SpanBuilderInterface {
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
             ->spanBuilder($name)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function);
     }
 
     private static function end(?Throwable $exception, string $function): void
@@ -86,52 +83,47 @@ class PhpSessionInstrumentation
         // Add session-specific attributes in the post hook
         if ($function === 'session_start') {
             $isSessionActive = !empty(session_id());
-            $span->setAttribute('session.id', session_id());
-            $span->setAttribute('session.name', session_name());
-            $span->setAttribute('session.status', $isSessionActive ? 'active' : 'inactive');
+            $span->setAttribute('php.session.id', session_id());
+            $span->setAttribute('php.session.name', session_name());
+            $span->setAttribute('php.session.status', $isSessionActive ? 'active' : 'inactive');
 
             // Add session cookie parameters
             $cookieParams = session_get_cookie_params();
             foreach ($cookieParams as $key => $value) {
                 if (is_scalar($value)) {
-                    $span->setAttribute("session.cookie.$key", $value);
+                    $span->setAttribute("php.session.cookie.$key", $value);
                 }
             }
-        } elseif ($function === 'session_destroy') {
-            $span->setAttribute('session.destroy.success', $exception === null);
         } elseif ($function === 'session_write_close') {
             $sessionId = session_id();
             $sessionName = session_name();
             
             // Add session information
             if (!empty($sessionId)) {
-                $span->setAttribute('session.id', $sessionId);
-                $span->setAttribute('session.name', $sessionName);
+                $span->setAttribute('php.session.id', $sessionId);
+                $span->setAttribute('php.session.name', $sessionName);
             }
             
-            $span->setAttribute('session.write_close.success', $exception === null);
         } elseif ($function === 'session_unset') {
             $sessionId = session_id();
             $sessionName = session_name();
             
             // Add session information
             if (!empty($sessionId)) {
-                $span->setAttribute('session.id', $sessionId);
-                $span->setAttribute('session.name', $sessionName);
+                $span->setAttribute('php.session.id', $sessionId);
+                $span->setAttribute('php.session.name', $sessionName);
             }
             
-            $span->setAttribute('session.unset.success', $exception === null);
         } elseif ($function === 'session_abort') {
             $sessionId = session_id();
             $sessionName = session_name();
             
             // Add session information
             if (!empty($sessionId)) {
-                $span->setAttribute('session.id', $sessionId);
-                $span->setAttribute('session.name', $sessionName);
+                $span->setAttribute('php.session.id', $sessionId);
+                $span->setAttribute('php.session.name', $sessionName);
             }
 
-            $span->setAttribute('session.abort.success', $exception === null);
         }
         if ($exception) {
             $span->recordException($exception);
@@ -154,7 +146,7 @@ class PhpSessionInstrumentation
                 if (isset($params[0]) && is_array($params[0])) {
                     foreach ($params[0] as $key => $value) {
                         if (is_scalar($value)) {
-                            $builder->setAttribute("session.options.$key", $value);
+                            $builder->setAttribute("php.session.options.$key", $value);
                         }
                     }
                 }

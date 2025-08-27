@@ -59,19 +59,19 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertEquals('session_start', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
         
         // Check session options were recorded
-        $this->assertTrue($attributes->get('session.options.read_and_close'));
-        $this->assertEquals(3600, $attributes->get('session.options.cookie_lifetime'));
+        $this->assertTrue($attributes->get('php.session.options.read_and_close'));
+        $this->assertEquals(3600, $attributes->get('php.session.options.cookie_lifetime'));
         
         // Check session information
-        $this->assertEquals(session_id(), $attributes->get('session.id'));
-        $this->assertEquals(session_name(), $attributes->get('session.name'));
-        $this->assertEquals('active', $attributes->get('session.status'));
+        $this->assertEquals(session_id(), $attributes->get('php.session.id'));
+        $this->assertEquals(session_name(), $attributes->get('php.session.name'));
+        $this->assertEquals('active', $attributes->get('php.session.status'));
         
         // Check cookie parameters
         $cookieParams = session_get_cookie_params();
         foreach ($cookieParams as $key => $value) {
             if (is_scalar($value)) {
-                $this->assertEquals($value, $attributes->get("session.cookie.$key"));
+                $this->assertEquals($value, $attributes->get("php.session.cookie.$key"));
             }
         }
         
@@ -109,7 +109,6 @@ class PhpSessionInstrumentationTest extends AbstractTest
         
         // Check status
         $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
-        $this->assertTrue($attributes->get('session.destroy.success'));
     }
     /**
      * @runInSeparateProcess
@@ -121,16 +120,13 @@ class PhpSessionInstrumentationTest extends AbstractTest
         
         // Set a session variable
         $_SESSION['test'] = 'value';
-        
-        // Clear the storage to only capture the write_close operation
-        $this->storage->exchangeArray([]);
-        
+                
         // Write and close the session
         session_write_close();
         
         // Verify the span was created
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
+        $this->assertCount(2, $this->storage);
+        $span = $this->storage[1];
         
         // Check span name
         $this->assertEquals('session.write_close', $span->getName());
@@ -140,12 +136,11 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertEquals('session_write_close', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
 
         // Check session information
-        $this->assertNotNull($attributes->get('session.id'));
-        $this->assertNotNull($attributes->get('session.name'));
+        $this->assertEquals(session_id(), $attributes->get('php.session.id'));
+        $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
         $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
-        $this->assertTrue($attributes->get('session.write_close.success'));
     }
     
     /**
@@ -177,12 +172,11 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertEquals('session_unset', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
         
         // Check session information
-        $this->assertNotNull($attributes->get('session.id'));
-        $this->assertNotNull($attributes->get('session.name'));
+        $this->assertNotNull($attributes->get('php.session.id'));
+        $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
         $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
-        $this->assertTrue($attributes->get('session.unset.success'));
         
         // Clean up
         session_destroy();
@@ -217,12 +211,11 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertEquals('session_abort', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
         
         // Check session information
-        $this->assertNotNull($attributes->get('session.id'));
-        $this->assertNotNull($attributes->get('session.name'));
+        $this->assertNotNull($attributes->get('php.session.id'));
+        $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
         $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
-        $this->assertTrue($attributes->get('session.abort.success'));
     }
     
     /**

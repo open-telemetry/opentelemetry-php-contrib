@@ -61,7 +61,7 @@ splits:
   - prefix: "src/Instrumentation/ReactPHP"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-reactphp.git"
   - prefix: "src/Instrumentation/Session"
-    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-php-session.git"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-session.git"
   - prefix: "src/Instrumentation/Slim"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-slim.git"
   - prefix: "src/Instrumentation/Symfony"

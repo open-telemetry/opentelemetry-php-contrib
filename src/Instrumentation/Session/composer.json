@@ -1,5 +1,5 @@
 {
-    "name": "open-telemetry/opentelemetry-auto-php-session",
+    "name": "open-telemetry/opentelemetry-auto-session",
     "description": "OpenTelemetry auto-instrumentation for PHP Session functions",
     "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "php", "session"],
     "type": "library",
