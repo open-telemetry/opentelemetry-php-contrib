@@ -50,6 +50,7 @@ jobs:
           'Instrumentation/Psr16',
           'Instrumentation/Psr18',
           'Instrumentation/ReactPHP',
+          'Instrumentation/Session', 
           'Instrumentation/Slim',
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
@@ -81,6 +82,8 @@ jobs:
           - project: 'Instrumentation/PDO'
             php-version: 8.1
           - project: 'Instrumentation/PostgreSql'
+            php-version: 8.1
+          - project: 'Instrumentation/Session'
             php-version: 8.1
     steps:
     - uses: actions/checkout@v4
