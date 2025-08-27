@@ -111,6 +111,119 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
         $this->assertTrue($attributes->get('session.destroy.success'));
     }
+    /**
+     * @runInSeparateProcess
+     */
+    public function test_session_write_close(): void
+    {
+        // Start a session first
+        session_start();
+        
+        // Set a session variable
+        $_SESSION['test'] = 'value';
+        
+        // Clear the storage to only capture the write_close operation
+        $this->storage->exchangeArray([]);
+        
+        // Write and close the session
+        session_write_close();
+        
+        // Verify the span was created
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        
+        // Check span name
+        $this->assertEquals('session.write_close', $span->getName());
+        
+        // Check attributes
+        $attributes = $span->getAttributes();
+        $this->assertEquals('session_write_close', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+
+        // Check session information
+        $this->assertNotNull($attributes->get('session.id'));
+        $this->assertNotNull($attributes->get('session.name'));
+        
+        // Check status
+        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertTrue($attributes->get('session.write_close.success'));
+    }
+    
+    /**
+     * @runInSeparateProcess
+     */
+    public function test_session_unset(): void
+    {
+        // Start a session first
+        session_start();
+        
+        // Set a session variable
+        $_SESSION['test'] = 'value';
+        
+        // Clear the storage to only capture the unset operation
+        $this->storage->exchangeArray([]);
+        
+        // Unset all session variables
+        session_unset();
+        
+        // Verify the span was created
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        
+        // Check span name
+        $this->assertEquals('session.unset', $span->getName());
+        
+        // Check attributes
+        $attributes = $span->getAttributes();
+        $this->assertEquals('session_unset', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+        
+        // Check session information
+        $this->assertNotNull($attributes->get('session.id'));
+        $this->assertNotNull($attributes->get('session.name'));
+        
+        // Check status
+        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertTrue($attributes->get('session.unset.success'));
+        
+        // Clean up
+        session_destroy();
+    }
+    
+    /**
+     * @runInSeparateProcess
+     */
+    public function test_session_abort(): void
+    {
+        // Start a session first
+        session_start();
+        
+        // Set a session variable
+        $_SESSION['test'] = 'value';
+        
+        // Clear the storage to only capture the abort operation
+        $this->storage->exchangeArray([]);
+        
+        // Abort the session
+        session_abort();
+        
+        // Verify the span was created
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        
+        // Check span name
+        $this->assertEquals('session.abort', $span->getName());
+        
+        // Check attributes
+        $attributes = $span->getAttributes();
+        $this->assertEquals('session_abort', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+        
+        // Check session information
+        $this->assertNotNull($attributes->get('session.id'));
+        $this->assertNotNull($attributes->get('session.name'));
+        
+        // Check status
+        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertTrue($attributes->get('session.abort.success'));
+    }
     
     /**
      * @runInSeparateProcess
