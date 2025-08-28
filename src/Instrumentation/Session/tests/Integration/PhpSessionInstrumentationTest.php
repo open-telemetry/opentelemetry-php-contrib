@@ -49,7 +49,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         // Verify the span was created
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
-        echo session_status();
+
         // Check span name
         $this->assertEquals('session.start', $span->getName());
         
@@ -226,19 +226,5 @@ class PhpSessionInstrumentationTest extends AbstractTest
         // Check status
         $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
     }
-    
-    /**
-     * @runInSeparateProcess
-     */
-    public function test_session_start_exception_simulation(): void
-    {
-        // This test simulates an exception during session_start
-        // We can't easily trigger a real exception in session_start during testing,
-        // so we'll verify the exception handling code path by checking the instrumentation code
-        
-        // The PhpSessionInstrumentation class has exception handling in the post hook
-        // that sets the span status to ERROR and records the exception
-        
-        $this->assertTrue(true, 'Exception handling is implemented in the instrumentation');
-    }
+
 }
