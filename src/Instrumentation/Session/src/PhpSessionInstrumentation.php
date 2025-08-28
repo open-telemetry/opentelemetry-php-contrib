@@ -56,7 +56,7 @@ class PhpSessionInstrumentation
             post: static function ($object, ?array $params, mixed $return, ?Throwable $exception) use ($instrumentation, $name, $function) {
                 $builder = self::makeBuilder($instrumentation, $name, $function);
                 self::addParams($builder, $function, $params);
-                self::end($exception, $function);
+                self::end($exception, $function, $return);
             }
         );
     }
@@ -73,7 +73,7 @@ class PhpSessionInstrumentation
             ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function);
     }
 
-    private static function end(?Throwable $exception, string $function): void
+    private static function end(?Throwable $exception, string $function, mixed $return = null): void
     {
         $scope = Context::storage()->scope();
         if (!$scope) {
@@ -84,10 +84,10 @@ class PhpSessionInstrumentation
 
         switch ($function) {
             case 'session_start':
-                $sessionId = session_id();
-                if (!empty($sessionId)) {
-                    $span->setAttribute('php.session.status', session_status());
-                }
+                // Use the return value to determine if session was successfully started
+                $sessionStartSuccess = $exception === null && $return === true;
+                $span->setAttribute('php.session.status', $sessionStartSuccess ? 'active' : 'inactive');
+
                 // Add session cookie parameters
                 $cookieParams = session_get_cookie_params();
                 $index = 0;
@@ -98,6 +98,9 @@ class PhpSessionInstrumentation
                     }
                     $index++;
                     
+                }
+                if (!$sessionStartSuccess && $exception === null) {
+                    $span->setStatus(StatusCode::STATUS_ERROR, 'Session start failed');
                 }
                 // no break
             case 'session_write_close':
@@ -114,9 +117,13 @@ class PhpSessionInstrumentation
                 break;
         }
         
+        // Set span status based on return value
+        $Success = $exception === null && $return === true;
         if ($exception) {
             $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+        } elseif (!$Success) {
+            $span->setStatus(StatusCode::STATUS_ERROR, "$function failed with return code $return");
         } else {
             $span->setStatus(StatusCode::STATUS_OK);
         }

@@ -44,7 +44,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
             'cookie_lifetime' => 3600,
         ];
     
-        session_start($options);
+        $return = session_start($options);
         
         // Verify the span was created
         $this->assertCount(1, $this->storage);
@@ -65,7 +65,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         // Check session information
         $this->assertEquals(session_id(), $attributes->get('php.session.id'));
         $this->assertEquals(session_name(), $attributes->get('php.session.name'));
-        $this->assertEquals(session_status(), $attributes->get('php.session.status'));
+        $this->assertEquals($return, $attributes->get('php.session.status'));
         
         // Check cookie parameters
         $cookieParams = session_get_cookie_params();
