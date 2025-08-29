@@ -129,9 +129,9 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes)) {
+                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
                         /** @psalm-suppress PossiblyInvalidCast */
-                        switch ((string) $attributes[TraceAttributes::DB_SYSTEM_NAME]) {
+                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
                             case 'postgresql':
                             case 'mysql':
                                 $comments = [];
@@ -182,9 +182,9 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes)) {
+                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
                         /** @psalm-suppress PossiblyInvalidCast */
-                        switch ((string) $attributes[TraceAttributes::DB_SYSTEM_NAME]) {
+                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
                             case 'postgresql':
                             case 'mysql':
                                 $comments = [];
