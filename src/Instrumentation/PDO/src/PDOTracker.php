@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
 use OpenTelemetry\API\Trace\SpanContextInterface;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use PDO;
 use PDOStatement;
 use WeakMap;
@@ -74,11 +75,11 @@ final class PDOTracker
             /** @var string $dbSystem */
             $dbSystem = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
             /** @psalm-suppress InvalidArrayAssignment */
-            $attributes[TraceAttributes::DB_SYSTEM_NAME] = self::mapDriverNameToAttribute($dbSystem);
+            $attributes[DbAttributes::DB_SYSTEM_NAME] = self::mapDriverNameToAttribute($dbSystem);
         } catch (\Error) {
             // if we caught an exception, the driver is likely not supporting the operation, default to "other"
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'other_sql';
+            $attributes[DbAttributes::DB_SYSTEM_NAME] = 'other_sql';
         }
 
         $this->pdoToAttributesMap[$pdo] = $attributes;
@@ -135,18 +136,18 @@ final class PDOTracker
     {
         $attributes = [];
         if (str_starts_with($dsn, 'sqlite::memory:')) {
-            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAMESPACE] = 'memory';
+            $attributes[DbAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[DbAttributes::DB_NAMESPACE] = 'memory';
 
             return $attributes;
         } elseif (str_starts_with($dsn, 'sqlite:')) {
-            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAMESPACE] = substr($dsn, 7);
+            $attributes[DbAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[DbAttributes::DB_NAMESPACE] = substr($dsn, 7);
 
             return $attributes;
         } elseif (str_starts_with($dsn, 'sqlite')) {
-            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'sqlite';
-            $attributes[TraceAttributes::DB_NAMESPACE] = $dsn;
+            $attributes[DbAttributes::DB_SYSTEM_NAME] = 'sqlite';
+            $attributes[DbAttributes::DB_NAMESPACE] = $dsn;
 
             return $attributes;
         }
@@ -156,18 +157,18 @@ final class PDOTracker
             if (preg_match('/Server=([^,;]+)(?:,([0-9]+))?/', $dsn, $serverMatches)) {
                 $server = $serverMatches[1];
                 if ($server !== '') {
-                    $attributes[TraceAttributes::SERVER_ADDRESS] = $server;
+                    $attributes[ServerAttributes::SERVER_ADDRESS] = $server;
                 }
 
                 if (isset($serverMatches[2]) && $serverMatches[2] !== '') {
-                    $attributes[TraceAttributes::SERVER_PORT] = (int) $serverMatches[2];
+                    $attributes[ServerAttributes::SERVER_PORT] = (int) $serverMatches[2];
                 }
             }
 
             if (preg_match('/Database=([^;]*)/', $dsn, $dbMatches)) {
                 $dbname = $dbMatches[1];
                 if ($dbname !== '') {
-                    $attributes[TraceAttributes::DB_NAMESPACE] = $dbname;
+                    $attributes[DbAttributes::DB_NAMESPACE] = $dbname;
                 }
             }
 
@@ -186,33 +187,33 @@ final class PDOTracker
         if (preg_match('/host=([^;]*)/', $dsn, $matches)) {
             $host = $matches[1];
             if ($host !== '') {
-                $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
+                $attributes[ServerAttributes::SERVER_ADDRESS] = $host;
             }
         } elseif (preg_match('/mysql:([^;:]+)/', $dsn, $hostMatches)) {
             $host = $hostMatches[1];
             if ($host !== '' && $host !== 'dbname') {
-                $attributes[TraceAttributes::SERVER_ADDRESS] = $host;
+                $attributes[ServerAttributes::SERVER_ADDRESS] = $host;
             }
         }
 
         // Extract port information
         if (preg_match('/port=([0-9]+)/', $dsn, $portMatches)) {
             $port = (int) $portMatches[1];
-            $attributes[TraceAttributes::SERVER_PORT] = $port;
+            $attributes[ServerAttributes::SERVER_PORT] = $port;
         } elseif (preg_match('/[.0-9]+:([0-9]+)/', $dsn, $portMatches)) {
             // This pattern matches IP:PORT format like 127.0.0.1:3308
             $port = (int) $portMatches[1];
-            $attributes[TraceAttributes::SERVER_PORT] = $port;
+            $attributes[ServerAttributes::SERVER_PORT] = $port;
         } elseif (preg_match('/:([0-9]+)/', $dsn, $portMatches)) {
             $port = (int) $portMatches[1];
-            $attributes[TraceAttributes::SERVER_PORT] = $port;
+            $attributes[ServerAttributes::SERVER_PORT] = $port;
         }
 
         // Extract database name
         if (preg_match('/dbname=([^;]*)/', $dsn, $matches)) {
             $dbname = $matches[1];
             if ($dbname !== '') {
-                $attributes[TraceAttributes::DB_NAMESPACE] = $dbname;
+                $attributes[DbAttributes::DB_NAMESPACE] = $dbname;
             }
         }
 
