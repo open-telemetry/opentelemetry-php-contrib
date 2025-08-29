@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
-class SqlServerPropagator implements SqlPropagatorInterface
+class ContextInfoPropagator implements SqlPropagatorInterface
 {
     public static function inject(string $query, array $comments): string
     {

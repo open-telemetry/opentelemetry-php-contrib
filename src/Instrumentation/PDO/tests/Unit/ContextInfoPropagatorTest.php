@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Unit;
 
-use OpenTelemetry\Contrib\Instrumentation\PDO\SqlServerPropagator;
+use OpenTelemetry\Contrib\Instrumentation\PDO\ContextInfoPropagator;
 use PHPUnit\Framework\TestCase;
 
-class SqlServerPropagatorTest extends TestCase
+class ContextInfoPropagatorTest extends TestCase
 {
     public function testInject()
     {
@@ -17,7 +17,7 @@ class SqlServerPropagatorTest extends TestCase
             'key3' => 'value3',
         ];
         $query = 'SELECT 1;';
-        $result = SqlServerPropagator::inject($query, $comments);
+        $result = ContextInfoPropagator::inject($query, $comments);
         $this->assertEquals('SELECT 1;', $result);
     }
 
