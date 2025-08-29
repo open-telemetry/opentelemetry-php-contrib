@@ -53,7 +53,7 @@ class ClientRequestWatcher extends Watcher
         if ($parsedUrl->has('query')) {
             $processedUrl .= '?' . $parsedUrl->get('query');
         }
-        $span = $this->instrumentation->tracer()->spanBuilder($request->request->method())
+        $span = $this->instrumentation->tracer()->spanBuilder(sprintf('HTTP %s', $request->request->method()))
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
                 TraceAttributes::HTTP_REQUEST_METHOD => $request->request->method(),

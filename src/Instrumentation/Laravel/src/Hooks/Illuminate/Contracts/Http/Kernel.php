@@ -44,7 +44,7 @@ class Kernel implements LaravelHook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $this->instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
+                    ->spanBuilder(sprintf('HTTP %s', $request?->method() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
@@ -87,7 +87,14 @@ class Kernel implements LaravelHook
                 $route = $request?->route();
 
                 if ($request && $route instanceof Route) {
-                    $span->updateName("{$request->method()} /" . ltrim($route->uri, '/'));
+                    if (method_exists($route, 'getName') && $route->getName() && strpos($route->getName(), 'generated::') !== 0) {
+                        $span->updateName("{$request->method()} " . $route->getName());
+                        $span->setAttribute('laravel.route.name', $route->getName());
+                    } elseif (method_exists($route, 'uri')) {
+                        $span->updateName("{$request->method()} /" . ltrim($route->uri, '/'));
+                    } else {
+                        $span->updateName("HTTP {$request->method()}");
+                    }
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route->uri);
                 }
 
