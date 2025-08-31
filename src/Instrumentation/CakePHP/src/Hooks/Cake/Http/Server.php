@@ -26,7 +26,7 @@ class Server implements CakeHook
             \Cake\Http\Server::class,
             'run',
             pre: function (\Cake\Http\Server $server, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
-                $request = $params[0];
+                $request = $params[0] ?? null;
                 assert($request === null || $request instanceof ServerRequestInterface);
 
                 $request = $this->buildSpan($request, $class, $function, $filename, $lineno);
@@ -49,7 +49,7 @@ class Server implements CakeHook
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
                 }
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {

@@ -27,6 +27,7 @@ class CacheWatcher extends Watcher
         $app['events']->listen(KeyForgotten::class, [$this, 'recordCacheForget']);
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function recordCacheHit(CacheHit $event): void
     {
         $this->addEvent('cache hit', [
@@ -35,6 +36,7 @@ class CacheWatcher extends Watcher
         ]);
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function recordCacheMiss(CacheMissed $event): void
     {
         $this->addEvent('cache miss', [
@@ -44,6 +46,7 @@ class CacheWatcher extends Watcher
     }
     /**
      * @psalm-suppress UndefinedPropertyFetch
+     * @psalm-suppress PossiblyUnusedMethod
      * @suppress PhanUndeclaredProperty
      */
     public function recordCacheSet(KeyWritten $event): void
@@ -67,6 +70,7 @@ class CacheWatcher extends Watcher
         ]);
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function recordCacheForget(KeyForgotten $event): void
     {
         $this->addEvent('cache forget', [

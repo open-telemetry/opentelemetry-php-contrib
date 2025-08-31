@@ -10,6 +10,7 @@ use OpenTelemetry\Config\SDK\Configuration\Context;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\ParentRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
 /**
  * @implements ComponentProvider<SamplingRule>
@@ -31,9 +32,11 @@ final class SamplingRuleParent implements ComponentProvider
         );
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
-        $node = new ArrayNodeDefinition('parent');
+        $node = $builder->arrayNode('parent');
+
+        /** @psalm-suppress PossiblyNullReference */
         $node
             ->children()
                 ->booleanNode('sampled')->isRequired()->end()

@@ -1,0 +1,137 @@
+# Dependabot configuration file
+# See: https://docs.github.com/github/administering-a-repository/
+# configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Maintain dependencies for the root project
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    versioning-strategy: "auto"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "friendsofphp/php-cs-fixer"
+          - "phan/phan"
+          - "phpstan/phpstan*"
+          - "phpunit/phpunit"
+          - "vimeo/psalm"
+          - "psalm/plugin-phpunit"
+        exclude-patterns:
+          - "open-telemetry/*"
+      open-telemetry:
+        patterns:
+          - "open-telemetry/*"
+      symfony:
+        patterns:
+          - "symfony/*"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+
+  # Maintain dependencies for all packages
+  - package-ecosystem: "composer"
+    directories:
+      - "/examples/instrumentation/Wordpress"
+      - "/src/AutoInstrumentationInstaller"
+      - "/src/Aws"
+      - "/src/Aws/examples/AwsClientApp"
+      - "/src/Context/Swoole"
+      - "/src/Exporter/Instana"
+      - "/src/Instrumentation/AwsSdk"
+      - "/src/Instrumentation/CakePHP"
+      - "/src/Instrumentation/CodeIgniter"
+      - "/src/Instrumentation/Curl"
+      - "/src/Instrumentation/Doctrine"
+      - "/src/Instrumentation/ExtAmqp"
+      - "/src/Instrumentation/ExtRdKafka"
+      - "/src/Instrumentation/Guzzle"
+      - "/src/Instrumentation/HttpAsyncClient"
+      - "/src/Instrumentation/IO"
+      - "/src/Instrumentation/Laravel"
+      - "/src/Instrumentation/MongoDB"
+      - "/src/Instrumentation/MySqli"
+      - "/src/Instrumentation/OpenAIPHP"
+      - "/src/Instrumentation/PDO"
+      - "/src/Instrumentation/PostgreSql"
+      - "/src/Instrumentation/Psr14"
+      - "/src/Instrumentation/Psr15"
+      - "/src/Instrumentation/Psr16"
+      - "/src/Instrumentation/Psr18"
+      - "/src/Instrumentation/Psr3"
+      - "/src/Instrumentation/Psr6"
+      - "/src/Instrumentation/ReactPHP"
+      - "/src/Instrumentation/Slim"
+      - "/src/Instrumentation/Symfony"
+      - "/src/Instrumentation/Wordpress"
+      - "/src/Instrumentation/Yii"
+      - "/src/Logs/Monolog"
+      - "/src/MetaPackages/opentelemetry"
+      - "/src/Propagation/CloudTrace"
+      - "/src/Propagation/Instana"
+      - "/src/Propagation/ServerTiming"
+      - "/src/Propagation/TraceResponse"
+      - "/src/ResourceDetectors/Azure"
+      - "/src/ResourceDetectors/Container"
+      - "/src/ResourceDetectors/DigitalOcean"
+      - "/src/Sampler/RuleBased"
+      - "/src/Shims/OpenTracing"
+      - "/src/Symfony"
+      - "/src/Symfony/src/OtelBundle"
+      - "/src/Symfony/src/OtelSdkBundle"
+      - "/src/Utils/Test"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "friendsofphp/php-cs-fixer"
+          - "phan/phan"
+          - "phpstan/phpstan*"
+          - "phpunit/phpunit"
+          - "vimeo/psalm"
+          - "psalm/plugin-phpunit"
+      laravel:
+        patterns:
+          - "laravel/*"
+          - "illuminate/*"
+      open-telemetry:
+        patterns:
+          - "open-telemetry/*"
+      symfony:
+        patterns:
+          - "symfony/*"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"

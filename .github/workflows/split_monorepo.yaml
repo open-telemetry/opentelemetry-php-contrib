@@ -9,9 +9,14 @@ on:
   create:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   gitsplit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # required for pushing changes
     steps:
       - name: checkout
         run: git clone "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" "$GITHUB_WORKSPACE" && cd "$GITHUB_WORKSPACE" && git checkout $GITHUB_SHA

@@ -52,7 +52,7 @@ class OpenAIPHPInstrumentationTest extends TestCase
 
     private function loadFile(string $file): string
     {
-        return file_get_contents(__DIR__ . '/../resources/' . $file . '.json');
+        return file_get_contents(__DIR__ . '/../resources/' . $file . '.json') ?: '';
     }
 
     private function createClient(string $fixture): Client
@@ -99,7 +99,7 @@ class OpenAIPHPInstrumentationTest extends TestCase
     public function test_openai_operation($api, $operation, $args, $fixture, array $spanAttributes): void
     {
         $client = $this->createClient($fixture);
-        $response = $client->$api()->$operation(...$args);
+        $client->$api()->$operation(...$args);
 
         $this->assertCount(1, $this->storage);
 
@@ -127,7 +127,7 @@ class OpenAIPHPInstrumentationTest extends TestCase
             ->make();
 
         try {
-            $response = $client->completions()->create([
+            $client->completions()->create([
                 'model' => 'gpt-3.5-turbo-instruct',
                 'prompt' => 'Say this is a test',
                 'max_tokens' => 7,

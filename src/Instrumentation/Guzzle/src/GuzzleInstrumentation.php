@@ -6,6 +6,8 @@ namespace OpenTelemetry\Contrib\Instrumentation\Guzzle;
 
 use function get_cfg_var;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Promise\Is;
 use GuzzleHttp\Promise\PromiseInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -21,6 +23,7 @@ use function sprintf;
 use function strtolower;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class GuzzleInstrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
@@ -31,9 +34,10 @@ class GuzzleInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.guzzle',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.32.0',
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             Client::class,
             'transfer',
@@ -58,10 +62,9 @@ class GuzzleInstrumentation
                     ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                     ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno)
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
                 ;
 
                 foreach ($propagator->fields() as $field) {
@@ -94,12 +97,12 @@ class GuzzleInstrumentation
 
                 $span = Span::fromContext($scope->context());
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
                 }
 
-                $promise->then(
+                $p = $promise->then(
                     onFulfilled: function (ResponseInterface $response) use ($span) {
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                         $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
@@ -115,17 +118,24 @@ class GuzzleInstrumentation
                             $span->setStatus(StatusCode::STATUS_ERROR);
                         }
                         $span->end();
-
-                        return $response;
                     },
                     onRejected: function (\Throwable $t) use ($span) {
-                        $span->recordException($t, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                        if ($t instanceof BadResponseException && $t->hasResponse()) {
+                            $response = $t->getResponse();
+                            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                            $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getBody()->getSize());
+                        }
+                        $span->recordException($t);
                         $span->setStatus(StatusCode::STATUS_ERROR, $t->getMessage());
                         $span->end();
-
-                        throw $t;
                     }
                 );
+
+                //if the original promise is already settled, force our additional promise to execute immediately
+                if (Is::settled($promise)) {
+                    $p->wait();
+                }
             }
         );
     }

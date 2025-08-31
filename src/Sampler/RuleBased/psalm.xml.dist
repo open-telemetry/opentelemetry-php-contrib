@@ -20,11 +20,6 @@
                 <directory name="src/ComponentProvider"/>
             </errorLevel>
         </UndefinedInterfaceMethod>
-        <PossiblyNullReference>
-            <errorLevel type="suppress">
-                <directory name="src/ComponentProvider"/>
-            </errorLevel>
-        </PossiblyNullReference>
         <MoreSpecificImplementedParamType>
             <errorLevel type="suppress">
                 <directory name="src/ComponentProvider"/>

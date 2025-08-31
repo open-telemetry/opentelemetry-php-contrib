@@ -41,6 +41,7 @@ class Queue implements Hook
         $this->hookPushRaw($hookManager, $tracer);
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookBulk(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -48,19 +49,18 @@ class Queue implements Hook
             'bulk',
             preHook: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 $attributes = array_merge([
-                    TraceAttributes::CODE_FUNCTION => $function,
-                    TraceAttributes::CODE_NAMESPACE => $class,
-                    TraceAttributes::CODE_FILEPATH => $filename,
-                    TraceAttributes::CODE_LINENO => $lineno,
+                    TraceAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
+                    TraceAttributes::CODE_FILE_PATH => $filename,
+                    TraceAttributes::CODE_LINE_NUMBER => $lineno,
                     TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
                 ], $this->contextualMessageSystemAttributes($queue, []));
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND,
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_PUBLISH,
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
@@ -76,6 +76,7 @@ class Queue implements Hook
         );
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookLater(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -90,19 +91,18 @@ class Queue implements Hook
                 };
 
                 $attributes = [
-                    TraceAttributes::CODE_FUNCTION => $function,
-                    TraceAttributes::CODE_NAMESPACE => $class,
-                    TraceAttributes::CODE_FILEPATH => $filename,
-                    TraceAttributes::CODE_LINENO => $lineno,
+                    TraceAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
+                    TraceAttributes::CODE_FILE_PATH => $filename,
+                    TraceAttributes::CODE_LINE_NUMBER => $lineno,
                     'messaging.message.delivery_timestamp' => $estimateDeliveryTimestamp,
                 ];
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
-                        'create',
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
@@ -118,12 +118,13 @@ class Queue implements Hook
         );
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookPushRaw(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueContract::class,
             'pushRaw',
-            preHook: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+            preHook: function (QueueContract $queue, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
                 /** @phan-suppress-next-line PhanParamTooFewUnpack */
                 $attributes = $this->buildMessageAttributes($queue, ...$params);
 
@@ -131,8 +132,8 @@ class Queue implements Hook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                         TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
+                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)

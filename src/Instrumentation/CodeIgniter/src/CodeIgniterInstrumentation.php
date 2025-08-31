@@ -20,13 +20,17 @@ use OpenTelemetry\SemConv\TraceAttributes;
 class CodeIgniterInstrumentation
 {
     public const NAME = 'codeigniter';
-
+    
+    // Store the HTTP method for use in the post hook
+    private static $httpMethod = 'unknown';
+    
+    /** @psalm-api */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.codeigniter',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.32.0',
         );
 
         // The method that creates request/response/controller objects is in the same class as the method
@@ -34,12 +38,16 @@ class CodeIgniterInstrumentation
         // properties, thus reflection is required to read them.
         $reflectedIgniter = new \ReflectionClass(CodeIgniter::class);
         $requestProperty = $reflectedIgniter->getProperty('request');
+        /** @psalm-suppress UnusedMethodCall */
         $requestProperty->setAccessible(true);
         $controllerProperty = $reflectedIgniter->getProperty('controller');
+        /** @psalm-suppress UnusedMethodCall */
         $controllerProperty->setAccessible(true);
         $controllerMethodProperty = $reflectedIgniter->getProperty('method');
+        /** @psalm-suppress UnusedMethodCall */
         $controllerMethodProperty->setAccessible(true);
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             CodeIgniter::class,
             'handleRequest',
@@ -53,20 +61,21 @@ class CodeIgniterInstrumentation
             ) use ($instrumentation, $requestProperty): void {
                 $extractedRequest = $requestProperty->getValue($igniter);
                 $request = ($extractedRequest instanceof RequestInterface) ? $extractedRequest : null;
-
+                 
+                // Get the HTTP method from the request and store it for later use
+                self::$httpMethod = $request?->getMethod() ?? $_SERVER['REQUEST_METHOD'] ?? 'unknown';
                 /** @psalm-suppress ArgumentTypeCoercion,DeprecatedMethod */
                 $spanBuilder = $instrumentation
                     ->tracer()
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
-                    ->spanBuilder(\sprintf('%s', $request?->getMethod() ?? 'unknown'))
+                    ->spanBuilder(\sprintf('%s', self::$httpMethod))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
-                
+
                 if ($request) {
                     $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
 
@@ -135,7 +144,7 @@ class CodeIgniterInstrumentation
                         $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                     }
                 }
-                
+
                 $controller = $controllerProperty->getValue($igniter);
                 $controllerClassName = CodeIgniterInstrumentation::getControllerClassName($controller);
                 $controllerMethod = $controllerMethodProperty->getValue($igniter);
@@ -143,10 +152,11 @@ class CodeIgniterInstrumentation
                 if ($controllerClassName !== null && is_string($controllerMethod)) {
                     $routeName = CodeIgniterInstrumentation::normalizeRouteName($controllerClassName, $controllerMethod);
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                    $span->updateName(sprintf('%s %s', self::$httpMethod, $routeName));
                 }
 
                 if ($exception) {
-                    $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
 
@@ -169,7 +179,7 @@ class CodeIgniterInstrumentation
     protected static function normalizeRouteName(string $controllerClassName, string $controllerMethod): string
     {
         $lastSegment = strrchr($controllerClassName, '\\');
-        
+
         if ($lastSegment === false) {
             return $controllerClassName . '.' . $controllerMethod;
         }

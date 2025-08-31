@@ -30,7 +30,7 @@ $span->end();
 --EXPECTF--
 {
     "resource": {
-        "attributes": [],
+        "attributes": %A
         "dropped_attributes_count": 0
     },
     "scopes": [
@@ -39,7 +39,7 @@ $span->end();
             "version": null,
             "attributes": [],
             "dropped_attributes_count": 0,
-            "schema_url": "https:\/\/opentelemetry.io\/schemas\/1.24.0",
+            "schema_url": "https:\/\/opentelemetry.io\/schemas\/%s",
             "logs": [
                 {
                     "timestamp": null,

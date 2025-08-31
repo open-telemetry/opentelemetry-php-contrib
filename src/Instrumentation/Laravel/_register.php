@@ -19,6 +19,8 @@ ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Contracts\Console\Ke
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Contracts\Http\Kernel::class);
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Contracts\Queue\Queue::class);
 
+ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Database\Eloquent\Model::class);
+
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Foundation\Console\ServeCommand::class);
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Foundation\Application::class);
 

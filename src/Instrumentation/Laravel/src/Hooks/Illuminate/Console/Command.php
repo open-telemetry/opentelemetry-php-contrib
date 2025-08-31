@@ -34,6 +34,7 @@ class Command implements Hook
         $this->hookExecute($hookManager, $tracer);
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookExecute(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -43,10 +44,9 @@ class Command implements Hook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $tracer
                     ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();

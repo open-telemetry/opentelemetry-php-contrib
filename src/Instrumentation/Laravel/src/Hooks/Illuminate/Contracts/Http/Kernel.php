@@ -43,6 +43,7 @@ class Kernel implements Hook
         $this->hookHandle($hookManager, $tracer, $context->propagator);
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue  */
     protected function hookHandle(
         HookManagerInterface $hookManager,
         TracerInterface $tracer,
@@ -57,10 +58,9 @@ class Kernel implements Hook
                 $builder = $tracer
                     ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
                 $parent = Context::getCurrent();
                 if ($request) {
                     /** @phan-suppress-next-line PhanAccessMethodInternal */
@@ -72,11 +72,12 @@ class Kernel implements Hook
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                        ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $request->ip())
+                        ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $request->server('REMOTE_ADDR'))
                         ->setAttribute(TraceAttributes::URL_PATH, $this->httpTarget($request))
                         ->setAttribute(TraceAttributes::SERVER_ADDRESS, $this->httpHostName($request))
                         ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
                         ->setAttribute(TraceAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
+                        ->setAttribute(TraceAttributes::CLIENT_ADDRESS, $request->ip())
                         ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->userAgent())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);

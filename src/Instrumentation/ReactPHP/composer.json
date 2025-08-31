@@ -1,0 +1,48 @@
+{
+  "name": "open-telemetry/opentelemetry-auto-reactphp",
+  "description": "OpenTelemetry auto-instrumentation for ReactPHP's HTTP Browser.",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "reactphp", "async", "instrumentation"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.1",
+    "ext-opentelemetry": "*",
+    "guzzlehttp/psr7": "^2.7",
+    "open-telemetry/api": "^1.0",
+    "open-telemetry/sem-conv": "^1.32",
+    "react/http": "^1.11.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "phan/phan": "^5.0",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.19.2",
+    "open-telemetry/sdk": "^1.0",
+    "phpunit/phpunit": "^9.5",
+    "react/async": "^4.3.0",
+    "vimeo/psalm": "6.4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\ReactPHP\\": "src/"
+    },
+    "files": [
+      "_register.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\ReactPHP\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false
+    }
+  }
+}

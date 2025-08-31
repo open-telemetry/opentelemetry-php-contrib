@@ -228,6 +228,7 @@ trait GenericFactoryTrait
 
     private static function camelToSnakeCase(string $value): string
     {
+        /** @psalm-suppress PossiblyNullArgument */
         return strtolower(
             ltrim(
                 preg_replace(

@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -17,13 +20,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+        php-version: ['8.1', '8.2', '8.3', '8.4']
         # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
         project: [
           'Aws',
           'Context/Swoole',
+          'Exporter/Instana',
+          'Instrumentation/AwsSdk',
           'Instrumentation/CakePHP',
           'Instrumentation/CodeIgniter',
+          'Instrumentation/Curl',
+          'Instrumentation/Doctrine',
           'Instrumentation/ExtAmqp',
           'Instrumentation/ExtRdKafka',
           'Instrumentation/Guzzle',
@@ -31,8 +38,10 @@ jobs:
           'Instrumentation/IO',
           'Instrumentation/Laravel',
           'Instrumentation/MongoDB',
+          'Instrumentation/MySqli',
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
+          'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
           'Instrumentation/Psr3',
           'Instrumentation/Psr6',
@@ -40,85 +49,40 @@ jobs:
           'Instrumentation/Psr15',
           'Instrumentation/Psr16',
           'Instrumentation/Psr18',
+          'Instrumentation/ReactPHP',
           'Instrumentation/Slim',
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
           'Logs/Monolog',
+          'Propagation/CloudTrace',
+          'Propagation/Instana',
           'Propagation/ServerTiming',
           'Propagation/TraceResponse',
           'ResourceDetectors/Azure',
           'ResourceDetectors/Container',
+          'ResourceDetectors/DigitalOcean',
           'Sampler/RuleBased',
+          'Sampler/Xray',
           'Shims/OpenTracing',
           'Symfony',
+          'Utils/Test'
         ]
         exclude:
-          - project: 'Instrumentation/Guzzle'
-            php-version: 7.4
-          - project: 'Instrumentation/HttpAsyncClient'
-            php-version: 7.4
-          - project: 'Instrumentation/Slim'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr3'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr6'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr14'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr15'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr16'
-            php-version: 7.4
-          - project: 'Instrumentation/Psr18'
-            php-version: 7.4
-          - project: 'Instrumentation/IO'
-            php-version: 7.4
-          - project: 'Instrumentation/Symfony'
-            php-version: 7.4
-          - project: 'Instrumentation/Laravel'
-            php-version: 7.4
-          - project: 'Instrumentation/Laravel'
-            php-version: 8.0
-          - project: 'Instrumentation/CodeIgniter'
-            php-version: 7.4
-          - project: 'Instrumentation/Yii'
-            php-version: 7.4
-          - project: 'Instrumentation/IO'
-            php-version: 8.0
-          - project: 'Instrumentation/IO'
+
+          - project: 'Instrumentation/Curl'
             php-version: 8.1
-          - project: 'Instrumentation/PDO'
-            php-version: 7.4
-          - project: 'Instrumentation/PDO'
-            php-version: 8.0
-          - project: 'Instrumentation/PDO'
-            php-version: 8.1
-          - project: 'Instrumentation/ExtAmqp'
-            php-version: 7.4
-          - project: 'Instrumentation/ExtAmqp'
-            php-version: 8.0
           - project: 'Instrumentation/ExtAmqp'
             php-version: 8.1
           - project: 'Instrumentation/ExtRdKafka'
-            php-version: 7.4
-          - project: 'Instrumentation/ExtRdKafka'
-            php-version: 8.0
-          - project: 'Instrumentation/ExtRdKafka'
             php-version: 8.1
-          - project: 'Instrumentation/OpenAIPHP'
-            php-version: 7.4
-          - project: 'Instrumentation/OpenAIPHP'
-            php-version: 8.0
-          - project: 'Instrumentation/CakePHP'
-            php-version: 7.4
-          - project: 'Propagation/ServerTiming'
-            php-version: 7.4
-          - project: 'ResourceDetectors/Container'
-            php-version: 7.4
-          - project: 'Sampler/RuleBased'
-            php-version: 7.4
-          - project: 'Sampler/RuleBased'
-            php-version: 8.0
+          - project: 'Instrumentation/IO'
+            php-version: 8.1
+          - project: 'Instrumentation/MySqli'
+            php-version: 8.1
+          - project: 'Instrumentation/PDO'
+            php-version: 8.1
+          - project: 'Instrumentation/PostgreSql'
+            php-version: 8.1
     steps:
     - uses: actions/checkout@v4
 
@@ -127,7 +91,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, amqp, grpc, opentelemetry, rdkafka
+        extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -154,7 +118,7 @@ jobs:
 
     - name: Check Style
       working-directory: src/${{ matrix.project }}
-      run: vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv
+      run: PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv
 
     - name: Run Phan
       working-directory: src/${{ matrix.project }}
@@ -171,7 +135,7 @@ jobs:
       run: vendor/bin/phpstan analyse --error-format=github
 
     - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.8.0
+      uses: supercharge/mongodb-github-action@1.12.0
       if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
       with:
         mongodb-version: 6.0
@@ -187,6 +151,16 @@ jobs:
       run: |
         KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092 docker compose up  kafka -d --wait
 
+    - name: Start Mysql
+      if: ${{ matrix.project == 'Instrumentation/MySqli' }}
+      run: |
+        docker compose up  mysql -d --wait
+
+    - name: Start PostgreSql
+      if: ${{ matrix.project == 'Instrumentation/PostgreSql' }}
+      run: |
+        docker compose up  postgresql -d --wait
+
     - name: Run PHPUnit
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/phpunit
@@ -196,9 +170,9 @@ jobs:
       run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
 
     - name: Code Coverage
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       # only generate coverage against the latest PHP version
-      if: ${{ matrix.php-version == '8.3' }}
+      if: ${{ matrix.php-version == '8.4' }}
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: src/${{ matrix.project }}

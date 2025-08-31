@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright The OpenTelemetry Authors
  *
@@ -17,7 +18,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Aws\Xray;
+namespace OpenTelemetry\Contrib\Aws\Xray;
 
 use OpenTelemetry\API\Trace as API;
 use OpenTelemetry\API\Trace\SpanContext;
@@ -59,7 +60,7 @@ class Propagator implements TextMapPropagatorInterface
     private const SAMPLED_FLAG_KEY = 'Sampled';
     private const IS_SAMPLED = '1';
     private const NOT_SAMPLED = '0';
-    
+
     /**
      * Returns list of fields used by HTTPTextFormat
      */

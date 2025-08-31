@@ -6,24 +6,40 @@ namespace OpenTelemetry\Tests\Instrumentation\PDO\Integration;
 
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
+use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\TestUtils\TraceStructureAssertionTrait;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
 class PDOInstrumentationTest extends TestCase
 {
+    use TraceStructureAssertionTrait;
+
     private ScopeInterface $scope;
-    /** @var ArrayObject<int, ImmutableSpan> */
+    /** @var ArrayObject<array-key, mixed> */
     private ArrayObject $storage;
 
     private function createDB(): PDO
     {
         return new PDO('sqlite::memory:');
+    }
+
+    private function createDBWithNewSubclass(): PDO
+    {
+        if (!class_exists('Pdo\Sqlite')) {
+            $this->markTestSkipped('Pdo\Sqlite class is not available in this PHP version');
+        }
+
+        /** @psalm-suppress UndefinedMethod */
+        return PDO::connect('sqlite::memory:');
     }
 
     private function fillDB():string
@@ -69,7 +85,52 @@ class PDOInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('PDO::__construct', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+    }
+
+    /**
+     * @psalm-suppress UndefinedClass
+     * @psalm-suppress InvalidClass
+     */
+    public function test_pdo_sqlite_subclass(): void
+    {
+        // skip if php version is less than 8.4
+        if (version_compare(PHP_VERSION, '8.4', '<')) {
+            $this->markTestSkipped('Pdo\Sqlite class is not available in this PHP version');
+        }
+
+        $this->assertCount(0, $this->storage);
+
+        /**
+         * Need to suppress because of different casing of the class name
+         *
+         * @psalm-suppress UndefinedClass
+         * @psalm-suppress InvalidClass
+         * @var Pdo\Sqlite $db
+         */
+        $db = self::createDBWithNewSubclass();
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        $this->assertSame('PDO::connect', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+
+        // Test that the subclass-specific methods work
+        $db->createFunction('test_function', static fn ($value) => strtoupper($value));
+
+        // Test that standard PDO operations still work
+        $db->exec($this->fillDB());
+        $span = $this->storage->offsetGet(1);
+        $this->assertSame('PDO::exec', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+        $this->assertCount(2, $this->storage);
+
+        // Test that the custom function works
+        $result = $db->query("SELECT test_function('hello')")->fetchColumn();
+        $this->assertEquals('HELLO', $result);
+        $span = $this->storage->offsetGet(2);
+        $this->assertSame('PDO::query', $span->getName());
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+        $this->assertCount(3, $this->storage);
     }
 
     public function test_constructor_exception(): void
@@ -87,32 +148,32 @@ class PDOInstrumentationTest extends TestCase
         $db->exec($statement);
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::exec', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertFalse($db->inTransaction());
         $this->assertCount(2, $this->storage);
 
         $sth = $db->prepare('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(2);
         $this->assertSame('PDO::prepare', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(3, $this->storage);
 
         $sth->execute();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('PDOStatement::execute', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(4, $this->storage);
 
         $sth->fetchAll();
         $span = $this->storage->offsetGet(4);
         $this->assertSame('PDOStatement::fetchAll', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(5, $this->storage);
 
         $db->query('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(5);
         $this->assertSame('PDO::query', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(6, $this->storage);
     }
 
@@ -122,7 +183,7 @@ class PDOInstrumentationTest extends TestCase
         $result = $db->beginTransaction();
         $span = $this->storage->offsetGet(1);
         $this->assertSame('PDO::beginTransaction', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(2, $this->storage);
         $this->assertSame($result, true);
 
@@ -131,7 +192,7 @@ class PDOInstrumentationTest extends TestCase
         $result = $db->commit();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('PDO::commit', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(4, $this->storage);
         $this->assertTrue($result);
 
@@ -143,7 +204,7 @@ class PDOInstrumentationTest extends TestCase
         $result = $db->rollback();
         $span = $this->storage->offsetGet(6);
         $this->assertSame('PDO::rollBack', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
         $this->assertCount(7, $this->storage);
         $this->assertTrue($result);
         $this->assertFalse($db->inTransaction());
@@ -201,17 +262,144 @@ class PDOInstrumentationTest extends TestCase
 
         $db->prepare("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
         $span_db_prepare = $this->storage->offsetGet(2);
-        $this->assertTrue(mb_check_encoding($span_db_prepare->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertTrue(mb_check_encoding($span_db_prepare->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(3, $this->storage);
 
         $db->query("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
         $span_db_query = $this->storage->offsetGet(3);
-        $this->assertTrue(mb_check_encoding($span_db_query->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertTrue(mb_check_encoding($span_db_query->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(4, $this->storage);
 
         $db->exec("SELECT id FROM technology WHERE id = '{$non_utf8_id}'");
         $span_db_exec = $this->storage->offsetGet(4);
-        $this->assertTrue(mb_check_encoding($span_db_exec->getAttributes()->get(TraceAttributes::DB_STATEMENT), 'UTF-8'));
+        $this->assertTrue(mb_check_encoding($span_db_exec->getAttributes()->get(TraceAttributes::DB_QUERY_TEXT), 'UTF-8'));
         $this->assertCount(5, $this->storage);
+    }
+
+    public function test_span_hierarchy_with_pdo_operations(): void
+    {
+        $this->assertCount(0, $this->storage);
+
+        // Create a server span
+        $tracerProvider = new TracerProvider(
+            new SimpleSpanProcessor(
+                new InMemoryExporter($this->storage)
+            )
+        );
+        $tracer = $tracerProvider->getTracer('test');
+        /** @var SpanInterface $serverSpan */
+        $serverSpan = $tracer->spanBuilder('HTTP GET /api/users')
+            ->setSpanKind(SpanKind::KIND_SERVER)
+            ->startSpan();
+
+        // Create scope for server span
+        $serverScope = Context::storage()->attach($serverSpan->storeInContext(Context::getCurrent()));
+
+        // Create an internal span (simulating business logic)
+        /** @var SpanInterface $internalSpan */
+        $internalSpan = $tracer->spanBuilder('processUserData')
+            ->setSpanKind(SpanKind::KIND_INTERNAL)
+            ->startSpan();
+
+        // Create scope for internal span
+        $internalScope = Context::storage()->attach($internalSpan->storeInContext(Context::getCurrent()));
+
+        // Perform PDO operations within the internal span context
+        $db = self::createDB();
+        $this->assertCount(1, $this->storage); // PDO constructor span
+
+        // Create and populate test table
+        $db->exec($this->fillDB());
+        $this->assertCount(2, $this->storage); // PDO exec span
+
+        // Query data
+        $stmt = $db->prepare('SELECT * FROM technology WHERE name = ?');
+        $this->assertCount(3, $this->storage); // PDO prepare span
+
+        $stmt->execute(['PHP']);
+        $this->assertCount(4, $this->storage); // PDOStatement execute span
+
+        $result = $stmt->fetchAll();
+        $this->assertCount(5, $this->storage); // PDOStatement fetchAll span
+
+        // Verify span hierarchy
+        /** @var ImmutableSpan $pdoSpan */
+        $pdoSpan = $this->storage->offsetGet(0);
+        /** @var ImmutableSpan $execSpan */
+        $execSpan = $this->storage->offsetGet(1);
+        /** @var ImmutableSpan $prepareSpan */
+        $prepareSpan = $this->storage->offsetGet(2);
+        /** @var ImmutableSpan $executeSpan */
+        $executeSpan = $this->storage->offsetGet(3);
+        /** @var ImmutableSpan $fetchAllSpan */
+        $fetchAllSpan = $this->storage->offsetGet(4);
+
+        // All PDO spans should be children of the internal span
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $pdoSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $execSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $prepareSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $executeSpan->getParentSpanId());
+        $this->assertEquals($internalSpan->getContext()->getSpanId(), $fetchAllSpan->getParentSpanId());
+
+        // Detach scopes
+        $internalScope->detach();
+        $internalSpan->end();
+        $serverScope->detach();
+        $serverSpan->end();
+
+        $this->assertTraceStructure(
+            $this->storage,
+            [
+                [
+                    'name' => 'HTTP GET /api/users',
+                    'kind' => SpanKind::KIND_SERVER,
+                    'attributes' => [],
+                    'children' => [
+                        [
+                            'name' => 'processUserData',
+                            'kind' => SpanKind::KIND_INTERNAL,
+                            'attributes' => [],
+                            'children' => [
+                                [
+                                    'name' => 'PDO::__construct',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDO::exec',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDO::prepare',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDOStatement::execute',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                                [
+                                    'name' => 'PDOStatement::fetchAll',
+                                    'kind' => SpanKind::KIND_CLIENT,
+                                    'attributes' => [
+                                        TraceAttributes::DB_SYSTEM_NAME => 'sqlite',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]
+        );
     }
 }

@@ -40,12 +40,13 @@ class Worker implements Hook
         $this->hookWorkerGetNextJob($hookManager, $tracer);
     }
 
+    /** @psalm-suppress UnusedReturnValue */
     private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueWorker::class,
             'process',
-            preHook: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+            preHook: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
                 $connectionName = $params[0];
                 /** @var Job $job */
                 $job = $params[1];
@@ -60,8 +61,8 @@ class Worker implements Hook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
+                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS,
                         $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
-                        'process',
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setParent($parent)
@@ -91,12 +92,13 @@ class Worker implements Hook
         );
     }
 
+    /** @psalm-suppress UnusedReturnValue */
     private function hookWorkerGetNextJob(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
             QueueWorker::class,
             'getNextJob',
-            preHook: function (QueueWorker $worker, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+            preHook: function (QueueWorker $_worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
                 /** @var \Illuminate\Contracts\Queue\Queue $connection */
                 $connection = $params[0];
                 $queue = $params[1];
@@ -106,8 +108,8 @@ class Worker implements Hook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                         TraceAttributeValues::MESSAGING_OPERATION_TYPE_RECEIVE,
+                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes)
@@ -117,7 +119,7 @@ class Worker implements Hook
 
                 return $params;
             },
-            postHook: function (QueueWorker $worker, array $params, ?Job $job, ?Throwable $exception) {
+            postHook: function (QueueWorker $_worker, array $params, ?Job $job, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;

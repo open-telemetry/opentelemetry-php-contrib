@@ -10,6 +10,7 @@ use Orchestra\Testbench\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
 
+/** @psalm-suppress UnusedClass */
 abstract class TestCase extends BaseTestCase
 {
     protected ArrayObject $storage;

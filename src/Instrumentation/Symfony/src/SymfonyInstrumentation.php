@@ -13,19 +13,26 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+/** @psalm-suppress UnusedClass */
 final class SymfonyInstrumentation
 {
     public const NAME = 'symfony';
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.symfony',
+            null,
+            Version::VERSION_1_32_0->url(),
+        );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'handle',
@@ -40,18 +47,23 @@ final class SymfonyInstrumentation
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
                 $method = $request?->getMethod() ?? 'unknown';
+                $controller = $request?->attributes?->get('_controller');
+
+                if (!is_callable($controller, true, $controllerName)) {
+                    $controllerName = 'sub-request';
+                }
+
                 $name = ($type === HttpKernelInterface::SUB_REQUEST)
-                    ? sprintf('%s %s', $method, $request?->attributes?->get('_controller') ?? 'sub-request')
+                    ? sprintf('%s %s', $method, $controllerName)
                     : $method;
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder($name)
                     ->setSpanKind(($type === HttpKernelInterface::SUB_REQUEST) ? SpanKind::KIND_INTERNAL : SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 if ($request) {
@@ -101,9 +113,7 @@ final class SymfonyInstrumentation
                 }
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
                         $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     }
@@ -144,24 +154,23 @@ final class SymfonyInstrumentation
             }
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'handleThrowable',
             pre: static function (
-                HttpKernel $kernel,
+                HttpKernel $_kernel,
                 array $params,
-                string $class,
-                string $function,
-                ?string $filename,
-                ?int $lineno,
+                string $_class,
+                string $_function,
+                ?string $_filename,
+                ?int $_lineno,
             ): array {
                 /** @var \Throwable $throwable */
                 $throwable = $params[0];
 
                 Span::getCurrent()
-                    ->recordException($throwable, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    ->recordException($throwable);
 
                 return $params;
             },

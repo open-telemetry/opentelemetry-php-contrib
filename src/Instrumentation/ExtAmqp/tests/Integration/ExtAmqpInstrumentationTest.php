@@ -44,7 +44,7 @@ class ExtAmqpInstrumentationTest extends TestCase
 
     public function test_rabbit_basic_publish_without_args_works(): void
     {
-        list($connection, $routing_key, $channel, $exchange, $queue) = $this->setUpQueue();
+        list($connection, $routing_key, $_channel, $exchange, $queue) = $this->setUpQueue();
 
         try {
             $exchange->publish('test', $routing_key);
@@ -59,7 +59,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             $this->assertEquals('amqp', $span->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $span->getKind());
             $this->assertEquals('test_exchange ' . $routing_key, $span->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
-            $this->assertEquals('topic', $span->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_KIND));
+            $this->assertEquals('topic', $span->getAttributes()->get('messaging.destination.kind'));
 
             /**
              * Our message should be the first one in the queue
@@ -78,7 +78,7 @@ class ExtAmqpInstrumentationTest extends TestCase
      */
     public function test_rabbit_basic_publish(string $messageInteraction): void
     {
-        list($connection, $routing_key, $channel, $exchange, $queue) = $this->setUpQueue();
+        list($connection, $routing_key, $_channel, $exchange, $queue) = $this->setUpQueue();
 
         try {
             $exchange->publish('test', $routing_key, AMQP_NOPARAM, []);
@@ -93,7 +93,7 @@ class ExtAmqpInstrumentationTest extends TestCase
             $this->assertEquals('amqp', $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $publishSpan->getKind());
             $this->assertEquals('test_exchange ' . $routing_key, $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
-            $this->assertEquals('topic', $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_KIND));
+            $this->assertEquals('topic', $publishSpan->getAttributes()->get('messaging.destination.kind'));
 
             /**
              * Our message should be the first one in the queue
@@ -106,7 +106,6 @@ class ExtAmqpInstrumentationTest extends TestCase
 
             $this->assertCount(2, $this->storage);
 
-            /** @var ImmutableSpan $publishSpan */
             $interactionSpan = $this->storage[1];
             $this->assertEquals(SpanKind::KIND_CLIENT, $interactionSpan->getKind());
             $this->assertEquals($queue->getName() . ' ' . $messageInteraction, $interactionSpan->getName());
@@ -125,6 +124,9 @@ class ExtAmqpInstrumentationTest extends TestCase
         ];
     }
 
+    /**
+     * @psalm-suppress PossiblyNullArgument
+     */
     protected function setUpQueue()
     {
         $routing_key = uniqid('test_queue_', true);

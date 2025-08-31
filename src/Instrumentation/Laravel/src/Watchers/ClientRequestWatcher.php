@@ -42,11 +42,12 @@ class ClientRequestWatcher extends Watcher
 
     /**
      * @psalm-suppress ArgumentTypeCoercion
+     * @psalm-suppress PossiblyUnusedMethod
      * @suppress PhanEmptyFQSENInCallable,PhanUndeclaredFunctionInCallable
      */
     public function recordRequest(RequestSending $request): void
     {
-        $parsedUrl = collect(parse_url($request->request->url()));
+        $parsedUrl = collect(parse_url($request->request->url()) ?: []);
         $processedUrl = $parsedUrl->get('scheme', 'http') . '://' . $parsedUrl->get('host') . $parsedUrl->get('path', '');
 
         if ($parsedUrl->has('query')) {
@@ -67,6 +68,7 @@ class ClientRequestWatcher extends Watcher
         $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function recordConnectionFailed(ConnectionFailed $request): void
     {
         $requestHash = $this->createRequestComparisonHash($request->request);
@@ -82,6 +84,7 @@ class ClientRequestWatcher extends Watcher
         unset($this->spans[$requestHash]);
     }
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function recordResponse(ResponseReceived $request): void
     {
         $requestHash = $this->createRequestComparisonHash($request->request);

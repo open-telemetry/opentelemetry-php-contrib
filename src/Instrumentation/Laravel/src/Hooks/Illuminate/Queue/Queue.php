@@ -16,6 +16,7 @@ class Queue implements Hook
 {
     use AttributesBuilder;
 
+    /** @psalm-suppress PossiblyUnusedReturnValue */
     public function instrument(
         LaravelInstrumentation $instrumentation,
         HookManagerInterface $hookManager,
@@ -24,7 +25,7 @@ class Queue implements Hook
         $hookManager->hook(
             AbstractQueue::class,
             'createPayloadArray',
-            postHook: function (AbstractQueue $queue, array $params, array $payload, ?Throwable $exception): array {
+            postHook: function (AbstractQueue $_queue, array $_params, array $payload, ?Throwable $_exception): array {
                 TraceContextPropagator::getInstance()->inject($payload);
 
                 return $payload;

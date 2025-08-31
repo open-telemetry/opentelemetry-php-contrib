@@ -8,7 +8,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
-use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -200,13 +199,60 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
         $this->assertCount(1, $this->storage);
 
-        /** @var ImmutableSpan $span */
         $span = $this->storage[0];
         $this->assertSame('GET ErrorController', $span->getName());
         $this->assertSame(SpanKind::KIND_INTERNAL, $span->getKind());
     }
 
-    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, RequestStack $requestStack = null, array $arguments = []): HttpKernel
+    public function test_http_kernel_handle_subrequest_with_various_controller_types(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+
+        // String controller
+        $request = new Request();
+        $request->attributes->set('_controller', 'SomeController::index');
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $this->assertSame('GET SomeController::index', $this->storage[0]->getName());
+        $this->storage->exchangeArray([]);
+
+        // Array: [object, method]
+        $controllerObj = new class() {};
+        $request = new Request();
+        $request->attributes->set('_controller', [$controllerObj, 'fooAction']);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $this->assertSame('GET ' . get_class($controllerObj) . '::fooAction', $this->storage[0]->getName());
+        $this->storage->exchangeArray([]);
+
+        // Array: [class, method]
+        $request = new Request();
+        $request->attributes->set('_controller', ['SomeClass', 'barAction']);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $this->assertSame('GET SomeClass::barAction', $this->storage[0]->getName());
+        $this->storage->exchangeArray([]);
+    }
+
+    /**
+     * @psalm-suppress UnevaluatedCode
+     */
+    public function test_http_kernel_handle_subrequest_with_null_and_object_controller(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+
+        // Object controller  (should fallback to 'sub-request')
+        $controllerObj2 = new class() {};
+        $request = new Request();
+        $request->attributes->set('_controller', $controllerObj2);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $this->assertSame('GET sub-request', $this->storage[0]->getName());
+
+        // Null/other controller (should fallback to 'sub-request')
+        $request = new Request();
+        $request->attributes->set('_controller', null);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $this->assertSame('GET sub-request', $this->storage[0]->getName());
+    }
+
+    private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
     {
         $controller ??= fn () => new Response('Hello');
 

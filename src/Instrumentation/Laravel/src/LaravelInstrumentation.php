@@ -16,6 +16,7 @@ class LaravelInstrumentation implements Instrumentation
 {
     public const INSTRUMENTATION_NAME = 'io.opentelemetry.contrib.php.laravel';
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, Context $context): void
     {
         $config = $configuration->get(LaravelConfiguration::class) ?? LaravelConfiguration::default();

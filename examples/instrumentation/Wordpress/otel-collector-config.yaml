@@ -2,6 +2,7 @@ receivers:
   otlp:
     protocols:
       http:
+        endpoint: 0.0.0.0:4318
 
 processors:
   batch:
@@ -14,7 +15,7 @@ processors:
 # Alternatively, add additional exporters for the backend of your choice and update the
 # pipelines below
 exporters:
-  logging:
+  debug:
     verbosity: detailed
   otlp:
     endpoint: jaeger:4317
@@ -26,9 +27,9 @@ service:
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [logging]
+      exporters: [debug]
 
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [logging, otlp]
+      exporters: [debug, otlp]

@@ -13,9 +13,14 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
+/**
+ * @phan-file-suppress PhanTypeInvalidCallableArraySize
+ * @psalm-suppress UnusedClass
+ */
 final class HttpClientInstrumentation
 {
     /**
@@ -34,8 +39,13 @@ final class HttpClientInstrumentation
 
     public static function register(): void
     {
-        $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.symfony_http');
+        $instrumentation = new CachedInstrumentation(
+            'io.opentelemetry.contrib.php.symfony_http',
+            null,
+            Version::VERSION_1_32_0->url(),
+        );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpClientInterface::class,
             'request',
@@ -55,10 +65,9 @@ final class HttpClientInstrumentation
                     ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-                    ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
-                    ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $propagator = Globals::propagator();
                 $parent = Context::getCurrent();
@@ -129,9 +138,7 @@ final class HttpClientInstrumentation
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
 

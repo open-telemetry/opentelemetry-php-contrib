@@ -25,7 +25,7 @@ class CodeIgniterInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEqualsIgnoringCase('GET', $this->storage[0]->getName());
+        $this->assertEqualsIgnoringCase('GET Home.index', $this->storage[0]->getName());
         $this->assertStringMatchesFormat('http://%s/home', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEqualsIgnoringCase('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
@@ -55,7 +55,7 @@ class CodeIgniterInstrumentationTest extends AbstractTest
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEqualsIgnoringCase('GET', $this->storage[0]->getName());
+        $this->assertEqualsIgnoringCase('GET Closure.index', $this->storage[0]->getName());
         $this->assertStringMatchesFormat('http://%s/exception', $attributes->get(TraceAttributes::URL_FULL));
         $this->assertEqualsIgnoringCase('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
@@ -76,6 +76,5 @@ class CodeIgniterInstrumentationTest extends AbstractTest
         $this->assertEquals('Exception', $eventAttributes->get('exception.type'));
         $this->assertEquals('Threw', $eventAttributes->get('exception.message'));
         $this->assertNotNull($eventAttributes->get('exception.stacktrace'));
-        $this->assertTrue($eventAttributes->get('exception.escaped'));
     }
 }

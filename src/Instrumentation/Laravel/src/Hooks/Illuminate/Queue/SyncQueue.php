@@ -35,6 +35,7 @@ class SyncQueue implements Hook
         $this->hookPush($hookManager, $tracer);
     }
 
+    /** @psalm-suppress PossiblyUnusedReturnValue */
     protected function hookPush(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -49,10 +50,9 @@ class SyncQueue implements Hook
                     ]))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttributes([
-                        TraceAttributes::CODE_FUNCTION => $function,
-                        TraceAttributes::CODE_NAMESPACE => $class,
-                        TraceAttributes::CODE_FILEPATH => $filename,
-                        TraceAttributes::CODE_LINENO => $lineno,
+                        TraceAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
+                        TraceAttributes::CODE_FILE_PATH => $filename,
+                        TraceAttributes::CODE_LINE_NUMBER => $lineno,
                     ])
                     ->startSpan();
 

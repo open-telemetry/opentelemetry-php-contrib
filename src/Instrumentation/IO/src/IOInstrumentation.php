@@ -11,8 +11,10 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class IOInstrumentation
 {
     public const NAME = 'io';
@@ -22,7 +24,7 @@ class IOInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.io',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            Version::VERSION_1_32_0->url(),
         );
 
         self::_hook($instrumentation, null, 'fopen', 'fopen');
@@ -37,6 +39,7 @@ class IOInstrumentation
 
     /**
      * Simple generic hook function which starts and ends a minimal span
+     * @psalm-suppress UnusedFunctionCall
      */
     private static function _hook(CachedInstrumentation $instrumentation, ?string $class, string $function, string $name): void
     {
@@ -67,9 +70,9 @@ class IOInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
             ->spanBuilder($name)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
-            ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINENO, $lineno);
+            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
+            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
+            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
     }
     private static function end(?Throwable $exception): void
     {
@@ -80,7 +83,7 @@ class IOInstrumentation
         $scope->detach();
         $span = Span::fromContext($scope->context());
         if ($exception) {
-            $span->recordException($exception, [TraceAttributes::EXCEPTION_ESCAPED => true]);
+            $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

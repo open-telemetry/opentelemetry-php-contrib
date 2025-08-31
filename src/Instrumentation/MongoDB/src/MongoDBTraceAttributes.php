@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\MongoDB;
 
+/**
+ * @todo These attributes are not part of the specification and should be removed before this package goes stable,
+ * unless they are on the way to being added to the specification. See https://github.com/open-telemetry/opentelemetry-specification/blob/v1.40.0/specification/telemetry-stability.md
+ */
 interface MongoDBTraceAttributes
 {
     public const DB_MONGODB_MASTER = 'db.mongodb.master';

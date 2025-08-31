@@ -4,14 +4,27 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
+use Exception;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use OpenTelemetry\SemConv\TraceAttributes;
 
+/** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
 {
+    protected function getEnvironmentSetUp($app)
+    {
+        // Setup default database to use sqlite :memory:
+        $app['config']->set('database.default', 'testbench');
+        $app['config']->set('database.connections.testbench', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ]);
+    }
+
     public function test_request_response(): void
     {
         $this->router()->get('/', fn () => null);
@@ -58,10 +71,10 @@ class LaravelInstrumentationTest extends TestCase
 
         $span = $this->storage[1];
         $this->assertSame('sql SELECT', $span->getName());
-        $this->assertSame('SELECT', $span->getAttributes()->get('db.operation'));
-        $this->assertSame(':memory:', $span->getAttributes()->get('db.name'));
-        $this->assertSame('select 1', $span->getAttributes()->get('db.statement'));
-        $this->assertSame('sqlite', $span->getAttributes()->get('db.system'));
+        $this->assertSame('SELECT', $span->getAttributes()->get('db.operation.name'));
+        $this->assertSame(':memory:', $span->getAttributes()->get('db.namespace'));
+        $this->assertSame('select 1', $span->getAttributes()->get('db.query.text'));
+        $this->assertSame('sqlite', $span->getAttributes()->get('db.system.name'));
 
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord */
         $logRecord = $this->storage[0];
@@ -92,6 +105,16 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
         $this->assertSame('GET', $span->getName());
+    }
+
+    public function test_records_exception_in_logs(): void
+    {
+        $this->router()->get('/exception', fn () => throw new Exception('Test exception'));
+        $this->call('GET', '/exception');
+        $logRecord = $this->storage[0];
+        $this->assertEquals(Exception::class, $logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_TYPE));
+        $this->assertEquals('Test exception', $logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_MESSAGE));
+        $this->assertNotNull($logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_STACKTRACE));
     }
 
     private function router(): Router

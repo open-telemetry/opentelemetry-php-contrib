@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Azure\Unit\AppService;
+namespace OpenTelemetry\Tests\Resource\Detector\Azure\Unit\AppService;
 
 use AssertWell\PHPUnitGlobalState\EnvironmentVariables;
-use OpenTelemetry\Azure\AppService\Detector;
+use OpenTelemetry\Contrib\Resource\Detector\Azure\AppService\Detector;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SemConv\ResourceAttributes;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +32,7 @@ class DetectorTest extends TestCase
             [ResourceAttributes::CLOUD_PROVIDER, null, 'azure'],
             [ResourceAttributes::CLOUD_RESOURCE_ID, Detector::ENV_REGION_NAME_KEY, '/subscriptions/owner_name/resourceGroups/resouce_group/providers/Microsoft.Web/sites/demo-app'],
             [ResourceAttributes::CLOUD_REGION, Detector::ENV_REGION_NAME_KEY, 'westus'],
-            [ResourceAttributes::DEPLOYMENT_ENVIRONMENT, Detector::ENV_WEBSITE_SLOT_NAME_KEY, 'testing'],
+            [ResourceAttributes::DEPLOYMENT_ENVIRONMENT_NAME, Detector::ENV_WEBSITE_SLOT_NAME_KEY, 'testing'],
             [ResourceAttributes::HOST_ID, Detector::ENV_WEBSITE_HOSTNAME_KEY, 'example.com'],
             [ResourceAttributes::SERVICE_INSTANCE_ID, Detector::ENV_WEBSITE_INSTANCE_ID_KEY, uniqid()],
             [ResourceAttributes::SERVICE_NAME, Detector::ENV_WEBSITE_SITE_NAME_KEY, self::SERVICE_NAME],
