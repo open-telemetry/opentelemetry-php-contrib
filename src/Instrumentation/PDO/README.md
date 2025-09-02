@@ -36,7 +36,7 @@ OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
 ```
 
 ### SQL Commenter feature
-The [sqlcommenter](https://google.github.io/sqlcommenter/) feature can be enabled using configuration directive, currently it can be used with `postgresql` and `mysql` drivers only.
+The [sqlcommenter](https://opentelemetry.io/docs/specs/semconv/database/database-spans/#sql-commenter) feature can be enabled using configuration directive, currently it can be used with `postgresql` and `mysql` drivers only.
 ```
 otel.instrumentation.pdo.context_propagation = true
 ```
