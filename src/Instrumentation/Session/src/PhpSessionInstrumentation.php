@@ -88,15 +88,14 @@ class PhpSessionInstrumentation
 
                 // Add session cookie parameters
                 $cookieParams = session_get_cookie_params();
-                $index = 0;
+                $cookieKeys = [];
                 ksort($cookieParams);
                 foreach ($cookieParams as $key => $value) {
                     if (is_scalar($value)) {
-                        $span->setAttribute("php.session.cookie.key[$index]", $key);
+                        $cookieKeys[] = $key;
                     }
-                    $index++;
-                    
                 }
+                $span->setAttribute('php.session.cookie.keys', $cookieKeys);
                 if (!$sessionStartSuccess) {
                     $span->setStatus(StatusCode::STATUS_ERROR, "$function failed with return code $return");
                 }
@@ -119,8 +118,6 @@ class PhpSessionInstrumentation
         $Success = $return === true;
         if (!$Success) {
             $span->setStatus(StatusCode::STATUS_ERROR, "$function failed with return code $return");
-        } else {
-            $span->setStatus(StatusCode::STATUS_OK);
         }
 
         $span->end();

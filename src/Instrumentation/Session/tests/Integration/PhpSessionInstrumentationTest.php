@@ -69,19 +69,18 @@ class PhpSessionInstrumentationTest extends AbstractTest
         
         // Check cookie parameters
         $cookieParams = session_get_cookie_params();
-        $index = 0;
+        $expectedKeys = [];
         ksort($cookieParams);
         foreach ($cookieParams as $key => $value) {
             if (is_scalar($value)) {
-                $expected = $key;
-                $actual = $attributes->get("php.session.cookie.key[$index]");
-                $this->assertEquals($expected, $actual);
-                $index++;
+                $expectedKeys[] = $key;
             }
         }
-        
+        $actualKeys = $attributes->get('php.session.cookie.keys');
+        $this->assertEquals($expectedKeys, $actualKeys);
+
         // Check status
-        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
         
         // Clean up
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -117,7 +116,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
-        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
     }
     /**
      * @runInSeparateProcess
@@ -149,7 +148,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
-        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
     }
     
     /**
@@ -185,7 +184,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
-        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
         
         // Clean up
         session_destroy();
@@ -224,7 +223,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertNotNull($attributes->get('php.session.name'));
         
         // Check status
-        $this->assertEquals(StatusCode::STATUS_OK, $span->getStatus()->getCode());
+        $this->assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
     }
 
 }
