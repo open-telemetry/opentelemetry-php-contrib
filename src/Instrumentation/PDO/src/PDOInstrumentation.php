@@ -33,6 +33,7 @@ class PDOInstrumentation
             Version::VERSION_1_36_0->url(),
         );
         $pdoTracker = new PDOTracker();
+        $contextPropagator = (new ContextPropagatorFactory())->create();
 
         // Hook for the new PDO::connect static method
         if (method_exists(PDO::class, 'connect')) {
@@ -110,7 +111,7 @@ class PDOInstrumentation
         hook(
             PDO::class,
             'query',
-            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
+            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($contextPropagator, $pdoTracker, $instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
@@ -135,8 +136,15 @@ class PDOInstrumentation
                             case 'postgresql':
                             case 'mysql':
                                 $comments = [];
-                                Globals::propagator()->inject($comments);
-                                $sqlStatement = SqlCommentPropagator::inject($sqlStatement, $comments);
+                                if ($contextPropagator) {
+                                    // Propagator passed by user
+                                    $contextPropagator->inject($comments);
+                                } else {
+                                    // fallback to global propagator if user didn't pass one
+                                    Globals::propagator()->inject($comments);
+                                }
+                                // Inject comments into SQL statement
+                                $sqlStatement = QueryCommentInjector::inject($sqlStatement, $comments);
                                 if (ContextPropagation::isAttributeEnabled()) {
                                     $span->setAttributes([
                                         DbAttributes::DB_QUERY_TEXT => $sqlStatement,
@@ -163,7 +171,7 @@ class PDOInstrumentation
         hook(
             PDO::class,
             'exec',
-            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
+            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($contextPropagator, $pdoTracker, $instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
@@ -182,28 +190,33 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
                 if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
-                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
-                        /** @psalm-suppress PossiblyInvalidCast */
-                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
-                            case 'postgresql':
-                            case 'mysql':
-                                $comments = [];
-                                Globals::propagator()->inject($comments);
-                                $sqlStatement = SqlCommentPropagator::inject($sqlStatement, $comments);
-                                if (ContextPropagation::isAttributeEnabled()) {
-                                    $span->setAttributes([
-                                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
-                                    ]);
-                                }
-
-                                return [
-                                    0 => $sqlStatement,
-                                ];
-                            default:
-                                // Do nothing, not a database we want to propagate
-                                break;
-                        }
-                    }
+//                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
+//                        /** @psalm-suppress PossiblyInvalidCast */
+//                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
+//                            case 'postgresql':
+//                            case 'mysql':
+//                                $comments = [];
+//                                if ($this->contextPropagator) {
+//                                    $contextPropagator->inject($comments);
+//                                }
+//
+//
+//                                Globals::propagator()->inject($comments);
+//                                $sqlStatement = SqlCommentPropagator::inject($sqlStatement, $comments);
+//                                if (ContextPropagation::isAttributeEnabled()) {
+//                                    $span->setAttributes([
+//                                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
+//                                    ]);
+//                                }
+//
+//                                return [
+//                                    0 => $sqlStatement,
+//                                ];
+//                            default:
+//                                // Do nothing, not a database we want to propagate
+//                                break;
+//                        }
+//                    }
                 }
 
                 return [];
