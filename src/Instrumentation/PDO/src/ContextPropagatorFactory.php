@@ -27,7 +27,7 @@ class ContextPropagatorFactory
                 return null;
             case 1:
                 $propagator = $this->buildPropagator($propagators[0]);
-                if (is_a($propagator, NoopTextMapPropagator::class)) {
+                if ($propagator !== null && is_a($propagator, NoopTextMapPropagator::class)) {
                     return null;
                 }
 

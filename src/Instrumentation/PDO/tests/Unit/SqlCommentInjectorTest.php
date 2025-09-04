@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Unit;
 
-use OpenTelemetry\Contrib\Instrumentation\PDO\QueryCommentInjector;
+use OpenTelemetry\Contrib\Instrumentation\PDO\SqlCommentInjector;
 use PHPUnit\Framework\TestCase;
 
 class SqlCommentInjectorTest extends TestCase
@@ -12,14 +12,14 @@ class SqlCommentInjectorTest extends TestCase
     public function testIsPrependReturnsTrue()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND'] = true;
-        $result = QueryCommentInjector::isPrepend();
+        $result = SqlCommentInjector::isPrepend();
         $this->assertTrue($result);
     }
 
     public function testIsPrependReturnsFalse()
     {
         $_SERVER['OTEL_PHP_INSTRUMENTATION_PDO_SQL_COMMENTER_PREPEND'] = false;
-        $result = QueryCommentInjector::isPrepend();
+        $result = SqlCommentInjector::isPrepend();
         $this->assertFalse($result);
     }
 
@@ -32,7 +32,7 @@ class SqlCommentInjectorTest extends TestCase
             'key3' => 'value3',
         ];
         $query = 'SELECT 1;';
-        $result = QueryCommentInjector::inject($query, $comments);
+        $result = SqlCommentInjector::inject($query, $comments);
         $this->assertEquals("/*key1='value1',key2='value2',key3='value3'*/SELECT 1;", $result);
     }
 
@@ -45,7 +45,7 @@ class SqlCommentInjectorTest extends TestCase
             'key3' => 'value3',
         ];
         $query = 'SELECT 1;';
-        $result = QueryCommentInjector::inject($query, $comments);
+        $result = SqlCommentInjector::inject($query, $comments);
         $this->assertEquals("SELECT 1/*key1='value1',key2='value2',key3='value3'*/;", $result);
     }
 }

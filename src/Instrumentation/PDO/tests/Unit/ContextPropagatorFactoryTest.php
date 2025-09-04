@@ -11,10 +11,8 @@ use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\Propagation\MultiTextMapPropagator;
 use OpenTelemetry\Contrib\Instrumentation\PDO\ContextPropagatorFactory;
 use OpenTelemetry\SDK\Common\Configuration\KnownValues;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(ContextPropagatorFactory::class)]
 class ContextPropagatorFactoryTest extends TestCase
 {
     #[\Override]
