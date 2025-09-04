@@ -14,23 +14,24 @@ class ContextPropagatorFactory
 {
     use LogsMessagesTrait;
 
-    public function create(): ?TextMapPropagatorInterface
+    public function create()
     {
         $propagators = [];
         if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-            $propagators = Configuration::getList(Variables::OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATORS);
+            $propagators = Configuration::getList(Variables::OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATORS, []);
         }
 
         return match (count($propagators)) {
             0 => null,
             1 => $this->buildPropagator($propagators[0]),
-            default => function() use ($propagators) {
-                            $props = $this->buildPropagators($propagators);
-                            if ($props) {
-                                return new MultiTextMapPropagator($props);
-                            }
-                            return null;
-                            },
+            default => function () use ($propagators) {
+                $props = $this->buildPropagators($propagators);
+                if ($props) {
+                    return new MultiTextMapPropagator($props);
+                }
+
+                return null;
+            },
         };
     }
 
@@ -49,6 +50,7 @@ class ContextPropagatorFactory
         if (count($propagators) === 0) {
             return null;
         }
+
         return $propagators;
     }
 

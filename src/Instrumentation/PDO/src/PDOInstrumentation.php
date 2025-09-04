@@ -171,7 +171,7 @@ class PDOInstrumentation
         hook(
             PDO::class,
             'exec',
-            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($contextPropagator, $pdoTracker, $instrumentation) {
+            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
@@ -189,35 +189,35 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
-                if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
-//                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
-//                        /** @psalm-suppress PossiblyInvalidCast */
-//                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
-//                            case 'postgresql':
-//                            case 'mysql':
-//                                $comments = [];
-//                                if ($this->contextPropagator) {
-//                                    $contextPropagator->inject($comments);
-//                                }
-//
-//
-//                                Globals::propagator()->inject($comments);
-//                                $sqlStatement = SqlCommentPropagator::inject($sqlStatement, $comments);
-//                                if (ContextPropagation::isAttributeEnabled()) {
-//                                    $span->setAttributes([
-//                                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
-//                                    ]);
-//                                }
-//
-//                                return [
-//                                    0 => $sqlStatement,
-//                                ];
-//                            default:
-//                                // Do nothing, not a database we want to propagate
-//                                break;
-//                        }
-//                    }
-                }
+                // if (ContextPropagation::isEnabled() && $sqlStatement !== self::UNDEFINED) {
+                //                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
+                //                        /** @psalm-suppress PossiblyInvalidCast */
+                //                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
+                //                            case 'postgresql':
+                //                            case 'mysql':
+                //                                $comments = [];
+                //                                if ($this->contextPropagator) {
+                //                                    $contextPropagator->inject($comments);
+                //                                }
+                //
+                //
+                //                                Globals::propagator()->inject($comments);
+                //                                $sqlStatement = SqlCommentPropagator::inject($sqlStatement, $comments);
+                //                                if (ContextPropagation::isAttributeEnabled()) {
+                //                                    $span->setAttributes([
+                //                                        DbAttributes::DB_QUERY_TEXT => $sqlStatement,
+                //                                    ]);
+                //                                }
+                //
+                //                                return [
+                //                                    0 => $sqlStatement,
+                //                                ];
+                //                            default:
+                //                                // Do nothing, not a database we want to propagate
+                //                                break;
+                //                        }
+                //                    }
+                // }
 
                 return [];
             },
