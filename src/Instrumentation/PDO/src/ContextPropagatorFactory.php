@@ -18,7 +18,7 @@ class ContextPropagatorFactory
     {
         $propagators = [];
         if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-            $propagators = Configuration::getList(Variables::OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATORS, []);
+            $propagators = Configuration::getList('OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATORS', []);
         }
 
         switch (count($propagators)) {
