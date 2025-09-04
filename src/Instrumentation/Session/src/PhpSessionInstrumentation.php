@@ -87,14 +87,8 @@ class PhpSessionInstrumentation
                 $span->setAttribute('php.session.status', $sessionStartSuccess ? 'active' : 'inactive');
 
                 // Add session cookie parameters
-                $cookieParams = session_get_cookie_params();
-                $cookieKeys = [];
-                ksort($cookieParams);
-                foreach ($cookieParams as $key => $value) {
-                    if (is_scalar($value)) {
-                        $cookieKeys[] = $key;
-                    }
-                }
+                $cookieKeys = array_keys(session_get_cookie_params());
+                sort($cookieKeys);
                 $span->setAttribute('php.session.cookie.keys', $cookieKeys);
                 if (!$sessionStartSuccess) {
                     $span->setStatus(StatusCode::STATUS_ERROR, "$function failed with return code $return");

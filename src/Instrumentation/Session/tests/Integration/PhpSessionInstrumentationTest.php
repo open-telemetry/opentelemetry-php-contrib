@@ -69,13 +69,10 @@ class PhpSessionInstrumentationTest extends AbstractTest
         
         // Check cookie parameters
         $cookieParams = session_get_cookie_params();
-        $expectedKeys = [];
-        ksort($cookieParams);
-        foreach ($cookieParams as $key => $value) {
-            if (is_scalar($value)) {
-                $expectedKeys[] = $key;
-            }
-        }
+        $expectedKeys = array_keys(
+            array_filter($cookieParams, 'is_scalar')
+        );
+        sort($expectedKeys);
         $actualKeys = $attributes->get('php.session.cookie.keys');
         $this->assertEquals($expectedKeys, $actualKeys);
 
