@@ -45,6 +45,11 @@ or environment variable:
 OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATION=true
 ```
 
+The context sources from global propagator by default, but it can be configured using the following environment variables:
+```shell
+OTEL_PHP_INSTRUMENTATION_PDO_CONTEXT_PROPAGATORS=tracecontext
+```
+
 The modified query statement by default will not update `DbAttributes::DB_QUERY_TEXT` due to high cardinality risk, but it can be configured using the following configuration directive:
 ```
 otel.instrumentation.pdo.context_propagation.attribute = true

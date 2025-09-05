@@ -6,7 +6,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 
-class SqlCommentPropagator implements SqlPropagatorInterface
+class SqlCommentInjector implements SqlInjectorInterface
 {
     public static function isPrepend(): bool
     {
