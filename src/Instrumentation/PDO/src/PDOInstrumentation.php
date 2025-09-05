@@ -203,7 +203,7 @@ class PDOInstrumentation
                                     // fallback to global propagator if user didn't pass one
                                     Globals::propagator()->inject($comments);
                                 }
-
+                                // Inject comments into SQL statement
                                 $sqlStatement = SqlCommentInjector::inject($sqlStatement, $comments);
                                 if (ContextPropagation::isAttributeEnabled()) {
                                     $span->setAttributes([
