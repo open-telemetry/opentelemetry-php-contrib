@@ -65,6 +65,7 @@ jobs:
           'Sampler/RuleBased',
           'Sampler/Xray',
           'Shims/OpenTracing',
+          'SqlCommenter',
           'Symfony',
           'Utils/Test'
         ]
