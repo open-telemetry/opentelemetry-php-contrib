@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\SqlCommenter;
 
-use OpenTelemetry\SDK\Common\Configuration\Configuration;
-
 class SqlCommenter
 {
     public static function isPrepend(): bool
     {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND', false)) {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && \OpenTelemetry\SDK\Common\Configuration\Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND', false)) {
             return true;
         }
 

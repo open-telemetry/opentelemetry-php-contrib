@@ -17,6 +17,7 @@
     "psr-4": {
       "OpenTelemetry\\Contrib\\Aws\\": "src/Aws/src",
       "OpenTelemetry\\Contrib\\Context\\Swoole\\": "src/Context/Swoole/src",
+      "OpenTelemetry\\Contrib\\ContextPropagator\\": "src/ContextPropagator/src",
       "OpenTelemetry\\Contrib\\Exporter\\Instana\\": "src/Exporter/Instana/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\AwsSdk\\": "src/Instrumentation/AwsSdk/src",
       "OpenTelemetry\\Contrib\\Instrumentation\\CakePHP\\": "src/Instrumentation/CakePHP/src",
@@ -126,6 +127,7 @@
       "OpenTelemetry\\Tests\\Propagation\\CloudTrace\\": "src/Propagation/CloudTrace/tests",
       "OpenTelemetry\\Tests\\Resource\\Detector\\Azure\\": "src/ResourceDetectors/Azure/tests",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "src/ResourceDetectors/DigitalOcean/tests",
+      "OpenTelemetry\\Tests\\Contrib\\ContextPropagator\\": "src/ContextPropagator/tests",
       "OpenTelemetry\\Tests\\Contrib\\SqlCommenter\\": "src/SqlCommenter/tests",
       "OpenTelemetry\\Tests\\Contrib\\Symfony\\": "src/Symfony/tests",
       "OpenTelemetry\\TestUtils\\Tests\\": "src/Utils/Test/tests"
@@ -133,6 +135,7 @@
   },
   "replace": {
     "open-telemetry/context-swoole": "self.version",
+    "open-telemetry/context-propagator": "self.version",
     "open-telemetry/contrib-aws": "self.version",
     "open-telemetry/contrib-sdk-bundle": "self.version",
     "open-telemetry/contrib-symfony-instrumentation-bundle": "self.version",

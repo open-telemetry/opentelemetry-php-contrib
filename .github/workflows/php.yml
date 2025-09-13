@@ -25,6 +25,7 @@ jobs:
         project: [
           'Aws',
           'Context/Swoole',
+          'ContextPropagator',
           'Exporter/Instana',
           'Instrumentation/AwsSdk',
           'Instrumentation/CakePHP',

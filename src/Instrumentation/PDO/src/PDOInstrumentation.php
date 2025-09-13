@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\ContextPropagator\ContextPropagation;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
@@ -19,9 +21,11 @@ use PDO;
 use PDOStatement;
 use Throwable;
 
+/** @phan-file-suppress PhanUndeclaredClassMethod */
 class PDOInstrumentation
 {
     public const NAME = 'pdo';
+    private const UNDEFINED = 'undefined';
 
     public static function register(): void
     {
@@ -31,6 +35,10 @@ class PDOInstrumentation
             Version::VERSION_1_36_0->url(),
         );
         $pdoTracker = new PDOTracker();
+        $contextPropagator = null;
+        if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory')) {
+            $contextPropagator = (new \OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory())->create();
+        }
 
         // Hook for the new PDO::connect static method
         if (method_exists(PDO::class, 'connect')) {
@@ -108,12 +116,16 @@ class PDOInstrumentation
         hook(
             PDO::class,
             'query',
-            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
+            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($contextPropagator, $pdoTracker, $instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+                $sqlStatement = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
+                if (!is_string($sqlStatement)) {
+                    $sqlStatement = self::UNDEFINED;
+                }
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $sqlStatement);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -122,6 +134,42 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+
+                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $sqlStatement !== self::UNDEFINED) {
+                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
+                        /** @psalm-suppress PossiblyInvalidCast */
+                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
+                            case 'postgresql':
+                            case 'mysql':
+                                $comments = [];
+                                if ($contextPropagator !== null) {
+                                    // Propagator passed by user
+                                    $contextPropagator->inject($comments);
+                                } else {
+                                    // fallback to global propagator if user didn't pass one
+                                    Globals::propagator()->inject($comments);
+                                }
+                                // Inject comments into SQL statement
+                                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
+                                    $sqlStatement = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($sqlStatement, $comments);
+                                }
+                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && ContextPropagation::isAttributeEnabled()) {
+                                    $span->setAttributes([
+                                        DbAttributes::DB_QUERY_TEXT => (string) $sqlStatement,
+                                    ]);
+                                }
+
+                                return [
+                                    0 => $sqlStatement,
+                                ];
+                            default:
+                                // Do nothing, not a database we want to propagate
+                                break;
+                        }
+                    }
+                }
+
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
@@ -131,12 +179,16 @@ class PDOInstrumentation
         hook(
             PDO::class,
             'exec',
-            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($pdoTracker, $instrumentation) {
+            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($contextPropagator, $pdoTracker, $instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+                $sqlStatement = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
+                if (!is_string($sqlStatement)) {
+                    $sqlStatement = self::UNDEFINED;
+                }
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $sqlStatement);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -145,6 +197,42 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+
+                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $sqlStatement !== self::UNDEFINED) {
+                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
+                        /** @psalm-suppress PossiblyInvalidCast */
+                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
+                            case 'postgresql':
+                            case 'mysql':
+                                $comments = [];
+                                if ($contextPropagator !== null) {
+                                    // Propagator passed by user
+                                    $contextPropagator->inject($comments);
+                                } else {
+                                    // fallback to global propagator if user didn't pass one
+                                    Globals::propagator()->inject($comments);
+                                }
+                                // Inject comments into SQL statement
+                                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
+                                    $sqlStatement = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($sqlStatement, $comments);
+                                }
+                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && ContextPropagation::isAttributeEnabled()) {
+                                    $span->setAttributes([
+                                        DbAttributes::DB_QUERY_TEXT => (string) $sqlStatement,
+                                    ]);
+                                }
+
+                                return [
+                                    0 => $sqlStatement,
+                                ];
+                            default:
+                                // Do nothing, not a database we want to propagate
+                                break;
+                        }
+                    }
+                }
+
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
