@@ -11,16 +11,13 @@ This is a read-only subtree split of https://github.com/open-telemetry/opentelem
 
 This package provides a [SqlCommenter](https://opentelemetry.io/docs/specs/semconv/database/database-spans/#sql-commenter) to inject comments into SQL queries.
 
-## Requirements
-
-* TBD
-
 ## Usage
 
 You can add comments to your sql query as follows:
 
 ```php
-
+$comments = [];
+$query = SqlCommenter::inject($query, $comments);
 ```
 
 ## Installation via composer
@@ -28,6 +25,18 @@ You can add comments to your sql query as follows:
 ```bash
 $ composer require open-telemetry/opentelemetry-sqlcommenter
 ```
+
+## Configuration
+
+Configuration directive
+```shell
+otel.instrumentation.sql_commenter.prepend = true
+```
+or environment variable
+```shell
+OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND=true
+```
+specifies to prepend comments to the query statement. Default value: `false`
 
 ## Installing dependencies and executing tests
 

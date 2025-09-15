@@ -9,18 +9,14 @@ This is a read-only subtree split of https://github.com/open-telemetry/opentelem
 
 # OpenTelemetry Context Propagator
 
-This package provides a context Propagator to inject context into comments for propagation.
-
-## Requirements
-
-* TBD
+This package provides a context Propagator to support retrieving contexts for [open-telemetry/opentelemetry-sqlcommenter](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/SqlCommenter).
 
 ## Usage
 
-To be added
-
 ```php
-
+$contextPropagator = (new ContextPropagatorFactory())->create();
+$comments = [];
+$contextPropagator->inject($comments);
 ```
 
 ## Installation via composer
@@ -28,6 +24,18 @@ To be added
 ```bash
 $ composer require open-telemetry/opentelemetry-context-propagator
 ```
+
+## Configuration
+
+```shell
+OTEL_PHP_INSTRUMENTATION_CONTEXT_PROPAGATORS=tracecontext
+```
+specifies propagators to be used in a comma-separated list. Default value: `''`
+
+```shell
+OTEL_PHP_INSTRUMENTATION_CONTEXT_PROPAGATION_ATTRIBUTE=true
+```
+specifies to include context propagtion in the span attributes. Default value: `false`
 
 ## Installing dependencies and executing tests
 
