@@ -11,7 +11,6 @@ use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\ContextPropagator\ContextPropagation;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
@@ -153,7 +152,7 @@ class PDOInstrumentation
                                 if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
                                     $sqlStatement = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($sqlStatement, $comments);
                                 }
-                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && ContextPropagation::isAttributeEnabled()) {
+                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
                                     $span->setAttributes([
                                         DbAttributes::DB_QUERY_TEXT => (string) $sqlStatement,
                                     ]);
@@ -216,7 +215,7 @@ class PDOInstrumentation
                                 if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
                                     $sqlStatement = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($sqlStatement, $comments);
                                 }
-                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && ContextPropagation::isAttributeEnabled()) {
+                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
                                     $span->setAttributes([
                                         DbAttributes::DB_QUERY_TEXT => (string) $sqlStatement,
                                     ]);
