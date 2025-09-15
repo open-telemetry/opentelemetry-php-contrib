@@ -33,6 +33,12 @@ class IOInstrumentation
         self::_hook($instrumentation, null, 'file_get_contents', 'file_get_contents');
         self::_hook($instrumentation, null, 'file_put_contents', 'file_put_contents');
 
+        // Output buffer functions
+        self::_hook($instrumentation, null, 'ob_start', 'ob_start');
+        self::_hook($instrumentation, null, 'ob_clean', 'ob_clean');
+        self::_hook($instrumentation, null, 'ob_flush', 'ob_flush');
+        self::_hook($instrumentation, null, 'flush', 'flush');
+  
         self::_hook($instrumentation, null, 'curl_init', 'curl_init');
         self::_hook($instrumentation, null, 'curl_exec', 'curl_exec');
     }
@@ -108,6 +114,19 @@ class IOInstrumentation
             case 'file_get_contents':
             case 'file_put_contents':
                 $builder->setAttribute('code.params.filename', $params[0]);
+
+                break;
+            case 'ob_start':
+                if (isset($params[0]) && is_callable($params[0])) {
+                    // We can't directly serialize the callback, so we'll just note that one was provided
+                    $builder->setAttribute('code.params.has_callback', true);
+                }
+                if (isset($params[1])) {
+                    $builder->setAttribute('code.params.chunk_size', $params[1]);
+                }
+                if (isset($params[2])) {
+                    $builder->setAttribute('code.params.flags', $params[2]);
+                }
 
                 break;
         }

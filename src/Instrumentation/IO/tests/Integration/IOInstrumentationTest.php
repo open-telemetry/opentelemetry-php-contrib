@@ -37,6 +37,10 @@ class IOInstrumentationTest extends TestCase
     public function tearDown(): void
     {
         $this->scope->detach();
+        // Clean up any output buffers that might have been started during tests
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
     }
 
     public function test_io_calls(): void
@@ -82,5 +86,45 @@ class IOInstrumentationTest extends TestCase
         $this->assertCount(7, $this->storage);
         $this->span = $this->storage->offsetGet(6);
         $this->assertSame('curl_exec', $this->span->getName());
+    }
+
+    public function test_output_buffer_calls(): void
+    {
+        // Make sure we start with a clean state
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        // Test ob_start with parameters
+        $callback = function ($buffer) {
+            return $buffer;
+        };
+        ob_start($callback, 4096, PHP_OUTPUT_HANDLER_STDFLAGS);
+        $this->assertCount(1, $this->storage);
+        $this->span = $this->storage->offsetGet(0);
+        $this->assertSame('ob_start', $this->span->getName());
+        $this->assertTrue($this->span->getAttributes()->get('code.params.has_callback'));
+        $this->assertSame(4096, $this->span->getAttributes()->get('code.params.chunk_size'));
+        $this->assertSame(PHP_OUTPUT_HANDLER_STDFLAGS, $this->span->getAttributes()->get('code.params.flags'));
+        
+        // Test ob_clean
+        ob_clean();
+        $this->assertCount(2, $this->storage);
+        $this->span = $this->storage->offsetGet(1);
+        $this->assertSame('ob_clean', $this->span->getName());
+        
+        // Test ob_flush
+        ob_flush();
+        $this->assertCount(3, $this->storage);
+        $this->span = $this->storage->offsetGet(2);
+        $this->assertSame('ob_flush', $this->span->getName());
+        
+        // Test flush
+        flush();
+        $this->assertCount(4, $this->storage);
+        $this->span = $this->storage->offsetGet(3);
+        $this->assertSame('flush', $this->span->getName());
+        
+        // Clean up
+        ob_end_clean();
     }
 }
