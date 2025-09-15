@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\MySqli;
 use mysqli;
 use mysqli_stmt;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
@@ -14,18 +15,21 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 
 /**
  * @phan-file-suppress PhanParamTooFewUnpack
+ * @phan-file-suppress PhanUndeclaredClassMethod
  */
 class MySqliInstrumentation
 {
     use LogsMessagesTrait;
 
     public const NAME = 'mysqli';
+    private const UNDEFINED = 'undefined';
 
     private const MYSQLI_CONNECT_ARG_OFFSET = 0;
     private const MYSQLI_REAL_CONNECT_ARG_OFFSET = 1; // The mysqli_real_connect function in procedural mode requires a mysqli object as its first argument. The remaining arguments are consistent with those used in other connection methods, such as connect or __construct
@@ -41,6 +45,10 @@ class MySqliInstrumentation
         );
 
         $tracker = new MySqliTracker();
+        $contextPropagator = null;
+        if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory')) {
+            $contextPropagator = (new \OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory())->create();
+        }
 
         hook(
             null,
@@ -97,8 +105,8 @@ class MySqliInstrumentation
         hook(
             null,
             'mysqli_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::queryPreHook('mysqli_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -107,8 +115,8 @@ class MySqliInstrumentation
         hook(
             mysqli::class,
             'query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli::query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::queryPreHook('mysqli::query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -118,8 +126,8 @@ class MySqliInstrumentation
         hook(
             null,
             'mysqli_real_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli_real_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::queryPreHook('mysqli_real_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -128,8 +136,8 @@ class MySqliInstrumentation
         hook(
             mysqli::class,
             'real_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli::real_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::queryPreHook('mysqli::real_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -139,8 +147,8 @@ class MySqliInstrumentation
         hook(
             null,
             'mysqli_execute_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli_execute_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                self::queryPreHook('mysqli_execute_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -149,8 +157,8 @@ class MySqliInstrumentation
         hook(
             mysqli::class,
             'execute_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli::execute_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                self::queryPreHook('mysqli::execute_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -160,8 +168,8 @@ class MySqliInstrumentation
         hook(
             null,
             'mysqli_multi_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli_multi_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::queryPreHook('mysqli_multi_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::multiQueryPostHook($instrumentation, $tracker, ...$args);
@@ -170,8 +178,8 @@ class MySqliInstrumentation
         hook(
             mysqli::class,
             'multi_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::queryPreHook('mysqli::multi_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::queryPreHook('mysqli::multi_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::multiQueryPostHook($instrumentation, $tracker, ...$args);
@@ -440,11 +448,38 @@ class MySqliInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function queryPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
+    private static function queryPreHook(string $spanName, ?TextMapPropagatorInterface $contextPropagator, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): array
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         $mysqli = $obj ? $obj : $params[0];
+        $query = $obj ? $params[0] : $params[1];
+        $query = mb_convert_encoding($query ?? self::UNDEFINED, 'UTF-8');
         self::addTransactionLink($tracker, $span, $mysqli);
+
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+            $comments = [];
+            if ($contextPropagator !== null) {
+                $contextPropagator->inject($comments);
+            } else {
+                Globals::propagator()->inject($comments);
+            }
+            if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
+                $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
+            }
+
+            if ($obj) {
+                return [
+                    0 => $query,
+                ];
+            }
+
+            return [
+                1 => $query,
+            ];
+
+        }
+
+        return [];
     }
 
     private static function queryPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
