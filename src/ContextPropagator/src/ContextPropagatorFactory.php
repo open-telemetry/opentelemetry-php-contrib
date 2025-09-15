@@ -14,7 +14,7 @@ class ContextPropagatorFactory
 {
     use LogsMessagesTrait;
 
-    public function create(): TextMapPropagatorInterface | null
+    public function create(): ?TextMapPropagatorInterface
     {
         $propagators = [];
         if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
