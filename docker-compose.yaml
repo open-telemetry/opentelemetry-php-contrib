@@ -1,10 +1,9 @@
 services:
   php:
     # the developer image comes from opentelemetry-php (the core repository), and is built by github actions
-    image: ghcr.io/open-telemetry/opentelemetry-php/opentelemetry-php-base:8.3
+    image: ghcr.io/open-telemetry/opentelemetry-php/opentelemetry-php-base:${PHP_VERSION}
     volumes:
     - ./:/usr/src/myapp
-    - ./docker/opcache/opcache.ini:/etc/php/8.3/cli/conf.d/opcache.ini
     user: "${PHP_USER}:root"
     environment:
       XDEBUG_MODE: ${XDEBUG_MODE:-off}

@@ -41,7 +41,6 @@ jobs:
           'Instrumentation/MySqli',
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
-          'Instrumentation/PhpOpcache',
           'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
           'Instrumentation/Psr3',
