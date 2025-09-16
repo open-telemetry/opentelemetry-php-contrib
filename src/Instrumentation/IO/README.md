@@ -25,8 +25,6 @@ following functions:
 - `ob_flush`
 - `flush`
 
->>>>>>> 4b9c450 (Remove curl hooks from IO instrumentation)
-
 ## Configuration
 
 The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
