@@ -4,16 +4,18 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
 
-processors:
-  batch:
-
 exporters:
   logging:
     loglevel: debug
   awsxray:
     region: 'us-west-2'
+    sending_queue:
+      batch:
+
   awsemf:
     region: 'us-west-2'
+    sending_queue:
+      batch:
 
 service:
   pipelines:
