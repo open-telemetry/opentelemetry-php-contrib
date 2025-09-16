@@ -168,8 +168,8 @@ class MySqliInstrumentation
         hook(
             null,
             'mysqli_multi_query',
-            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
-                return self::queryPreHook('mysqli_multi_query', $contextPropagator, $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::multiQueryPreHook('mysqli_multi_query', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::multiQueryPostHook($instrumentation, $tracker, ...$args);
@@ -178,8 +178,8 @@ class MySqliInstrumentation
         hook(
             mysqli::class,
             'multi_query',
-            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
-                return self::queryPreHook('mysqli::multi_query', $contextPropagator, $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                self::multiQueryPreHook('mysqli::multi_query', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::multiQueryPostHook($instrumentation, $tracker, ...$args);
@@ -466,6 +466,12 @@ class MySqliInstrumentation
             if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
                 $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
             }
+            if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
+                $span->setAttributes([
+                    TraceAttributes::DB_QUERY_TEXT => (string) $query,
+                    TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+                ]);
+            }
 
             if ($obj) {
                 return [
@@ -489,9 +495,6 @@ class MySqliInstrumentation
 
         $attributes = $tracker->getMySqliAttributes($mysqli);
 
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($query);
-
         if ($retVal === false || $exception) {
             $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         }
@@ -499,6 +502,14 @@ class MySqliInstrumentation
         $errorStatus = ($retVal === false && !$exception) ? $mysqli->error : null;
         self::endSpan($attributes, $exception, $errorStatus);
 
+    }
+
+    /** @param non-empty-string $spanName */
+    private static function multiQueryPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
+    {
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+        $mysqli = $obj ? $obj : $params[0];
+        self::addTransactionLink($tracker, $span, $mysqli);
     }
 
     private static function multiQueryPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
