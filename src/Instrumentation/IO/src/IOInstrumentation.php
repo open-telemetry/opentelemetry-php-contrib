@@ -39,8 +39,6 @@ class IOInstrumentation
         self::_hook($instrumentation, null, 'ob_flush', 'ob_flush');
         self::_hook($instrumentation, null, 'flush', 'flush');
   
-        self::_hook($instrumentation, null, 'curl_init', 'curl_init');
-        self::_hook($instrumentation, null, 'curl_exec', 'curl_exec');
     }
 
     /**
@@ -102,10 +100,6 @@ class IOInstrumentation
             return;
         }
         switch ($function) {
-            case 'curl_init':
-                isset($params[0]) && $builder->setAttribute('code.params.uri', $params[0]);
-
-                break;
             case 'fopen':
                 $builder->setAttribute('code.params.filename', $params[0])
                     ->setAttribute('code.params.mode', $params[1]);
