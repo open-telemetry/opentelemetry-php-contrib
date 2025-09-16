@@ -309,7 +309,7 @@ class PostgreSqlInstrumentation
     /** @param non-empty-string $spanName */
     private static function basicPreHookWithContextPropagator(string $spanName, ?TextMapPropagatorInterface $contextPropagator, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
     {
-        self::basicPreHook($spanName, $instrumentation, $tracker, $obj, $params, $class, $function, $filename, $lineno);
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         $query = mb_convert_encoding($params[1] ?? self::UNDEFINED, 'UTF-8');
         if (!is_string($query)) {
             $query = self::UNDEFINED;
@@ -324,6 +324,12 @@ class PostgreSqlInstrumentation
             }
             if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
                 $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
+            }
+            if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
+                $span->setAttributes([
+                    TraceAttributes::DB_QUERY_TEXT => (string) $query,
+                    TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query)
+                ]);
             }
 
             return [
@@ -441,9 +447,6 @@ class PostgreSqlInstrumentation
             $tracker->addAsyncLinkForConnection($params[0], Span::getCurrent()->getContext());
         }
 
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
-
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
     }
@@ -451,9 +454,6 @@ class PostgreSqlInstrumentation
     private static function queryPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
-
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
