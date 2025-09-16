@@ -310,10 +310,16 @@ class PostgreSqlInstrumentation
     private static function basicPreHookWithContextPropagator(string $spanName, ?TextMapPropagatorInterface $contextPropagator, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+
         $query = mb_convert_encoding($params[1] ?? self::UNDEFINED, 'UTF-8');
         if (!is_string($query)) {
             $query = self::UNDEFINED;
         }
+
+        $span->setAttributes([
+            TraceAttributes::DB_QUERY_TEXT => $query,
+            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+        ]);
 
         if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
             $comments = [];
@@ -328,7 +334,7 @@ class PostgreSqlInstrumentation
             if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
                 $span->setAttributes([
                     TraceAttributes::DB_QUERY_TEXT => (string) $query,
-                    TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query)
+                    TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
                 ]);
             }
 

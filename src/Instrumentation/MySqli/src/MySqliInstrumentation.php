@@ -454,6 +454,14 @@ class MySqliInstrumentation
         $mysqli = $obj ? $obj : $params[0];
         $query = $obj ? $params[0] : $params[1];
         $query = mb_convert_encoding($query ?? self::UNDEFINED, 'UTF-8');
+        if (!is_string($query)) {
+            $query = self::UNDEFINED;
+        }
+        $span->setAttributes([
+            TraceAttributes::DB_QUERY_TEXT => $query,
+            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+        ]);
+
         self::addTransactionLink($tracker, $span, $mysqli);
 
         if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
