@@ -22,6 +22,10 @@ following functions:
 - `file_put_contents`
 - `curl_init`
 - `curl_exec`
+- `ob_start`
+- `ob_clean`
+- `ob_flush`
+- `flush`
 
 ## Configuration
 
