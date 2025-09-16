@@ -70,7 +70,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_convert',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_convert', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_convert', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::tableOperationsPostHook($instrumentation, $tracker, true, null, ...$args);
@@ -81,7 +81,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_copy_from',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_copy_from', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_copy_from', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::tableOperationsPostHook($instrumentation, $tracker, false, null, ...$args);
@@ -92,7 +92,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_copy_to',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_copy_to', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_copy_to', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::tableOperationsPostHook($instrumentation, $tracker, false, null, ...$args);
@@ -103,7 +103,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_delete',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_delete', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_delete', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::tableOperationsPostHook($instrumentation, $tracker, false, 'DELETE', ...$args);
@@ -114,7 +114,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_prepare',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_prepare', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_prepare', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::preparePostHook($instrumentation, $tracker, false, ...$args);
@@ -125,7 +125,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_execute',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_execute', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_execute', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::executePostHook($instrumentation, $tracker, false, ...$args);
@@ -136,7 +136,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_query',
             pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
-                return self::basicPreHook('pg_query', $contextPropagator, $instrumentation, $tracker, ...$args);
+                return self::basicPreHookWithContextPropagator('pg_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -147,7 +147,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_select',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_select', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_select', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::selectPostHook($instrumentation, $tracker, ...$args);
@@ -158,7 +158,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_send_prepare',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_send_prepare', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_send_prepare', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::preparePostHook($instrumentation, $tracker, true, ...$args);
@@ -169,7 +169,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_send_execute',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_send_execute', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_send_execute', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::executePostHook($instrumentation, $tracker, true, ...$args);
@@ -179,7 +179,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_send_query',
             pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
-                return self::basicPreHook('pg_send_query', $contextPropagator, $instrumentation, $tracker, ...$args);
+                return self::basicPreHookWithContextPropagator('pg_send_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::sendQueryPostHook($instrumentation, $tracker, ...$args);
@@ -189,7 +189,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_send_query_params',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_send_query_params', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_send_query_params', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::sendQueryParamsPostHook($instrumentation, $tracker, ...$args);
@@ -200,7 +200,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_get_result',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_get_result', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_get_result', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::getResultPostHook($instrumentation, $tracker, ...$args);
@@ -211,7 +211,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_lo_open',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_lo_open', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_lo_open', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::loOpenPostHook($instrumentation, $tracker, ...$args);
@@ -222,7 +222,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_lo_write',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_lo_write', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_lo_write', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::loWritePostHook($instrumentation, $tracker, ...$args);
@@ -233,7 +233,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_lo_read',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_lo_read', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_lo_read', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::loReadPostHook($instrumentation, $tracker, ...$args);
@@ -244,7 +244,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_lo_read_all',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_lo_read_all', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_lo_read_all', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::loReadAllPostHook($instrumentation, $tracker, ...$args);
@@ -255,7 +255,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_lo_unlink',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_lo_unlink', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_lo_unlink', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::loUnlinkPostHook($instrumentation, $tracker, ...$args);
@@ -266,7 +266,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_lo_import',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_lo_import', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_lo_import', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::loImportExportPostHook($instrumentation, $tracker, 'IMPORT', ...$args);
@@ -277,7 +277,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_lo_export',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_lo_export', null, $instrumentation, $tracker, ...$args);
+                self::basicPreHook('pg_lo_export', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::loImportExportPostHook($instrumentation, $tracker, 'EXPORT', ...$args);
@@ -301,30 +301,34 @@ class PostgreSqlInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function basicPreHook(string $spanName, ?TextMapPropagatorInterface $contextPropagator, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
+    private static function basicPreHook(string $spanName, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): void
     {
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
-        if ($spanName == 'pg_query' || $spanName == 'pg_send_query') {
-            $query = mb_convert_encoding($params[1] ?? self::UNDEFINED, 'UTF-8');
-            if (!is_string($query)) {
-                $query = self::UNDEFINED;
+    }
+
+    /** @param non-empty-string $spanName */
+    private static function basicPreHookWithContextPropagator(string $spanName, ?TextMapPropagatorInterface $contextPropagator, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
+    {
+        self::basicPreHook($spanName, $instrumentation, $tracker, $obj, $params, $class, $function, $filename, $lineno);
+        $query = mb_convert_encoding($params[1] ?? self::UNDEFINED, 'UTF-8');
+        if (!is_string($query)) {
+            $query = self::UNDEFINED;
+        }
+
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+            $comments = [];
+            if ($contextPropagator !== null) {
+                $contextPropagator->inject($comments);
+            } else {
+                Globals::propagator()->inject($comments);
+            }
+            if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
+                $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
             }
 
-            if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
-                $comments = [];
-                if ($contextPropagator !== null) {
-                    $contextPropagator->inject($comments);
-                } else {
-                    Globals::propagator()->inject($comments);
-                }
-                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
-                    $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
-                }
-
-                return [
-                    1 => $query,
-                ];
-            }
+            return [
+                1 => $query,
+            ];
         }
 
         return [];
