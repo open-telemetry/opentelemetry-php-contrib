@@ -1,6 +1,6 @@
 [![Releases](https://img.shields.io/badge/releases-purple)](https://github.com/opentelemetry-php/contrib-auto-opcache/releases)
 [![Issues](https://img.shields.io/badge/issues-pink)](https://github.com/open-telemetry/opentelemetry-php/issues)
-[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Instrumentation/PhpOpcache)
+[![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Instrumentation/opcache)
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-auto-opcache)
 [![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-auto-opcache/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-opcache/)
 [![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-auto-opcache/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-opcache/)
@@ -57,10 +57,10 @@ The instrumentation is automatically registered via composer. No additional conf
 You can also manually add OPcache metrics to the current active span:
 
 ```php
-use OpenTelemetry\Contrib\Instrumentation\PhpOpcache\PhpOpcacheInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\opcache\opcacheInstrumentation;
 
 // Add OPcache metrics to the current active span
-PhpOpcacheInstrumentation::addOpcacheMetricsToRootSpan();
+opcacheInstrumentation::addOpcacheMetricsToRootSpan();
 ```
 
 ## Configuration

@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Instrumentation\PhpOpcache\tests\Integration;
+namespace OpenTelemetry\Tests\Instrumentation\opcache\tests\Integration;
 
 use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\Contrib\Instrumentation\PhpOpcache\PhpOpcacheInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\opcache\OpcacheInstrumentation;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-class PhpOpcacheInstrumentationTest extends TestCase
+class OpcacheInstrumentationTest extends TestCase
 {
     private ScopeInterface $scope;
     private ArrayObject $storage;
@@ -55,7 +55,7 @@ class PhpOpcacheInstrumentationTest extends TestCase
         
         try {
             // Call the method to add opcache metrics to the root span
-            PhpOpcacheInstrumentation::addOpcacheMetricsToRootSpan();
+            opcacheInstrumentation::addOpcacheMetricsToRootSpan();
             
             // End the span
             $rootSpan->end();
@@ -91,7 +91,7 @@ class PhpOpcacheInstrumentationTest extends TestCase
         $span = $tracer->spanBuilder('test_span')->startSpan();
         
         // Call the captureOpcacheMetrics method using reflection
-        $reflectionClass = new ReflectionClass(PhpOpcacheInstrumentation::class);
+        $reflectionClass = new ReflectionClass(opcacheInstrumentation::class);
         $method = $reflectionClass->getMethod('captureOpcacheMetrics');
         //$method->setAccessible(true);
         $method->invoke(null, $span);

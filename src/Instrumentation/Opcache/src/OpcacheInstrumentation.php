@@ -2,17 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\Instrumentation\PhpOpcache;
+namespace OpenTelemetry\Contrib\Instrumentation\opcache;
 
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
-use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
-use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\Version;
 
-class PhpOpcacheInstrumentation
+class OpcacheInstrumentation
 {
     public const NAME = 'opcache';
     public const VERSION = '1.0.0';
@@ -32,7 +28,7 @@ class PhpOpcacheInstrumentation
 
         // Register our own shutdown function to capture OPcache metrics
         //    register_shutdown_function([self::class, 'captureMetricsOnShutdown']);
-        register_shutdown_function('OpenTelemetry\Contrib\Instrumentation\PhpOpcache\PhpOpcacheInstrumentation::addOpcacheMetricsToRootSpan');
+        register_shutdown_function('OpenTelemetry\Contrib\Instrumentation\opcache\opcacheInstrumentation::addOpcacheMetricsToRootSpan');
 
         self::$registered = true;
     }

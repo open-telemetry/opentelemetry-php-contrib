@@ -44,7 +44,7 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-openai.git"
   - prefix: "src/Instrumentation/PDO"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-pdo.git"
-  - prefix: "src/Instrumentation/PhpOpcache"
+  - prefix: "src/Instrumentation/opcache"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-opcache.git"
   - prefix: "src/Instrumentation/PostgreSql"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-postgresql.git"

@@ -1,5 +1,5 @@
 {
-  "name": "open-telemetry/opentelemetry-auto-phpopcache",
+  "name": "open-telemetry/opentelemetry-auto-opcache",
   "description": "OpenTelemetry auto-instrumentation for PHP opcache",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "opcache", "instrumentation"],
   "type": "library",
@@ -29,7 +29,7 @@
   },
   "autoload": {
     "psr-4": {
-      "OpenTelemetry\\Contrib\\Instrumentation\\PhpOpcache\\": "src/"
+      "OpenTelemetry\\Contrib\\Instrumentation\\Opcache\\": "src/"
     },
     "files": [
       "_register.php"
@@ -37,7 +37,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OpenTelemetry\\Tests\\Instrumentation\\PhpOpcache\\": "tests/"
+      "OpenTelemetry\\Tests\\Instrumentation\\Opcache\\": "tests/"
     }
   }
 }

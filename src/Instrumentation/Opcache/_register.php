@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use OpenTelemetry\Contrib\Instrumentation\PhpOpcache\PhpOpcacheInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Opcache\OpcacheInstrumentation;
 use OpenTelemetry\SDK\Sdk;
 
-if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(PhpOpcacheInstrumentation::NAME) === true) {
+if (class_exists(Sdk::class) && Sdk::isInstrumentationDisabled(OpcacheInstrumentation::NAME) === true) {
     return;
 }
 
@@ -15,4 +15,4 @@ if (extension_loaded('opentelemetry') === false) {
     return;
 }
 
-PhpOpcacheInstrumentation::register();
+OpcacheInstrumentation::register();
