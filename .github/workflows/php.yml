@@ -41,6 +41,7 @@ jobs:
           'Instrumentation/MySqli',
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
+          'Instrumentation/PhpOpcache',
           'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
           'Instrumentation/Psr3',
@@ -81,6 +82,8 @@ jobs:
           - project: 'Instrumentation/PDO'
             php-version: 8.1
           - project: 'Instrumentation/PostgreSql'
+            php-version: 8.1
+          - project: 'Instrumentation/PhpOpcache'
             php-version: 8.1
     steps:
     - uses: actions/checkout@v4
