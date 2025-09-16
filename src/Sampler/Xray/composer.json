@@ -1,0 +1,39 @@
+{
+    "name": "open-telemetry/sampler-aws-xray",
+    "description": "AWS X-Ray Remote Sampler for OpenTelemetry PHP Contrib",
+    "type": "library",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.1",
+        "aws/aws-sdk-php": "^3.0",                    
+        "open-telemetry/api": "^1.1.0",
+        "open-telemetry/sdk": "^1.1.0",
+        "open-telemetry/sdk-configuration": "^0.0.5",
+        "open-telemetry/sem-conv": "^1.32"
+    },
+    "require-dev": {
+        "symfony/config": "^5.4 || ^6.4 || ^7.0",
+        "symfony/yaml": "^6 || ^7",
+        "friendsofphp/php-cs-fixer": "^3",
+        "phan/phan": "^5.0",
+        "phpstan/phpstan": "^1.1",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "phpunit/phpunit": "^10 || ^11",
+        "vimeo/psalm": "^4|^5|6.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Sampler\\Xray\\": "src/"
+        },
+        "classmap": ["src/AWSXRayRemoteSampler.php"]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "tbachert/spi": true
+        }
+    }
+}
