@@ -13,7 +13,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
@@ -44,9 +44,9 @@ class Command implements Hook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $tracer
                     ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();

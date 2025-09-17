@@ -16,8 +16,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
-use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
@@ -61,8 +60,8 @@ class Worker implements Hook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS,
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
+                        $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setParent($parent)
@@ -108,8 +107,8 @@ class Worker implements Hook
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_RECEIVE,
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_RECEIVE,
+                        $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes)
