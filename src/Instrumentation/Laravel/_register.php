@@ -21,8 +21,8 @@ ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Contracts\Queue\Queu
 
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Database\Eloquent\Model::class);
 
-ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Foundation\Console\ServeCommand::class);
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Foundation\Application::class);
+ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Foundation\Console\ServeCommand::class);
 
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Queue\Queue::class);
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Queue\SyncQueue::class);
