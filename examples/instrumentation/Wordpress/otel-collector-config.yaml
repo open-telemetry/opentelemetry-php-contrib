@@ -4,9 +4,6 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
-processors:
-  batch:
-
   memory_limiter:
     check_interval: 1s
     limit_percentage: 65
@@ -19,6 +16,8 @@ exporters:
     verbosity: detailed
   otlp:
     endpoint: jaeger:4317
+    sending_queue:
+      batch:
     tls:
       insecure: true
 
@@ -26,10 +25,10 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug]
 
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter]
       exporters: [debug, otlp]

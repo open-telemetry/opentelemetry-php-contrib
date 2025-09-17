@@ -50,6 +50,7 @@ jobs:
           'Instrumentation/Psr16',
           'Instrumentation/Psr18',
           'Instrumentation/ReactPHP',
+          'Instrumentation/Session', 
           'Instrumentation/Slim',
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
@@ -83,8 +84,10 @@ jobs:
             php-version: 8.1
           - project: 'Instrumentation/PostgreSql'
             php-version: 8.1
+          - project: 'Instrumentation/Session'
+            php-version: 8.1
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
