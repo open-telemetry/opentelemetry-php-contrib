@@ -135,7 +135,7 @@
   },
   "replace": {
     "open-telemetry/context-swoole": "self.version",
-    "open-telemetry/context-propagator": "self.version",
+    "open-telemetry/opentelemetry-context-propagator": "self.version",
     "open-telemetry/contrib-aws": "self.version",
     "open-telemetry/contrib-sdk-bundle": "self.version",
     "open-telemetry/contrib-symfony-instrumentation-bundle": "self.version",
