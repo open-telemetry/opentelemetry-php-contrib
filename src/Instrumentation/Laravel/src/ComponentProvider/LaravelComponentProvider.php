@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\ComponentProvider;
 
+use OpenTelemetry\API\Configuration\Config\ComponentProvider;
+use OpenTelemetry\API\Configuration\Config\ComponentProviderRegistry;
+use OpenTelemetry\API\Configuration\Context;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\InstrumentationConfiguration;
-use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
-use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
-use OpenTelemetry\Config\SDK\Configuration\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
 class LaravelComponentProvider implements ComponentProvider
 {
@@ -21,11 +22,10 @@ class LaravelComponentProvider implements ComponentProvider
         return LaravelConfiguration::fromArray($properties);
     }
 
-    public function getConfig(ComponentProviderRegistry $registry): ArrayNodeDefinition
+    public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
-        $root = new ArrayNodeDefinition('laravel');
-
-        return $root
+        return $builder
+            ->arrayNode('laravel')
             ->canBeDisabled()
             ->addDefaultsIfNotSet()
         ;
