@@ -22,13 +22,17 @@ class LaravelInstrumentation
 
         Hooks\Illuminate\Console\Command::hook($instrumentation);
         Hooks\Illuminate\Contracts\Console\Kernel::hook($instrumentation);
+        Hooks\Illuminate\Contracts\Debug\ExceptionHandler::hook($instrumentation);
         Hooks\Illuminate\Contracts\Http\Kernel::hook($instrumentation);
         Hooks\Illuminate\Contracts\Queue\Queue::hook($instrumentation);
         Hooks\Illuminate\Foundation\Application::hook($instrumentation);
         Hooks\Illuminate\Foundation\Console\ServeCommand::hook($instrumentation);
+        Hooks\Illuminate\Foundation\Http\Middleware::hook($instrumentation);
         Hooks\Illuminate\Queue\SyncQueue::hook($instrumentation);
         Hooks\Illuminate\Queue\Queue::hook($instrumentation);
         Hooks\Illuminate\Queue\Worker::hook($instrumentation);
+        Hooks\Illuminate\Routing\Route::hook($instrumentation);
+        Hooks\Illuminate\View\View::hook($instrumentation);
         Hooks\Illuminate\Database\Eloquent\Model::hook($instrumentation);
     }
 

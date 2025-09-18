@@ -9,6 +9,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
+use Override;
 
 /**
  * Provides a ResponsePropagator for the Trace Context HTTP Response Headers Format
@@ -29,6 +30,7 @@ final class TraceResponsePropagator implements ResponsePropagator
         ];
     }
 
+    #[Override]
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
         $setter = $setter ?? ArrayAccessGetterSetter::getInstance();

@@ -9,6 +9,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
+use Override;
 
 /**
  * Provides a ResponsePropagator for Server-Timings headers
