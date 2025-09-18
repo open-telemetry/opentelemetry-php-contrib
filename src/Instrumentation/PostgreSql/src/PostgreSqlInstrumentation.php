@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\PostgreSql;
 
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
@@ -12,6 +13,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 
+use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
@@ -20,12 +22,14 @@ use PgSql\Lob;
 
 /**
  * @phan-file-suppress PhanParamTooFewUnpack
+ * @phan-file-suppress PhanUndeclaredClassMethod
  */
 class PostgreSqlInstrumentation
 {
     use LogsMessagesTrait;
 
     public const NAME = 'postgresql';
+    private const UNDEFINED = 'undefined';
     public static function register(): void
     {
 
@@ -37,6 +41,10 @@ class PostgreSqlInstrumentation
         );
 
         $tracker = new PgSqlTracker();
+        $contextPropagator = null;
+        if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory')) {
+            $contextPropagator = (new \OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory())->create();
+        }
 
         hook(
             null,
@@ -127,8 +135,8 @@ class PostgreSqlInstrumentation
         hook(
             null,
             'pg_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::basicPreHookWithContextPropagator('pg_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -170,8 +178,8 @@ class PostgreSqlInstrumentation
         hook(
             null,
             'pg_send_query',
-            pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_send_query', $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
+                return self::basicPreHookWithContextPropagator('pg_send_query', $contextPropagator, $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::sendQueryPostHook($instrumentation, $tracker, ...$args);
@@ -298,6 +306,46 @@ class PostgreSqlInstrumentation
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
     }
 
+    /** @param non-empty-string $spanName */
+    private static function basicPreHookWithContextPropagator(string $spanName, ?TextMapPropagatorInterface $contextPropagator, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
+    {
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+
+        $query = mb_convert_encoding($params[1] ?? self::UNDEFINED, 'UTF-8');
+        if (!is_string($query)) {
+            $query = self::UNDEFINED;
+        }
+
+        $span->setAttributes([
+            TraceAttributes::DB_QUERY_TEXT => $query,
+            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+        ]);
+
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+            $comments = [];
+            if ($contextPropagator !== null) {
+                $contextPropagator->inject($comments);
+            } else {
+                Globals::propagator()->inject($comments);
+            }
+            if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
+                $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
+            }
+            if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
+                $span->setAttributes([
+                    TraceAttributes::DB_QUERY_TEXT => (string) $query,
+                    TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+                ]);
+            }
+
+            return [
+                1 => $query,
+            ];
+        }
+
+        return [];
+    }
+
     private static function tableOperationsPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $dropIfNoError, ?string $operationName, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $connection = $params[0];
@@ -405,9 +453,6 @@ class PostgreSqlInstrumentation
             $tracker->addAsyncLinkForConnection($params[0], Span::getCurrent()->getContext());
         }
 
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
-
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
     }
@@ -415,9 +460,6 @@ class PostgreSqlInstrumentation
     private static function queryPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
-
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);

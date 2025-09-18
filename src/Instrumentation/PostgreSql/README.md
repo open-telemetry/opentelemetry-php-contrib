@@ -67,6 +67,14 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=postgresql
 ```
 
+## Database Context Propagation
+
+Enable context propagation for database queries by installing the following packages:
+```shell
+composer require open-telemetry/opentelemetry-context-propagator
+composer require open-telemetry/opentelemetry-sqlcommenter
+```
+
 ## Compatibility
 
 PHP 8.2 or newer is required
