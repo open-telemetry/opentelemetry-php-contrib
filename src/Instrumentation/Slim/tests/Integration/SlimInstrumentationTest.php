@@ -145,9 +145,6 @@ class SlimInstrumentationTest extends TestCase
         $response = $app->handle($request);
         $this->assertCount(1, $this->storage);
         $this->assertArrayHasKey('X-Foo', $response->getHeaders());
-        $this->assertArrayHasKey('server-timing', $response->getHeaders());
-        $this->assertStringStartsWith('traceparent;desc=', $response->getHeaderLine('server-timing'));
-        $this->assertArrayHasKey('traceresponse', $response->getHeaders());
     }
 
     public function createMockStrategy(): InvocationStrategyInterface

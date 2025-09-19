@@ -104,17 +104,8 @@ class SlimInstrumentation
                     $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
 
                     if (self::$supportsResponsePropagation) {
-                        // Propagate server-timing header to response, if ServerTimingPropagator is present
-                        if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
-                            $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
-                            $prop->inject($response, PsrResponsePropagationSetter::instance(), $scope->context());
-                        }
-
-                        // Propagate traceresponse header to response, if TraceResponsePropagator is present
-                        if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
-                            $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
-                            $prop->inject($response, PsrResponsePropagationSetter::instance(), $scope->context());
-                        }
+                        $prop = Globals::responsePropagator();
+                        $prop->inject($response, PsrResponsePropagationSetter::instance(), $scope->context());
                     }
                 }
                 $span->end();

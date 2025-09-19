@@ -15,7 +15,9 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use PHPUnit\Framework\TestCase;
 
 class MongoDBInstrumentationTest extends TestCase
@@ -69,13 +71,13 @@ class MongoDBInstrumentationTest extends TestCase
         self::assertSame('MongoDB coll.find', $this->span->getName());
         self::assertSame(SpanKind::KIND_CLIENT, $this->span->getKind());
         $attributes = $this->span->getAttributes();
-        self::assertSame('mongodb', $attributes->get(TraceAttributes::DB_SYSTEM_NAME));
-        self::assertSame(self::DATABASE_NAME, $attributes->get(TraceAttributes::DB_NAMESPACE));
-        self::assertSame('find', $attributes->get(TraceAttributes::DB_OPERATION_NAME));
-        self::assertSame(self::COLLECTION_NAME, $attributes->get(TraceAttributes::DB_COLLECTION_NAME));
-        self::assertSame($this->host, $attributes->get(TraceAttributes::SERVER_ADDRESS));
-        self::assertSame($this->port, $attributes->get(TraceAttributes::SERVER_PORT));
-        self::assertSame('tcp', $attributes->get(TraceAttributes::NETWORK_TRANSPORT));
+        self::assertSame('mongodb', $attributes->get(DbAttributes::DB_SYSTEM_NAME));
+        self::assertSame(self::DATABASE_NAME, $attributes->get(DbAttributes::DB_NAMESPACE));
+        self::assertSame('find', $attributes->get(DbAttributes::DB_OPERATION_NAME));
+        self::assertSame(self::COLLECTION_NAME, $attributes->get(DbAttributes::DB_COLLECTION_NAME));
+        self::assertSame($this->host, $attributes->get(ServerAttributes::SERVER_ADDRESS));
+        self::assertSame($this->port, $attributes->get(ServerAttributes::SERVER_PORT));
+        self::assertSame('tcp', $attributes->get(NetworkAttributes::NETWORK_TRANSPORT));
         self::assertTrue($attributes->get(MongoDBTraceAttributes::DB_MONGODB_MASTER));
         self::assertFalse($attributes->get(MongoDBTraceAttributes::DB_MONGODB_READ_ONLY));
         self::assertIsNumeric($attributes->get(MongoDBTraceAttributes::DB_MONGODB_CONNECTION_ID));

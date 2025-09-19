@@ -30,8 +30,8 @@ class ServicesConfiguratorHelper
 
     /**
      * @param string $class
-     * @psalm-param class-string $class
      * @param bool $alias
+     * @psalm-param class-string $class
      * @return ServiceConfigurator
      */
     public function setService(string $class, bool $alias = true): ServiceConfigurator
