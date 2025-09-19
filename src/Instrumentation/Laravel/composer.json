@@ -13,14 +13,18 @@
     "ext-json": "*",
     "ext-opentelemetry": "*",
     "laravel/framework": "^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0",
-    "open-telemetry/api": "^1.0",
+    "open-telemetry/api": "^1.6",
     "open-telemetry/sem-conv": "^1.32"
+  },
+  "suggest": {
+    "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.50",
     "guzzlehttp/guzzle": "*",
     "nunomaduro/collision": "*",
-    "open-telemetry/sdk": "^1.0",
+    "open-telemetry/sdk": "^1.8",
     "orchestra/testbench": ">=7.41.3",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
