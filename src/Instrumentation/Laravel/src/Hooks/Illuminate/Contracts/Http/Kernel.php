@@ -100,6 +100,7 @@ class Kernel implements LaravelHook
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->headers->get('Content-Length'));
 
                     $prop = Globals::responsePropagator();
+                    /** @phan-suppress-next-line PhanAccessMethodInternal */
                     $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                 }
 

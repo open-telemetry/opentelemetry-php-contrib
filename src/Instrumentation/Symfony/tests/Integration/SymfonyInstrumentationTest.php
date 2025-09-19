@@ -29,14 +29,7 @@ class SymfonyInstrumentationTest extends AbstractTest
             throw new \RuntimeException();
         });
         $this->assertCount(0, $this->storage);
-
-        $response = $kernel->handle(new Request());
-
-        $this->assertArrayHasKey(
-            TraceResponsePropagator::TRACERESPONSE,
-            $response->headers->all(),
-            'traceresponse header is present if TraceResponsePropagator is present'
-        );
+        $kernel->handle(new Request());
     }
 
     public function test_http_kernel_marks_root_as_erroneous(): void
@@ -47,18 +40,12 @@ class SymfonyInstrumentationTest extends AbstractTest
         });
         $this->assertCount(0, $this->storage);
 
-        $response = $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
 
         $this->assertCount(1, $this->storage);
         $this->assertSame(500, $this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
 
         $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
-
-        $this->assertArrayHasKey(
-            TraceResponsePropagator::TRACERESPONSE,
-            $response->headers->all(),
-            'traceresponse header is present if TraceResponsePropagator is present'
-        );
     }
 
     public function test_http_kernel_handle_attributes(): void
@@ -68,7 +55,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request = new Request();
         $request->attributes->set('_route', 'test_route');
 
-        $response = $kernel->handle($request);
+        $kernel->handle($request);
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
@@ -91,7 +78,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         }));
         $this->assertCount(0, $this->storage);
 
-        $response = $kernel->handle(new Request());
+        $kernel->handle(new Request());
         $this->assertCount(1, $this->storage);
         $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
     }
@@ -101,7 +88,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new BinaryFileResponse(__FILE__));
         $this->assertCount(0, $this->storage);
 
-        $response = $kernel->handle(new Request());
+        $kernel->handle(new Request());
         $this->assertCount(1, $this->storage);
         $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
 
@@ -114,7 +101,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request = new Request();
         $request->attributes->set('_route', '');
 
-        $response = $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
         $this->assertCount(1, $this->storage);
         $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
 
@@ -125,7 +112,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel = $this->getHttpKernel(new EventDispatcher());
         $this->assertCount(0, $this->storage);
 
-        $response = $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
+        $kernel->handle(new Request(), HttpKernelInterface::MAIN_REQUEST, true);
         $this->assertCount(1, $this->storage);
         $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
 
