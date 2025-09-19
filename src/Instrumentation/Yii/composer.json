@@ -13,6 +13,10 @@
       "open-telemetry/api": "^1.6",
       "open-telemetry/sem-conv": "^1.32"
     },
+    "suggest": {
+      "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+      "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
+    },
     "require-dev": {
       "friendsofphp/php-cs-fixer": "^3",
       "open-telemetry/sdk": "^1.8",
