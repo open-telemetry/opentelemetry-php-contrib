@@ -512,6 +512,11 @@ class MySqliInstrumentation
 
     }
 
+    /**
+     * multi_query can execute multiple queries in one call. We will create a span for the multi_query call, but we will also track the individual queries and their results, creating spans for each query in the multi_query call.
+     * The individual query spans will be created in the next_result hook, which is called to fetch the results of each query in the multi_query call.
+     * As QueryPreHook has database span context propagation logic, we need to create this multiQueryPrehook function for multi_query to keep the pre-hook function unchanged.
+     */
     /** @param non-empty-string $spanName */
     private static function multiQueryPreHook(string $spanName, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
