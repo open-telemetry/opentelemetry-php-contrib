@@ -11,7 +11,7 @@ use OpenTelemetry\API\Trace\TraceFlags;
 use OpenTelemetry\API\Trace\TraceState;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
-use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator as Propagator;
+use OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator;
 use OpenTelemetry\SDK\Trace\Span;
 use PHPUnit\Framework\TestCase;
 
@@ -21,15 +21,20 @@ class PropagatorTest extends TestCase
     private const SPAN_ID = '53995c3f42cd8ad8';
     private const TRACERESPONSE_HEADER_SAMPLED = '00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-01';
     private const TRACERESPONSE_HEADER_NOT_SAMPLED = '00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-00';
+    private ServerTimingPropagator $propagator;
 
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->propagator = ServerTimingPropagator::getInstance();
+    }
     /**
      * @test
      * fields() should return an array of fields that will be set on the carrier
      */
     public function test_fields()
     {
-        $propagator = new Propagator();
-        $this->assertSame($propagator->fields(), [Propagator::SERVER_TIMING]);
+        $this->assertSame($this->propagator->fields(), [ServerTimingPropagator::SERVER_TIMING]);
     }
 
     /**
@@ -40,7 +45,7 @@ class PropagatorTest extends TestCase
     public function test_inject_valid_sampled_trace_id()
     {
         $carrier = [];
-        (new Propagator())->inject(
+        $this->propagator->inject(
             $carrier,
             null,
             $this->withSpanContext(
@@ -50,7 +55,7 @@ class PropagatorTest extends TestCase
         );
 
         $this->assertSame(
-            [Propagator::SERVER_TIMING => sprintf('%s;desc=%s', Propagator::TRACEPARENT, self::TRACERESPONSE_HEADER_SAMPLED)],
+            [ServerTimingPropagator::SERVER_TIMING => sprintf('%s;desc=%s', ServerTimingPropagator::TRACEPARENT, self::TRACERESPONSE_HEADER_SAMPLED)],
             $carrier
         );
     }
@@ -62,7 +67,7 @@ class PropagatorTest extends TestCase
     public function test_inject_valid_not_sampled_trace_id()
     {
         $carrier = [];
-        (new Propagator())->inject(
+        $this->propagator->inject(
             $carrier,
             null,
             $this->withSpanContext(
@@ -72,7 +77,7 @@ class PropagatorTest extends TestCase
         );
 
         $this->assertSame(
-            [Propagator::SERVER_TIMING => sprintf('%s;desc=%s', Propagator::TRACEPARENT, self::TRACERESPONSE_HEADER_NOT_SAMPLED)],
+            [ServerTimingPropagator::SERVER_TIMING => sprintf('%s;desc=%s', ServerTimingPropagator::TRACEPARENT, self::TRACERESPONSE_HEADER_NOT_SAMPLED)],
             $carrier
         );
     }
@@ -84,7 +89,7 @@ class PropagatorTest extends TestCase
     public function test_inject_trace_id_with_trace_state()
     {
         $carrier = [];
-        (new Propagator())->inject(
+        $this->propagator->inject(
             $carrier,
             null,
             $this->withSpanContext(
@@ -94,7 +99,7 @@ class PropagatorTest extends TestCase
         );
 
         $this->assertSame(
-            [Propagator::SERVER_TIMING => sprintf('%s;desc=%s', Propagator::TRACEPARENT, self::TRACERESPONSE_HEADER_SAMPLED)],
+            [ServerTimingPropagator::SERVER_TIMING => sprintf('%s;desc=%s', ServerTimingPropagator::TRACEPARENT, self::TRACERESPONSE_HEADER_SAMPLED)],
             $carrier
         );
     }
@@ -106,7 +111,7 @@ class PropagatorTest extends TestCase
     public function test_inject_trace_id_with_invalid_span_context()
     {
         $carrier = [];
-        (new Propagator())->inject(
+        $this->propagator->inject(
             $carrier,
             null,
             $this->withSpanContext(

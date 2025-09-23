@@ -25,7 +25,9 @@ use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use Throwable;
 
 /**
@@ -86,14 +88,14 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
 
         $builder = self::startSpan($this->instrumentation, 'MongoDB ' . $scopedCommand)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, 'mongodb')
-            ->setAttribute(TraceAttributes::DB_NAMESPACE, $databaseName)
-            ->setAttribute(TraceAttributes::DB_OPERATION_NAME, $commandName)
-            ->setAttribute(TraceAttributes::SERVER_ADDRESS, $isSocket ? null : $host)
-            ->setAttribute(TraceAttributes::SERVER_PORT, $isSocket ? null : $port)
-            ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, $isSocket ? 'unix' : 'tcp')
-            ->setAttribute(TraceAttributes::DB_QUERY_TEXT, ($this->commandSerializer)($command))
-            ->setAttribute(TraceAttributes::DB_COLLECTION_NAME, $collectionName)
+            ->setAttribute(DbAttributes::DB_SYSTEM_NAME, 'mongodb')
+            ->setAttribute(DbAttributes::DB_NAMESPACE, $databaseName)
+            ->setAttribute(DbAttributes::DB_OPERATION_NAME, $commandName)
+            ->setAttribute(ServerAttributes::SERVER_ADDRESS, $isSocket ? null : $host)
+            ->setAttribute(ServerAttributes::SERVER_PORT, $isSocket ? null : $port)
+            ->setAttribute(NetworkAttributes::NETWORK_TRANSPORT, $isSocket ? 'unix' : 'tcp')
+            ->setAttribute(DbAttributes::DB_QUERY_TEXT, ($this->commandSerializer)($command))
+            ->setAttribute(DbAttributes::DB_COLLECTION_NAME, $collectionName)
             ->setAttribute(MongoDBTraceAttributes::DB_MONGODB_REQUEST_ID, $event->getRequestId())
             ->setAttribute(MongoDBTraceAttributes::DB_MONGODB_OPERATION_ID, $event->getOperationId())
             ->setAttributes($attributes)
