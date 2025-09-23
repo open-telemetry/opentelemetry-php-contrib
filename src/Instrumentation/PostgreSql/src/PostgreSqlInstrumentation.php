@@ -334,7 +334,6 @@ class PostgreSqlInstrumentation
             if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
                 $span->setAttributes([
                     TraceAttributes::DB_QUERY_TEXT => (string) $query,
-                    TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
                 ]);
             }
 
