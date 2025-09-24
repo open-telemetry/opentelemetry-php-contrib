@@ -6,7 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\PDO\tests\Unit;
 
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Contrib\Instrumentation\PDO\PDOTracker;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use PHPUnit\Framework\TestCase;
 
 class PDOAttributeTrackerTest extends TestCase
@@ -22,20 +22,20 @@ class PDOAttributeTrackerTest extends TestCase
         $span = Span::getInvalid();
 
         /** @psalm-suppress InvalidArgument */
-        $this->assertContains(TraceAttributes::DB_SYSTEM_NAME, array_keys($attributes));
+        $this->assertContains(DbAttributes::DB_SYSTEM_NAME, array_keys($attributes));
         /** @psalm-suppress InvalidArgument */
-        $this->assertContains(TraceAttributes::DB_NAMESPACE, array_keys($attributes));
+        $this->assertContains(DbAttributes::DB_NAMESPACE, array_keys($attributes));
         /** @psalm-suppress InvalidArrayAccess */
-        $this->assertSame('memory', $attributes[TraceAttributes::DB_NAMESPACE]);
+        $this->assertSame('memory', $attributes[DbAttributes::DB_NAMESPACE]);
 
         $stmt = $pdo->prepare('SELECT NULL LIMIT 0;');
         $objectMap->trackStatement($stmt, $pdo, $span->getContext());
         $attributes = $objectMap->trackedAttributesForStatement($stmt);
 
         /** @psalm-suppress InvalidArgument */
-        $this->assertContains(TraceAttributes::DB_SYSTEM_NAME, array_keys($attributes));
+        $this->assertContains(DbAttributes::DB_SYSTEM_NAME, array_keys($attributes));
         /** @psalm-suppress InvalidArrayAccess */
-        $this->assertEquals('sqlite', $attributes[TraceAttributes::DB_SYSTEM_NAME]);
+        $this->assertEquals('sqlite', $attributes[DbAttributes::DB_SYSTEM_NAME]);
         $this->assertSame($span->getContext(), $objectMap->getSpanForPreparedStatement($stmt));
     }
 }
