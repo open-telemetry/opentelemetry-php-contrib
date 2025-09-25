@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Contrib\ContextPropagator;
+namespace OpenTelemetry\Contrib\SqlCommenter;
 
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\Context\Propagation\MultiTextMapPropagator;

@@ -62,7 +62,6 @@ updates:
       - "/src/Aws"
       - "/src/Aws/examples/AwsClientApp"
       - "/src/Context/Swoole"
-      - "/src/ContextPropagator"
       - "/src/Exporter/Instana"
       - "/src/Instrumentation/AwsSdk"
       - "/src/Instrumentation/CakePHP"

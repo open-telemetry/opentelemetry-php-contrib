@@ -35,8 +35,8 @@ class PDOInstrumentation
         );
         $pdoTracker = new PDOTracker();
         $contextPropagator = null;
-        if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory')) {
-            $contextPropagator = (new \OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory())->create();
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\ContextPropagatorFactory')) {
+            $contextPropagator = (new \OpenTelemetry\Contrib\SqlCommenter\ContextPropagatorFactory())->create();
         }
 
         // Hook for the new PDO::connect static method
@@ -152,7 +152,7 @@ class PDOInstrumentation
                                 if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
                                     $sqlStatement = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($sqlStatement, $comments);
                                 }
-                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
+                                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\ContextPropagation') && \OpenTelemetry\Contrib\SqlCommenter\ContextPropagation::isAttributeEnabled()) {
                                     $span->setAttributes([
                                         DbAttributes::DB_QUERY_TEXT => (string) $sqlStatement,
                                     ]);
@@ -215,7 +215,7 @@ class PDOInstrumentation
                                 if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
                                     $sqlStatement = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($sqlStatement, $comments);
                                 }
-                                if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
+                                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\ContextPropagation') && \OpenTelemetry\Contrib\SqlCommenter\ContextPropagation::isAttributeEnabled()) {
                                     $span->setAttributes([
                                         DbAttributes::DB_QUERY_TEXT => (string) $sqlStatement,
                                     ]);

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\ContextPropagator\tests\Unit;
+namespace OpenTelemetry\Tests\SqlCommenter\tests\Unit;
 
-use OpenTelemetry\Contrib\ContextPropagator\ContextPropagation;
+use OpenTelemetry\Contrib\SqlCommenter\ContextPropagation;
 use PHPUnit\Framework\TestCase;
 
 class ContextPropagationTest extends TestCase

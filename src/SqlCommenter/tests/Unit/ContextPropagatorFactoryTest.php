@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\ContextPropagator\Unit;
+namespace OpenTelemetry\Tests\SqlCommenter\tests\Unit;
 
 use OpenTelemetry\API\Baggage\Propagation\BaggagePropagator;
 use OpenTelemetry\API\Behavior\Internal\Logging;
 use OpenTelemetry\API\LoggerHolder;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Context\Propagation\MultiTextMapPropagator;
-use OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory;
+use OpenTelemetry\Contrib\SqlCommenter\ContextPropagatorFactory;
 use OpenTelemetry\SDK\Common\Configuration\KnownValues;
 use PHPUnit\Framework\TestCase;
 

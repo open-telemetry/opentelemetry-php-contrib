@@ -39,6 +39,5 @@ OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
 
 Enable context propagation for database queries by installing the following packages:
 ```shell
-composer require open-telemetry/opentelemetry-context-propagator
 composer require open-telemetry/opentelemetry-sqlcommenter
 ```

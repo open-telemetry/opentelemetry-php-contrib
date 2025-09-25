@@ -42,8 +42,8 @@ class PostgreSqlInstrumentation
 
         $tracker = new PgSqlTracker();
         $contextPropagator = null;
-        if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory')) {
-            $contextPropagator = (new \OpenTelemetry\Contrib\ContextPropagator\ContextPropagatorFactory())->create();
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\ContextPropagatorFactory')) {
+            $contextPropagator = (new \OpenTelemetry\Contrib\SqlCommenter\ContextPropagatorFactory())->create();
         }
 
         hook(
@@ -331,7 +331,7 @@ class PostgreSqlInstrumentation
             if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
                 $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
             }
-            if (class_exists('OpenTelemetry\Contrib\ContextPropagator\ContextPropagation') && \OpenTelemetry\Contrib\ContextPropagator\ContextPropagation::isAttributeEnabled()) {
+            if (class_exists('OpenTelemetry\Contrib\SqlCommenter\ContextPropagation') && \OpenTelemetry\Contrib\SqlCommenter\ContextPropagation::isAttributeEnabled()) {
                 $span->setAttributes([
                     TraceAttributes::DB_QUERY_TEXT => (string) $query,
                 ]);

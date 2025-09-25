@@ -71,7 +71,6 @@ OTEL_PHP_DISABLED_INSTRUMENTATIONS=postgresql
 
 Enable context propagation for database queries by installing the following packages:
 ```shell
-composer require open-telemetry/opentelemetry-context-propagator
 composer require open-telemetry/opentelemetry-sqlcommenter
 ```
 
