@@ -37,7 +37,7 @@ $query = SqlCommenter::inject($query, $comments);
   Set the propagators to use (comma-separated):
 
   ```shell
-  OTEL_PHP_INSTRUMENTATION_CONTEXT_PROPAGATORS=tracecontext
+  OTEL_PHP_SQLCOMMENTER_CONTEXT_PROPAGATORS=tracecontext
   ```
   Default: `''`
 

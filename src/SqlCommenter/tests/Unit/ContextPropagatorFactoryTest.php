@@ -28,14 +28,14 @@ class ContextPropagatorFactoryTest extends TestCase
      */
     public function test_create(string $propagators, ?string $expected): void
     {
-        putenv('OTEL_PHP_INSTRUMENTATION_CONTEXT_PROPAGATORS=' . $propagators);
+        putenv('OTEL_PHP_SQLCOMMENTER_CONTEXT_PROPAGATORS=' . $propagators);
         $propagator = (new ContextPropagatorFactory())->create();
         if ($expected === null) {
             $this->assertNull($propagator);
         } else {
             $this->assertInstanceOf($expected, $propagator);
         }
-        putenv('OTEL_PHP_INSTRUMENTATION_CONTEXT_PROPAGATORS');
+        putenv('OTEL_PHP_SQLCOMMENTER_CONTEXT_PROPAGATORS');
     }
 
     public static function propagatorsProvider(): array
