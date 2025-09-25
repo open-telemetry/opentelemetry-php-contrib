@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\PostgreSql;
 
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
-use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanInterface;
@@ -13,7 +12,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 
-use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
@@ -41,10 +39,6 @@ class PostgreSqlInstrumentation
         );
 
         $tracker = new PgSqlTracker();
-        $contextPropagator = null;
-        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\ContextPropagatorFactory')) {
-            $contextPropagator = (new \OpenTelemetry\Contrib\SqlCommenter\ContextPropagatorFactory())->create();
-        }
 
         hook(
             null,
@@ -135,8 +129,8 @@ class PostgreSqlInstrumentation
         hook(
             null,
             'pg_query',
-            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
-                return self::basicPreHookWithContextPropagator('pg_query', $contextPropagator, $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                return self::basicPreHookWithContextPropagator('pg_query', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -178,8 +172,8 @@ class PostgreSqlInstrumentation
         hook(
             null,
             'pg_send_query',
-            pre: static function (...$args) use ($contextPropagator, $instrumentation, $tracker) {
-                return self::basicPreHookWithContextPropagator('pg_send_query', $contextPropagator, $instrumentation, $tracker, ...$args);
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                return self::basicPreHookWithContextPropagator('pg_send_query', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::sendQueryPostHook($instrumentation, $tracker, ...$args);
@@ -307,7 +301,7 @@ class PostgreSqlInstrumentation
     }
 
     /** @param non-empty-string $spanName */
-    private static function basicPreHookWithContextPropagator(string $spanName, ?TextMapPropagatorInterface $contextPropagator, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
+    private static function basicPreHookWithContextPropagator(string $spanName, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
     {
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
 
@@ -322,16 +316,13 @@ class PostgreSqlInstrumentation
         ]);
 
         if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
-            $comments = [];
-            if ($contextPropagator !== null) {
-                $contextPropagator->inject($comments);
-            } else {
-                Globals::propagator()->inject($comments);
-            }
-            if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter')) {
-                $query = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::inject($query, $comments);
-            }
-            if (class_exists('OpenTelemetry\Contrib\SqlCommenter\ContextPropagation') && \OpenTelemetry\Contrib\SqlCommenter\ContextPropagation::isAttributeEnabled()) {
+            /**
+             * @phan-suppress-next-line PhanUndeclaredClassMethod
+             * @psalm-suppress UndefinedClass
+             */
+            $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
+            $query = $commenter->inject($query);
+            if ($commenter->isAttributeEnabled()) {
                 $span->setAttributes([
                     TraceAttributes::DB_QUERY_TEXT => (string) $query,
                 ]);
