@@ -11,21 +11,21 @@ class SqlCommenterTest extends TestCase
 {
     public function testIsPrependReturnsTrue()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND'] = true;
+        $_SERVER['OTEL_PHP_SQLCOMMENTER_PREPEND'] = true;
         $result = SqlCommenter::isPrepend();
         $this->assertTrue($result);
     }
 
     public function testIsPrependReturnsFalse()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND'] = false;
+        $_SERVER['OTEL_PHP_SQLCOMMENTER_PREPEND'] = false;
         $result = SqlCommenter::isPrepend();
         $this->assertFalse($result);
     }
 
     public function testInjectPrepend()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND'] = true;
+        $_SERVER['OTEL_PHP_SQLCOMMENTER_PREPEND'] = true;
         $comments = [
             'key1' => 'value1',
             'key2' => 'value2',
@@ -38,7 +38,7 @@ class SqlCommenterTest extends TestCase
 
     public function testInjectAppend()
     {
-        $_SERVER['OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND'] = false;
+        $_SERVER['OTEL_PHP_SQLCOMMENTER_PREPEND'] = false;
         $comments = [
             'key1' => 'value1',
             'key2' => 'value2',

@@ -8,11 +8,11 @@ class SqlCommenter
 {
     public static function isPrepend(): bool
     {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && \OpenTelemetry\SDK\Common\Configuration\Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND', false)) {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && \OpenTelemetry\SDK\Common\Configuration\Configuration::getBoolean('OTEL_PHP_SQLCOMMENTER_PREPEND', false)) {
             return true;
         }
 
-        return filter_var(get_cfg_var('otel.instrumentation.sql_commenter.prepend'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        return filter_var(get_cfg_var('otel.sqlcommenter.prepend'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     }
 
     public static function inject(string $query, array $comments): string

@@ -9,7 +9,7 @@
 
 # OpenTelemetry SQL Commenter
 
-This package provides a [SqlCommenter](https://opentelemetry.io/docs/specs/semconv/database/database-spans/#sql-commenter) implementation for PHP, allowing you to inject comments into SQL queries for observability and tracing.
+OpenTelemetry SQL Commenter for PHP provides a [SqlCommenter](https://opentelemetry.io/docs/specs/semconv/database/database-spans/#sql-commenter) implementation, enabling you to inject trace and context comments into SQL queries for enhanced observability and distributed tracing.
 
 ## Installation
 
@@ -26,13 +26,16 @@ Inject comments into your SQL query as follows:
 ```php
 use OpenTelemetry\SqlCommenter\SqlCommenter;
 
-$comments = [];
+$comments = [
+    'traceparent' => '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00',
+    'custom' => 'value',
+];
 $query = SqlCommenter::inject($query, $comments);
 ```
 
 ## Configuration
 
-- **Propagators**
+- **Context Propagators**
 
   Set the propagators to use (comma-separated):
 
@@ -41,12 +44,16 @@ $query = SqlCommenter::inject($query, $comments);
   ```
   Default: `''`
 
-- **Context Propagation Attribute**
+- **SQL Commenter Attribute**
 
-  Include context propagation in span attributes:
+  Add SQL comments to `DbAttributes::DB_QUERY_TEXT` in span attributes:
 
   ```shell
-  OTEL_PHP_INSTRUMENTATION_CONTEXT_PROPAGATION_ATTRIBUTE=true
+  otel.sqlcommenter.attribute = true
+  ```
+  or via environment variable:
+  ```shell
+  OTEL_PHP_SQLCOMMENTER_ATTRIBUTE=true
   ```
   Default: `false`
 
@@ -55,12 +62,12 @@ $query = SqlCommenter::inject($query, $comments);
   Prepend comments to the query statement using either a configuration directive:
 
   ```shell
-  otel.instrumentation.sql_commenter.prepend = true
+  otel.sqlcommenter.prepend = true
   ```
-  or an environment variable:
+  or via environment variable:
 
   ```shell
-  OTEL_PHP_INSTRUMENTATION_SQL_COMMENTER_PREPEND=true
+  OTEL_PHP_SQLCOMMENTER_PREPEND=true
   ```
   Default: `false`
 
@@ -72,3 +79,4 @@ Install dependencies and run tests from the `SqlCommenter` subdirectory:
 composer install
 ./vendor/bin/phpunit tests
 ```
+
