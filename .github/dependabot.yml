@@ -101,6 +101,7 @@ updates:
       - "/src/ResourceDetectors/DigitalOcean"
       - "/src/Sampler/RuleBased"
       - "/src/Shims/OpenTracing"
+      - "/src/SqlCommenter"
       - "/src/Symfony"
       - "/src/Symfony/src/OtelBundle"
       - "/src/Symfony/src/OtelSdkBundle"

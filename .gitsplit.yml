@@ -94,6 +94,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sampler-aws-xray.git"
   - prefix: "src/Shims/OpenTracing"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-shim-opentracing.git"
+  - prefix: "src/SqlCommenter"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sqlcommenter.git"
   - prefix: "src/Symfony"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-sdk-bundle.git"
   - prefix: "src/Utils/Test"
