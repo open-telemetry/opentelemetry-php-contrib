@@ -460,7 +460,6 @@ class MySqliInstrumentation
 
         if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
             /**
-             * @phan-suppress-next-line PhanUndeclaredClassMethod
              * @psalm-suppress UndefinedClass
              */
             $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();

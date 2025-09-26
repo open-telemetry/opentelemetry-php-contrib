@@ -136,7 +136,6 @@ class PDOInstrumentation
                             case 'postgresql':
                             case 'mysql':
                                 /**
-                                 * @phan-suppress-next-line PhanUndeclaredClassMethod
                                  * @psalm-suppress UndefinedClass
                                  */
                                 $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
@@ -193,7 +192,6 @@ class PDOInstrumentation
                             case 'postgresql':
                             case 'mysql':
                                 /**
-                                 * @phan-suppress-next-line PhanUndeclaredClassMethod
                                  * @psalm-suppress UndefinedClass
                                  */
                                 $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
