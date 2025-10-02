@@ -7,14 +7,14 @@
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
-# OpenTelemetry FPM Resource Detectors
+# OpenTelemetry Kubernetes Resource Detectors
 
 This package provides OpenTelemetry `ResourceDetector`s which will detect a stable service instance id.
 
 ## Installation via composer
 
 ```bash
-$ composer require open-telemetry/detector-fpm
+$ composer require open-telemetry/detector-k8s
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ By default, all built-in and registered custom resource detectors are used, and 
 
 You can also provide a list of detectors via the `OTEL_PHP_DETECTORS` config (environment variable or php.ini setting):
 ```php
-putenv('OTEL_PHP_DETECTORS=fpm,env,os,<others>')
+putenv('OTEL_PHP_DETECTORS=k8s,env,os,<others>')
 
 var_dump(ResourceInfoFactory::defaultResource());
 ```

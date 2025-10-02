@@ -1,7 +1,7 @@
 {
-    "name": "open-telemetry/detector-apache",
-    "description": "OpenTelemetry Apache resource detector",
-    "keywords": ["opentelemetry", "otel", "open-telemetry", "detector", "apache"],
+    "name": "open-telemetry/detector-fpm",
+    "description": "OpenTelemetry FPM resource detector",
+    "keywords": ["opentelemetry", "otel", "open-telemetry", "detector", "fpm"],
     "type": "library",
     "homepage": "https://opentelemetry.io/docs/php",
     "readme": "./README.md",

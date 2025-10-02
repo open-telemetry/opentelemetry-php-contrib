@@ -1,7 +1,7 @@
 {
-    "name": "open-telemetry/detector-apache",
-    "description": "OpenTelemetry Apache resource detector",
-    "keywords": ["opentelemetry", "otel", "open-telemetry", "detector", "apache"],
+    "name": "open-telemetry/detector-k8s",
+    "description": "OpenTelemetry Kubernetes resource detector",
+    "keywords": ["opentelemetry", "otel", "open-telemetry", "detector", "k8s", "kubernetes"],
     "type": "library",
     "homepage": "https://opentelemetry.io/docs/php",
     "readme": "./README.md",
