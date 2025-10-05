@@ -20,6 +20,7 @@ use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class Worker implements Hook
 {
     use AttributesBuilder;

@@ -12,6 +12,8 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 
 /**
  * Instrument Laravel's local PHP development server.
+ *
+ * @psalm-suppress UnusedClass
  */
 class ServeCommand implements Hook
 {

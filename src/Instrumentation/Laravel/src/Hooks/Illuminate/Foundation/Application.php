@@ -20,6 +20,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class Application implements Hook
 {
     public function instrument(

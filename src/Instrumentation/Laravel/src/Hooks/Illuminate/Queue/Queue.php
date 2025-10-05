@@ -12,6 +12,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class Queue implements Hook
 {
     use AttributesBuilder;

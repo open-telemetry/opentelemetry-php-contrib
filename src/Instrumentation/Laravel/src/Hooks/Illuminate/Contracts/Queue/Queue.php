@@ -21,6 +21,7 @@ use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class Queue implements Hook
 {
     use AttributesBuilder;

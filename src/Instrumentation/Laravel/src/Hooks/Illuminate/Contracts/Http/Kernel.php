@@ -34,6 +34,7 @@ use OpenTelemetry\SemConv\Version;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class Kernel implements Hook
 {
     use PostHookTrait;

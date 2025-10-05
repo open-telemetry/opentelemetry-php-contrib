@@ -21,6 +21,7 @@ use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
+/** @psalm-suppress UnusedClass */
 class Kernel implements Hook
 {
     use AttributesBuilder;
