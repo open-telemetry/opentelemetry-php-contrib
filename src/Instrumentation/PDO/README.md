@@ -34,3 +34,10 @@ or environment variable:
 ```shell
 OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
 ```
+
+## Database Context Propagation
+
+Enable context propagation for database queries by installing the following packages:
+```shell
+composer require open-telemetry/opentelemetry-sqlcommenter
+```
