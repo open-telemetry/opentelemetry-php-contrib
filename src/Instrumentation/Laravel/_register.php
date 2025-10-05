@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file must *only* be used to register SPI components, as it
  * will be pruned automatically via the tbachert/spi plugin.
