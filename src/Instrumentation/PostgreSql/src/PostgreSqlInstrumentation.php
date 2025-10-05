@@ -20,12 +20,14 @@ use PgSql\Lob;
 
 /**
  * @phan-file-suppress PhanParamTooFewUnpack
+ * @phan-file-suppress PhanUndeclaredClassMethod
  */
 class PostgreSqlInstrumentation
 {
     use LogsMessagesTrait;
 
     public const NAME = 'postgresql';
+    private const UNDEFINED = 'undefined';
     public static function register(): void
     {
 
@@ -128,7 +130,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_query',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_query', $instrumentation, $tracker, ...$args);
+                return self::basicPreHookWithContextPropagator('pg_query', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::queryPostHook($instrumentation, $tracker, ...$args);
@@ -171,7 +173,7 @@ class PostgreSqlInstrumentation
             null,
             'pg_send_query',
             pre: static function (...$args) use ($instrumentation, $tracker) {
-                self::basicPreHook('pg_send_query', $instrumentation, $tracker, ...$args);
+                return self::basicPreHookWithContextPropagator('pg_send_query', $instrumentation, $tracker, ...$args);
             },
             post: static function (...$args) use ($instrumentation, $tracker) {
                 self::sendQueryPostHook($instrumentation, $tracker, ...$args);
@@ -298,6 +300,41 @@ class PostgreSqlInstrumentation
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
     }
 
+    /** @param non-empty-string $spanName */
+    private static function basicPreHookWithContextPropagator(string $spanName, CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno): array
+    {
+        $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
+
+        $query = mb_convert_encoding($params[1] ?? self::UNDEFINED, 'UTF-8');
+        if (!is_string($query)) {
+            $query = self::UNDEFINED;
+        }
+
+        $span->setAttributes([
+            TraceAttributes::DB_QUERY_TEXT => $query,
+            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+        ]);
+
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+            /**
+             * @psalm-suppress UndefinedClass
+             */
+            $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
+            $query = $commenter->inject($query);
+            if ($commenter->isAttributeEnabled()) {
+                $span->setAttributes([
+                    TraceAttributes::DB_QUERY_TEXT => (string) $query,
+                ]);
+            }
+
+            return [
+                1 => $query,
+            ];
+        }
+
+        return [];
+    }
+
     private static function tableOperationsPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, bool $dropIfNoError, ?string $operationName, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $connection = $params[0];
@@ -405,9 +442,6 @@ class PostgreSqlInstrumentation
             $tracker->addAsyncLinkForConnection($params[0], Span::getCurrent()->getContext());
         }
 
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
-
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
     }
@@ -415,9 +449,6 @@ class PostgreSqlInstrumentation
     private static function queryPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
-
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
