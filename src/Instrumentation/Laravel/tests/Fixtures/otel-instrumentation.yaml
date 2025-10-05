@@ -1,4 +1,4 @@
-file_format: '0.3'
+file_format: '0.4'
 
 logger_provider:
   processors:
@@ -12,7 +12,7 @@ tracer_provider:
         exporter:
          test/in_memory_exporter: {}
 
-instrumentation:
+instrumentation/development:
   php:
     laravel:
       enabled: true

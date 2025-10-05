@@ -9,8 +9,10 @@
 declare(strict_types=1);
 
 use Nevay\SPI\ServiceLoader;
-use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
+use OpenTelemetry\API\Configuration\Config\ComponentProvider;
 use OpenTelemetry\SDK\SdkAutoloader;
+
+ServiceLoader::register(ComponentProvider::class, \OpenTelemetry\Contrib\Instrumentation\Laravel\ComponentProvider\LaravelComponentProvider::class);
 
 ServiceLoader::register(ComponentProvider::class, \OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\ComponentProvider\LogRecordExporterInMemory::class);
 ServiceLoader::register(ComponentProvider::class, \OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\ComponentProvider\SpanExporterInMemory::class);
