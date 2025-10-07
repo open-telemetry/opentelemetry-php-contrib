@@ -41,6 +41,7 @@ jobs:
           'Instrumentation/MySqli',
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
+          'Instrumentation/Opcache',
           'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
           'Instrumentation/Psr3',
@@ -85,6 +86,7 @@ jobs:
             php-version: 8.1
           - project: 'Instrumentation/PostgreSql'
             php-version: 8.1
+          - project: 'Instrumentation/Opcache'
           - project: 'Instrumentation/Session'
             php-version: 8.1
     steps:
