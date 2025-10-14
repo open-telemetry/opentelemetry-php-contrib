@@ -3,7 +3,7 @@
   "description": "OpenTelemetry auto-instrumentation for ReactPHP's HTTP Browser.",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "reactphp", "async", "instrumentation"],
   "type": "library",
-  "homepage": "https://opentelemetry.io/docs/php",
+  "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
   "license": "Apache-2.0",
   "minimum-stability": "dev",
