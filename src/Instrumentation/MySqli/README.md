@@ -60,3 +60,9 @@ Enable context propagation for database queries by installing the following pack
 ```shell
 composer require open-telemetry/opentelemetry-sqlcommenter
 ```
+Currently, only the following functions support context propagation:
+* `mysqli::query`
+* `mysqli_query`
+* `mysqli::real_query`
+* `mysqli_real_query`
+
