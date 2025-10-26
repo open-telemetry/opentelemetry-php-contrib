@@ -20,8 +20,10 @@ following functions:
 - `fread`
 - `file_get_contents`
 - `file_put_contents`
-- `curl_init`
-- `curl_exec`
+- `ob_start`
+- `ob_clean`
+- `ob_flush`
+- `flush`
 
 ## Configuration
 

@@ -20,7 +20,10 @@ use OpenTelemetry\SemConv\TraceAttributes;
 class CodeIgniterInstrumentation
 {
     public const NAME = 'codeigniter';
-
+    
+    // Store the HTTP method for use in the post hook
+    private static $httpMethod = 'unknown';
+    
     /** @psalm-api */
     public static function register(): void
     {
@@ -58,12 +61,14 @@ class CodeIgniterInstrumentation
             ) use ($instrumentation, $requestProperty): void {
                 $extractedRequest = $requestProperty->getValue($igniter);
                 $request = ($extractedRequest instanceof RequestInterface) ? $extractedRequest : null;
-
+                 
+                // Get the HTTP method from the request and store it for later use
+                self::$httpMethod = $request?->getMethod() ?? $_SERVER['REQUEST_METHOD'] ?? 'unknown';
                 /** @psalm-suppress ArgumentTypeCoercion,DeprecatedMethod */
                 $spanBuilder = $instrumentation
                     ->tracer()
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
-                    ->spanBuilder(\sprintf('%s', $request?->getMethod() ?? 'unknown'))
+                    ->spanBuilder(\sprintf('%s', self::$httpMethod))
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
@@ -123,21 +128,8 @@ class CodeIgniterInstrumentation
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
 
-                    // Propagate server-timing header to response, if ServerTimingPropagator is present
-                    if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
-                    }
-
-                    // Propagate traceresponse header to response, if TraceResponsePropagator is present
-                    if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
-                    }
+                    $prop = Globals::responsePropagator();
+                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                 }
 
                 $controller = $controllerProperty->getValue($igniter);
@@ -147,6 +139,7 @@ class CodeIgniterInstrumentation
                 if ($controllerClassName !== null && is_string($controllerMethod)) {
                     $routeName = CodeIgniterInstrumentation::normalizeRouteName($controllerClassName, $controllerMethod);
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                    $span->updateName(sprintf('%s %s', self::$httpMethod, $routeName));
                 }
 
                 if ($exception) {

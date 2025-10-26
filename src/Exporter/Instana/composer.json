@@ -1,0 +1,55 @@
+{
+    "name": "open-telemetry/opentelemetry-exporter-instana",
+    "description": "Instana exporter implementation for OpenTelemetry PHP.",
+    "type": "library",
+    "license": "Apache-2.0",
+    "support": {
+        "issues": "https://www.ibm.com/support/pages/instana-support",
+        "source": "https://github.com/open-telemetry/opentelemetry-php-contrib/main/src/Exporter/Instana",
+        "docs": "https://www.ibm.com/docs/en/instana-observability/current?topic=opentelemetry-php-exporter"
+    },
+    "require": {
+        "php": "^8.1",
+        "open-telemetry/api": "^1.1",
+        "open-telemetry/sdk": "^1.1",
+        "guzzlehttp/guzzle": "^7.4.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Exporter\\Instana\\": "src/"
+        },
+        "files": [
+            "_register.php"
+        ]
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3",
+        "phan/phan": "^5.0",
+        "phpstan/phpstan": "^1.1",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "open-telemetry/sdk": "^1.0",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4|^5|^6",
+        "symfony/http-client": "^5.4|^6.0",
+        "guzzlehttp/promises": "^1.5|^2",
+        "php-http/message-factory": "^1.0",
+        "nyholm/psr7": "^1.5"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Tests\\Exporter\\Instana\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0.x-dev"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "tbachert/spi": true
+        }
+    }
+}

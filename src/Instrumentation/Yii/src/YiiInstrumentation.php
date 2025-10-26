@@ -94,21 +94,8 @@ class YiiInstrumentation
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
 
-                    // Propagate server-timing header to response, if ServerTimingPropagator is present
-                    if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
-                    }
-
-                    // Propagate traceresponse header to response, if TraceResponsePropagator is present
-                    if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
-                        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-                        $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
-                    }
+                    $prop = Globals::responsePropagator();
+                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                 }
 
                 if ($exception) {
@@ -140,8 +127,14 @@ class YiiInstrumentation
                 $span = Span::fromContext($scope->context());
                 $actionName = $action instanceof InlineAction ? $action->actionMethod : $action->id;
                 $route = YiiInstrumentation::normalizeRouteName(get_class($controller), $actionName);
+
+                // Get the HTTP method from the request
+                $request = $controller->request;
+                $method = $request->getMethod();
+
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span->updateName($route);
+                // Update span name to follow OpenTelemetry HTTP naming convention: {http.method} {http.route}
+                $span->updateName(sprintf('%s %s', $method, $route));
                 $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
             },
             post: null

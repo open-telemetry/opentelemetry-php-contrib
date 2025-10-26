@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Guzzle;
 use function get_cfg_var;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Promise\Is;
 use GuzzleHttp\Promise\PromiseInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -101,7 +102,7 @@ class GuzzleInstrumentation
                     $span->end();
                 }
 
-                $promise->then(
+                $p = $promise->then(
                     onFulfilled: function (ResponseInterface $response) use ($span) {
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                         $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
@@ -117,8 +118,6 @@ class GuzzleInstrumentation
                             $span->setStatus(StatusCode::STATUS_ERROR);
                         }
                         $span->end();
-
-                        return $response;
                     },
                     onRejected: function (\Throwable $t) use ($span) {
                         if ($t instanceof BadResponseException && $t->hasResponse()) {
@@ -130,10 +129,13 @@ class GuzzleInstrumentation
                         $span->recordException($t);
                         $span->setStatus(StatusCode::STATUS_ERROR, $t->getMessage());
                         $span->end();
-
-                        throw $t;
                     }
                 );
+
+                //if the original promise is already settled, force our additional promise to execute immediately
+                if (Is::settled($promise)) {
+                    $p->wait();
+                }
             }
         );
     }

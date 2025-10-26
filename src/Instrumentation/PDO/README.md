@@ -34,3 +34,13 @@ or environment variable:
 ```shell
 OTEL_PHP_INSTRUMENTATION_PDO_DISTRIBUTE_STATEMENT_TO_LINKED_SPANS=true
 ```
+
+## Database Context Propagation
+
+Enable context propagation for database queries (pdo_mysql, pdo_pgsql only) by installing the following packages:
+```shell
+composer require open-telemetry/opentelemetry-sqlcommenter
+```
+Currently, only the following functions support context propagation:
+* `PDO::query`
+* `PDO::exec`

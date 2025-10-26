@@ -1,0 +1,32 @@
+{
+    "name": "open-telemetry/opentelemetry-auto-session",
+    "description": "OpenTelemetry auto-instrumentation for PHP Session functions",
+    "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "php", "session"],
+    "type": "library",
+    "homepage": "https://opentelemetry.io/docs/php",
+    "readme": "./README.md",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.2",
+	"ext-opentelemetry": "*",
+        "ext-session": "*",
+        "open-telemetry/api": "^1.0",
+        "open-telemetry/sem-conv": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Instrumentation\\PhpSession\\": "src/"
+        }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3",
+        "phan/phan": "^5.0",
+        "php-http/mock-client": "*",
+        "phpstan/phpstan": "^1.1",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "open-telemetry/sdk": "^1.0",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "6.4.0"
+    }
+}

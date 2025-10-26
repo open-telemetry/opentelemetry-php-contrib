@@ -47,8 +47,14 @@ final class SymfonyInstrumentation
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
                 $method = $request?->getMethod() ?? 'unknown';
+                $controller = $request?->attributes?->get('_controller');
+
+                if (!is_callable($controller, true, $controllerName)) {
+                    $controllerName = 'sub-request';
+                }
+
                 $name = ($type === HttpKernelInterface::SUB_REQUEST)
-                    ? sprintf('%s %s', $method, $request?->attributes?->get('_controller') ?? 'sub-request')
+                    ? sprintf('%s %s', $method, $controllerName)
                     : $method;
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
@@ -132,17 +138,8 @@ final class SymfonyInstrumentation
 
                 $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
 
-                // Propagate server-timing header to response, if ServerTimingPropagator is present
-                if (class_exists('OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator')) {
-                    $prop = new \OpenTelemetry\Contrib\Propagation\ServerTiming\ServerTimingPropagator();
-                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
-                }
-
-                // Propagate traceresponse header to response, if TraceResponsePropagator is present
-                if (class_exists('OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator')) {
-                    $prop = new \OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator();
-                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
-                }
+                $prop = Globals::responsePropagator();
+                $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
 
                 $span->end();
             }

@@ -9,24 +9,36 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
+use OpenTelemetry\Context\Propagation\ResponsePropagatorInterface;
 
 /**
  * Provides a ResponsePropagator for the Trace Context HTTP Response Headers Format
  *
  * @see https://w3c.github.io/trace-context/#trace-context-http-response-headers-format
  */
-final class TraceResponsePropagator implements ResponsePropagator
+final class TraceResponsePropagator implements ResponsePropagatorInterface
 {
     const IS_SAMPLED = '01';
     const NOT_SAMPLED = '00';
     const SUPPORTED_VERSION = '00';
     const TRACERESPONSE = 'traceresponse';
 
+    private static ?self $instance = null;
+
     public function fields(): array
     {
         return [
             self::TRACERESPONSE,
         ];
+    }
+
+    public static function getInstance(): self
+    {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
 
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void

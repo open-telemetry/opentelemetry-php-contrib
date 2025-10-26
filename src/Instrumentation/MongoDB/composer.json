@@ -12,7 +12,7 @@
     "ext-json": "*",
     "mongodb/mongodb": "^1.15 || ^2.0",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.32"
+    "open-telemetry/sem-conv": "^1.36"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",

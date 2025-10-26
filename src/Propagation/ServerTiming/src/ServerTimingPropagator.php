@@ -9,13 +9,14 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use OpenTelemetry\Context\Propagation\PropagationSetterInterface;
+use OpenTelemetry\Context\Propagation\ResponsePropagatorInterface;
 
 /**
  * Provides a ResponsePropagator for Server-Timings headers
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
  */
-final class ServerTimingPropagator implements ResponsePropagator
+final class ServerTimingPropagator implements ResponsePropagatorInterface
 {
     const IS_SAMPLED = '01';
     const NOT_SAMPLED = '00';
@@ -23,11 +24,22 @@ final class ServerTimingPropagator implements ResponsePropagator
     const SERVER_TIMING = 'server-timing';
     const TRACEPARENT = 'traceparent';
 
+    private static ?self $instance = null;
+
     public function fields(): array
     {
         return [
             self::SERVER_TIMING,
         ];
+    }
+
+    public static function getInstance(): self
+    {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
 
     /**
