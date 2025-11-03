@@ -130,7 +130,7 @@ class PDOInstrumentation
                 );
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) use ($instrumentation, $pdoTracker, $timersTracker) {
-                $duration = $timersTracker->durationMs($pdo);
+                $duration = $timersTracker->durationS($pdo);
                 // this happens ONLY when error mode is set to silent
                 // this is an alternative to changes in the ::end method
                 //                if ($statement === false && $exception === null) {
@@ -176,7 +176,7 @@ class PDOInstrumentation
                 );
             },
             post: static function (PDO $pdo, array $params, mixed $affectedRows, ?Throwable $exception) use ($instrumentation, $pdoTracker, $timersTracker) {
-                $duration = $timersTracker->durationMs($pdo);
+                $duration = $timersTracker->durationS($pdo);
                 self::end($exception, $affectedRows === false ? $pdo->errorInfo() : []);
 
                 $attributes = $pdoTracker->get($pdo);
@@ -222,7 +222,7 @@ class PDOInstrumentation
                 $timersTracker->start($pdo);
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) use ($instrumentation, $pdoTracker, $timersTracker) {
-                $duration = $timersTracker->durationMs($pdo);
+                $duration = $timersTracker->durationS($pdo);
                 if ($statement instanceof PDOStatement) {
                     $pdoTracker->trackStatement($statement, $pdo, Span::getCurrent()->getContext());
                 }
