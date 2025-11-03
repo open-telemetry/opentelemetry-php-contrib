@@ -474,7 +474,7 @@ class PDOInstrumentationTest extends TestCase
 
         // check count metrics:
         $this->checkMetricSum($metricStats['db.client.connection.count'], 2, 2);
-        $this->checkMetricSum($metricStats['db.client.connection.pending_requests'], 0, 2);
+        $this->checkMetricSum($metricStats['db.client.connection.pending_requests'], 2, 2);
         $this->checkMetricDataPointsCount($metricStats['db.client.operation.duration'], 2);
         $this->checkMetricDataPointsCount($metricStats['db.client.response.returned_rows'], 2);
     }

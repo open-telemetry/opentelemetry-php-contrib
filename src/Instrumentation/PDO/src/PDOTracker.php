@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
 use Error;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\AttributeTrackerByObject;
 use OpenTelemetry\API\Trace\SpanContextInterface;
-use OpenTelemetry\SDK\Util\AttributeTrackerByObject;
 use OpenTelemetry\SemConv\TraceAttributes;
 use PDO;
 use PDOStatement;
@@ -18,10 +18,6 @@ use WeakReference;
  */
 final class PDOTracker extends AttributeTrackerByObject
 {
-    /**
-     * @var WeakMap<PDO, array<non-empty-string, bool|int|float|string|array|null>>
-     */
-    private WeakMap $pdoToAttributesMap;
     /**
      * @var WeakMap<PDOStatement, WeakReference<PDO>>
      */

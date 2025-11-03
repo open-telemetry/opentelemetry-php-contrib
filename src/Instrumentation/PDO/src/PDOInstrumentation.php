@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Metrics\TimerTrackerByObject;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\SemConv\TraceAttributes;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
-use OpenTelemetry\SDK\Metrics\Util\TimerTrackerByObject;
 use OpenTelemetry\SemConv\Version;
 use PDO;
 use PDOException;
@@ -71,7 +72,7 @@ class PDOInstrumentation
                     $span = Span::fromContext($scope->context());
 
                     $dsn = $params[0] ?? '';
-
+                    $attributes = [];
                     // guard against PDO::connect returning a string
                     if ($result instanceof PDO) {
                         $attributes = $pdoTracker->trackPdoAttributes($result, $dsn);
@@ -79,25 +80,7 @@ class PDOInstrumentation
                     }
 
                     self::end($exception);
-
-                    $attributes = $pdoTracker->get($result);
-                    $parent = Context::getCurrent();
-
-                    $instrumentation->meter()
-                        ->createUpDownCounter('db.client.connection.count', '1')
-                        ->add(1, $attributes, $parent);
-
-                    $pdoTracker->trackPdoInstancesDestruction(
-                        $object,
-                        function ($pdoInstance) use ($instrumentation, $pdoTracker) {
-                            $parent = Context::getCurrent();
-
-                            $attributes = $pdoTracker->get($pdoInstance);
-                            $instrumentation->meter()
-                                ->createUpDownCounter('db.client.connection.count', '1')
-                                ->add(-1, $attributes, $parent);
-                        }
-                    );
+                    self::createConnectionMetrics($instrumentation, $attributes, $pdoTracker, $object);
                 }
             );
         }
@@ -105,7 +88,7 @@ class PDOInstrumentation
         hook(
             PDO::class,
             '__construct',
-            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $pdoTracker) {
+            pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::__construct', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
@@ -126,25 +109,7 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 self::end($exception);
-
-                $attributes = $pdoTracker->get($pdo);
-                $parent = Context::getCurrent();
-
-                $instrumentation->meter()
-                    ->createUpDownCounter('db.client.connection.count', '1')
-                    ->add(1, $attributes, $parent);
-
-                $pdoTracker->trackPdoInstancesDestruction(
-                    $pdo,
-                    function ($pdoInstance) use ($instrumentation, $pdoTracker) {
-                        $parent = Context::getCurrent();
-
-                        $attributes = $pdoTracker->get($pdoInstance);
-                        $instrumentation->meter()
-                            ->createUpDownCounter('db.client.connection.count', '1')
-                            ->add(-1, $attributes, $parent);
-                    }
-                );
+                self::createConnectionMetrics($instrumentation, $attributes, $pdoTracker, $pdo);
             }
         );
 
@@ -155,52 +120,14 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $query = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
-                if (!is_string($query)) {
-                    $query = self::UNDEFINED;
-                }
-                if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $query);
-                }
-                $parent = Context::getCurrent();
-                $span = $builder->startSpan();
-
-                $attributes = $pdoTracker->append($pdo, TraceAttributes::DB_QUERY_TEXT, $encodedQuery);
-                $span->setAttributes($attributes);
-
-                Context::storage()->attach($span->storeInContext($parent));
-
-                self::createPendingOperationMetric($instrumentation, $attributes, 1);
-                $timersTracker->start($pdo);
-
-                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
-                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
-                        /** @psalm-suppress PossiblyInvalidCast */
-                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
-                            case 'postgresql':
-                            case 'mysql':
-                                /**
-                                 * @psalm-suppress UndefinedClass
-                                 */
-                                $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
-                                $query = $commenter->inject($query);
-                                if ($commenter->isAttributeEnabled()) {
-                                    $span->setAttributes([
-                                        DbAttributes::DB_QUERY_TEXT => (string) $query,
-                                    ]);
-                                }
-
-                                return [
-                                    0 => $query,
-                                ];
-                            default:
-                                // Do nothing, not a database we want to propagate
-                                break;
-                        }
-                    }
-                }
-
-                return [];
+                return self::preSendingQuery(
+                    $instrumentation,
+                    $builder,
+                    $params[0],
+                    $pdoTracker,
+                    $pdo,
+                    $timersTracker
+                );
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) use ($instrumentation, $pdoTracker, $timersTracker) {
                 $duration = $timersTracker->durationMs($pdo);
@@ -220,7 +147,12 @@ class PDOInstrumentation
 
                 $attributes = $pdoTracker->get($pdo);
                 self::createDurationMetric($instrumentation, $attributes, $duration);
-                self::createPendingOperationMetric($instrumentation, $attributes, -1);
+                self::createPendingOperationMetric(
+                    $instrumentation,
+                    'db.client.connection.pending_requests',
+                    0,
+                    $attributes
+                );
                 if ($statement instanceof PDOStatement && $statement->rowCount()) {
                     self::createReturnedRowsMetric($instrumentation, $attributes, $statement->rowCount());
                 }
@@ -234,52 +166,14 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $query = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
-                if (!is_string($query)) {
-                    $query = self::UNDEFINED;
-                }
-                if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $query);
-                }
-                $parent = Context::getCurrent();
-                $span = $builder->startSpan();
-
-                $attributes = $pdoTracker->append($pdo, TraceAttributes::DB_QUERY_TEXT, $encodedQuery);
-                $span->setAttributes($attributes);
-
-                Context::storage()->attach($span->storeInContext($parent));
-                self::createPendingOperationMetric($instrumentation, $attributes, 1);
-
-                $timersTracker->start($pdo);
-
-                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
-                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
-                        /** @psalm-suppress PossiblyInvalidCast */
-                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
-                            case 'postgresql':
-                            case 'mysql':
-                                /**
-                                 * @psalm-suppress UndefinedClass
-                                 */
-                                $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
-                                $query = $commenter->inject($query);
-                                if ($commenter->isAttributeEnabled()) {
-                                    $span->setAttributes([
-                                        DbAttributes::DB_QUERY_TEXT => (string) $query,
-                                    ]);
-                                }
-
-                                return [
-                                    0 => $query,
-                                ];
-                            default:
-                                // Do nothing, not a database we want to propagate
-                                break;
-                        }
-                    }
-                }
-
-                return [];
+                return self::preSendingQuery(
+                    $instrumentation,
+                    $builder,
+                    $params[0],
+                    $pdoTracker,
+                    $pdo,
+                    $timersTracker
+                );
             },
             post: static function (PDO $pdo, array $params, mixed $affectedRows, ?Throwable $exception) use ($instrumentation, $pdoTracker, $timersTracker) {
                 $duration = $timersTracker->durationMs($pdo);
@@ -287,7 +181,12 @@ class PDOInstrumentation
 
                 $attributes = $pdoTracker->get($pdo);
                 self::createDurationMetric($instrumentation, $attributes, $duration);
-                self::createPendingOperationMetric($instrumentation, $attributes, -1);
+                self::createPendingOperationMetric(
+                    $instrumentation,
+                    'db.client.connection.pending_requests',
+                    0,
+                    $attributes
+                );
                 if (!empty($affectedRows)) {
                     self::createReturnedRowsMetric($instrumentation, $attributes, $affectedRows);
                 }
@@ -301,19 +200,24 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::prepare', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $encodedQuery = mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8');
+                $query = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
                 if ($class === PDO::class) {
                     $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
-                $attributes = $pdoTracker->append($pdo, TraceAttributes::DB_QUERY_TEXT, $encodedQuery);
+                $attributes = $pdoTracker->append($pdo, TraceAttributes::DB_QUERY_TEXT, $query);
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
 
-                self::createPendingOperationMetric($instrumentation, $attributes, 1);
+                self::createPendingOperationMetric(
+                    $instrumentation,
+                    'db.client.connection.pending_requests',
+                    1,
+                    $attributes
+                );
 
                 $timersTracker->start($pdo);
             },
@@ -326,7 +230,12 @@ class PDOInstrumentation
                 self::end($exception, $statement === false ? $pdo->errorInfo() : []);
                 $attributes = $pdoTracker->get($pdo);
                 self::createDurationMetric($instrumentation, $attributes, $duration);
-                self::createPendingOperationMetric($instrumentation, $attributes, -1);
+                self::createPendingOperationMetric(
+                    $instrumentation,
+                    'db.client.connection.pending_requests',
+                    0,
+                    $attributes
+                );
             }
         );
 
@@ -380,7 +289,7 @@ class PDOInstrumentation
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
-                $attributes = $pdoTracker->get($pdo);
+                $attributes = $pdoTracker->trackedAttributesForPdo($pdo);
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
@@ -412,7 +321,7 @@ class PDOInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
-                self::end($exception);
+                self::end($exception, $retval === false ? $statement->errorInfo() : []);
             }
         );
 
@@ -438,7 +347,12 @@ class PDOInstrumentation
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
 
-                self::createPendingOperationMetric($instrumentation, $attributes, 1);
+                self::createPendingOperationMetric(
+                    $instrumentation,
+                    'db.client.connection.pending_requests',
+                    1,
+                    $attributes
+                );
                 $timersTracker->start($statement);
             },
             post: static function (PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) use ($instrumentation, $pdoTracker, $timersTracker) {
@@ -447,7 +361,12 @@ class PDOInstrumentation
 
                 $attributes = $pdoTracker->trackedAttributesForStatement($statement);
                 self::createDurationMetric($instrumentation, $attributes, $duration);
-                self::createPendingOperationMetric($instrumentation, $attributes, -1);
+                self::createPendingOperationMetric(
+                    $instrumentation,
+                    'db.client.connection.pending_requests',
+                    0,
+                    $attributes
+                );
             }
         );
     }
@@ -468,7 +387,7 @@ class PDOInstrumentation
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
     }
 
-    private static function end(?Throwable $exception, array $errorInfo = []): void
+    private static function end(Throwable|PDOException|null $exception, array $errorInfo = []): void
     {
         $scope = Context::storage()->scope();
         if (!$scope) {
@@ -476,18 +395,28 @@ class PDOInstrumentation
         }
         $scope->detach();
         $span = Span::fromContext($scope->context());
+
+        // when silent mode is set to true, there are no exceptions, so we need to create one to record it using
+        // a common way of creating exceptions.
+        // The only problem is that PHP Exception code is int and PDOException code is string
+        if ($exception === null && !empty($errorInfo[2])) {
+            /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+            $exception = new class($errorInfo) extends \PDOException {
+                // to workaround setting code that is not INT
+                /**
+                 * @noinspection MagicMethodsValidityInspection
+                 * @noinspection PhpMissingParentConstructorInspection
+                 */
+                public function __construct(array $errorInfo) {
+                    $this->message = $errorInfo[2] ?? 'PDO error';
+                    $this->code = $errorInfo[0] ?? 0;
+                }
+            };
+        }
+
         if ($exception) {
             $span->recordException($exception);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-
-        } elseif (!empty($errorInfo[2]) && $errorMessage = $errorInfo[2]) {
-            $span->addEvent('exception', [
-                'exception.type' => PDOException::class,
-                'exception.message' => $errorMessage,
-                // @todo try to add stacktrace?
-            ]);
-
-            $span->setStatus(StatusCode::STATUS_ERROR, $errorMessage);
         }
 
         $span->end();
@@ -504,12 +433,13 @@ class PDOInstrumentation
 
     protected static function createPendingOperationMetric(
         CachedInstrumentation $instrumentation,
-        array $attributes,
+        string $metricName,
         int $value,
+        array $attributes,
     ): void {
         $parent = Context::getCurrent();
         $instrumentation->meter()
-            ->createUpDownCounter('db.client.connection.pending_requests', '1')
+            ->createUpDownCounter($metricName, '1')
             ->add($value, $attributes, $parent);
     }
 
@@ -533,5 +463,93 @@ class PDOInstrumentation
         $instrumentation->meter()
             ->createHistogram('db.client.operation.duration', 'ms')
             ->record($value, $attributes, $parent);
+    }
+
+    protected static function createConnectionMetrics(
+        CachedInstrumentation $instrumentation,
+        array $attributes,
+        PDOTracker $pdoTracker,
+        PDO $pdo
+    ): void {
+        self::createPendingOperationMetric(
+            $instrumentation,
+            'db.client.connection.count',
+            1,
+            $attributes
+        );
+
+        $pdoTracker->trackPdoInstancesDestruction(
+            $pdo,
+            function ($pdoInstance) use ($instrumentation, $pdoTracker) {
+                $attributes = $pdoTracker->get($pdoInstance);
+
+                self::createPendingOperationMetric(
+                    $instrumentation,
+                    'db.client.connection.count',
+                    0,
+                    $attributes
+                );
+            }
+        );
+    }
+
+    public static function preSendingQuery(
+        CachedInstrumentation $instrumentation,
+        SpanBuilderInterface $builder,
+        $query,
+        PDOTracker $pdoTracker,
+        PDO $pdo,
+        TimerTrackerByObject $timersTracker
+    ): array {
+        $query = mb_convert_encoding($query ?? self::UNDEFINED, 'UTF-8');
+        if (!is_string($query)) {
+            $query = self::UNDEFINED;
+        } else {
+            $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $query);
+        }
+        $parent = Context::getCurrent();
+        $span = $builder->startSpan();
+
+        $attributes = $pdoTracker->append($pdo, DbAttributes::DB_QUERY_TEXT, $query);
+        $span->setAttributes($attributes);
+
+        Context::storage()->attach($span->storeInContext($parent));
+        self::createPendingOperationMetric(
+            $instrumentation,
+            'db.client.connection.pending_requests',
+            1,
+            $attributes
+        );
+
+        $timersTracker->start($pdo);
+
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+            if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
+                /** @psalm-suppress PossiblyInvalidCast */
+                switch ((string)$attributes[DbAttributes::DB_SYSTEM_NAME]) {
+                    case 'postgresql':
+                    case 'mysql':
+                        /**
+                         * @psalm-suppress UndefinedClass
+                         */
+                        $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
+                        $query = $commenter->inject($query);
+                        if ($commenter->isAttributeEnabled()) {
+                            $span->setAttributes([
+                                DbAttributes::DB_QUERY_TEXT => (string)$query,
+                            ]);
+                        }
+
+                        return [
+                            0 => $query,
+                        ];
+                    default:
+                        // Do nothing, not a database we want to propagate
+                        break;
+                }
+            }
+        }
+
+        return [];
     }
 }
