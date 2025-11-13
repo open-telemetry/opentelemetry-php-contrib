@@ -15,12 +15,12 @@ class Handler extends AbstractProcessingHandler
     /** @var API\LoggerInterface[] */
     private array $loggers = [];
     private API\LoggerProviderInterface $loggerProvider;
-    private FormatterInterface $formatterInterface;
+    private ?FormatterInterface $formatterInterface;
 
     /**
      * @psalm-suppress InvalidArgument
      */
-    public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true, FormatterInterface $formatterInterface = new NormalizerFormatter())
+    public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true, ?FormatterInterface $formatterInterface = null)
     {
         parent::__construct($level, $bubble);
         $this->loggerProvider = $loggerProvider;
@@ -38,7 +38,7 @@ class Handler extends AbstractProcessingHandler
 
     protected function getDefaultFormatter(): FormatterInterface
     {
-        return $this->formatterInterface;
+        return $this->formatterInterface ?? new NormalizerFormatter();
     }
 
     /**
