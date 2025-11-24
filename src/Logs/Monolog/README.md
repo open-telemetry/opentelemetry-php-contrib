@@ -102,7 +102,7 @@ new Monolog\LogRecord(
  *     attributes => array (
  *         context => '{"foo":"bar","obj":{}}'
  *         context.foo => 'bar'
- *         context.exception => '{}'
+ *         context.obj => '{}'
  *         extras => '{"foo":"bar","baz":"bat"}'
  *         extras.foo => 'bar'
  *         extras.baz => 'bat'
