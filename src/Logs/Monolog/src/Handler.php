@@ -39,10 +39,6 @@ class Handler extends AbstractProcessingHandler
         return new NormalizerFormatter();
     }
 
-    /**
-     * @phan-suppress PhanTypeMismatchArgument
-     * @psalm-suppress InvalidOperand
-     */
     protected function write($record): void
     {
         $formatted = $record['formatted'];
@@ -55,6 +51,12 @@ class Handler extends AbstractProcessingHandler
         foreach (['context', 'extra'] as $key) {
             if (isset($formatted[$key]) && count($formatted[$key]) > 0) {
                 $logRecord->setAttribute($key, $formatted[$key]);
+            }
+            if (isset($record[$key]) && $record[$key] !== []) {
+                foreach ($record[$key] as $attributeName => $attribute) {
+                    $logRecord->setAttribute(sprintf('%s.%s', $key, $attributeName), $attribute);
+                    $logRecord->setAttribute($attributeName, $attribute);
+                }
             }
         }
         $this->getLogger($record['channel'])->emit($logRecord);
