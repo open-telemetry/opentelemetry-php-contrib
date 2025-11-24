@@ -9,8 +9,11 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
-
 use OpenTelemetry\API\Logs as API;
+use OpenTelemetry\SDK\Common\Exception\StackTraceFormatter;
+use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
+
+use Throwable;
 
 class Handler extends AbstractProcessingHandler
 {
@@ -67,6 +70,17 @@ class Handler extends AbstractProcessingHandler
             }
             if (isset($record[$key]) && $record[$key] !== []) {
                 foreach ($record[$key] as $attributeName => $attribute) {
+                    if (
+                        $key === 'context'
+                        && $attributeName === 'exception'
+                        && $attribute instanceof Throwable
+                    ) {
+                        $logRecord->setAttribute(ExceptionAttributes::EXCEPTION_TYPE, $attribute::class);
+                        $logRecord->setAttribute(ExceptionAttributes::EXCEPTION_MESSAGE, $attribute->getMessage());
+                        $logRecord->setAttribute(ExceptionAttributes::EXCEPTION_STACKTRACE, StackTraceFormatter::format($attribute));
+
+                        continue;
+                    }
                     switch (self::$mode) {
                         case self::MODE_PSR3:
                             if (!is_scalar($attribute)) {

@@ -68,12 +68,14 @@ class HandlerTest extends TestCase
                     $this->assertGreaterThan(0, $readable->getTimestamp());
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
-                    $this->assertCount(6, $attributes);
+                    $this->assertCount(8, $attributes);
                     $this->assertEqualsCanonicalizing([
                         'context',
-                        'extra',
                         'context.foo',
-                        'context.exception',
+                        'exception.type',
+                        'exception.message',
+                        'exception.stacktrace',
+                        'extra',
                         'extra.foo',
                         'extra.baz',
                     ], array_keys($attributes->toArray()));

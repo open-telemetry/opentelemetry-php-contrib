@@ -80,6 +80,9 @@ $logger->info('hello world');
 This OpenTelemetry handler will convert any `context` array or `extras` array in the `Monolog\LogRecord` to `OpenTelemetry\API\Logs\LogRecord`
 attributes. There are two options for handling conflicts between the classes.
 
+_Note that exceptions have special handling in both the PSR-3 spec and the OpenTelemetry spec. If a PHP `Throwable` is included in the `context`_
+_array with a key of `exception`, it will be added as `exception.` attributes to the OpenTelemetry Log Record._
+
 By default, the attribute keys will be `context` and `extras` with JSON encoded arrays, along with `context.` and `extras.` prefixed keys with the
 individual array entries, which will also be JSON encoded if they are not scalar values. Example:
 
@@ -96,7 +99,9 @@ new Monolog\LogRecord(
     ]
 );
 
-/** becomes:
+/**
+ * becomes:
+ *
  * OpenTelemetry\API\Logs\LogRecord (
  *     ...,
  *     attributes => array (
@@ -108,6 +113,7 @@ new Monolog\LogRecord(
  *         extras.baz => 'bat'
  *      )
  * )
+ */
 ```
 
 Alternatively, if your `context` and `extras` keys do not conflict with OpenTelemetry Semantic Conventions for Attribute keys, _and_ all your values
@@ -126,7 +132,9 @@ new Monolog\LogRecord(
     ]
 );
 
-/** becomes:
+/**
+ * becomes:
+ *
  * OpenTelemetry\API\Logs\LogRecord (
  *     ...,
  *     attributes => array (
@@ -136,4 +144,5 @@ new Monolog\LogRecord(
  *         server.port => 80
  *      )
  * )
+ */
 ```
