@@ -74,3 +74,66 @@ $logger = new \Monolog\Logger(
 );
 $logger->info('hello world');
 ```
+
+### Attributes Mode
+
+This OpenTelemetry handler will convert any `context` array or `extras` array in the `Monolog\LogRecord` to `OpenTelemetry\API\Logs\LogRecord`
+attributes. There are two options for handling conflicts between the classes.
+
+By default, the attribute keys will be `context` and `extras` with JSON encoded arrays, along with `context.` and `extras.` prefixed keys with the
+individual array entries, which will also be JSON encoded if they are not scalar values. Example:
+
+```php
+new Monolog\LogRecord(
+    ...,
+    context: [
+        'foo' => 'bar',
+        'obj' => new stdClass(),
+    ],
+    extras: [
+        'foo' => 'bar',
+        'baz' => 'bat',
+    ]
+);
+
+/** becomes:
+ * OpenTelemetry\API\Logs\LogRecord (
+ *     ...,
+ *     attributes => array (
+ *         context => '{"foo":"bar","obj":{}}'
+ *         context.foo => 'bar'
+ *         context.exception => '{}'
+ *         extras => '{"foo":"bar","baz":"bat"}'
+ *         extras.foo => 'bar'
+ *         extras.baz => 'bat'
+ *      )
+ * )
+```
+
+Alternatively, if your `context` and `extras` keys do not conflict with OpenTelemetry Semantic Conventions for Attribute keys, _and_ all your values
+are scalar, you can set `OTEL_PHP_MONOLOG_ATTRIB_MODE=otel` and they will be sent directly as Attributes. Example:
+
+```php
+new Monolog\LogRecord(
+    ...,
+    context: [
+        'myapp.data.foo' => 'bar',
+        'myapp.data.baz' => 'bat',
+    ],
+    extras: [
+        'server.address' => 'example.com',
+        'server.port' => 80,
+    ]
+);
+
+/** becomes:
+ * OpenTelemetry\API\Logs\LogRecord (
+ *     ...,
+ *     attributes => array (
+ *         myapp.data.foo => 'bar'
+ *         myapp.data.baz => 'bat'
+ *         server.address => 'example.com'
+ *         server.port => 80
+ *      )
+ * )
+```
