@@ -86,7 +86,7 @@ class HandlerTest extends TestCase
                         'baz' => ['bat'],
                     ], $attributes->get('extra'));
                     $this->assertSame('bar', $attributes->get('extra.foo'));
-                    $this->assertSame('bat', $attributes->get('extra.baz')[0]);
+                    $this->assertSame('["bat"]', $attributes->get('extra.baz'));
                     $this->assertSame('kaboom', $attributes->get('exception.message'));
                     $this->assertSame('Exception', $attributes->get('exception.type'));
                     $this->assertNotNull($attributes->get('exception.stacktrace'));
