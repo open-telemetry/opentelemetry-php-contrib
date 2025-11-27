@@ -6,10 +6,13 @@ services:
       - '80:80'
     volumes:
       - ./default.conf:/etc/nginx/conf.d/default.conf
+      - shared-web:/var/www/html/web
     links:
       - php-fpm
   php-fpm:
     build: .
+    volumes:
+      - shared-web:/var/www/html/web
     environment:
       OTEL_PHP_AUTOLOAD_ENABLED: true
       OTEL_SERVICE_NAME: otel-demo-php
@@ -23,3 +26,5 @@ services:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
       - 16686:16686
+volumes:
+  shared-web:
