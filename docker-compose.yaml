@@ -17,11 +17,11 @@ services:
       POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgresql}
 
   zipkin:
-    image: openzipkin/zipkin-slim
+    image: openzipkin/zipkin-slim@sha256:d951994017185bce1c859b62e13adf640e26c37e08b90ca2e4de2669dc1aad87
     ports:
     - 9411:9411
   jaeger:
-    image: jaegertracing/all-in-one
+    image: jaegertracing/all-in-one@sha256:c87fc1d9b22766284168abb2ac57ac2160dfc26484e4f965ff2dcc6b849b263a
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: 9412
     ports:
@@ -29,13 +29,13 @@ services:
     - 16686:16686
 
   collector:
-    image: otel/opentelemetry-collector-contrib
+    image: otel/opentelemetry-collector-contrib@sha256:4a951ff0a9772f4fa8e9c7a326434370301b98b2b813933468dcb54aa6a6b5e5
     command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./files/collector/otel-collector-config.yml:/etc/otel-collector-config.yml
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3@sha256:923989f8408378579f1de69a0721f05a575a134a6763ac5c74248cc1325095f4
     hostname: rabbitmq
     healthcheck:
       test: rabbitmq-diagnostics -q ping
@@ -45,7 +45,7 @@ services:
     ports:
       - "5672:5672/tcp"
   kafka:
-    image: confluentinc/cp-kafka:7.2.1
+    image: confluentinc/cp-kafka:7.2.1@sha256:7494848da233258a5fae32abac99b7befee3c089b8d4da039420ac403920118b
     hostname: kafka
     ports:
       - "9092:9092/tcp"
@@ -63,13 +63,13 @@ services:
       - ./docker/kafka/update_run.sh:/tmp/update_run.sh
 
   mongodb:
-    image: mongo:4
+    image: mongo:4@sha256:52c42cbab240b3c5b1748582cc13ef46d521ddacae002bbbda645cebed270ec0
     hostname: mongodb
     ports:
       - "27017:27017/tcp"
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0@sha256:f37951fc3753a6a22d6c7bf6978c5e5fefcf6f31814d98c582524f98eae52b21
     hostname: mysql
     ports:
       - "3306:3306/tcp"
@@ -87,7 +87,7 @@ services:
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   postgresql:
-    image: postgres:17.5
+    image: postgres:17.5@sha256:aadf2c0696f5ef357aa7a68da995137f0cf17bad0bf6e1f17de06ae5c769b302
     hostname: postgresql
     ports:
       - "5432:5432/tcp"
