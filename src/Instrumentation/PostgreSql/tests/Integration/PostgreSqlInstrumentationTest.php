@@ -124,6 +124,34 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertDatabaseAttributesForAllSpans($offset);
     }
 
+    public function test_pg_query_params(): void
+    {
+        $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
+        $this->assertTrue($conn instanceof Connection);
+
+        $offset = 0;
+        $this->assertSame('pg_connect', $this->storage->offsetGet($offset)->getName());
+        $offset++;
+
+        $res = pg_query_params($conn, 'SELECT * FROM users WHERE id = $1', [1]);
+        $this->assertTrue($res instanceof Result);
+
+        $this->assertSame('pg_query_params', $this->storage->offsetGet($offset)->getName());
+        $this->assertAttributes($offset, [
+            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE id = $1',
+            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+        ]);
+
+        while ($row = pg_fetch_assoc($res)) {
+        }
+        $offset++;
+
+        pg_close($conn);
+
+        $this->assertCount($offset, $this->storage);
+        $this->assertDatabaseAttributesForAllSpans($offset);
+    }
+
     public function test_pg_convert(): void
     {
         $conn = pg_connect('host=' . $this->pgsqlHost . ' dbname=' . $this->database . ' user=' . $this->user . ' password=' . $this->passwd);
