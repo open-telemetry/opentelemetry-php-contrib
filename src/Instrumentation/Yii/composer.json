@@ -3,7 +3,7 @@
     "description": "OpenTelemetry auto-instrumentation for Yii",
     "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "yii", "instrumentation"],
     "type": "library",
-    "homepage": "https://opentelemetry.io/docs/php",
+    "homepage": "https://opentelemetry.io/docs/languages/php/",
     "readme": "./README.md",
     "license": "Apache-2.0",
     "require": {

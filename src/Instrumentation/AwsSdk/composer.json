@@ -3,7 +3,7 @@
   "description": "OpenTelemetry auto‑instrumentation for the AWS SDK",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "aws-sdk", "instrumentation"],
   "type": "library",
-  "homepage": "https://opentelemetry.io/docs/php",
+  "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
   "license": "Apache-2.0",
   "minimum-stability": "dev",
