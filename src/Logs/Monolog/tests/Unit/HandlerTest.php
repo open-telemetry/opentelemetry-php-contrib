@@ -49,7 +49,9 @@ class HandlerTest extends TestCase
         $sharedState->method('getLogRecordLimits')->willReturn($limits);
         $handler = new Handler($this->provider, 100, true);
         $processor = function ($record) {
-            $record['extra'] = ['foo' => 'bar', 'baz' => ['bat']];
+            $baz = new stdClass();
+            $baz->bat = 'ball';
+            $record['extra'] = ['foo' => 'bar', 'baz' => $baz];
 
             return $record;
         };
@@ -81,12 +83,10 @@ class HandlerTest extends TestCase
                     ], array_keys($attributes->toArray()));
                     $this->assertSame('bar', $attributes->get('context')['foo']);
                     $this->assertSame('bar', $attributes->get('context.foo'));
-                    $this->assertEquals([
-                        'foo' => 'bar',
-                        'baz' => ['bat'],
-                    ], $attributes->get('extra'));
+                    $this->assertSame('bar', $attributes->get('extra')['foo']);
+                    $this->assertSame('ball', $attributes->get('extra')['baz']['stdClass']['bat']);
                     $this->assertSame('bar', $attributes->get('extra.foo'));
-                    $this->assertSame('["bat"]', $attributes->get('extra.baz'));
+                    $this->assertSame('ball', $attributes->get('extra.baz')->bat);
                     $this->assertSame('kaboom', $attributes->get('exception.message'));
                     $this->assertSame('Exception', $attributes->get('exception.type'));
                     $this->assertNotNull($attributes->get('exception.stacktrace'));

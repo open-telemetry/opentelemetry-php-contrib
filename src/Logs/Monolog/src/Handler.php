@@ -83,9 +83,6 @@ class Handler extends AbstractProcessingHandler
                     }
                     switch (self::$mode) {
                         case self::MODE_PSR3:
-                            if (!is_scalar($attribute)) {
-                                $attribute = json_encode($attribute);
-                            }
                             $logRecord->setAttribute(sprintf('%s.%s', $key, $attributeName), $attribute);
 
                             break;
