@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Logs\Monolog;
 
-use function count;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
@@ -12,8 +11,9 @@ use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs as API;
 use OpenTelemetry\SDK\Common\Exception\StackTraceFormatter;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
-
 use Throwable;
+
+use function count;
 
 class Handler extends AbstractProcessingHandler
 {
@@ -30,14 +30,16 @@ class Handler extends AbstractProcessingHandler
     /** @var API\LoggerInterface[] */
     private array $loggers = [];
     private API\LoggerProviderInterface $loggerProvider;
+    private ?FormatterInterface $formatterInterface;
 
     /**
      * @psalm-suppress InvalidArgument
      */
-    public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true)
+    public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true, ?FormatterInterface $formatterInterface = null)
     {
         parent::__construct($level, $bubble);
         $this->loggerProvider = $loggerProvider;
+        $this->formatterInterface = $formatterInterface;
         self::$mode = self::getMode();
     }
 
@@ -52,7 +54,7 @@ class Handler extends AbstractProcessingHandler
 
     protected function getDefaultFormatter(): FormatterInterface
     {
-        return new NormalizerFormatter();
+        return $this->formatterInterface ?? new NormalizerFormatter();
     }
 
     protected function write($record): void
