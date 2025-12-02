@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Logs\Monolog;
 
+use function count;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
@@ -11,9 +12,8 @@ use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs as API;
 use OpenTelemetry\SDK\Common\Exception\StackTraceFormatter;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
-use Throwable;
 
-use function count;
+use Throwable;
 
 class Handler extends AbstractProcessingHandler
 {
