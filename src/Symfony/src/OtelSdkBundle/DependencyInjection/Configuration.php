@@ -415,11 +415,12 @@ class Configuration implements ConfigurationInterface
     private static function createTypeNode(?string $default = null): NodeDefinition
     {
         $node = (new TreeBuilder(self::TYPE_NODE, self::SCALAR_NODE_TYPE))
-            ->getRootNode()
-            ->isRequired();
+            ->getRootNode();
 
         if ($default !== null) {
             $node->defaultValue($default);
+        } else {
+            $node->isRequired();
         }
 
         return $node;
