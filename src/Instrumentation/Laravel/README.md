@@ -22,3 +22,27 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=laravel
 ```
+
+### Log Context Attributes
+
+By default, log context is JSON-encoded into a single `context` attribute. This can make it difficult to search for specific context values in observability backends like SigNoz.
+
+To flatten log context into individual, searchable attributes, enable:
+
+```shell
+OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN=true
+```
+
+**Default behavior (off):**
+```
+context: {"http":{"method":"GET","path":"/users"},"user_id":"123"}
+```
+
+**With flattening enabled:**
+```
+http.method: GET
+http.path: /users
+user_id: 123
+```
+
+Nested arrays are flattened using dot notation, making each value individually searchable in your observability backend.
