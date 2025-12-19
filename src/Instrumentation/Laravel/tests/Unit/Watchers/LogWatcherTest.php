@@ -193,7 +193,7 @@ class LogWatcherTest extends TestCase
 
         $watcher = $this->createLogWatcher();
 
-        $stringable = new class implements Stringable {
+        $stringable = new class() implements Stringable {
             public function __toString(): string
             {
                 return 'stringable-value';
