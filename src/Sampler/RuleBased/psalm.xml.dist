@@ -15,11 +15,6 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
     <issueHandlers>
-        <UndefinedInterfaceMethod>
-            <errorLevel type="suppress">
-                <directory name="src/ComponentProvider"/>
-            </errorLevel>
-        </UndefinedInterfaceMethod>
         <MoreSpecificImplementedParamType>
             <errorLevel type="suppress">
                 <directory name="src/ComponentProvider"/>
