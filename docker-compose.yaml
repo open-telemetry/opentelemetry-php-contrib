@@ -69,7 +69,7 @@ services:
       - "27017:27017/tcp"
 
   mysql:
-    image: mysql:8.0@sha256:f37951fc3753a6a22d6c7bf6978c5e5fefcf6f31814d98c582524f98eae52b21
+    image: mysql:8.0@sha256:0790c3b4f5f20e4a275575cec26263216b0b3067a1c6a330fe03bd69dedbc3e1
     hostname: mysql
     ports:
       - "3306:3306/tcp"
