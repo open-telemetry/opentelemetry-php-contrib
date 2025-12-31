@@ -62,6 +62,31 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel = $this->getHttpKernel(new EventDispatcher());
         $this->assertCount(0, $this->storage);
         $request = new Request();
+        // When _route_path is available, it should be used for http.route (per OpenTelemetry semantic conventions)
+        $request->attributes->set('_route', 'test_route');
+        $request->attributes->set('_route_path', '/test/{id}');
+
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
+
+        $attributes = $this->storage[0]->getAttributes();
+        $this->assertCount(1, $this->storage);
+        $this->assertEquals('GET /test/{id}', $this->storage[0]->getName());
+        $this->assertEquals('http://:/', $attributes->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
+        $this->assertEquals('/test/{id}', $attributes->get(TraceAttributes::HTTP_ROUTE));
+        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEquals('1.0', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+    }
+
+    public function test_http_kernel_handle_fallback_to_route_name(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $this->assertCount(0, $this->storage);
+        $request = new Request();
+        // When _route_path is not available, fall back to _route (route name)
         $request->attributes->set('_route', 'test_route');
 
         $response = $kernel->handle($request);
@@ -70,14 +95,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('GET test_route', $this->storage[0]->getName());
-        $this->assertEquals('http://:/', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
         $this->assertEquals('test_route', $attributes->get(TraceAttributes::HTTP_ROUTE));
-        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEquals('1.0', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
-        $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
-
     }
 
     public function test_http_kernel_handle_stream_response(): void
