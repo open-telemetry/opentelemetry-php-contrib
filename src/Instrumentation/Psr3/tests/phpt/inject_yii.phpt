@@ -30,10 +30,10 @@ $span->end();
 ?>
 
 --EXPECTF--
-%s [warning][%s] hello world traceId=%s spanId=%s
+%s [warning][%s] hello world trace_id=%s span_id=%s
 
 Message context:
 %A
 foo: 'bar'%A
-traceId: '%s'
-spanId: '%s'%A
+trace_id: '%s'
+span_id: '%s'%A
