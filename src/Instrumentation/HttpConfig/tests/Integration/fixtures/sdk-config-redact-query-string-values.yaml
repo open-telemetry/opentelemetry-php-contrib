@@ -1,10 +1,8 @@
-file_format: '0.4'
-instrumentation/development: &config
+file_format: '1.0-rc.2'
+instrumentation/development:
   php:
     http:
       uri_sanitizers:
         - default:
         - redact_query_string_values:
             query_keys: [ passwd, secret ]
-
-instrumentation: *config # OpenTelemetry uses outdated 'instrumentation' key

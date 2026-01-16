@@ -1,7 +1,5 @@
-file_format: '0.4'
-instrumentation/development: &config
+file_format: '1.0-rc.2'
+instrumentation/development:
   php:
     http:
       known_http_methods: [ CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE, CUSTOM ]
-
-instrumentation: *config # OpenTelemetry uses outdated 'instrumentation' key
