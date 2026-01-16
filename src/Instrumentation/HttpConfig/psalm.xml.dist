@@ -14,16 +14,6 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
     <issueHandlers>
-        <UndefinedInterfaceMethod>
-            <errorLevel type="suppress">
-                <directory name="src/Config"/>
-            </errorLevel>
-        </UndefinedInterfaceMethod>
-        <PossiblyNullReference>
-            <errorLevel type="suppress">
-                <directory name="src/Config"/>
-            </errorLevel>
-        </PossiblyNullReference>
         <MoreSpecificImplementedParamType>
             <errorLevel type="suppress">
                 <directory name="src/Config"/>
