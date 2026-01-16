@@ -108,7 +108,6 @@ final class InstrumentationConfigurationHttpConfig implements ComponentProvider
                     ->end()
                 ->end()
                 ->arrayNode('server')
-                    ->addDefaultsIfNotSet()
                     ->children()
                         ->booleanNode('capture_client_port')->treatNullLike(true)->end()
                         ->booleanNode('capture_user_agent_synthetic_type')->treatNullLike(true)->end()
