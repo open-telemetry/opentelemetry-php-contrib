@@ -32,6 +32,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-guzzle.git"
   - prefix: "src/Instrumentation/HttpAsyncClient"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-http-async.git"
+  - prefix: "src/Instrumentation/HttpConfig"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-config-http.git"
   - prefix: "src/Instrumentation/IO"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-io.git"
   - prefix: "src/Instrumentation/Laravel"

@@ -1,0 +1,8 @@
+file_format: '1.0-rc.2'
+instrumentation/development:
+  php:
+    http:
+      uri_sanitizers:
+        - default:
+        - redact_query_string_values:
+            query_keys: [ passwd, secret ]

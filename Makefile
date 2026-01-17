@@ -19,9 +19,9 @@ build: ## Build image
 install: ## Install dependencies
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer install
 update: ## Update dependencies
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-plugins
+	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-interaction
 update-lowest: ## Update dependencies to lowest supported versions
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-plugins --prefer-lowest
+	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-interaction --prefer-lowest
 test: ## Run all tests
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testdox --colors=always
 test-unit: ## Run unit tests
