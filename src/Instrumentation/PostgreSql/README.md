@@ -73,6 +73,9 @@ Enable context propagation for database queries by installing the following pack
 ```shell
 composer require open-telemetry/opentelemetry-sqlcommenter
 ```
+Currently, only the following functions support context propagation:
+* `pg_query`
+* `pg_send_query`
 
 ## Compatibility
 

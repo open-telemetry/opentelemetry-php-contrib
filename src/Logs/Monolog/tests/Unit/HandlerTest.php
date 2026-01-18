@@ -49,7 +49,9 @@ class HandlerTest extends TestCase
         $sharedState->method('getLogRecordLimits')->willReturn($limits);
         $handler = new Handler($this->provider, 100, true);
         $processor = function ($record) {
-            $record['extra'] = ['foo' => 'bar', 'baz' => 'bat'];
+            $baz = new stdClass();
+            $baz->bat = 'ball';
+            $record['extra'] = ['foo' => 'bar', 'baz' => $baz];
 
             return $record;
         };
@@ -68,16 +70,26 @@ class HandlerTest extends TestCase
                     $this->assertGreaterThan(0, $readable->getTimestamp());
                     $this->assertSame('message', $readable->getBody());
                     $attributes = $readable->getAttributes();
-                    $this->assertCount(2, $attributes);
-                    $this->assertEquals(['context', 'extra'], array_keys($attributes->toArray()));
-                    $this->assertEquals([
-                        'foo' => 'bar',
-                        'baz' => 'bat',
-                    ], $attributes->get('extra'));
+                    $this->assertCount(8, $attributes);
+                    $this->assertEqualsCanonicalizing([
+                        'context',
+                        'context.foo',
+                        'extra',
+                        'extra.foo',
+                        'extra.baz',
+                        'exception.message',
+                        'exception.type',
+                        'exception.stacktrace',
+                    ], array_keys($attributes->toArray()));
                     $this->assertSame('bar', $attributes->get('context')['foo']);
-                    $this->assertSame('bar', $attributes->get('context')['foo']);
-                    $this->assertNotNull($attributes->get('context')['exception']);
-                    $this->assertNotNull($attributes->get('context')['exception']['message']);
+                    $this->assertSame('bar', $attributes->get('context.foo'));
+                    $this->assertSame('bar', $attributes->get('extra')['foo']);
+                    $this->assertSame('ball', $attributes->get('extra')['baz']['stdClass']['bat']);
+                    $this->assertSame('bar', $attributes->get('extra.foo'));
+                    $this->assertSame('ball', $attributes->get('extra.baz')->bat);
+                    $this->assertSame('kaboom', $attributes->get('exception.message'));
+                    $this->assertSame('Exception', $attributes->get('exception.type'));
+                    $this->assertNotNull($attributes->get('exception.stacktrace'));
 
                     return true;
                 }
@@ -85,5 +97,59 @@ class HandlerTest extends TestCase
 
         /** @psalm-suppress UndefinedDocblockClass */
         $monolog->info('message', ['foo' => 'bar', 'exception' => new \Exception('kaboom', 500)]);
+    }
+
+    public function test_handle_record_attrib_mode(): void
+    {
+        putenv(sprintf('%s=%s', Handler::OTEL_PHP_MONOLOG_ATTRIB_MODE, Handler::MODE_OTEL));
+
+        $channelName = 'test';
+        $scope = $this->createMock(InstrumentationScopeInterface::class);
+        $sharedState = $this->createMock(LoggerSharedState::class);
+        $resource = $this->createMock(ResourceInfo::class);
+        $limits = $this->createMock(LogRecordLimits::class);
+        $attributeFactory = Attributes::factory();
+        $limits->method('getAttributeFactory')->willReturn($attributeFactory);
+        $sharedState->method('getResource')->willReturn($resource);
+        $sharedState->method('getLogRecordLimits')->willReturn($limits);
+        $handler = new Handler($this->provider, 100, true);
+        $processor = function ($record) {
+            $record['extra'] = ['foo' => 'qux', 'bar' => 'quux'];
+
+            return $record;
+        };
+        $monolog = new \Monolog\Logger($channelName);
+        $monolog->pushHandler($handler);
+        $monolog->pushProcessor($processor);
+
+        $this->logger
+            ->expects($this->once())
+            ->method('emit')
+            ->with($this->callback(
+                function (LogRecord $logRecord) use ($scope, $sharedState) {
+                    $readable = new ReadableLogRecord($scope, $sharedState, $logRecord);
+                    $attributes = $readable->getAttributes();
+                    $this->assertCount(6, $attributes);
+                    $this->assertEqualsCanonicalizing([
+                        'foo',
+                        'bar',
+                        'baz',
+                        'exception.message',
+                        'exception.type',
+                        'exception.stacktrace',
+                    ], array_keys($attributes->toArray()));
+                    $this->assertSame('qux', $attributes->get('foo'));
+                    $this->assertSame('quux', $attributes->get('bar'));
+                    $this->assertSame('quuux', $attributes->get('baz'));
+                    $this->assertSame('kaboom', $attributes->get('exception.message'));
+                    $this->assertSame('Exception', $attributes->get('exception.type'));
+                    $this->assertNotNull($attributes->get('exception.stacktrace'));
+
+                    return true;
+                }
+            ));
+
+        /** @psalm-suppress UndefinedDocblockClass */
+        $monolog->info('message', ['baz' => 'quuux', 'exception' => new \Exception('kaboom', 500)]);
     }
 }

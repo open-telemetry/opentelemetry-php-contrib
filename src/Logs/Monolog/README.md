@@ -74,3 +74,87 @@ $logger = new \Monolog\Logger(
 );
 $logger->info('hello world');
 ```
+
+### Attributes Mode
+
+This OpenTelemetry handler will convert any `context` array or `extra` array in the `Monolog\LogRecord` to `OpenTelemetry\API\Logs\LogRecord` attributes. There are two options for handling conflicts between the classes.
+
+_Note 1: Exceptions have special handling in both the PSR-3 spec and the OpenTelemetry spec. If a PHP `Throwable` is included in the `context` array with a key of `exception`, it will be added as `exception.` attributes to the OpenTelemetry Log Record._
+
+_Note 2: Both [Monolog](https://github.com/Seldaek/monolog/blob/main/src/Monolog/Formatter/NormalizerFormatter.php) and the [OpenTelemetry Protocol](https://github.com/open-telemetry/opentelemetry-php/blob/main/src/Contrib/Otlp/AttributesConverter.php) employ serialization algorithms when encoding attributes. This combination can lead to obtuse JSON blobs in the OTLP log records; this can be avoided by using only scalar values for attributes._
+
+By default, the attribute keys will be `context` and `extra`, along with `context.` and `extra.` prefixed keys with the individual array entries. Example:
+
+```php
+$host = new stdClass();
+$host->name = 'example.com';
+$host->tcp = 80;
+new Monolog\LogRecord(
+    ...,
+    context: [
+        'foo' => 'bar',
+        'baz' => 'bat',
+    ],
+    extra: [
+        'host' => $host,
+    ]
+);
+
+/**
+ * becomes:
+ *
+ * OpenTelemetry\API\Logs\LogRecord (
+ *     ...,
+ *     attributes => array (
+ *         context => array (
+ *             foo => 'bar',
+ *             baz => 'bat',
+ *         )
+ *         context.foo => 'bar'
+ *         context.baz => 'bat'
+ *         extra => array (
+ *             host => array (
+ *                 stdClass => array (
+ *                     name => 'example.com'
+ *                     tcp => 80
+ *                 )
+ *             )
+ *         )
+ *         extra.host => stdClass (
+ *             name => 'example.com'
+ *             tcp => 80
+ *         )
+ *     )
+ * )
+ */
+```
+
+Alternatively, if your `context` and `extra` keys do not conflict with OpenTelemetry Semantic Conventions for Attribute keys, you can set `OTEL_PHP_MONOLOG_ATTRIB_MODE=otel` and they will be sent directly as Attributes. Example:
+
+```php
+new Monolog\LogRecord(
+    ...,
+    context: [
+        'myapp.data.foo' => 'bar',
+        'myapp.data.baz' => 'bat',
+    ],
+    extra: [
+        'server.address' => 'example.com',
+        'server.port' => 80,
+    ]
+);
+
+/**
+ * becomes:
+ *
+ * OpenTelemetry\API\Logs\LogRecord (
+ *     ...,
+ *     attributes => array (
+ *         myapp.data.foo => 'bar'
+ *         myapp.data.baz => 'bat'
+ *         server.address => 'example.com'
+ *         server.port => 80
+ *      )
+ * )
+ */
+```
