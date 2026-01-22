@@ -57,7 +57,7 @@ This repository is organized into multiple separate sub-projects, under `/src`.
 Please remember to run all tests as you develop, the makefile supports a `PROJECTS` variable, which corresponds to the path of the project (relative to `src/`), eg
 
 ```
-$ PROJECT=Symfony PHP_VERSION=8.1 make all
+$ PROJECT=Symfony PHP_VERSION=8.2 make all
 ```
 
 <!-- References -->
