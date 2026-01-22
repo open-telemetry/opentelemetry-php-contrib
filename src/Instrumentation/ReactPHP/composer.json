@@ -9,7 +9,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^8.1",
+    "php": "^8.2",
     "ext-opentelemetry": "*",
     "guzzlehttp/psr7": "^2.7",
     "open-telemetry/api": "^1.0",

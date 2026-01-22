@@ -9,7 +9,7 @@
         "docs": "https://www.ibm.com/docs/en/instana-observability/current?topic=opentelemetry-php-exporter"
     },
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "open-telemetry/api": "^1.1",
         "open-telemetry/sdk": "^1.1",
         "guzzlehttp/guzzle": "^7.4.5"

@@ -9,7 +9,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-      "php": "^8.1",
+      "php": "^8.2",
       "ext-opentelemetry": "*",
       "codeigniter4/framework": "^4.3",
       "open-telemetry/api": "^1.6",

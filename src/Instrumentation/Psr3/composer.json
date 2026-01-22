@@ -16,7 +16,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^8.1",
+    "php": "^8.2",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.32",

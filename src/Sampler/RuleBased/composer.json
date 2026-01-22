@@ -4,7 +4,7 @@
     "keywords": ["opentelemetry", "otel", "sdk", "tracing", "sampler"],
     "license": "Apache-2.0",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "open-telemetry/api": "^1.1.0",
         "open-telemetry/sdk": "^1.1.0",
         "open-telemetry/sdk-configuration": "^0.0.9"
