@@ -163,6 +163,9 @@ class YiiInstrumentationTest extends AbstractTest
     }
 }
 
+/**
+ * @extends Controller<\yii\base\Module>
+ */
 class SiteController extends Controller
 {
     /**
