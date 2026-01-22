@@ -93,7 +93,7 @@ final class RequestListenerTest extends TestCase
         $this->assertSame("HTTP $method", $exporter->getSpans()[0]->getName());
     }
 
-    public function httpMethodProvider(): iterable
+    public static function httpMethodProvider(): iterable
     {
         yield ['GET'];
         yield ['POST'];

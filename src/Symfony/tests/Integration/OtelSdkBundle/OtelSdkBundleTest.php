@@ -106,9 +106,9 @@ class OtelSdkBundleTest extends TestCase
 
     /**
      * @test
-     * @depends testTracerProviderWithSimpleConfig
      * @throws Exception
      */
+    #[\PHPUnit\Framework\Attributes\Depends('testTracerProviderWithSimpleConfig')]
     public function testSamplerWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
@@ -122,9 +122,9 @@ class OtelSdkBundleTest extends TestCase
 
     /**
      * @test
-     * @depends testTracerProviderWithSimpleConfig
      * @throws Exception
      */
+    #[\PHPUnit\Framework\Attributes\Depends('testTracerProviderWithSimpleConfig')]
     public function testProcessorWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
@@ -146,9 +146,9 @@ class OtelSdkBundleTest extends TestCase
 
     /**
      * @test
-     * @depends testProcessorWithSimpleConfig
      * @throws Exception
      */
+    #[\PHPUnit\Framework\Attributes\Depends('testProcessorWithSimpleConfig')]
     public function testExporterWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
@@ -218,10 +218,10 @@ class OtelSdkBundleTest extends TestCase
     }
 
     /**
-     * @depends testExporterWithSimpleConfig
      * @throws Exception
      * @psalm-suppress PossiblyUndefinedMethod
      */
+    #[\PHPUnit\Framework\Attributes\Depends('testExporterWithSimpleConfig')]
     public function testTracingWithSimpleConfig(): void
     {
         $this->loadTestData('simple');
@@ -246,10 +246,10 @@ class OtelSdkBundleTest extends TestCase
     }
 
     /**
-     * @depends testExporterWithSimpleConfig
      * @throws Exception
      * @psalm-suppress PossiblyUndefinedMethod
      */
+    #[\PHPUnit\Framework\Attributes\Depends('testExporterWithSimpleConfig')]
     public function testTracingWithAlwaysOffSampler(): void
     {
         $this->load(

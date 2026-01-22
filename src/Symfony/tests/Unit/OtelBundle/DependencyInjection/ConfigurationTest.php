@@ -56,7 +56,7 @@ final class ConfigurationTest extends AbstractExtensionConfigurationTestCase
         $this->assertProcessedConfigurationEquals($expectedConfiguration, $sources);
     }
 
-    public function sourcesProvider(): iterable
+    public static function sourcesProvider(): iterable
     {
         yield [[__DIR__ . '/Fixtures/config.yaml']];
         yield [[__DIR__ . '/Fixtures/config.xml']];

@@ -117,7 +117,7 @@ class OtelDataCollectorTest extends TestCase
     /**
      * @psalm-suppress ArgumentTypeCoercion
      */
-    public function exporterDataProvider(): iterable
+    public static function exporterDataProvider(): iterable
     {
         $transportProphecy = $this->prophesize(TransportInterface::class);
         $transportProphecy->contentType()->willReturn('application/json');

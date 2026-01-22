@@ -77,7 +77,7 @@ class ConfigurationTest extends TestCase
         );
     }
 
-    public function configProvider(): array
+    public static function configProvider(): array
     {
         $data = [];
 
@@ -88,7 +88,7 @@ class ConfigurationTest extends TestCase
         return $data;
     }
 
-    public function exceptionProvider(): array
+    public static function exceptionProvider(): array
     {
         $data = [];
 
