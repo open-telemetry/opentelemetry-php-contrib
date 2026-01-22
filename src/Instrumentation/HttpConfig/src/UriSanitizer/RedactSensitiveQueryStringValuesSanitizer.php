@@ -12,14 +12,14 @@ use function strpos;
 use function substr;
 use function substr_compare;
 
-final class RedactSensitiveQueryStringValuesSanitizer implements UriSanitizer
+final readonly class RedactSensitiveQueryStringValuesSanitizer implements UriSanitizer
 {
 
     /**
      * @param list<string> $redactedParameters sensitive query parameters to redact
      */
     public function __construct(
-        private readonly array $redactedParameters,
+        private array $redactedParameters,
     ) {
     }
 

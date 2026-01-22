@@ -17,7 +17,7 @@ class SerializerTest extends TestCase
         $this->assertSame($expected, Serializer::serializeCommand($command, $params));
     }
 
-    public function serializeCases(): iterable
+    public static function serializeCases(): iterable
     {
         // Only serialize command
         yield ['ECHO', ['param1'], 'ECHO [1 other arguments]'];

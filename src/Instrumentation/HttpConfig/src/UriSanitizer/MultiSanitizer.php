@@ -10,14 +10,14 @@ use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer;
 use Override;
 use Psr\Http\Message\UriInterface;
 
-final class MultiSanitizer implements UriSanitizer
+final readonly class MultiSanitizer implements UriSanitizer
 {
 
     /**
      * @param iterable<UriSanitizer> $sanitizers
      */
     private function __construct(
-        private readonly iterable $sanitizers,
+        private iterable $sanitizers,
     ) {
     }
 

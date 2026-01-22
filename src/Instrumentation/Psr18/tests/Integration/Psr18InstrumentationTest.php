@@ -90,7 +90,7 @@ class Psr18InstrumentationTest extends TestCase
         $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
-    public function requestProvider(): array
+    public static function requestProvider(): array
     {
         return [
             ['GET', 'http://example.com/foo', 200],

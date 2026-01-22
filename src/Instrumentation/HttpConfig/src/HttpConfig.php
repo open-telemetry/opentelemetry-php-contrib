@@ -7,7 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\HttpConfig;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\InstrumentationConfiguration;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\DefaultSanitizer;
 
-final class HttpConfig implements InstrumentationConfiguration
+final readonly class HttpConfig implements InstrumentationConfiguration
 {
 
     /**
@@ -17,10 +17,10 @@ final class HttpConfig implements InstrumentationConfiguration
     public const HTTP_METHODS = ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TRACE'];
 
     public function __construct(
-        public readonly HttpClientConfig $client = new HttpClientConfig(),
-        public readonly HttpServerConfig $server = new HttpServerConfig(),
-        public readonly UriSanitizer $sanitizer = new DefaultSanitizer(),
-        public readonly array $knownHttpMethods = HttpConfig::HTTP_METHODS,
+        public HttpClientConfig $client = new HttpClientConfig(),
+        public HttpServerConfig $server = new HttpServerConfig(),
+        public UriSanitizer $sanitizer = new DefaultSanitizer(),
+        public array $knownHttpMethods = HttpConfig::HTTP_METHODS,
     ) {
     }
 }

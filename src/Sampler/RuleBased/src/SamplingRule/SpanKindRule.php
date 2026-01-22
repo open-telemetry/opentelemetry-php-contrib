@@ -12,11 +12,11 @@ use function sprintf;
 /**
  * Checks whether the span kind matches a specific span kind.
  */
-final class SpanKindRule implements SamplingRule
+final readonly class SpanKindRule implements SamplingRule
 {
 
     public function __construct(
-        private readonly int $spanKind,
+        private int $spanKind,
     ) {
     }
 

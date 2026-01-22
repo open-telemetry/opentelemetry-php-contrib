@@ -9,9 +9,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
 
-/**
- * @covers \OpenTelemetry\Contrib\Instrumentation\CakePHP\CakePHPInstrumentation
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\OpenTelemetry\Contrib\Instrumentation\CakePHP\CakePHPInstrumentation::class)]
 class CakePHPInstrumentationTest extends TestCase
 {
     use IntegrationTestTrait;

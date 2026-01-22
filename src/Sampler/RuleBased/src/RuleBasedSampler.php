@@ -15,14 +15,14 @@ use function sprintf;
  * Samples based on a list of rule sets. The first matching rule set will be
  * used for sampling decisions.
  */
-final class RuleBasedSampler implements SamplerInterface
+final readonly class RuleBasedSampler implements SamplerInterface
 {
     /**
      * @param list<RuleSet> $ruleSets
      */
     public function __construct(
-        private readonly array $ruleSets,
-        private readonly SamplerInterface $fallback,
+        private array $ruleSets,
+        private SamplerInterface $fallback,
     ) {
     }
 

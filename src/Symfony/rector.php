@@ -15,6 +15,8 @@ return RectorConfig::configure()
     ])
     ->withSkip([
         '*/_register.php',
+        '*/vendor/*',
+        '*/var/*',
     ])
     ->withPhpVersion(PhpVersion::PHP_83)
     ->withSets([

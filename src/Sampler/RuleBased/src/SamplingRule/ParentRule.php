@@ -14,12 +14,12 @@ use function var_export;
 /**
  * Checks whether the parent matches sampled and remote.
  */
-final class ParentRule implements SamplingRule
+final readonly class ParentRule implements SamplingRule
 {
 
     public function __construct(
-        private readonly bool $sampled,
-        private readonly ?bool $remote = null,
+        private bool $sampled,
+        private ?bool $remote = null,
     ) {
     }
 

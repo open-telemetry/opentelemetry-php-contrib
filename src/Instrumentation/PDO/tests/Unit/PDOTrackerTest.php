@@ -33,7 +33,7 @@ class PDOTrackerTest extends TestCase
      *
      * @return array<string, array{string, array<string, mixed>}>
      */
-    public function dsnProvider(): array
+    public static function dsnProvider(): array
     {
         return [
             'standard format with host and port' => [

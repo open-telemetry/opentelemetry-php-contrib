@@ -93,7 +93,7 @@ class Psr3InstrumentationTest extends TestCase
         $this->logger->{$method}($msg, $context);
     }
 
-    public function levelProvider(): array
+    public static function levelProvider(): array
     {
         return [
             ['emergency test', 'emergency', ['user' => 'php-emergency', 'pid' => 1]],

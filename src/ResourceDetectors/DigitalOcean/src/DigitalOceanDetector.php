@@ -21,7 +21,7 @@ use UnexpectedValueException;
  * @see https://github.com/open-telemetry/semantic-conventions/blob/main/docs/resource/cloud.md
  * @psalm-suppress UnusedClass
  */
-final class DigitalOceanDetector implements ResourceDetectorInterface
+final readonly class DigitalOceanDetector implements ResourceDetectorInterface
 {
     use LogsMessagesTrait;
 
@@ -30,7 +30,7 @@ final class DigitalOceanDetector implements ResourceDetectorInterface
     private const DO_PUBLIC_ENDPOINT_URL = 'https://api.digitalocean.com/v2/';
     private const ENV_DO_API_TOKEN = 'DIGITALOCEAN_ACCESS_TOKEN';
 
-    public function __construct(private readonly string $rootPath = '/')
+    public function __construct(private string $rootPath = '/')
     {
     }
 

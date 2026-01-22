@@ -10,13 +10,13 @@ use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
 use function preg_match;
 use function sprintf;
 
-final class SpanNameRule implements SamplingRule
+final readonly class SpanNameRule implements SamplingRule
 {
     /**
      * @param non-empty-string $pattern
      */
     public function __construct(
-        private readonly string $pattern,
+        private string $pattern,
     ) {
     }
 

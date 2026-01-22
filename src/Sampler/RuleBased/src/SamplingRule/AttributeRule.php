@@ -13,15 +13,15 @@ use function sprintf;
 /**
  * Checks whether an attribute value matches a regex pattern.
  */
-final class AttributeRule implements SamplingRule
+final readonly class AttributeRule implements SamplingRule
 {
     /**
      * @param non-empty-string $attributeKey
      * @param non-empty-string $pattern
      */
     public function __construct(
-        private readonly string $attributeKey,
-        private readonly string $pattern,
+        private string $attributeKey,
+        private string $pattern,
     ) {
     }
 

@@ -77,7 +77,7 @@ class SlimInstrumentationTest extends TestCase
     /**
      * @psalm-suppress UndefinedInterfaceMethod
      */
-    public function routeProvider(): array
+    public static function routeProvider(): array
     {
         return [
             'named route' => [

@@ -312,9 +312,7 @@ class MySqliInstrumentationTest extends TestCase
 
     }
 
-    /**
-     * @requires PHP >= 8.2
-     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhp('>= 8.2')]
     public function test_mysqli_execute_query_objective(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -373,9 +371,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertDatabaseAttributesForAllSpans($offset);
     }
 
-    /**
-     * @requires PHP >= 8.2
-     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhp('>= 8.2')]
     public function test_mysqli_execute_query_procedural(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
