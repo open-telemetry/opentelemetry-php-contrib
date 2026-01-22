@@ -20,6 +20,7 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
 
     public array $collectedSpans = [];
 
+    #[\Override]
     public function reset(): void
     {
         $this->data = [];

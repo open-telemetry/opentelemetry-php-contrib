@@ -48,6 +48,7 @@ class OtelSdkExtension extends Extension implements LoggerAwareInterface
      * @param ContainerBuilder $container
      * @return Configuration
      */
+    #[\Override]
     public function getConfiguration(array $config, ContainerBuilder $container): Configuration
     {
         return new Conf(

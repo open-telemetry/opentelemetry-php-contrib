@@ -1,6 +1,16 @@
-PHP_VERSION ?= 8.2
-include .env
+# Save variables if passed via command-line or environment before .env overrides them
+_ORIG_PROJECT := $(PROJECT)
+_ORIG_PHP_VERSION := $(PHP_VERSION)
+-include .env
+# Restore variables if passed externally, otherwise use .env value or default
+ifneq ($(_ORIG_PROJECT),)
+PROJECT := $(_ORIG_PROJECT)
+endif
+ifneq ($(_ORIG_PHP_VERSION),)
+PHP_VERSION := $(_ORIG_PHP_VERSION)
+endif
 PROJECT ?= Aws
+PHP_VERSION ?= 8.2
 ROOT=/usr/src/myapp/src
 DC_RUN = ${DOCKER_COMPOSE} run --rm
 DC_RUN_PHP = $(DC_RUN) -w ${ROOT}/${PROJECT} php
@@ -53,12 +63,14 @@ PACKAGES := Aws Context/Swoole Exporter/Instana Instrumentation/AwsSdk Instrumen
 	Instrumentation/ReactPHP Instrumentation/Session Instrumentation/Slim Instrumentation/Symfony \
 	Instrumentation/Yii Logs/Monolog Propagation/CloudTrace Propagation/Instana Propagation/ServerTiming \
 	Propagation/TraceResponse ResourceDetectors/Azure ResourceDetectors/Container ResourceDetectors/DigitalOcean \
-	Sampler/RuleBased Sampler/Xray Shims/OpenTracing SqlCommenter Symfony Utils/Test
+	Sampler/RuleBased Sampler/Xray Shims/OpenTracing SqlCommenter Symfony/src/OtelBundle \
+	Symfony/src/OtelSdkBundle Utils/Test
 
 rector-all: ## Run rector on all packages (with composer update)
 	@for pkg in $(PACKAGES); do \
 		echo "=== Running rector on $$pkg ==="; \
-		$(MAKE) PROJECT=$$pkg update && $(MAKE) PROJECT=$$pkg rector; \
+		$(MAKE) --no-print-directory PROJECT=$$pkg update && \
+		$(MAKE) --no-print-directory PROJECT=$$pkg rector || exit 1; \
 	done
 validate: ## Validate composer file
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer validate --no-plugins

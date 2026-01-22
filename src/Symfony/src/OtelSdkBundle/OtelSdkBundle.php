@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class OtelSdkBundle extends Bundle
 {
+    #[\Override]
     public function getContainerExtension(): DependencyInjection\OtelSdkExtension
     {
         return new DependencyInjection\OtelSdkExtension();

@@ -22,7 +22,7 @@ return RectorConfig::configure()
     ->withPhpVersion(PhpVersion::PHP_83)
     ->withRules([
         AddOverrideAttributeToOverriddenMethodsRector::class,
-    ]);
+    ])
     ->withSkip([
         '*/_register.php',
         '*/vendor/*',

@@ -14,6 +14,7 @@
         "symfony/dependency-injection": "^4.4 || ^5.4 || ^6.1"
     },
     "require-dev": {
+        "rector/rector": "^2.0",
         "symfony/http-kernel": "^4.4 || ^5.4 || ^6.1"
     },
     "autoload": {

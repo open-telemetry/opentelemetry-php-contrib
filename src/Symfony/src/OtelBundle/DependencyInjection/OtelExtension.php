@@ -43,6 +43,7 @@ final class OtelExtension extends Extension
         }
     }
 
+    #[\Override]
     public function getConfiguration(array $config, ContainerBuilder $container): ConfigurationInterface
     {
         return new Configuration();
