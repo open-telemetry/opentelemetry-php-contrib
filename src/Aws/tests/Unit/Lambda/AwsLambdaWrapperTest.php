@@ -20,6 +20,7 @@ use ReflectionClass;
 
 class AwsLambdaWrapperTest extends TestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         // Reset the singleton instance and cold-start flag before each test

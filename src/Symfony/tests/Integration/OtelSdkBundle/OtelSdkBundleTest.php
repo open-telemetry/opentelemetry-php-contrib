@@ -42,7 +42,8 @@ class OtelSdkBundleTest extends TestCase
     private OtelSdkExtension $extension;
     private ContainerBuilder $container;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->extension = $this->createExtension();
         $this->container = $this->createContainer();

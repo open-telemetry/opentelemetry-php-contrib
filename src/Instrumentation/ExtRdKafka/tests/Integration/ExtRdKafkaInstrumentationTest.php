@@ -26,7 +26,8 @@ class ExtRdKafkaInstrumentationTest extends TestCase
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
@@ -40,7 +41,8 @@ class ExtRdKafkaInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
         $result = null;

@@ -25,7 +25,8 @@ class ModelTest extends TestCase
         ]);
     }
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         parent::setUp();
 

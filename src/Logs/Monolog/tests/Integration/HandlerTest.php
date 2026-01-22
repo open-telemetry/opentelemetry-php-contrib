@@ -24,7 +24,8 @@ class HandlerTest extends TestCase
     private ArrayObject $storage;
     private Logger $logger;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $exporter = new InMemoryExporter($this->storage);

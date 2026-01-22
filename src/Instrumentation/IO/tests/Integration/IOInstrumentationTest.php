@@ -19,7 +19,8 @@ class IOInstrumentationTest extends TestCase
     private ArrayObject $storage;
     private ImmutableSpan $span;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -33,7 +34,8 @@ class IOInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
         // Clean up any output buffers that might have been started during tests

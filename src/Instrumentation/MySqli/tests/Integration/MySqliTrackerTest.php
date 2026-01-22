@@ -13,7 +13,8 @@ class MySqliTrackerTest extends TestCase
     private MySqliTracker $tracker;
     private ReflectionMethod $splitQueries;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->tracker = new MySqliTracker();
 
@@ -21,7 +22,8 @@ class MySqliTrackerTest extends TestCase
         $this->splitQueries->setAccessible(true);
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         unset($this->tracker, $this->splitQueries);
     }

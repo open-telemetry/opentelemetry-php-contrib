@@ -38,7 +38,8 @@ class ConfigurationTest extends TestCase
     private static ?Parser $parser = null;
     private NodeInterface $treeNode;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->treeNode = (new Configuration())
             ->getConfigTreeBuilder()

@@ -31,6 +31,7 @@ class SpanEventAssertionTest extends TestCase
     private SpanEventAssertion $eventAssertion;
 
     #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         // Create a storage for the exported spans

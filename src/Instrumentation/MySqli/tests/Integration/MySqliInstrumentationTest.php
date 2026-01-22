@@ -33,7 +33,8 @@ class MySqliInstrumentationTest extends TestCase
     private string $passwd;
     private string $database;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -54,7 +55,8 @@ class MySqliInstrumentationTest extends TestCase
         $this->database = 'otel_db';
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

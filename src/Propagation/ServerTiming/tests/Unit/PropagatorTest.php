@@ -24,6 +24,7 @@ class PropagatorTest extends TestCase
     private ServerTimingPropagator $propagator;
 
     #[\Override]
+    #[\Override]
     protected function setUp(): void
     {
         $this->propagator = ServerTimingPropagator::getInstance();

@@ -22,7 +22,8 @@ class CurlMultiInstrumentationTest extends TestCase
     /** @var ArrayObject<int, ImmutableSpan> */
     private ArrayObject $storage;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -37,7 +38,8 @@ class CurlMultiInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

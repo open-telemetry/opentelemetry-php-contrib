@@ -35,7 +35,8 @@ class ReactPHPInstrumentationTest extends TestCase
     private TracerProvider $tracerProvider;
     private ScopeInterface $scope;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         /**
          * Browser/Transaction set up, pulled from ReactPHP tests:
@@ -82,7 +83,8 @@ class ReactPHPInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
         $this->tracerProvider->shutdown();

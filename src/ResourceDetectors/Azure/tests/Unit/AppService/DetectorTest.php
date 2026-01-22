@@ -19,7 +19,8 @@ class DetectorTest extends TestCase
     const SERVICE_NAME = 'demo-app';
     const RESOURCE_URI = '/subscriptions/owner_name/resourceGroups/resouce_group/providers/Microsoft.Web/sites/demo-app';
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         self::restoreEnvironmentVariables();
     }

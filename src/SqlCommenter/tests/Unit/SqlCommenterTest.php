@@ -40,6 +40,7 @@ class SqlCommenterTest extends TestCase
 {
     private SqlCommenter $commenter;
     #[\Override]
+    #[\Override]
     protected function setUp(): void
     {
         $this->commenter = SqlCommenter::getInstance();

@@ -24,6 +24,7 @@ class TraceAssertionTest extends TestCase
     private TracerProvider $tracerProvider;
 
     #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         // Create a storage for the exported spans

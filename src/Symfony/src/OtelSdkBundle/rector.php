@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+use Rector\Set\ValueObject\SetList;
 use Rector\ValueObject\PhpVersion;
 
 return RectorConfig::configure()
@@ -17,6 +18,9 @@ return RectorConfig::configure()
         __DIR__ . '/Util',
     ])
     ->withPhpVersion(PhpVersion::PHP_83)
+    ->withSets([
+        SetList::PHP_82,
+    ])
     ->withRules([
         AddOverrideAttributeToOverriddenMethodsRector::class,
     ]);

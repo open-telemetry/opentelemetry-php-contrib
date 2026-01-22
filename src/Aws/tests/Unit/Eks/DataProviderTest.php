@@ -18,7 +18,8 @@ class DataProviderTest extends TestCase
 
     private vfsStreamDirectory $root;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->root = vfsStream::setup(self::ROOT_DIR);
     }

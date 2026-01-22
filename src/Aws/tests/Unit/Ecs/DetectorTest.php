@@ -40,7 +40,8 @@ class DetectorTest extends TestCase
     private const CLOUD_PROVIDER     = 'aws';
     private const CLOUD_PLATFORM     = 'aws_ecs';
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         LoggerHolder::set(new NullLogger());
     }

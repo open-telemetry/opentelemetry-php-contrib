@@ -21,7 +21,8 @@ class RuleSetTest extends TestCase
     /** @var SamplingRule&MockObject */
     private SamplingRule $rule_two;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->delegate = $this->createMock(SamplerInterface::class);
         $this->rule_one = $this->createMock(SamplingRule::class);

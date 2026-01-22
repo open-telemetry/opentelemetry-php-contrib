@@ -18,6 +18,7 @@ final class AWSXRaySamplerClientTest extends TestCase
     private string|false $rulesJson;
     private string|false $targetsJson;
 
+    #[\Override]
     protected function setUp(): void
     {
         $dataDir = __DIR__ . '/data';

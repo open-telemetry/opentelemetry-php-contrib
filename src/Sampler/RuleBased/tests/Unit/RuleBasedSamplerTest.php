@@ -37,7 +37,8 @@ class RuleBasedSamplerTest extends TestCase
     /** @var list<LinkInterface> */
     private array $links;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->context = $this->createMock(ContextInterface::class);
         $this->traceId = 'some.trace.id';

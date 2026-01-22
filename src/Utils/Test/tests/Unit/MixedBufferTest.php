@@ -26,6 +26,7 @@ class MixedBufferTest extends TestCase
     private TracerProvider $tracerProvider;
 
     #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         // Create a shared buffer for both spans and logrecords

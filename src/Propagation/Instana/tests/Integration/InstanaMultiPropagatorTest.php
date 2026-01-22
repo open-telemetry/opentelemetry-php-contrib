@@ -32,6 +32,7 @@ final class InstanaMultiPropagatorTest extends TestCase
     private InstanaPropagator $InstanaPropagator;
     
     #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         $this->InstanaPropagator = InstanaPropagator::getInstance();

@@ -25,7 +25,8 @@ class TraceAssertionFailedExceptionTest extends TestCase
     private TracerProvider $tracerProvider;
 
     #[Override]
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         // Create a storage for the exported spans
         $this->storage = new ArrayObject();

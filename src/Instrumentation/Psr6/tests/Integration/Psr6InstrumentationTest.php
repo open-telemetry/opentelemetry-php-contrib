@@ -26,7 +26,8 @@ class Psr6InstrumentationTest extends TestCase
     private TracerProvider $tracerProvider;
     private CacheItemPoolInterface $adapter;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
@@ -41,7 +42,8 @@ class Psr6InstrumentationTest extends TestCase
         $this->adapter = $this->createMemoryCacheAdapter();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

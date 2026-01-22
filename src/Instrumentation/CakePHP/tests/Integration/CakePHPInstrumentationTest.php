@@ -20,7 +20,8 @@ class CakePHPInstrumentationTest extends TestCase
     private const SPAN_ID = 'ff00000000000041';
     private const TRACEPARENT_HEADER = '00-' . self::TRACE_ID . '-' . self::SPAN_ID . '-01';
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         parent::setUp();
         $this->configRequest(['headers'=>['Accept'=>'application/json']]);

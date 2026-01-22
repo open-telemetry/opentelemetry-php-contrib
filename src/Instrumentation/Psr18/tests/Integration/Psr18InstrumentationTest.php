@@ -27,7 +27,8 @@ class Psr18InstrumentationTest extends TestCase
     /** @var ClientInterface&\PHPUnit\Framework\MockObject\MockObject */
     private ClientInterface $client;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
@@ -43,7 +44,8 @@ class Psr18InstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

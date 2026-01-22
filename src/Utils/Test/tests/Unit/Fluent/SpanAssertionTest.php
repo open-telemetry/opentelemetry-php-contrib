@@ -30,6 +30,7 @@ class SpanAssertionTest extends TestCase
     private SpanAssertion $spanAssertion;
 
     #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         // Create a storage for the exported spans

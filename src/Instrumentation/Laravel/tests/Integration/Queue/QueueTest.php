@@ -24,7 +24,8 @@ class QueueTest extends TestCase
 {
     private Queue $queue;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         parent::setUp();
 

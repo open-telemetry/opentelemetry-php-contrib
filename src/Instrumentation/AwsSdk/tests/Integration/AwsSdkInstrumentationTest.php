@@ -28,7 +28,8 @@ class AwsSdkInstrumentationTest extends TestCase
     private ArrayObject $spans;
     private ScopeInterface $scope;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->spans = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -57,7 +58,8 @@ class AwsSdkInstrumentationTest extends TestCase
         ]);
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

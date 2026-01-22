@@ -31,7 +31,8 @@ class DigitalOceanDetectorTest extends TestCase
     private mixed $errorLog;
     private vfsStreamDirectory $vfs;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         /** mock sysfs with DigitalOcean SMBIOS pointers */
         $this->vfs = vfsStream::setup('/', structure: [
