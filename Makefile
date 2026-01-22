@@ -1,4 +1,4 @@
-PHP_VERSION ?= 7.4
+PHP_VERSION ?= 8.2
 include .env
 PROJECT ?= Aws
 ROOT=/usr/src/myapp/src
@@ -38,6 +38,28 @@ psalm-info: ## Run psalm with info
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/psalm --show-info=true --threads=1
 phpstan: ## Run phpstan
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=256M
+rector: ## Run rector
+	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/rector
+rector-dry-run: ## Run rector (dry-run)
+	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/rector --dry-run
+
+# List of all packages for rector-all target
+PACKAGES := Aws Context/Swoole Exporter/Instana Instrumentation/AwsSdk Instrumentation/CakePHP \
+	Instrumentation/CodeIgniter Instrumentation/Curl Instrumentation/Doctrine Instrumentation/ExtAmqp \
+	Instrumentation/ExtRdKafka Instrumentation/Guzzle Instrumentation/HttpAsyncClient Instrumentation/HttpConfig \
+	Instrumentation/IO Instrumentation/Laravel Instrumentation/MongoDB Instrumentation/MySqli \
+	Instrumentation/OpenAIPHP Instrumentation/PDO Instrumentation/PostgreSql Instrumentation/Psr3 \
+	Instrumentation/Psr6 Instrumentation/Psr14 Instrumentation/Psr15 Instrumentation/Psr16 Instrumentation/Psr18 \
+	Instrumentation/ReactPHP Instrumentation/Session Instrumentation/Slim Instrumentation/Symfony \
+	Instrumentation/Yii Logs/Monolog Propagation/CloudTrace Propagation/Instana Propagation/ServerTiming \
+	Propagation/TraceResponse ResourceDetectors/Azure ResourceDetectors/Container ResourceDetectors/DigitalOcean \
+	Sampler/RuleBased Sampler/Xray Shims/OpenTracing SqlCommenter Symfony Utils/Test
+
+rector-all: ## Run rector on all packages (with composer update)
+	@for pkg in $(PACKAGES); do \
+		echo "=== Running rector on $$pkg ==="; \
+		$(MAKE) PROJECT=$$pkg update && $(MAKE) PROJECT=$$pkg rector; \
+	done
 validate: ## Validate composer file
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer validate --no-plugins
 packages-composer: ## Validate all composer packages

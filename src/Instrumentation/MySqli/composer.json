@@ -31,12 +31,13 @@
     "friendsofphp/php-cs-fixer": "^3",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^6.4 || ^7.0@beta"
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "rector/rector": "^2.0"
   },
   "autoload": {
     "psr-4": {

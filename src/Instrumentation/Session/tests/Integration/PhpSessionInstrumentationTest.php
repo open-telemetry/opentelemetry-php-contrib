@@ -23,6 +23,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         }
     }
     
+    #[\Override]
     public function tearDown(): void
     {
         // Clean up any active sessions

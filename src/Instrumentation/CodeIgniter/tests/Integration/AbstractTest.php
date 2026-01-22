@@ -35,6 +35,7 @@ abstract class AbstractTest extends CIUnitTestCase
         parent::setUp();
     }
 
+    #[\Override]
     public function tearDown(): void
     {
         parent::tearDown();

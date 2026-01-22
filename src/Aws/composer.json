@@ -1,56 +1,64 @@
 {
-    "name": "open-telemetry/contrib-aws",
-    "description": "The Aws package for opentelemetry-php",
-    "keywords": ["opentelemetry", "otel", "aws", "tracing", "detector", "propagator"],
-    "type": "library",
-    "license": "Apache-2.0",
-    "authors": [
-        {
-            "name": "opentelemetry-php-contrib contributors",
-            "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
-        }
-    ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "php": "^8.2",
-        "bref/bref": "^2.4",
-        "open-telemetry/api": "^1.0",
-        "open-telemetry/sdk": "^1.0",
-        "open-telemetry/exporter-otlp": "^1.3",
-        "open-telemetry/sem-conv": "^1.32",
-        "aws/aws-sdk-php": "^3.232"
-    },
-    "require-dev": {
-        "dg/bypass-finals": "^v1.4.1",
-        "friendsofphp/php-cs-fixer": "^3.0",
-        "mikey179/vfsstream": "^1.6",
-        "open-telemetry/dev-tools": "dev-main",
-        "phan/phan": "^4.1 || ^5",
-        "php-http/mock-client": "*",
-        "phpstan/phpstan": "^1.4",
-        "phpstan/phpstan-phpunit": "^1.0",
-        "phpunit/phpunit": "~9",
-        "psalm/plugin-phpunit": "^0.19.2",
-        "vimeo/psalm": "^6.4 || ^7.0@beta"
-    },
-    "autoload": {
-        "psr-4": {
-            "OpenTelemetry\\Contrib\\Aws\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "OpenTelemetry\\Tests\\Aws\\": "tests/"
-        }
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "composer/package-versions-deprecated": true,
-            "php-http/discovery": false,
-            "symfony/runtime": true,
-            "tbachert/spi": true
-        }
+  "name": "open-telemetry/contrib-aws",
+  "description": "The Aws package for opentelemetry-php",
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "aws",
+    "tracing",
+    "detector",
+    "propagator"
+  ],
+  "type": "library",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "opentelemetry-php-contrib contributors",
+      "homepage": "https://github.com/open-telemetry/opentelemetry-php-contrib/graphs/contributors"
     }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.2",
+    "bref/bref": "^2.4",
+    "open-telemetry/api": "^1.0",
+    "open-telemetry/sdk": "^1.0",
+    "open-telemetry/exporter-otlp": "^1.3",
+    "open-telemetry/sem-conv": "^1.32",
+    "aws/aws-sdk-php": "^3.232"
+  },
+  "require-dev": {
+    "dg/bypass-finals": "^v1.4.1",
+    "friendsofphp/php-cs-fixer": "^3.0",
+    "mikey179/vfsstream": "^1.6",
+    "open-telemetry/dev-tools": "dev-main",
+    "phan/phan": "^4.1 || ^5",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "phpunit/phpunit": "~9",
+    "psalm/plugin-phpunit": "^0.19.2",
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "rector/rector": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Aws\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Aws\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "composer/package-versions-deprecated": true,
+      "php-http/discovery": false,
+      "symfony/runtime": true,
+      "tbachert/spi": true
+    }
+  }
 }

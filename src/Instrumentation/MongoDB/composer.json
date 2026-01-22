@@ -1,7 +1,15 @@
 {
   "name": "open-telemetry/opentelemetry-auto-mongodb",
   "description": "OpenTelemetry auto-instrumentation for MongoDB",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "mongodb", "mongo", "instrumentation"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "mongodb",
+    "mongo",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
@@ -17,12 +25,13 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
     "phan/phan": "^5.0",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^6.4 || ^7.0@beta"
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "rector/rector": "^2.0"
   },
   "autoload": {
     "psr-4": {

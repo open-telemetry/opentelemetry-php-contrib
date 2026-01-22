@@ -1,7 +1,14 @@
 {
   "name": "open-telemetry/opentelemetry-auto-cakephp",
   "description": "OpenTelemetry auto-instrumentation for CakePHP Framework.",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "cakephp", "instrumentation"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "cakephp",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
@@ -20,14 +27,15 @@
     "mockery/mockery": "^1.5",
     "nyholm/psr7": "*",
     "phan/phan": "^5.0",
-    "phpstan/phpstan-mockery": "^1.1.0",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan-mockery": "^2.0",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5|^10.5",
     "vimeo/psalm": "^6.4 || ^7.0@beta",
-    "symfony/http-client": "^6 || ^7"
+    "symfony/http-client": "^6 || ^7",
+    "rector/rector": "^2.0"
   },
   "suggest": {
     "open-telemetry/opentelemetry-auto-psr3": "OpenTelemetry auto-instrumentation for PSR-3 (Logger Interface)",

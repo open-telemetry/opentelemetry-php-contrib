@@ -1,7 +1,12 @@
 {
   "name": "open-telemetry/opentelemetry-config-http",
   "description": "OpenTelemetry HTTP configuration options",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "instrumentation"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
@@ -25,7 +30,8 @@
     "phpunit/phpunit": "^10.5",
     "vimeo/psalm": "^6.4 || ^7.0@beta",
     "symfony/yaml": "^6.4",
-    "symfony/polyfill-php83": "^1.32"
+    "symfony/polyfill-php83": "^1.32",
+    "rector/rector": "^2.0"
   },
   "autoload": {
     "psr-4": {

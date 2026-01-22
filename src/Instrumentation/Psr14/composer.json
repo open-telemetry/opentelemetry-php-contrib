@@ -1,7 +1,15 @@
 {
   "name": "open-telemetry/opentelemetry-auto-psr14",
   "description": "OpenTelemetry auto-instrumentation for PSR-14 (Event Dispatcher).",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "psr14", "instrumentation", "EventDispatcher"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "psr14",
+    "instrumentation",
+    "EventDispatcher"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
@@ -34,12 +42,14 @@
     "nyholm/psr7": "*",
     "phan/phan": "^5.0",
     "php-http/mock-client": "*",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^6.4 || ^7.0@beta"
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "rector/rector": "^2.0",
+    "symfony/http-client": "^7.4"
   },
   "config": {
     "allow-plugins": {

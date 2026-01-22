@@ -1,7 +1,15 @@
 {
   "name": "open-telemetry/opentelemetry-propagation-cloudtrace",
   "description": "CloudTraceContext propagator extension for OpenTelemetry PHP.",
-  "keywords": ["opentelemetry", "otel", "tracing", "apm", "extension", "propagator", "cloudtrace"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "tracing",
+    "apm",
+    "extension",
+    "propagator",
+    "cloudtrace"
+  ],
   "type": "library",
   "readme": "./README.md",
   "license": "Apache-2.0",
@@ -13,10 +21,10 @@
     "open-telemetry/context": "^1.0"
   },
   "autoload": {
-    "psr-4":{
+    "psr-4": {
       "OpenTelemetry\\Contrib\\Propagation\\CloudTrace\\": "src/"
     },
-    "files":[
+    "files": [
       "_register.php"
     ]
   },
@@ -28,12 +36,15 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
     "phan/phan": "^5.0",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^6.4 || ^7.0@beta"
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "rector/rector": "^2.0",
+    "symfony/http-client": "^7.4",
+    "nyholm/psr7": "^1.8"
   },
   "config": {
     "allow-plugins": {

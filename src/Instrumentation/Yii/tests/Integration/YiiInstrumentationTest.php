@@ -184,6 +184,7 @@ class SiteController extends Controller
     }
 
     /** @psalm-suppress MoreSpecificReturnType */
+    #[\Override]
     public function actions()
     {
         /** @psalm-suppress LessSpecificReturnStatement */

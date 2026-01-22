@@ -113,6 +113,10 @@ jobs:
         PHAN_DISABLE_XDEBUG_WARN: 1
       run: vendor/bin/phan
 
+    - name: Run Rector
+      working-directory: src/${{ matrix.project }}
+      run: vendor/bin/rector --dry-run
+
     - name: Run Psalm
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/psalm --output-format=github --php-version=${{ matrix.php-version }}
