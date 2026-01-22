@@ -34,8 +34,9 @@ final class RequestPropagationGetter implements PropagationGetterInterface
 
         $result = $carrier->getHeaders()->get($key, null, true);
 
-        if (is_array($result)) {
-            return (string) array_values($result)[0];
+        if (is_array($result) && $result !== []) {
+            /** @var string */
+            return reset($result);
         }
 
         return $result;
