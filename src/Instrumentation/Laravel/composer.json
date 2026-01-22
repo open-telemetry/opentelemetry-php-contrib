@@ -33,7 +33,7 @@
     "phpunit/phpunit": "^9.5",
     "psalm/plugin-phpunit": "^0.19.2",
     "spatie/laravel-ignition": "*",
-    "vimeo/psalm": "6.4.0"
+    "vimeo/psalm": "^6.4 || ^7.0@beta"
   },
   "autoload": {
     "psr-4": {

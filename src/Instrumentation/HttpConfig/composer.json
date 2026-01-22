@@ -23,7 +23,7 @@
     "open-telemetry/sdk": "^1.6",
     "open-telemetry/sdk-configuration": "^0.5",
     "phpunit/phpunit": "^10.5",
-    "vimeo/psalm": "^6.7",
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
     "symfony/yaml": "^6.4",
     "symfony/polyfill-php83": "^1.32"
   },
