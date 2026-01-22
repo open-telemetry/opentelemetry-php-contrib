@@ -8,7 +8,7 @@ DC_RUN_PHP = $(DC_RUN) -w ${ROOT}/${PROJECT} php
 .DEFAULT_GOAL : help
 
 help: ## Show this help
-	@echo "example: PROJECT=Aws PHP_VERSION=8.1 make <command>"
+	@echo "example: PROJECT=Aws PHP_VERSION=8.2 make <command>"
 	@printf "\033[33m%s:\033[0m\n" 'Available commands'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 all-checks: style validate phan psalm phpstan test ## All checks + tests
