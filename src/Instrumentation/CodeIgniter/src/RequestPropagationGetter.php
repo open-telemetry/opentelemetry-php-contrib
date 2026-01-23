@@ -30,8 +30,8 @@ final class RequestPropagationGetter implements PropagationGetterInterface
     }
 
     #[\Override]
-
-    public function get($carrier, string $key) : ?string
+    /** @phpstan-ignore return.unusedType (implementing interface that allows null) */
+    public function get($carrier, string $key): ?string
     {
         assert($carrier instanceof MessageInterface);
 
