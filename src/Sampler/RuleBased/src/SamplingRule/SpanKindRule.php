@@ -20,6 +20,7 @@ final readonly class SpanKindRule implements SamplingRule
     ) {
     }
 
+    #[\Override]
     public function matches(
         ContextInterface $context,
         string $traceId,

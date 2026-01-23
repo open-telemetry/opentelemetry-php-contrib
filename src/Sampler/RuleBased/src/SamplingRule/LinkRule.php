@@ -22,6 +22,7 @@ final readonly class LinkRule implements SamplingRule
     ) {
     }
 
+    #[\Override]
     public function matches(
         ContextInterface $context,
         string $traceId,

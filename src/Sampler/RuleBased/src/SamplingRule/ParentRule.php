@@ -23,6 +23,7 @@ final readonly class ParentRule implements SamplingRule
     ) {
     }
 
+    #[\Override]
     public function matches(
         ContextInterface $context,
         string $traceId,
