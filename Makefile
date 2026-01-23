@@ -72,6 +72,20 @@ rector-all: ## Run rector on all packages (with composer update)
 		$(MAKE) --no-print-directory PROJECT=$$pkg update && \
 		$(MAKE) --no-print-directory PROJECT=$$pkg rector || exit 1; \
 	done
+
+psalm-all: ## Run psalm on all packages (with composer update)
+	@for pkg in $(PACKAGES); do \
+		echo "=== Running psalm on $$pkg ==="; \
+		$(MAKE) --no-print-directory PROJECT=$$pkg update && \
+		$(MAKE) --no-print-directory PROJECT=$$pkg psalm || exit 1; \
+	done
+
+style-all: ## Run php-cs-fixer on all packages (with composer update)
+	@for pkg in $(PACKAGES); do \
+		echo "=== Running style on $$pkg ==="; \
+		$(MAKE) --no-print-directory PROJECT=$$pkg update && \
+		$(MAKE) --no-print-directory PROJECT=$$pkg style || exit 1; \
+	done
 validate: ## Validate composer file
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer validate --no-plugins
 packages-composer: ## Validate all composer packages
