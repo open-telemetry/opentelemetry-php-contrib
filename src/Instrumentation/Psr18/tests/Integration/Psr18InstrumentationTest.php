@@ -70,7 +70,7 @@ class Psr18InstrumentationTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request) {
                 $this->assertTrue($request->hasHeader('traceparent'), 'traceparent has been injected into request');
-                $this->assertNotNull($request->getHeaderLine('traceparent'));
+                $this->assertNotEmpty($request->getHeaderLine('traceparent'));
 
                 return true;
             }))
