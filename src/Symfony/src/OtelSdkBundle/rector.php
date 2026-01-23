@@ -9,7 +9,7 @@ use Rector\ValueObject\PhpVersion;
 
 return RectorConfig::configure()
     ->withPaths([
-        __DIR__,
+        __DIR__ . '/OtelSdkBundle.php',
         __DIR__ . '/DataCollector',
         __DIR__ . '/Debug',
         __DIR__ . '/DependencyInjection',
