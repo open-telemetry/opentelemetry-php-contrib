@@ -24,7 +24,6 @@ class PropagatorTest extends TestCase
     private TraceResponsePropagator $propagator;
 
     #[\Override]
-    #[\Override]
     protected function setUp(): void
     {
         $this->propagator = TraceResponsePropagator::getInstance();
@@ -128,4 +127,3 @@ class PropagatorTest extends TestCase
     {
         return $context->withContextValue(Span::wrap($spanContext));
     }
-}

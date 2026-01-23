@@ -24,6 +24,7 @@ final class SamplingRuleLink implements ComponentProvider
      *     remote: ?bool,
      * } $properties
      */
+    #[\Override]
     public function createPlugin(array $properties, Context $context): SamplingRule
     {
         return new LinkRule(
@@ -32,6 +33,7 @@ final class SamplingRuleLink implements ComponentProvider
         );
     }
 
+    #[\Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
         $node = $builder->arrayNode('link');

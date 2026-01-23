@@ -15,7 +15,6 @@ class SpanExporterTest extends TestCase
     private SpanExporter $exporter;
 
     #[\Override]
-    #[\Override]
     protected function setUp(): void
     {
         $transportMock = $this->createMock(TransportInterface::class);
@@ -51,4 +50,3 @@ class SpanExporterTest extends TestCase
 
         $this->assertSame($ret::class, CompletedFuture::class);
     }
-}

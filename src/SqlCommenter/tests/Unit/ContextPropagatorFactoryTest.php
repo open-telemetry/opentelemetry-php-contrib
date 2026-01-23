@@ -16,7 +16,6 @@ use PHPUnit\Framework\TestCase;
 class ContextPropagatorFactoryTest extends TestCase
 {
     #[\Override]
-    #[\Override]
     protected function setUp(): void
     {
         LoggerHolder::disable();
@@ -50,4 +49,3 @@ class ContextPropagatorFactoryTest extends TestCase
             ['invalid', null],
         ];
     }
-}

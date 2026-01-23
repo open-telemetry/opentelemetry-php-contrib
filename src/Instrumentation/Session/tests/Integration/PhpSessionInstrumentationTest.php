@@ -25,7 +25,6 @@ class PhpSessionInstrumentationTest extends AbstractTest
     }
     
     #[\Override]
-    #[\Override]
     protected function tearDown(): void
     {
         // Clean up any active sessions
@@ -226,4 +225,3 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
     }
 
-}

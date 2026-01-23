@@ -31,7 +31,6 @@ class CloudTracePropagatorOneWayTest extends TestCase
      * @psalm-suppress PossiblyUndefinedArrayOffset
      */
     #[\Override]
-    #[\Override]
     protected function setUp(): void
     {
         $this->cloudTracePropagator = CloudTracePropagator::getOneWayInstance();
@@ -175,4 +174,3 @@ class CloudTracePropagatorOneWayTest extends TestCase
     ): string {
         return sprintf('%s/%s;o=%d', $traceId, $spanId, $traceEnabled);
     }
-}

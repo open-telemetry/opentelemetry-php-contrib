@@ -37,11 +37,9 @@ abstract class AbstractTest extends CIUnitTestCase
     }
 
     #[\Override]
-    #[\Override]
     protected function tearDown(): void
     {
         parent::tearDown();
 
         $this->scope->detach();
     }
-}

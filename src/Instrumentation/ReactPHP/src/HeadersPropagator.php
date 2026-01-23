@@ -21,6 +21,7 @@ class HeadersPropagator implements PropagationSetterInterface
     }
 
     /** @param RequestInterface $carrier */
+    #[\Override]
     public function set(&$carrier, string $key, string $value): void
     {
         assert($carrier instanceof RequestInterface);

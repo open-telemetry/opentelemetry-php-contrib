@@ -26,6 +26,7 @@ final class SamplingRuleAttribute implements ComponentProvider
      * } $properties
      * @psalm-suppress ArgumentTypeCoercion
      */
+    #[\Override]
     public function createPlugin(array $properties, Context $context): SamplingRule
     {
         return new AttributeRule(
@@ -34,6 +35,7 @@ final class SamplingRuleAttribute implements ComponentProvider
         );
     }
 
+    #[\Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
         $node = $builder->arrayNode('attribute');

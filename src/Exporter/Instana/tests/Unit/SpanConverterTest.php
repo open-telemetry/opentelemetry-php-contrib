@@ -22,7 +22,6 @@ class SpanConverterTest extends TestCase
     private SpanConverter $converter;
 
     #[\Override]
-    #[\Override]
     protected function setUp(): void
     {
         $this->converter = new SpanConverter('0123456abcdef', '12345');
@@ -312,4 +311,3 @@ class SpanConverterTest extends TestCase
         $this->assertArrayNotHasKey('http.response.header.agent', $data['attributes']);
         
     }
-}

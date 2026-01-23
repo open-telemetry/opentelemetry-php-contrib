@@ -19,6 +19,7 @@ final class HeadersPropagator implements PropagationGetterInterface
      *
      * @psalm-suppress LessSpecificImplementedReturnType
      */
+    #[\Override]
     public function keys($carrier): array
     {
         return $carrier->headers->keys();
@@ -27,6 +28,7 @@ final class HeadersPropagator implements PropagationGetterInterface
     /**
      * @param Request $carrier
      */
+    #[\Override]
     public function get($carrier, string $key): ?string
     {
         /** @psalm-suppress InvalidArgument */
