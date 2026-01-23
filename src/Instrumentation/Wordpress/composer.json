@@ -1,55 +1,43 @@
 {
-    "name": "open-telemetry/opentelemetry-auto-wordpress",
-    "description": "OpenTelemetry auto-instrumentation for Wordpress",
-    "keywords": [
-        "opentelemetry",
-        "otel",
-        "open-telemetry",
-        "tracing",
-        "wordpress",
-        "instrumentation"
-    ],
-    "type": "library",
-    "homepage": "https://opentelemetry.io/docs/languages/php/",
-    "readme": "./README.md",
-    "license": "Apache-2.0",
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "php": "^8.2",
-        "ext-opentelemetry": "*",
-        "open-telemetry/api": "^1.0",
-        "open-telemetry/sem-conv": "^1.32",
-        "nyholm/psr7": "^1",
-        "nyholm/psr7-server": "^1",
-        "psr/http-message": "2.0"
+  "name": "open-telemetry/opentelemetry-auto-wordpress",
+  "description": "OpenTelemetry auto-instrumentation for Wordpress",
+  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "wordpress", "instrumentation"],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/languages/php/",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.2",
+    "ext-opentelemetry": "*",
+    "open-telemetry/api": "^1.0",
+    "open-telemetry/sem-conv": "^1.32",
+    "nyholm/psr7": "^1",
+    "nyholm/psr7-server": "^1",
+    "psr/http-message": "2.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "phan/phan": "^6.0",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "psalm/plugin-phpunit": "^0.19.2",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^6.4 || ^7.0@beta"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\Wordpress\\": "src/"
     },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3",
-        "phan/phan": "^6.0",
-        "php-http/mock-client": "*",
-        "phpstan/phpstan": "^1.1",
-        "phpstan/phpstan-phpunit": "^1.0",
-        "psalm/plugin-phpunit": "^0.19.2",
-        "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^6.4 || ^7.0@beta"
-    },
-    "autoload": {
-        "psr-4": {
-            "OpenTelemetry\\Contrib\\Instrumentation\\Wordpress\\": "src/"
-        },
-        "files": [
-            "_register.php"
-        ]
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "OpenTelemetry\\Tests\\Instrumentation\\Wordpress\\": "tests/"
-        }
-    },
-    "config": {
-        "allow-plugins": {
-            "cweagans/composer-patches": true
-        }
+    "files": [
+      "_register.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\Wordpress\\": "tests/"
     }
+  }
 }

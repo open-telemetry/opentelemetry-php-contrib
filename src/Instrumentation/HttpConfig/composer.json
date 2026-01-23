@@ -1,68 +1,67 @@
 {
-    "name": "open-telemetry/opentelemetry-config-http",
-    "description": "OpenTelemetry HTTP configuration options",
-    "keywords": [
-        "opentelemetry",
-        "otel",
-        "open-telemetry",
-        "instrumentation"
-    ],
-    "type": "library",
-    "homepage": "https://opentelemetry.io/docs/php",
-    "readme": "./README.md",
-    "license": "Apache-2.0",
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "php": "^8.2",
-        "open-telemetry/api": "^1.4",
-        "psr/http-message": "^2.0"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.7",
-        "league/uri": "^7.5",
-        "phan/phan": "^6.0",
-        "phpstan/phpstan": "^2.1",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "psalm/plugin-phpunit": "^0.19.3",
-        "open-telemetry/sdk": "^1.6",
-        "open-telemetry/sdk-configuration": "^0.5",
-        "phpunit/phpunit": "^10.5",
-        "vimeo/psalm": "^6.4 || ^7.0@beta",
-        "symfony/yaml": "^6.4",
-        "symfony/polyfill-php83": "^1.32",
-        "rector/rector": "^2.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "OpenTelemetry\\Tests\\Instrumentation\\HttpConfig\\": "tests/"
-        }
-    },
-    "config": {
-        "allow-plugins": {
-            "tbachert/spi": true,
-            "cweagans/composer-patches": true
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-main": "1.x-dev"
-        },
-        "spi": {
-            "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
-                "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\InstrumentationConfigurationHttpConfig",
-                "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerDefault",
-                "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactQueryStringValues",
-                "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactUserInfo"
-            ],
-            "OpenTelemetry\\API\\Configuration\\ConfigEnv\\EnvComponentLoader": [
-                "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\ConfigEnv\\InstrumentationConfigurationHttpConfig"
-            ]
-        }
+  "name": "open-telemetry/opentelemetry-config-http",
+  "description": "OpenTelemetry HTTP configuration options",
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "instrumentation"
+  ],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/php",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.2",
+    "open-telemetry/api": "^1.4",
+    "psr/http-message": "^2.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.7",
+    "league/uri": "^7.5",
+    "phan/phan": "^6.0",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "psalm/plugin-phpunit": "^0.19.3",
+    "open-telemetry/sdk": "^1.6",
+    "open-telemetry/sdk-configuration": "^0.5",
+    "phpunit/phpunit": "^10.5",
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "symfony/yaml": "^6.4",
+    "symfony/polyfill-php83": "^1.32",
+    "rector/rector": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\HttpConfig\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "tbachert/spi": true
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "1.x-dev"
+    },
+    "spi": {
+      "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
+        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\InstrumentationConfigurationHttpConfig",
+        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerDefault",
+        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactQueryStringValues",
+        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactUserInfo"
+      ],
+      "OpenTelemetry\\API\\Configuration\\ConfigEnv\\EnvComponentLoader": [
+        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\ConfigEnv\\InstrumentationConfigurationHttpConfig"
+      ]
+    }
+  }
 }

@@ -1,60 +1,59 @@
 {
-    "name": "open-telemetry/opentelemetry-auto-codeigniter",
-    "description": "OpenTelemetry auto-instrumentation for CodeIgniter",
-    "keywords": [
-        "opentelemetry",
-        "otel",
-        "open-telemetry",
-        "tracing",
-        "codeigniter",
-        "instrumentation"
-    ],
-    "type": "library",
-    "homepage": "https://opentelemetry.io/docs/languages/php/",
-    "readme": "./README.md",
-    "license": "Apache-2.0",
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "php": "^8.2",
-        "ext-opentelemetry": "*",
-        "codeigniter4/framework": "^4.3",
-        "open-telemetry/api": "^1.6",
-        "open-telemetry/sem-conv": "^1.32"
+  "name": "open-telemetry/opentelemetry-auto-codeigniter",
+  "description": "OpenTelemetry auto-instrumentation for CodeIgniter",
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "codeigniter",
+    "instrumentation"
+  ],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/languages/php/",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.2",
+    "ext-opentelemetry": "*",
+    "codeigniter4/framework": "^4.3",
+    "open-telemetry/api": "^1.6",
+    "open-telemetry/sem-conv": "^1.32"
+  },
+  "suggest": {
+    "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.50",
+    "open-telemetry/sdk": "^1.8",
+    "phan/phan": "^6.0",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "psalm/plugin-phpunit": "^0.19.2",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "rector/rector": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\CodeIgniter\\": "src/"
     },
-    "suggest": {
-        "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
-        "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.50",
-        "open-telemetry/sdk": "^1.8",
-        "phan/phan": "^6.0",
-        "php-http/mock-client": "*",
-        "phpstan/phpstan": "^2.1",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "psalm/plugin-phpunit": "^0.19.2",
-        "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^6.4 || ^7.0@beta",
-        "rector/rector": "^2.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "OpenTelemetry\\Contrib\\Instrumentation\\CodeIgniter\\": "src/"
-        },
-        "files": [
-            "_register.php"
-        ]
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "OpenTelemetry\\Tests\\Instrumentation\\CodeIgniter\\": "tests/"
-        }
-    },
-    "config": {
-        "allow-plugins": {
-            "php-http/discovery": false,
-            "cweagans/composer-patches": true
-        }
+    "files": [
+      "_register.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\CodeIgniter\\": "tests/"
     }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false
+    }
+  }
 }

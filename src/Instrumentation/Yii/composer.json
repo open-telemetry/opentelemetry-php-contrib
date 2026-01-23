@@ -1,65 +1,64 @@
 {
-    "name": "open-telemetry/opentelemetry-auto-yii",
-    "description": "OpenTelemetry auto-instrumentation for Yii",
-    "keywords": [
-        "opentelemetry",
-        "otel",
-        "open-telemetry",
-        "tracing",
-        "yii",
-        "instrumentation"
-    ],
-    "type": "library",
-    "homepage": "https://opentelemetry.io/docs/languages/php/",
-    "readme": "./README.md",
-    "license": "Apache-2.0",
-    "require": {
-        "php": "^8.2",
-        "ext-opentelemetry": "*",
-        "yiisoft/yii2": "^2.0.13",
-        "open-telemetry/api": "^1.6",
-        "open-telemetry/sem-conv": "^1.32"
-    },
-    "suggest": {
-        "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
-        "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3",
-        "open-telemetry/sdk": "^1.8",
-        "phan/phan": "^6.0",
-        "php-http/mock-client": "*",
-        "phpstan/phpstan": "^2.1",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "psalm/plugin-phpunit": "^0.19.2",
-        "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^6.4 || ^7.0@beta",
-        "rector/rector": "^2.0"
-    },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://asset-packagist.org"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "OpenTelemetry\\Contrib\\Instrumentation\\Yii\\": "src/"
-        },
-        "files": [
-            "_register.php"
-        ]
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "OpenTelemetry\\Tests\\Instrumentation\\Yii\\": "tests/"
-        }
-    },
-    "config": {
-        "allow-plugins": {
-            "php-http/discovery": false,
-            "yiisoft/yii2-composer": false,
-            "cweagans/composer-patches": true
-        }
+  "name": "open-telemetry/opentelemetry-auto-yii",
+  "description": "OpenTelemetry auto-instrumentation for Yii",
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "yii",
+    "instrumentation"
+  ],
+  "type": "library",
+  "homepage": "https://opentelemetry.io/docs/languages/php/",
+  "readme": "./README.md",
+  "license": "Apache-2.0",
+  "require": {
+    "php": "^8.2",
+    "ext-opentelemetry": "*",
+    "yiisoft/yii2": "^2.0.13",
+    "open-telemetry/api": "^1.6",
+    "open-telemetry/sem-conv": "^1.32"
+  },
+  "suggest": {
+    "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+    "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "open-telemetry/sdk": "^1.8",
+    "phan/phan": "^6.0",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "psalm/plugin-phpunit": "^0.19.2",
+    "phpunit/phpunit": "^9.5",
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
+    "rector/rector": "^2.0"
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "OpenTelemetry\\Contrib\\Instrumentation\\Yii\\": "src/"
+    },
+    "files": [
+      "_register.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OpenTelemetry\\Tests\\Instrumentation\\Yii\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false,
+      "yiisoft/yii2-composer": false
+    }
+  }
 }
