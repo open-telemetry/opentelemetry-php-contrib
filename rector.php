@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
--use Rector\ValueObject\PhpVersion;
+use Rector\ValueObject\PhpVersion;
 
 /**
  * Rector configuration for adding #[\Override] attributes.
