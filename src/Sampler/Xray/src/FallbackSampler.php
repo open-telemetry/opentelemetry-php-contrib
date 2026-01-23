@@ -22,6 +22,8 @@ class FallbackSampler implements SamplerInterface
         $this->fixedRate = new TraceIdRatioBasedSampler(0.05);  // 5%
     }
     
+    #[\Override]
+    
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,
@@ -37,6 +39,8 @@ class FallbackSampler implements SamplerInterface
 
         return $this->fixedRate->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
+    
+    #[\Override]
     
     public function getDescription(): string
     {

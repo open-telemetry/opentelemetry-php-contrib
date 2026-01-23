@@ -29,6 +29,8 @@ final class PsrResponsePropagationSetter implements PropagationSetterInterface
         return array_keys($carrier->getHeaders());
     }
 
+    #[\Override]
+
     public function set(&$carrier, string $key, string $value): void
     {
         assert($carrier instanceof ResponseInterface);

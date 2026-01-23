@@ -46,6 +46,8 @@ class AWSXRayRemoteSampler implements SamplerInterface
         $this->root = new ParentBased(new _AWSXRayRemoteSampler($resource, $host, $pollingInterval));
     }
 
+    #[\Override]
+
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,
@@ -56,6 +58,8 @@ class AWSXRayRemoteSampler implements SamplerInterface
     ): SamplingResult {
         return $this->root->shouldSample($parentContext, $traceId, $spanName, $spanKind, $attributes, $links);
     }
+
+    #[\Override]
 
     public function getDescription(): string
     {
@@ -132,6 +136,7 @@ class _AWSXRayRemoteSampler implements SamplerInterface
     /**
      * Called on each sampling decision. If it’s time, refresh rules or targets.
      */
+    #[\Override]
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,
@@ -202,6 +207,8 @@ class _AWSXRayRemoteSampler implements SamplerInterface
         }
         $this->nextRulesFetchTime = $now + ($this->rulePollingJitterNanos + $this->rulePollingIntervalNanos);
     }
+
+    #[\Override]
 
     public function getDescription(): string
     {

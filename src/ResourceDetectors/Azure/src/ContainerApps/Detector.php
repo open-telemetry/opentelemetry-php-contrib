@@ -38,6 +38,8 @@ class Detector implements ResourceDetectorInterface
     public const ENV_CONTAINER_APP_REPLICA_NAME_KEY = 'CONTAINER_APP_REPLICA_NAME';
     public const ENV_CONTAINER_APP_REVISION_KEY = 'CONTAINER_APP_REVISION';
 
+    #[\Override]
+
     public function getResource(): ResourceInfo
     {
         $name = getenv(self::ENV_CONTAINER_APP_NAME_KEY);

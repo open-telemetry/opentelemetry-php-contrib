@@ -26,6 +26,8 @@ final readonly class RuleBasedSampler implements SamplerInterface
     ) {
     }
 
+    #[\Override]
+
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,
@@ -51,6 +53,8 @@ final readonly class RuleBasedSampler implements SamplerInterface
     {
         return sprintf('RuleBasedSampler{rules=[%s],fallback=%s}', implode(',', $this->ruleSets), $this->fallback->getDescription());
     }
+
+    #[\Override]
 
     public function getDescription(): string
     {

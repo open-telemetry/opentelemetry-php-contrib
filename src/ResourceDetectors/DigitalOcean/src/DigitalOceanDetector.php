@@ -34,6 +34,8 @@ final readonly class DigitalOceanDetector implements ResourceDetectorInterface
     {
     }
 
+    #[\Override]
+
     public function getResource(): ResourceInfo
     {
         $client = Discovery::find();

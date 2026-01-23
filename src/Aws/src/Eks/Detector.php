@@ -59,6 +59,8 @@ class Detector implements ResourceDetectorInterface
         $this->requestFactory = $requestFactory;
     }
 
+    #[\Override]
+
     public function getResource(): ResourceInfo
     {
         try {

@@ -63,6 +63,7 @@ class Detector implements ResourceDetectorInterface
      * if the connection or parsing of the identity document fails.
      *
      */
+    #[\Override]
     public function getResource(): ResourceInfo
     {
         try {

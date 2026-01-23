@@ -31,6 +31,8 @@ final class ResponsePropagationSetter implements PropagationSetterInterface
         return $carrier->headers->keys();
     }
 
+    #[\Override]
+
     public function set(&$carrier, string $key, string $value): void
     {
         assert($carrier instanceof Response);

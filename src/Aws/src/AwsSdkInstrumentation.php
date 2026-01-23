@@ -37,46 +37,55 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
     private array $spanStorage = [];
 
+    #[\Override]
     public function getName(): string
     {
         return self::NAME;
     }
 
+    #[\Override]
     public function getVersion(): ?string
     {
         return self::VERSION;
     }
 
+    #[\Override]
     public function getSchemaUrl(): ?string
     {
         return null;
     }
 
+    #[\Override]
     public function init(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function setPropagator(TextMapPropagatorInterface $propagator): void
     {
         $this->propagator = $propagator;
     }
 
+    #[\Override]
     public function getPropagator(): TextMapPropagatorInterface
     {
         return $this->propagator;
     }
 
+    #[\Override]
     public function setTracerProvider(TracerProviderInterface $tracerProvider): void
     {
         $this->tracerProvider = $tracerProvider;
     }
 
+    #[\Override]
     public function getTracerProvider(): TracerProviderInterface
     {
         return $this->tracerProvider;
     }
 
+    #[\Override]
     public function getTracer(): TracerInterface
     {
         return $this->tracerProvider->getTracer('io.opentelemetry.contrib.php');
@@ -88,6 +97,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
         $this->clients = $clientsArray;
     }
 
+    #[\Override]
     public function activate(): bool
     {
         try {

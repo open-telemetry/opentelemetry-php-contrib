@@ -27,10 +27,13 @@ final readonly class RuleSet implements RuleSetInterface
     /**
      * @return list<SamplingRule>
      */
+    #[\Override]
     public function samplingRules(): array
     {
         return $this->samplingRules;
     }
+
+    #[\Override]
 
     public function delegate(): SamplerInterface
     {

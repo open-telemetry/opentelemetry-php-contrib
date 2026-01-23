@@ -20,6 +20,8 @@ class ResponsePropagationSetter implements PropagationSetterInterface
         return $instance ??= new self();
     }
 
+    #[\Override]
+
     public function set(&$carrier, string $key, string $value): void
     {
         assert($carrier instanceof Response);
