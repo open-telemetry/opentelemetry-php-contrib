@@ -59,6 +59,7 @@ class SlimInstrumentationTest extends TestCase
         $request = new ServerRequest('GET', 'http://example.com/foo');
 
         $routingMiddleware = new class($this->createMock(RouteResolverInterface::class), $this->createMock(RouteParserInterface::class)) extends RoutingMiddleware {
+            #[\Override]
             public function performRouting(ServerRequestInterface $request): ServerRequestInterface
             {
                 return $request;
@@ -116,6 +117,7 @@ class SlimInstrumentationTest extends TestCase
         $request = (new ServerRequest('GET', 'http://example.com/foo'));
 
         $routingMiddleware = new class($this->createMock(RouteResolverInterface::class), $this->createMock(RouteParserInterface::class)) extends RoutingMiddleware {
+            #[\Override]
             public function performRouting(ServerRequestInterface $request): ServerRequestInterface
             {
                 throw new \Exception('routing failed');
@@ -152,6 +154,7 @@ class SlimInstrumentationTest extends TestCase
     public function createMockStrategy(): InvocationStrategyInterface
     {
         return new class() implements InvocationStrategyInterface {
+            #[\Override]
             public function __invoke(callable $callable, ServerRequestInterface $request, ResponseInterface $response, array $routeArguments): ResponseInterface
             {
                 return $response;
@@ -171,12 +174,14 @@ class SlimInstrumentationTest extends TestCase
             private ResponseInterface $response;
             private RequestHandlerInterface $handler;
             private ?RoutingMiddleware $routingMiddleware;
+            #[\Override]
             public function __construct(ResponseInterface $response, ?RoutingMiddleware $routingMiddleware, RequestHandlerInterface $handler)
             {
                 $this->response = $response;
                 $this->routingMiddleware = $routingMiddleware;
                 $this->handler = $handler;
             }
+            #[\Override]
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 return isset($this->routingMiddleware)
