@@ -358,7 +358,9 @@ class CurlInstrumentation
                         foreach ($handles as $cHandle => &$metadata) {
                             if ($metadata['finished'] == false) {
                                 $metadata['finished'] = true;
-                                self::finishMultiSpan(CURLE_OK, $cHandle, $curlHandleToAttributes, $metadata['span']); // there is no way to get information if it was OK or not without calling curl_multi_info_read
+                                /** @var ?SpanInterface $span */
+                                $span = $metadata['span'];
+                                self::finishMultiSpan(CURLE_OK, $cHandle, $curlHandleToAttributes, $span); // there is no way to get information if it was OK or not without calling curl_multi_info_read
                             }
                         }
 
@@ -398,7 +400,9 @@ class CurlInstrumentation
 
                         /** @psalm-suppress PossiblyNullArrayAccess */
                         $currentHandle['finished'] = true;
-                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $currentHandle['span']);
+                        /** @var ?SpanInterface $span */
+                        $span = $currentHandle['span'];
+                        self::finishMultiSpan($retVal['result'], $retVal['handle'], $curlHandleToAttributes, $span);
                     }
                 }
             }
