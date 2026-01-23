@@ -1,50 +1,51 @@
 {
-  "name": "open-telemetry/opentracing-shim",
-  "description": "OpenTracing shim for OpenTelemetry",
-  "keywords": [
-    "opentelemetry",
-    "otel",
-    "opentracing",
-    "shim"
-  ],
-  "type": "library",
-  "homepage": "https://opentelemetry.io",
-  "readme": "README.md",
-  "license": "Apache-2.0",
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "require": {
-    "open-telemetry/api": "^1",
-    "opentracing/opentracing": "^1"
-  },
-  "autoload": {
-    "psr-4": {
-      "OpenTelemetry\\Contrib\\Shim\\OpenTracing\\": "src/"
+    "name": "open-telemetry/opentracing-shim",
+    "description": "OpenTracing shim for OpenTelemetry",
+    "keywords": [
+        "opentelemetry",
+        "otel",
+        "opentracing",
+        "shim"
+    ],
+    "type": "library",
+    "homepage": "https://opentelemetry.io",
+    "readme": "README.md",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "open-telemetry/api": "^1",
+        "opentracing/opentracing": "^1"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Shim\\OpenTracing\\": "src/"
+        }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3",
+        "guzzlehttp/guzzle": "^7.4",
+        "nyholm/psr7": "^1.6",
+        "open-telemetry/sdk": ">=1.0.0beta7",
+        "open-telemetry/exporter-zipkin": "^1",
+        "open-telemetry/exporter-otlp": "^1",
+        "phan/phan": "^6.0",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^6.4 || ^7.0@beta",
+        "rector/rector": "^2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false,
+            "cweagans/composer-patches": true
+        }
+    },
+    "suggest": {
+        "open-telemetry/exporter-otlp": "To export via the OTLP protocol",
+        "open-telemetry/transport-grpc": "To export via gRPC",
+        "open-telemetry/exporter-zipkin": "To export via zipkin"
     }
-  },
-  "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3",
-    "guzzlehttp/guzzle": "^7.4",
-    "nyholm/psr7": "^1.6",
-    "open-telemetry/sdk": ">=1.0.0beta7",
-    "open-telemetry/exporter-zipkin": "^1",
-    "open-telemetry/exporter-otlp": "^1",
-    "phan/phan": "^6.0",
-    "phpstan/phpstan": "^2.1",
-    "phpstan/phpstan-phpunit": "^2.0",
-    "psalm/plugin-phpunit": "^0.19.2",
-    "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^6.4 || ^7.0@beta",
-    "rector/rector": "^2.0"
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": false
-    }
-  },
-  "suggest": {
-    "open-telemetry/exporter-otlp": "To export via the OTLP protocol",
-    "open-telemetry/transport-grpc": "To export via gRPC",
-    "open-telemetry/exporter-zipkin": "To export via zipkin"
-  }
 }

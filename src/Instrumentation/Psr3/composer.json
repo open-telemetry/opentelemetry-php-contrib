@@ -1,56 +1,57 @@
 {
-  "name": "open-telemetry/opentelemetry-auto-psr3",
-  "description": "OpenTelemetry auto-instrumentation for PSR-3 (Logger Interface).",
-  "keywords": [
-    "opentelemetry",
-    "otel",
-    "open-telemetry",
-    "tracing",
-    "psr3",
-    "instrumentation"
-  ],
-  "type": "library",
-  "homepage": "https://opentelemetry.io/docs/languages/php/",
-  "readme": "./README.md",
-  "license": "Apache-2.0",
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "require": {
-    "php": "^8.2",
-    "ext-opentelemetry": "*",
-    "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.32",
-    "psr/log": "^1 || ^2 || ^3"
-  },
-  "autoload": {
-    "psr-4": {
-      "OpenTelemetry\\Contrib\\Instrumentation\\Psr3\\": "src/"
+    "name": "open-telemetry/opentelemetry-auto-psr3",
+    "description": "OpenTelemetry auto-instrumentation for PSR-3 (Logger Interface).",
+    "keywords": [
+        "opentelemetry",
+        "otel",
+        "open-telemetry",
+        "tracing",
+        "psr3",
+        "instrumentation"
+    ],
+    "type": "library",
+    "homepage": "https://opentelemetry.io/docs/languages/php/",
+    "readme": "./README.md",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2",
+        "ext-opentelemetry": "*",
+        "open-telemetry/api": "^1.0",
+        "open-telemetry/sem-conv": "^1.32",
+        "psr/log": "^1 || ^2 || ^3"
     },
-    "files": [
-      "_register.php"
-    ]
-  },
-  "require-dev": {
-    "apix/log": "*",
-    "cakephp/console": "*",
-    "cakephp/log": "*",
-    "monolog/monolog": "*",
-    "symfony/console": "*",
-    "symfony/uid": "*",
-    "yiisoft/log": "*",
-    "friendsofphp/php-cs-fixer": "^3",
-    "phan/phan": "^6.0",
-    "phpstan/phpstan": "^2.1",
-    "phpstan/phpstan-phpunit": "^2.0",
-    "psalm/plugin-phpunit": "^0.19.2",
-    "open-telemetry/sdk": "^1.0",
-    "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^6.4 || ^7.0@beta",
-    "rector/rector": "^2.0"
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": false
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Instrumentation\\Psr3\\": "src/"
+        },
+        "files": [
+            "_register.php"
+        ]
+    },
+    "require-dev": {
+        "apix/log": "*",
+        "cakephp/console": "*",
+        "cakephp/log": "*",
+        "monolog/monolog": "*",
+        "symfony/console": "*",
+        "symfony/uid": "*",
+        "yiisoft/log": "*",
+        "friendsofphp/php-cs-fixer": "^3",
+        "phan/phan": "^6.0",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "open-telemetry/sdk": "^1.0",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^6.4 || ^7.0@beta",
+        "rector/rector": "^2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false,
+            "cweagans/composer-patches": true
+        }
     }
-  }
 }

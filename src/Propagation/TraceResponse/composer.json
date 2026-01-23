@@ -1,50 +1,51 @@
 {
-  "name": "open-telemetry/opentelemetry-propagation-traceresponse",
-  "description": "OpenTelemetry traceresponse propagator.",
-  "keywords": [
-    "opentelemetry",
-    "otel",
-    "open-telemetry",
-    "propagator",
-    "traceresponse"
-  ],
-  "type": "library",
-  "homepage": "https://opentelemetry.io/docs/languages/php/",
-  "readme": "./README.md",
-  "license": "Apache-2.0",
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "require": {
-    "php": "^8.2",
-    "open-telemetry/context": "^1.4"
-  },
-  "autoload": {
-    "psr-4": {
-      "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/"
+    "name": "open-telemetry/opentelemetry-propagation-traceresponse",
+    "description": "OpenTelemetry traceresponse propagator.",
+    "keywords": [
+        "opentelemetry",
+        "otel",
+        "open-telemetry",
+        "propagator",
+        "traceresponse"
+    ],
+    "type": "library",
+    "homepage": "https://opentelemetry.io/docs/languages/php/",
+    "readme": "./README.md",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2",
+        "open-telemetry/context": "^1.4"
     },
-    "files": [
-      "_register.php"
-    ]
-  },
-  "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3",
-    "phan/phan": "^6.0",
-    "phpstan/phpstan": "^2.1",
-    "phpstan/phpstan-phpunit": "^2.0",
-    "psalm/plugin-phpunit": "^0.19.2",
-    "open-telemetry/sdk": "^1.8",
-    "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "^6.4 || ^7.0@beta",
-    "symfony/http-client": "^5.4|^6.0",
-    "guzzlehttp/promises": "^2",
-    "php-http/message-factory": "^1.0",
-    "nyholm/psr7": "^1.5",
-    "rector/rector": "^2.0"
-  },
-  "config": {
-    "allow-plugins": {
-      "php-http/discovery": true,
-      "tbachert/spi": true
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Propagation\\TraceResponse\\": "src/"
+        },
+        "files": [
+            "_register.php"
+        ]
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3",
+        "phan/phan": "^6.0",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "psalm/plugin-phpunit": "^0.19.2",
+        "open-telemetry/sdk": "^1.8",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^6.4 || ^7.0@beta",
+        "symfony/http-client": "^5.4|^6.0",
+        "guzzlehttp/promises": "^2",
+        "php-http/message-factory": "^1.0",
+        "nyholm/psr7": "^1.5",
+        "rector/rector": "^2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "tbachert/spi": true,
+            "cweagans/composer-patches": true
+        }
     }
-  }
 }
