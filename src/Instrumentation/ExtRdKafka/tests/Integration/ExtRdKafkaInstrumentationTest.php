@@ -115,7 +115,6 @@ class ExtRdKafkaInstrumentationTest extends TestCase
         $message = $this->consumeMessage();
 
         $this->assertInstanceOf(Message::class, $message);
-        $this->assertIsArray($message->headers);
         $this->assertArrayHasKey('traceparent', $message->headers);
 
         // The traceparent header is separated into 4 sections with dashes. I want to get the second segment of that

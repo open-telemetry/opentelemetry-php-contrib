@@ -15,6 +15,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class OtelExtension extends Extension
 {
+    #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);

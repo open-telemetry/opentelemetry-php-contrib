@@ -31,11 +31,13 @@ class Tracer implements API\Tracer
         $this->scopeManager = new ScopeManager();
     }
 
+    #[\Override]
     public function getScopeManager(): API\ScopeManager
     {
         return $this->scopeManager;
     }
 
+    #[\Override]
     public function getActiveSpan(): ?API\Span
     {
         $scope = $this->scopeManager->getActive();
@@ -62,6 +64,7 @@ class Tracer implements API\Tracer
      * @psalm-suppress MoreSpecificReturnType
      * @psalm-suppress LessSpecificReturnStatement
      */
+    #[\Override]
     public function startActiveSpan(string $operationName, $options = []): Scope
     {
         $options = $this->parseOptions($options);
@@ -78,6 +81,7 @@ class Tracer implements API\Tracer
     /**
      * @psalm-suppress ArgumentTypeCoercion
      */
+    #[\Override]
     public function startSpan(string $operationName, $options = []): Span
     {
         $options = $this->parseOptions($options);
@@ -96,6 +100,7 @@ class Tracer implements API\Tracer
     /**
      * @phan-suppress PhanUndeclaredMethod
      */
+    #[\Override]
     public function inject(API\SpanContext $spanContext, string $format, &$carrier): void
     {
         /** @phpstan-ignore-next-line */
@@ -107,6 +112,7 @@ class Tracer implements API\Tracer
         }
     }
 
+    #[\Override]
     public function extract(string $format, $carrier): ?API\SpanContext
     {
         $propagator = $this->propagator($format);
@@ -119,6 +125,7 @@ class Tracer implements API\Tracer
         return null;
     }
 
+    #[\Override]
     public function flush(): void
     {
         if ($this->tracerProvider instanceof \OpenTelemetry\SDK\Trace\TracerProviderInterface) {

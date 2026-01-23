@@ -32,6 +32,7 @@ final class ConsoleListener implements EventSubscriberInterface
         );
     }
 
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [

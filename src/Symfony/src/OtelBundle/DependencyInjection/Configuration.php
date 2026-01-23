@@ -17,6 +17,7 @@ use Symfony\Component\HttpKernel\HttpKernel;
  */
 final class Configuration implements ConfigurationInterface
 {
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $builder = new TreeBuilder('otel');

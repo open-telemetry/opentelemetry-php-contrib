@@ -16,6 +16,7 @@ class ServeCommand implements LaravelHook
 {
     use LaravelHookTrait;
 
+    #[\Override]
     public function instrument(): void
     {
         /** @psalm-suppress UnusedFunctionCall */

@@ -152,7 +152,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $converted = @pg_convert($conn, 'users', $data);
         $this->assertFalse($converted);
 
-        $this->assertSame('pg_convert', actual: $this->storage->offsetGet($offset)->getName());
+        $this->assertSame('pg_convert', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
             TraceAttributes::DB_COLLECTION_NAME => 'users',
         ]);

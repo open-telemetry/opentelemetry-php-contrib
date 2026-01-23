@@ -108,7 +108,7 @@ class PDOInstrumentationTest extends TestCase
          *
          * @psalm-suppress UndefinedClass
          * @psalm-suppress InvalidClass
-         * @var Pdo\Sqlite $db
+         * @var PDO $db
          */
         $db = self::createDBWithNewSubclass();
         $this->assertCount(1, $this->storage);

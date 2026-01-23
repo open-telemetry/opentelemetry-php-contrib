@@ -41,7 +41,7 @@
     "nyholm/psr7": "^1.4",
     "open-telemetry/dev-tools": "dev-main",
     "open-telemetry/sdk": "^1.1",
-    "phan/phan": "^4.1 || ^5",
+    "phan/phan": "^6.0",
     "phpspec/prophecy-phpunit": "^2.0",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-phpunit": "^2.0",

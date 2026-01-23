@@ -14,7 +14,7 @@ class LoggingBench
         $provider = new \OpenTelemetry\SDK\Logs\NoopLoggerProvider();
         $handler = new Handler($provider, \Psr\Log\LogLevel::INFO);
         for ($i=0; $i<$params[0]; $i++) {
-            $this->loggers[$i] = new Logger('channel_' . $i, [$handler]);
+            $this->loggers[$i] = new Logger('channel_' . (string) $i, [$handler]);
         }
     }
 

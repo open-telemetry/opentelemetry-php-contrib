@@ -33,6 +33,7 @@ class ClientRequestWatcher extends Watcher
      * @psalm-suppress UndefinedInterfaceMethod
      * @suppress PhanTypeArraySuspicious
      */
+    #[\Override]
     public function register(Application $app): void
     {
         $app['events']->listen(RequestSending::class, [$this, 'recordRequest']);
@@ -48,10 +49,10 @@ class ClientRequestWatcher extends Watcher
     public function recordRequest(RequestSending $request): void
     {
         $parsedUrl = collect(parse_url($request->request->url()) ?: []);
-        $processedUrl = $parsedUrl->get('scheme', 'http') . '://' . $parsedUrl->get('host') . $parsedUrl->get('path', '');
+        $processedUrl = (string) $parsedUrl->get('scheme', 'http') . '://' . (string) $parsedUrl->get('host') . (string) $parsedUrl->get('path', '');
 
         if ($parsedUrl->has('query')) {
-            $processedUrl .= '?' . $parsedUrl->get('query');
+            $processedUrl .= '?' . (string) $parsedUrl->get('query');
         }
         $span = $this->instrumentation->tracer()->spanBuilder($request->request->method())
             ->setSpanKind(SpanKind::KIND_CLIENT)

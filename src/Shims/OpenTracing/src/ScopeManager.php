@@ -13,6 +13,7 @@ class ScopeManager implements API\ScopeManager
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function activate(API\Span $span, bool $finishSpanOnClose = API\ScopeManager::DEFAULT_FINISH_SPAN_ON_CLOSE): Scope
     {
         $restorer = function (?Scope $scope): void {
@@ -27,6 +28,7 @@ class ScopeManager implements API\ScopeManager
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getActive(): ?API\Scope
     {
         return $this->active;

@@ -24,6 +24,7 @@ class Worker implements LaravelHook
     use LaravelHookTrait;
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(): void
     {
         $this->hookWorkerProcess();

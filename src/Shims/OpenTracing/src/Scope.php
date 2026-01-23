@@ -37,6 +37,7 @@ class Scope implements API\Scope
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getSpan(): API\Span
     {
         return $this->wrapped;
@@ -45,6 +46,7 @@ class Scope implements API\Scope
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function close(): void
     {
         if ($this->isClosed) {

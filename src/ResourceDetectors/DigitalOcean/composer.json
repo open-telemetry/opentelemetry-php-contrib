@@ -29,7 +29,7 @@
     "friendsofphp/php-cs-fixer": "^3.54",
     "mikey179/vfsstream": "^1.6.11",
     "nyholm/psr7": "*",
-    "phan/phan": "^5.4",
+    "phan/phan": "^6.0",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-phpunit": "^2.0",
     "phpunit/phpunit": "^10 || ^11",

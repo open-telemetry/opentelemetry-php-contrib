@@ -282,6 +282,7 @@ class SpanAssertionTest extends TestCase
         $eventAssertion = $spanAssertion->hasEvent('test-event');
 
         // Verify that hasEvent returns a SpanEventAssertion instance
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertInstanceOf(\OpenTelemetry\TestUtils\Fluent\SpanEventAssertion::class, $eventAssertion);
     }
 
@@ -308,6 +309,7 @@ class SpanAssertionTest extends TestCase
         $eventAssertion = $spanAssertion->hasEvent(new StringContains('event'));
 
         // Verify that hasEvent returns a SpanEventAssertion instance
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertInstanceOf(\OpenTelemetry\TestUtils\Fluent\SpanEventAssertion::class, $eventAssertion);
     }
 
@@ -375,6 +377,7 @@ class SpanAssertionTest extends TestCase
         $childSpanAssertion = $parentSpanAssertion->hasChild('child-span');
 
         // Verify that hasChild returns a SpanAssertion instance
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertInstanceOf(\OpenTelemetry\TestUtils\Fluent\SpanAssertion::class, $childSpanAssertion);
     }
 
@@ -415,6 +418,7 @@ class SpanAssertionTest extends TestCase
         $childSpanAssertion = $parentSpanAssertion->hasChild(new StringContains('child'));
 
         // Verify that hasChild returns a SpanAssertion instance
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertInstanceOf(\OpenTelemetry\TestUtils\Fluent\SpanAssertion::class, $childSpanAssertion);
     }
 
@@ -526,6 +530,7 @@ class SpanAssertionTest extends TestCase
         $rootSpanAssertion = $spanAssertion->hasRootSpan('root-span-from-span-assertion');
 
         // Verify that hasRootSpan returns a SpanAssertion instance
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertInstanceOf(\OpenTelemetry\TestUtils\Fluent\SpanAssertion::class, $rootSpanAssertion);
     }
 

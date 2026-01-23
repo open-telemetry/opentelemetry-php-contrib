@@ -52,6 +52,7 @@ class IdGenerator implements IdGeneratorInterface
      *
      * Example: 60cd399d76b435b5411c66f29b238014
      */
+    #[\Override]
     public function generateTraceId(): string
     {
         return dechex(time()) . substr($this->randomIdGenerator->generateTraceId(), 0, self::TRACE_ID_RANDOM_HEX_LENGTH);
@@ -61,6 +62,7 @@ class IdGenerator implements IdGeneratorInterface
      * Returns a random 64-bit string in the form of 16
      * hexadecimal characters.
      */
+    #[\Override]
     public function generateSpanId(): string
     {
         return $this->randomIdGenerator->generateSpanId();

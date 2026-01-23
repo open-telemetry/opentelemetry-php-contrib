@@ -32,7 +32,7 @@
     "nyholm/psr7": "^1.6",
     "open-telemetry/exporter-otlp": ">=1.0",
     "open-telemetry/sdk": ">=1.0",
-    "phan/phan": "^5.0",
+    "phan/phan": "^6.0",
     "phpbench/phpbench": "^1.2",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-phpunit": "^2.0",

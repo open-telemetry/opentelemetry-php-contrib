@@ -33,7 +33,7 @@
     "friendsofphp/php-cs-fixer": "^3.0",
     "mikey179/vfsstream": "^1.6",
     "open-telemetry/dev-tools": "dev-main",
-    "phan/phan": "^4.1 || ^5",
+    "phan/phan": "^6.0",
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-phpunit": "^2.0",

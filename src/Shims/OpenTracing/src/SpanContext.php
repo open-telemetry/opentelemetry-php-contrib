@@ -22,6 +22,7 @@ class SpanContext implements API\SpanContext
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->baggageItems);
@@ -30,6 +31,7 @@ class SpanContext implements API\SpanContext
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getBaggageItem(string $key): ?string
     {
         return \array_key_exists($key, $this->baggageItems) ? $this->baggageItems[$key] : null;
@@ -38,6 +40,7 @@ class SpanContext implements API\SpanContext
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function withBaggageItem(string $key, string $value): API\SpanContext
     {
         return new self($this->context, [$key => $value] + $this->baggageItems);

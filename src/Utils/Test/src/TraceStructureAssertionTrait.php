@@ -68,7 +68,7 @@ trait TraceStructureAssertionTrait
 
         if (is_array($spans)) {
             $array = $spans;
-        } elseif ($spans instanceof ArrayObject || $spans instanceof Traversable) {
+        } elseif ($spans instanceof Traversable) {
             $array = iterator_to_array($spans);
         } else {
             /** @phpstan-ignore deadCode.unreachable */

@@ -26,8 +26,6 @@ final class ServerTimingPropagator implements ResponsePropagatorInterface
 
     private static ?self $instance = null;
 
-    #[\Override]
-
     public function fields(): array
     {
         return [

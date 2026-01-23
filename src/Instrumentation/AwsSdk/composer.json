@@ -26,7 +26,7 @@
     "friendsofphp/php-cs-fixer": "^3",
     "guzzlehttp/promises": "^2",
     "nyholm/psr7": "*",
-    "phan/phan": "^5.0",
+    "phan/phan": "^6.0",
     "phpstan/phpstan-mockery": "^2.0",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-phpunit": "^2.0",

@@ -222,6 +222,7 @@ class Psr6InstrumentationTest extends TestCase
                 return $key;
             }
 
+            #[\Override]
             public function getItem(string $key): CacheItemInterface
             {
                 $key = $this->checkKey($key);
@@ -235,6 +236,7 @@ class Psr6InstrumentationTest extends TestCase
                 return clone $item;
             }
 
+            #[\Override]
             public function getItems(array $keys = []): iterable
             {
                 if ($keys === []) {
@@ -250,19 +252,22 @@ class Psr6InstrumentationTest extends TestCase
                 return $items;
             }
 
+            #[\Override]
             public function hasItem(string $key): bool
             {
                 return $this->getItem($key)->isHit();
             }
 
+            #[\Override]
             public function clear(): bool
             {
                 $this->items = [];
                 $this->deferredItems = [];
-        
+
                 return true;
             }
 
+            #[\Override]
             public function deleteItem(string $key): bool
             {
                 $key = $this->checkKey($key);
@@ -272,6 +277,7 @@ class Psr6InstrumentationTest extends TestCase
                 return true;
             }
 
+            #[\Override]
             public function deleteItems(array $keys): bool
             {
                 foreach ($keys as $key) {
@@ -281,6 +287,7 @@ class Psr6InstrumentationTest extends TestCase
                 return true;
             }
 
+            #[\Override]
             public function save(CacheItemInterface $item): bool
             {
                 $this->items[$item->getKey()] = $item;
@@ -288,6 +295,7 @@ class Psr6InstrumentationTest extends TestCase
                 return true;
             }
 
+            #[\Override]
             public function saveDeferred(CacheItemInterface $item): bool
             {
                 $this->deferredItems[$item->getKey()] = $item;
@@ -295,6 +303,7 @@ class Psr6InstrumentationTest extends TestCase
                 return true;
             }
 
+            #[\Override]
             public function commit(): bool
             {
                 foreach ($this->deferredItems as $item) {
@@ -324,11 +333,13 @@ final class CacheItem implements CacheItemInterface
         $this->isHit = false;
     }
 
+    #[\Override]
     public function getKey(): string
     {
         return $this->key;
     }
 
+    #[\Override]
     public function get(): mixed
     {
         if ($this->isHit()) {
@@ -338,6 +349,7 @@ final class CacheItem implements CacheItemInterface
         return null;
     }
 
+    #[\Override]
     public function isHit(): bool
     {
         if ($this->isHit === false) {
@@ -351,6 +363,7 @@ final class CacheItem implements CacheItemInterface
         return (new DateTimeImmutable())->getTimestamp() < $this->expiresAt->getTimestamp();
     }
 
+    #[\Override]
     public function set(mixed $value): static
     {
         $this->isHit = true;
@@ -359,6 +372,7 @@ final class CacheItem implements CacheItemInterface
         return $this;
     }
 
+    #[\Override]
     public function expiresAt(?\DateTimeInterface $expiration): static
     {
         $this->expiresAt = $expiration;
@@ -366,6 +380,7 @@ final class CacheItem implements CacheItemInterface
         return $this;
     }
 
+    #[\Override]
     public function expiresAfter(\DateInterval|int|null $time): static
     {
         if ($time === null) {

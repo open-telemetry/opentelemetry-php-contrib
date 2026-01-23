@@ -52,11 +52,13 @@ class Handler extends AbstractProcessingHandler
         return $this->loggers[$channel];
     }
 
+    #[\Override]
     protected function getDefaultFormatter(): FormatterInterface
     {
         return $this->formatterInterface ?? new NormalizerFormatter();
     }
 
+    #[\Override]
     protected function write($record): void
     {
         $formatted = $record['formatted'];

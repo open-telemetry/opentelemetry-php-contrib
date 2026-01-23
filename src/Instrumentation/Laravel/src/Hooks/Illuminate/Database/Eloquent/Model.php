@@ -19,6 +19,7 @@ class Model implements LaravelHook
     use LaravelHookTrait;
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(): void
     {
         $this->hookFind();

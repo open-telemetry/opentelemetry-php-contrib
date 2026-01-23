@@ -16,6 +16,7 @@ class Queue implements LaravelHook
     use AttributesBuilder;
     use LaravelHookTrait;
 
+    #[\Override]
     public function instrument(): void
     {
         $this->hookAbstractQueueCreatePayloadArray();
