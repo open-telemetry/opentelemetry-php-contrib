@@ -97,6 +97,7 @@ jobs:
       working-directory: src/${{ matrix.project }}
       run: |
         composer config --no-plugins allow-plugins.php-http/discovery false
+        composer config --no-plugins allow-plugins.cweagans/composer-patches true
         composer install --prefer-dist --no-progress
 
     - name: Validate Packages composer.json
