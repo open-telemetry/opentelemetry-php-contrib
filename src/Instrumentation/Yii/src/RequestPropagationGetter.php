@@ -30,19 +30,11 @@ final class RequestPropagationGetter implements PropagationGetterInterface
     }
 
     #[\Override]
-
-    public function get($carrier, string $key) : ?string
+    public function get($carrier, string $key): ?string
     {
         assert($carrier instanceof Request);
 
-        $result = $carrier->getHeaders()->get($key, null, true);
-
-        if (is_array($result) && $result !== []) {
-            /** @psalm-suppress NoValue always returns first element for non-empty array */
-            return (string) reset($result);
-        }
-
-        return $result;
-        
+        // When $first=true (3rd param), get() returns string|null, not an array
+        return $carrier->getHeaders()->get($key, null, true);
     }
 }
