@@ -225,3 +225,4 @@ class PhpSessionInstrumentationTest extends AbstractTest
         $this->assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
     }
 
+}

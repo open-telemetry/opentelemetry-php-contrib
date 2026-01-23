@@ -127,3 +127,4 @@ class PropagatorTest extends TestCase
     {
         return $context->withContextValue(Span::wrap($spanContext));
     }
+}

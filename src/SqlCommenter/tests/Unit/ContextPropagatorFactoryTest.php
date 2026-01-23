@@ -49,3 +49,4 @@ class ContextPropagatorFactoryTest extends TestCase
             ['invalid', null],
         ];
     }
+}

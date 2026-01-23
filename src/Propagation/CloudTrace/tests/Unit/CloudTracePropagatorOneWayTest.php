@@ -174,3 +174,4 @@ class CloudTracePropagatorOneWayTest extends TestCase
     ): string {
         return sprintf('%s/%s;o=%d', $traceId, $spanId, $traceEnabled);
     }
+}

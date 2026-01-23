@@ -13,7 +13,6 @@ use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\TestUtils\Fluent\SpanAssertion;
 use OpenTelemetry\TestUtils\Fluent\TraceAssertion;
 use OpenTelemetry\TestUtils\Fluent\TraceAssertionFailedException;
-use Override;
 use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\Constraint\StringContains;
@@ -29,7 +28,6 @@ class SpanAssertionTest extends TestCase
     private TraceAssertion $traceAssertion;
     private SpanAssertion $spanAssertion;
 
-    #[Override]
     #[\Override]
     protected function setUp(): void
     {

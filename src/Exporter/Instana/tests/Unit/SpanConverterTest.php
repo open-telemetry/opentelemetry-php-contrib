@@ -311,3 +311,4 @@ class SpanConverterTest extends TestCase
         $this->assertArrayNotHasKey('http.response.header.agent', $data['attributes']);
         
     }
+}

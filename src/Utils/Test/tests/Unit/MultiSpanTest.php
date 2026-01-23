@@ -13,7 +13,6 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\TestUtils\TraceStructureAssertionTrait;
-use Override;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -27,7 +26,6 @@ class MultiSpanTest extends TestCase
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
-    #[Override]
     #[\Override]
     protected function setUp(): void
     {

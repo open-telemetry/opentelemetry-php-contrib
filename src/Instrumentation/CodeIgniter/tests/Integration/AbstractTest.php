@@ -43,3 +43,4 @@ abstract class AbstractTest extends CIUnitTestCase
 
         $this->scope->detach();
     }
+}

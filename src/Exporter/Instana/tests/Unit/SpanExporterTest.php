@@ -50,3 +50,4 @@ class SpanExporterTest extends TestCase
 
         $this->assertSame($ret::class, CompletedFuture::class);
     }
+}
