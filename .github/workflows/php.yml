@@ -120,10 +120,14 @@ jobs:
       run: vendor/bin/phan
 
     - name: Run Rector
+      # Skip Rector on PHP 8.5 until dependencies support it
+      if: ${{ matrix.php-version != '8.5' }}
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/rector --dry-run
 
     - name: Run Psalm
+      # Skip Psalm on PHP 8.5 - version constraints don't support 8.5 yet
+      if: ${{ matrix.php-version != '8.5' }}
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/psalm --output-format=github --php-version=${{ matrix.php-version }}
 
