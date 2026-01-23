@@ -161,7 +161,7 @@ class GuzzleInstrumentationTest extends TestCase
     {
         $this->handlerStack->push(function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
-                $this->assertNotNull($request->getHeader('traceparent'));
+                $this->assertNotEmpty($request->getHeader('traceparent'));
 
                 return $handler($request, $options);
             };
