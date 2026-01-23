@@ -27,7 +27,6 @@ class ConfigHelper
     }
 
     /**
-     * @param string $class
      * @psalm-param class-string $class
      * @return Reference
      */
