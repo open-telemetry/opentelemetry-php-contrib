@@ -35,7 +35,7 @@ services:
       - ./files/collector/otel-collector-config.yml:/etc/otel-collector-config.yml
 
   rabbitmq:
-    image: rabbitmq:3@sha256:923989f8408378579f1de69a0721f05a575a134a6763ac5c74248cc1325095f4
+    image: rabbitmq:3@sha256:87178a0ee3e2f52980ba356d38646ed1056705ff2d5ff281f8965456eaa0c1e3
     hostname: rabbitmq
     healthcheck:
       test: rabbitmq-diagnostics -q ping
