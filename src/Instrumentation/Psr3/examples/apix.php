@@ -16,7 +16,7 @@ require __DIR__ . '/../vendor/autoload.php';
 /**
  * Example of using the opentelemetry extension to:
  * - export logs in OTLP format (if mode=`export`)
- * - inject traceId/spanId into context (if mode=`inject`)
+ * - inject trace_id/span_id into context (if mode=`inject`)
  */
 
 $logger = new \Apix\Log\Logger\Stream(STDOUT);
@@ -25,7 +25,7 @@ $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->start
 $scope = $span->activate();
 
 $logger->warning('hello world', ['foo' => 'bar', 'exception' => new \Exception('kaboom', 500, new \RuntimeException('kablam'))]);
-$logger->info('hello, OpenTelemetry traceId={traceId}');
+$logger->info('hello, OpenTelemetry trace_id={trace_id}');
 
 $scope->detach();
 $span->end();

@@ -28,4 +28,4 @@ $span->end();
 ?>
 
 --EXPECTF--
-%s test.INFO: hello world%a"traceId":"%s","spanId":"%s"%a
+%s test.INFO: hello world%a"trace_id":"%s","span_id":"%s"%a

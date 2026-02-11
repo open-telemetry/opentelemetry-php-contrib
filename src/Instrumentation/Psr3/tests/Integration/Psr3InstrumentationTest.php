@@ -60,8 +60,8 @@ class Psr3InstrumentationTest extends TestCase
                 array_replace_recursive(
                     $context,
                     [
-                        'traceId' => $this->span->getContext()->getTraceId(),
-                        'spanId' => $this->span->getContext()->getSpanId(),
+                        'trace_id' => $this->span->getContext()->getTraceId(),
+                        'span_id' => $this->span->getContext()->getSpanId(),
                     ],
                 ),
             );
@@ -82,8 +82,8 @@ class Psr3InstrumentationTest extends TestCase
                 array_replace_recursive(
                     $context,
                     [
-                        'traceId' => $this->span->getContext()->getTraceId(),
-                        'spanId' => $this->span->getContext()->getSpanId(),
+                        'trace_id' => $this->span->getContext()->getTraceId(),
+                        'span_id' => $this->span->getContext()->getSpanId(),
                     ],
                 ),
             );
@@ -102,7 +102,7 @@ class Psr3InstrumentationTest extends TestCase
             ['notice test', 'notice', ['user' => 'php-notice', 'pid' => 1]],
             ['info test', 'info', ['user' => 'php-info', 'pid' => 1]],
             ['debug test', 'debug', ['user' => 'php-debug', 'pid' => 1]],
-            ['debug test', 'debug', ['traceId' => 'ggg', 'pid' => 1]],
+            ['debug test', 'debug', ['trace_id' => 'ggg', 'pid' => 1]],
             ['debug test', 'debug'],
         ];
     }
