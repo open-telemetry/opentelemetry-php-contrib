@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;

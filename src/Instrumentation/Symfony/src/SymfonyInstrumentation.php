@@ -100,15 +100,14 @@ final class SymfonyInstrumentation
 
                 $span = Span::fromContext($scope->context());
                 $scope->detach();
-                $span->recordException($exception, [
-                    TraceAttributes::EXCEPTION_ESCAPED => true,
-                ]);
+                $span->recordException($exception);
                 if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
             }
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'terminate',
