@@ -11,7 +11,6 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\TestUtils\TraceStructureAssertionTrait;
-use Override;
 use PHPUnit\Framework\Constraint\Callback;
 use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\Constraint\IsType;
@@ -29,8 +28,8 @@ class FluentTraceAssertionTest extends TestCase
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
-    #[Override]
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         // Create a storage for the exported spans
         $this->storage = new ArrayObject();

@@ -310,7 +310,7 @@ class TraceAssertion
             return $spans;
         }
 
-        if ($spans instanceof ArrayObject || $spans instanceof Traversable) {
+        if ($spans instanceof Traversable) {
             return iterator_to_array($spans);
         }
 

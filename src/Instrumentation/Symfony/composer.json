@@ -1,7 +1,14 @@
 {
   "name": "open-telemetry/opentelemetry-auto-symfony",
   "description": "OpenTelemetry auto-instrumentation for Symfony",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "symfony", "instrumentation"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "symfony",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
@@ -9,7 +16,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^8.1",
+    "php": "^8.2",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.6",
     "open-telemetry/sem-conv": "^1.32",
@@ -22,16 +29,17 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "phan/phan": "^5.0",
+    "phan/phan": "^6.0",
     "php-http/mock-client": "*",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.8",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "6.4.0",
+    "vimeo/psalm": "^6.4 || ^7.0@beta",
     "symfony/http-client": "^5.4||^6.0",
-    "symfony/messenger": "^5.4||^6.0"
+    "symfony/messenger": "^5.4||^6.0",
+    "rector/rector": "^2.0"
   },
   "autoload": {
     "psr-4": {

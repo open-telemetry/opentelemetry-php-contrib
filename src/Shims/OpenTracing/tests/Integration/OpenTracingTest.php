@@ -19,7 +19,8 @@ class OpenTracingTest extends TestCase
     private ArrayObject $storage;
     private Tracer $tracer;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $exporter = new InMemoryExporter($this->storage);

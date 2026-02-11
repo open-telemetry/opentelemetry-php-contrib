@@ -12,7 +12,6 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\TestUtils\TraceStructureAssertionTrait;
-use Override;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -25,7 +24,7 @@ class MixedBufferTest extends TestCase
     private ArrayObject $sharedBuffer;
     private TracerProvider $tracerProvider;
 
-    #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         // Create a shared buffer for both spans and logrecords

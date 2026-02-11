@@ -18,6 +18,7 @@ class CacheWatcher extends Watcher
      * @psalm-suppress UndefinedInterfaceMethod
      * @suppress PhanTypeArraySuspicious
      */
+    #[\Override]
     public function register(Application $app): void
     {
         $app['events']->listen(CacheHit::class, [$this, 'recordCacheHit']);

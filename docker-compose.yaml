@@ -4,6 +4,7 @@ services:
     image: ghcr.io/open-telemetry/opentelemetry-php/opentelemetry-php-base:${PHP_VERSION}
     volumes:
     - ./:/usr/src/myapp
+    - composer-cache:/home/php/.config/composer
     user: "${PHP_USER}:root"
     environment:
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
@@ -102,3 +103,6 @@ services:
       retries: 3
     volumes:
       - ./docker/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  composer-cache:

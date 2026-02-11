@@ -154,21 +154,17 @@ final class PDOTracker
         // SQL Server format handling
         if (str_starts_with($dsn, 'sqlsrv:')) {
             if (preg_match('/Server=([^,;]+)(?:,([0-9]+))?/', $dsn, $serverMatches)) {
-                $server = $serverMatches[1];
-                if ($server !== '') {
-                    $attributes[TraceAttributes::SERVER_ADDRESS] = $server;
-                }
+                // $serverMatches[1] is guaranteed to be non-empty due to [^,;]+
+                $attributes[TraceAttributes::SERVER_ADDRESS] = $serverMatches[1];
 
                 if (isset($serverMatches[2]) && $serverMatches[2] !== '') {
                     $attributes[TraceAttributes::SERVER_PORT] = (int) $serverMatches[2];
                 }
             }
 
-            if (preg_match('/Database=([^;]*)/', $dsn, $dbMatches)) {
-                $dbname = $dbMatches[1];
-                if ($dbname !== '') {
-                    $attributes[TraceAttributes::DB_NAMESPACE] = $dbname;
-                }
+            if (preg_match('/Database=([^;]+)/', $dsn, $dbMatches)) {
+                // $dbMatches[1] is guaranteed to be non-empty due to [^;]+
+                $attributes[TraceAttributes::DB_NAMESPACE] = $dbMatches[1];
             }
 
             return $attributes;

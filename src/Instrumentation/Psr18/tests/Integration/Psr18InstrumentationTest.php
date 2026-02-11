@@ -27,7 +27,8 @@ class Psr18InstrumentationTest extends TestCase
     /** @var ClientInterface&\PHPUnit\Framework\MockObject\MockObject */
     private ClientInterface $client;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
@@ -43,7 +44,8 @@ class Psr18InstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }
@@ -68,7 +70,7 @@ class Psr18InstrumentationTest extends TestCase
             ->method('sendRequest')
             ->with($this->callback(function (RequestInterface $request) {
                 $this->assertTrue($request->hasHeader('traceparent'), 'traceparent has been injected into request');
-                $this->assertNotNull($request->getHeaderLine('traceparent'));
+                $this->assertNotEmpty($request->getHeaderLine('traceparent'));
 
                 return true;
             }))
@@ -88,7 +90,7 @@ class Psr18InstrumentationTest extends TestCase
         $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
-    public function requestProvider(): array
+    public static function requestProvider(): array
     {
         return [
             ['GET', 'http://example.com/foo', 200],

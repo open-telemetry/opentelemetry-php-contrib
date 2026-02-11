@@ -5,7 +5,7 @@
     "type": "symfony-bundle",
     "license": "Apache-2.0",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "composer-runtime-api": "^2.0",
         "open-telemetry/api": "^1",
         "open-telemetry/context": "^1",
@@ -14,6 +14,7 @@
         "symfony/dependency-injection": "^4.4 || ^5.4 || ^6.1"
     },
     "require-dev": {
+        "rector/rector": "^2.0",
         "symfony/http-kernel": "^4.4 || ^5.4 || ^6.1"
     },
     "autoload": {

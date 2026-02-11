@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.1', '8.2', '8.3', '8.4']
+        php-version: ['8.2', '8.3', '8.4', '8.5']
         # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
         project: [
           'Aws',
@@ -70,24 +70,6 @@ jobs:
           'Symfony',
           'Utils/Test'
         ]
-        exclude:
-
-          - project: 'Instrumentation/Curl'
-            php-version: 8.1
-          - project: 'Instrumentation/ExtAmqp'
-            php-version: 8.1
-          - project: 'Instrumentation/ExtRdKafka'
-            php-version: 8.1
-          - project: 'Instrumentation/IO'
-            php-version: 8.1
-          - project: 'Instrumentation/MySqli'
-            php-version: 8.1
-          - project: 'Instrumentation/PDO'
-            php-version: 8.1
-          - project: 'Instrumentation/PostgreSql'
-            php-version: 8.1
-          - project: 'Instrumentation/Session'
-            php-version: 8.1
     steps:
     - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
@@ -96,7 +78,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         coverage: xdebug
-        extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+        extensions: ast, amqp, ${{ matrix.php-version == '8.5' && 'grpc-1.78.0RC2' || 'grpc' }}, opentelemetry, rdkafka, mysqli, pgsql
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -110,12 +92,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ matrix.php-version }}-php-
 
-    - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
+    - name: Configure Composer plugins
       working-directory: src/${{ matrix.project }}
       run: |
         composer config --no-plugins allow-plugins.php-http/discovery false
-        composer install --prefer-dist --no-progress
+        composer config --no-plugins allow-plugins.cweagans/composer-patches true
+
+    - name: Install dependencies
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+      working-directory: src/${{ matrix.project }}
+      run: composer install --prefer-dist --no-progress
 
     - name: Validate Packages composer.json
       working-directory: src/${{ matrix.project }}
@@ -126,12 +112,22 @@ jobs:
       run: PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv
 
     - name: Run Phan
+      # Skip Phan on PHP 8.5 due to internal Phan 6.0 bug with TMockObject
+      if: ${{ matrix.php-version != '8.5' }}
       working-directory: src/${{ matrix.project }}
       env:
         PHAN_DISABLE_XDEBUG_WARN: 1
       run: vendor/bin/phan
 
+    - name: Run Rector
+      # Skip Rector on PHP 8.5 until dependencies support it
+      if: ${{ matrix.php-version != '8.5' }}
+      working-directory: src/${{ matrix.project }}
+      run: vendor/bin/rector --dry-run
+
     - name: Run Psalm
+      # Skip Psalm on PHP 8.5 - version constraints don't support 8.5 yet
+      if: ${{ matrix.php-version != '8.5' }}
       working-directory: src/${{ matrix.project }}
       run: vendor/bin/psalm --output-format=github --php-version=${{ matrix.php-version }}
 
@@ -177,7 +173,7 @@ jobs:
     - name: Code Coverage
       uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
       # only generate coverage against the latest PHP version
-      if: ${{ matrix.php-version == '8.4' }}
+      if: ${{ matrix.php-version == '8.5' }}
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: src/${{ matrix.project }}

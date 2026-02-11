@@ -40,7 +40,8 @@ class GenericFactoryTraitTest extends TestCase
     private OptionsResolver $resolver;
 
     // SETUP
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         BypassFinals::enable();
     }

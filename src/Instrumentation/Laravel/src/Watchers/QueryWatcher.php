@@ -19,6 +19,7 @@ class QueryWatcher extends Watcher
     }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
+    #[\Override]
     public function register(Application $app): void
     {
         /** @phan-suppress-next-line PhanTypeArraySuspicious */
@@ -56,8 +57,8 @@ class QueryWatcher extends Watcher
         $span->end($nowInNs);
     }
 
-    private function calculateQueryStartTime(int $nowInNs, float $queryTimeMs): int
+    private function calculateQueryStartTime(int $nowInNs, int|float $queryTimeMs): int
     {
-        return (int) ($nowInNs - ($queryTimeMs * 1E6));
+        return (int) ($nowInNs - ((float) $queryTimeMs * 1E6));
     }
 }

@@ -13,15 +13,16 @@ use function var_export;
 /**
  * Checks whether at least one link matches sampled and remote.
  */
-final class LinkRule implements SamplingRule
+final readonly class LinkRule implements SamplingRule
 {
 
     public function __construct(
-        private readonly bool $sampled,
-        private readonly ?bool $remote = null,
+        private bool $sampled,
+        private ?bool $remote = null,
     ) {
     }
 
+    #[\Override]
     public function matches(
         ContextInterface $context,
         string $traceId,

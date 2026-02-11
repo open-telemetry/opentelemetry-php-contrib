@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 class ContextPropagatorFactoryTest extends TestCase
 {
     #[\Override]
-    public function setUp(): void
+    protected function setUp(): void
     {
         LoggerHolder::disable();
         Logging::disable();

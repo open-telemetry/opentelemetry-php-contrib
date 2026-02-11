@@ -93,7 +93,7 @@ class TraceableSpanProcessorTest extends TestCase
         $this->assertFalse((new TraceableSpanProcessor($spanProcessor, $dataCollector))->shutdown());
     }
 
-    public function spanProcessorWithExporterDataProvider(): iterable
+    public static function spanProcessorWithExporterDataProvider(): iterable
     {
         $spanExporter = $this->createMock(SpanExporterInterface::class);
         yield 'simple span processor with Span Exporter' => [new SimpleSpanProcessor($spanExporter), $spanExporter];

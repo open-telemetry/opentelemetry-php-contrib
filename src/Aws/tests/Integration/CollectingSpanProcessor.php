@@ -14,21 +14,25 @@ class CollectingSpanProcessor implements SpanProcessorInterface
 {
     private array $collectedSpans = [];
 
+    #[\Override]
     public function onStart(ReadWriteSpanInterface $span, ContextInterface $parentContext): void
     {
         $this->collectedSpans[$span->getContext()->getSpanId()] = $span;
     }
 
+    #[\Override]
     public function onEnd(ReadableSpanInterface $span): void
     {
         $this->collectedSpans[$span->getContext()->getSpanId()] = $span;
     }
 
+    #[\Override]
     public function forceFlush(?CancellationInterface $cancellation = null): bool
     {
         return true;
     }
 
+    #[\Override]
     public function shutdown(?CancellationInterface $cancellation = null): bool
     {
         return true;

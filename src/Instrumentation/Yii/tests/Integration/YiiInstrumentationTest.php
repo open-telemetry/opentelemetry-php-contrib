@@ -163,6 +163,9 @@ class YiiInstrumentationTest extends AbstractTest
     }
 }
 
+/**
+ * @extends Controller<\yii\base\Module>
+ */
 class SiteController extends Controller
 {
     /**
@@ -181,6 +184,7 @@ class SiteController extends Controller
     }
 
     /** @psalm-suppress MoreSpecificReturnType */
+    #[\Override]
     public function actions()
     {
         /** @psalm-suppress LessSpecificReturnStatement */

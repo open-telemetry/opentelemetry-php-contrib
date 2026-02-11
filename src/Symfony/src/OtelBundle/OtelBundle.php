@@ -19,6 +19,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 final class OtelBundle extends Bundle
 {
+    #[\Override]
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new SetAliasIfNotDefinedCompilerPass(TextMapPropagatorInterface::class, NoopTextMapPropagator::class));

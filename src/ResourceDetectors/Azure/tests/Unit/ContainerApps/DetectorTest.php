@@ -18,7 +18,8 @@ class DetectorTest extends TestCase
     const CONTAINER_APP_REPLICA_NAME = 'container_app_replica_name';
     const CONTAINER_APP_REVISION = 'container_app_revision';
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         self::restoreEnvironmentVariables();
     }

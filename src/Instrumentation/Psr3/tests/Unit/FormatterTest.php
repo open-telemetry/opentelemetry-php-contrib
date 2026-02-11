@@ -18,13 +18,15 @@ class FormatterTest extends TestCase
     /** @var LogWriterInterface&MockObject */
     private LogWriterInterface $logWriter;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->logWriter = $this->createMock(LogWriterInterface::class);
         Logging::setLogWriter($this->logWriter);
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         Logging::reset();
     }

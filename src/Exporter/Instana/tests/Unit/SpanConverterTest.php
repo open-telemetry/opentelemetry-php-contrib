@@ -22,7 +22,7 @@ class SpanConverterTest extends TestCase
     private SpanConverter $converter;
 
     #[\Override]
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->converter = new SpanConverter('0123456abcdef', '12345');
     }

@@ -24,6 +24,7 @@ class Queue implements LaravelHook
     use LaravelHookTrait;
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(): void
     {
         $this->hookBulk();

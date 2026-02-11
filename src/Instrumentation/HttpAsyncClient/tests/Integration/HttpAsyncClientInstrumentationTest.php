@@ -32,7 +32,8 @@ class HttpAsyncClientInstrumentationTest extends TestCase
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->client = $this->createMock(HttpAsyncClient::class);
 
@@ -49,7 +50,8 @@ class HttpAsyncClientInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

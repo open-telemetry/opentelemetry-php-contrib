@@ -65,6 +65,7 @@ final class RequestListener implements EventSubscriberInterface
         $this->responseHeaderAttributes = $this->createHeaderAttributeMapping('response', $responseHeaders);
     }
 
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [

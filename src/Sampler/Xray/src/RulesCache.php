@@ -61,6 +61,8 @@ class RulesCache implements SamplerInterface
         $this->updatedAt = Clock::getDefault()->now();
     }
     
+    #[\Override]
+    
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,
@@ -113,6 +115,8 @@ class RulesCache implements SamplerInterface
     {
         return $this->appliers;
     }
+
+    #[\Override]
 
     public function getDescription(): string
     {

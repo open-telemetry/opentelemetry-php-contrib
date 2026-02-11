@@ -29,6 +29,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getOperationName(): string
     {
         return $this->operationName;
@@ -37,6 +38,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getContext(): API\SpanContext
     {
         return $this->spanContext;
@@ -45,6 +47,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function finish($finishTime = null): void
     {
         $this->span->end();
@@ -53,6 +56,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function overwriteOperationName(string $newOperationName): void
     {
         $this->span->updateName($newOperationName);
@@ -62,6 +66,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function setTag(string $key, $value): void
     {
         if ($value === (bool) $value) {
@@ -80,6 +85,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function log(array $fields = [], $timestamp = null): void
     {
         if ($timestamp instanceof \DateTimeInterface) {
@@ -109,6 +115,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function addBaggageItem(string $key, string $value): void
     {
         $this->spanContext = $this->spanContext->withBaggageItem($key, $value);
@@ -117,6 +124,7 @@ class Span implements API\Span
     /**
      * @inheritDoc
      */
+    #[\Override]
     public function getBaggageItem(string $key): ?string
     {
         return $this->spanContext->getBaggageItem($key);

@@ -22,7 +22,8 @@ class Psr3InstrumentationTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $tracerProvider = new TracerProvider(
@@ -39,7 +40,8 @@ class Psr3InstrumentationTest extends TestCase
         $this->scope = $this->span->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->span->end();
         $this->scope->detach();
@@ -91,7 +93,7 @@ class Psr3InstrumentationTest extends TestCase
         $this->logger->{$method}($msg, $context);
     }
 
-    public function levelProvider(): array
+    public static function levelProvider(): array
     {
         return [
             ['emergency test', 'emergency', ['user' => 'php-emergency', 'pid' => 1]],

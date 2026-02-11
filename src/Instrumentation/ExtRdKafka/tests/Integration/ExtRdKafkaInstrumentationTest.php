@@ -26,7 +26,8 @@ class ExtRdKafkaInstrumentationTest extends TestCase
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
@@ -40,7 +41,8 @@ class ExtRdKafkaInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
         $result = null;
@@ -113,7 +115,6 @@ class ExtRdKafkaInstrumentationTest extends TestCase
         $message = $this->consumeMessage();
 
         $this->assertInstanceOf(Message::class, $message);
-        $this->assertIsArray($message->headers);
         $this->assertArrayHasKey('traceparent', $message->headers);
 
         // The traceparent header is separated into 4 sections with dashes. I want to get the second segment of that

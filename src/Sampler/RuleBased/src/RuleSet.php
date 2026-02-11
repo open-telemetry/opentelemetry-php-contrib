@@ -8,14 +8,14 @@ use function implode;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use function sprintf;
 
-final class RuleSet implements RuleSetInterface
+final readonly class RuleSet implements RuleSetInterface
 {
     /**
      * @param list<SamplingRule> $samplingRules
      */
     public function __construct(
-        private readonly array $samplingRules,
-        private readonly SamplerInterface $delegate,
+        private array $samplingRules,
+        private SamplerInterface $delegate,
     ) {
     }
 
@@ -27,10 +27,13 @@ final class RuleSet implements RuleSetInterface
     /**
      * @return list<SamplingRule>
      */
+    #[\Override]
     public function samplingRules(): array
     {
         return $this->samplingRules;
     }
+
+    #[\Override]
 
     public function delegate(): SamplerInterface
     {

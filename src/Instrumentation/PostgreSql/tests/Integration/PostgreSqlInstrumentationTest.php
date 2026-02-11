@@ -31,7 +31,8 @@ class PostgreSqlInstrumentationTest extends TestCase
     private string $passwd;
     private string $database;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -52,7 +53,8 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->database = 'otel_db';
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }
@@ -150,7 +152,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $converted = @pg_convert($conn, 'users', $data);
         $this->assertFalse($converted);
 
-        $this->assertSame('pg_convert', actual: $this->storage->offsetGet($offset)->getName());
+        $this->assertSame('pg_convert', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
             TraceAttributes::DB_COLLECTION_NAME => 'users',
         ]);

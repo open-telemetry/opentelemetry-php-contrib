@@ -164,16 +164,7 @@ class ExtRdKafkaInstrumentation
                     ->setAttribute(TraceAttributes::MESSAGING_KAFKA_OFFSET, $message->offset)
                 ;
 
-                if (is_array($message->headers)) {
-                    $parent = Globals::propagator()->extract($message->headers);
-                    /**
-                     * @phpstan-ignore-next-line
-                     * - The stub for rdkakfa says headers always a string. It can infact be null. Need this
-                     * to allow phpstan to pass.
-                     */
-                } else {
-                    $parent = Context::getCurrent();
-                }
+                $parent = Globals::propagator()->extract($message->headers);
 
                 $builder->setParent($parent);
                 $span = $builder->startSpan();

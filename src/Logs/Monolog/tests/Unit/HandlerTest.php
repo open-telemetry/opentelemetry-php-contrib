@@ -26,7 +26,8 @@ class HandlerTest extends TestCase
     /** @var LoggerProviderInterface&\PHPUnit\Framework\MockObject\MockObject $provider */
     private LoggerProviderInterface $provider;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->provider = $this->createMock(LoggerProviderInterface::class);

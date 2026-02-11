@@ -29,6 +29,7 @@ final class SamplerRuleBased implements ComponentProvider
      *     fallback: ComponentPlugin<SamplerInterface>,
      * } $properties
      */
+    #[\Override]
     public function createPlugin(array $properties, Context $context): SamplerInterface
     {
         $ruleSets = [];
@@ -50,6 +51,7 @@ final class SamplerRuleBased implements ComponentProvider
         );
     }
 
+    #[\Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
         $node = $builder->arrayNode('php_rule_based');

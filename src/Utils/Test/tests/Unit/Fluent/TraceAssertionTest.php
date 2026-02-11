@@ -11,7 +11,6 @@ use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\TestUtils\Fluent\TraceAssertion;
 use OpenTelemetry\TestUtils\Fluent\TraceAssertionFailedException;
-use Override;
 use PHPUnit\Framework\Constraint\StringContains;
 use PHPUnit\Framework\TestCase;
 
@@ -23,7 +22,7 @@ class TraceAssertionTest extends TestCase
     private ArrayObject $storage;
     private TracerProvider $tracerProvider;
 
-    #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         // Create a storage for the exported spans
@@ -88,6 +87,7 @@ class TraceAssertionTest extends TestCase
         $spanAssertion = $traceAssertion->hasChild('test-span');
 
         // Verify that hasChild returns a SpanAssertion instance
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertInstanceOf(\OpenTelemetry\TestUtils\Fluent\SpanAssertion::class, $spanAssertion);
     }
 
@@ -112,6 +112,7 @@ class TraceAssertionTest extends TestCase
         $spanAssertion = $traceAssertion->hasChild(new StringContains('span'));
 
         // Verify that hasChild returns a SpanAssertion instance
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertInstanceOf(\OpenTelemetry\TestUtils\Fluent\SpanAssertion::class, $spanAssertion);
     }
 
@@ -241,6 +242,7 @@ class TraceAssertionTest extends TestCase
         $spans = $traceAssertion->getSpans();
 
         // Verify that getSpans returns an array
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertIsArray($spans);
         $this->assertCount(1, $spans);
     }
@@ -267,6 +269,7 @@ class TraceAssertionTest extends TestCase
         $spans = $traceAssertion->getSpans();
 
         // Verify that the spans were converted to an array
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertIsArray($spans);
     }
 
@@ -295,6 +298,7 @@ class TraceAssertionTest extends TestCase
         $spans = $traceAssertion->getSpans();
 
         // Verify that the spans are an array
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         $this->assertIsArray($spans);
         $this->assertSame($spansArray, $spans);
     }

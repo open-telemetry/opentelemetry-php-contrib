@@ -14,7 +14,6 @@ use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Contrib\Propagation\Instana\InstanaPropagator;
 
 use OpenTelemetry\SDK\Trace\Span;
-use Override;
 use PHPUnit\Framework\TestCase;
 
 final class InstanaPropagatorTest extends TestCase
@@ -30,7 +29,7 @@ final class InstanaPropagatorTest extends TestCase
 
     private InstanaPropagator $InstanaPropagator;
     
-    #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         $this->InstanaPropagator = InstanaPropagator::getInstance();

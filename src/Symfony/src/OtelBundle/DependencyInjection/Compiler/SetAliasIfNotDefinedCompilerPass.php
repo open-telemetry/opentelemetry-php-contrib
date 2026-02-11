@@ -18,6 +18,7 @@ final class SetAliasIfNotDefinedCompilerPass implements CompilerPassInterface
         $this->aliasService = $aliasService;
     }
 
+    #[\Override]
     public function process(ContainerBuilder $container): void
     {
         if ($container->has($this->service)) {

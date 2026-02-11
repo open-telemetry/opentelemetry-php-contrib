@@ -42,7 +42,7 @@ return [
     //
     // Note that the **only** effect of choosing `'5.6'` is to infer that functions removed in php 7.0 exist.
     // (See `backward_compatibility_checks` for additional options)
-    'target_php_version' => '7.4',
+    'target_php_version' => '8.2',
 
     // If enabled, missing properties will be created when
     // they are first seen. If false, we'll report an
@@ -278,7 +278,7 @@ return [
 
     // Add any issue types (such as `'PhanUndeclaredMethod'`)
     // to this deny-list to inhibit them from being reported.
-    'suppress_issue_types' => [],
+    'suppress_issue_types' => ['PhanUndeclaredClassAttribute', 'PhanCompatibleOverrideAttribute'],
 
     // A regular expression to match files to be excluded
     // from parsing and analysis and will not be read at all.

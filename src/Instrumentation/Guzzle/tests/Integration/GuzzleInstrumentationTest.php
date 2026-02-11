@@ -38,7 +38,8 @@ class GuzzleInstrumentationTest extends TestCase
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->mock = new MockHandler();
         $this->handlerStack = HandlerStack::create($this->mock);
@@ -61,7 +62,8 @@ class GuzzleInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }
@@ -159,7 +161,7 @@ class GuzzleInstrumentationTest extends TestCase
     {
         $this->handlerStack->push(function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
-                $this->assertNotNull($request->getHeader('traceparent'));
+                $this->assertNotEmpty($request->getHeader('traceparent'));
 
                 return $handler($request, $options);
             };

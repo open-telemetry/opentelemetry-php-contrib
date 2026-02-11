@@ -146,7 +146,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         }
     }
 
-    public function sendDataProvider(): array
+    public static function sendDataProvider(): array
     {
         return [
             [
@@ -161,7 +161,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         ];
     }
 
-    public function dispatchDataProvider(): array
+    public static function dispatchDataProvider(): array
     {
         return [
             [

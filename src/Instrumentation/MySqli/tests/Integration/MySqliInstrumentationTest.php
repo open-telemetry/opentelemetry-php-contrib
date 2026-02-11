@@ -33,7 +33,8 @@ class MySqliInstrumentationTest extends TestCase
     private string $passwd;
     private string $database;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -54,7 +55,8 @@ class MySqliInstrumentationTest extends TestCase
         $this->database = 'otel_db';
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }
@@ -310,9 +312,7 @@ class MySqliInstrumentationTest extends TestCase
 
     }
 
-    /**
-     * @requires PHP >= 8.2
-     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhp('>= 8.2')]
     public function test_mysqli_execute_query_objective(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -371,9 +371,7 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertDatabaseAttributesForAllSpans($offset);
     }
 
-    /**
-     * @requires PHP >= 8.2
-     */
+    #[\PHPUnit\Framework\Attributes\RequiresPhp('>= 8.2')]
     public function test_mysqli_execute_query_procedural(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);

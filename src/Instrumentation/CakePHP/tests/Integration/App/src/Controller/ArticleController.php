@@ -13,6 +13,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 class ArticleController extends Controller
 {
+    #[\Override]
     public function viewClasses(): array
     {
         return [JsonView::class];

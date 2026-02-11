@@ -52,7 +52,8 @@ class DoctrineInstrumentationTest extends TestCase
         SQL;
     }
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -66,7 +67,8 @@ class DoctrineInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

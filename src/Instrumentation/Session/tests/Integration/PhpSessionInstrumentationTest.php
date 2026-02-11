@@ -10,7 +10,8 @@ use OpenTelemetry\SemConv\TraceAttributes;
 
 class PhpSessionInstrumentationTest extends AbstractTest
 {
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         parent::setUp();
         
@@ -23,7 +24,8 @@ class PhpSessionInstrumentationTest extends AbstractTest
         }
     }
     
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         // Clean up any active sessions
         if (session_status() === PHP_SESSION_ACTIVE) {

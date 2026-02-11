@@ -13,10 +13,10 @@ use Psr\Http\Message\UriInterface;
  *
  * @see https://opentelemetry.io/docs/specs/semconv/registry/attributes/url/#url-full
  */
-final class DefaultSanitizer implements UriSanitizer
+final readonly class DefaultSanitizer implements UriSanitizer
 {
 
-    private readonly UriSanitizer $sanitizer;
+    private UriSanitizer $sanitizer;
 
     public function __construct()
     {

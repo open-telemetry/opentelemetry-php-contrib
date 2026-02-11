@@ -28,7 +28,8 @@ class SdkConfigTest extends TestCase
     /**
      * @throws Exception
      */
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->container = new ContainerBuilder();
         (new PhpFileLoader(

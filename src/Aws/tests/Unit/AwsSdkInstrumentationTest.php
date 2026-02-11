@@ -15,6 +15,7 @@ class AwsSdkInstrumentationTest extends TestCase
 {
     private AwsSdkInstrumentation $awsSdkInstrumentation;
 
+    #[\Override]
     protected function setUp(): void
     {
         BypassFinals::enable();

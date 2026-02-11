@@ -13,6 +13,7 @@ final class RulesCacheTest extends TestCase
 {
     private ResourceInfo $resource;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->resource = ResourceInfo::create(Attributes::create([

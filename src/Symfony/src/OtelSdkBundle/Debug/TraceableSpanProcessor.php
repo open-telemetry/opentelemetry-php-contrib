@@ -33,23 +33,27 @@ class TraceableSpanProcessor implements SpanProcessorInterface
         }
     }
 
+    #[\Override]
     public function onStart(ReadWriteSpanInterface $span, ContextInterface $parentContext): void
     {
         $this->dataCollector->collectedSpans[$span->getContext()->getSpanId()] = $span;
         $this->spanProcessor->onStart($span, $parentContext);
     }
 
+    #[\Override]
     public function onEnd(ReadableSpanInterface $span): void
     {
         $this->spanProcessor->onEnd($span);
         $this->dataCollector->collectedSpans[$span->getContext()->getSpanId()] = $span;
     }
 
+    #[\Override]
     public function forceFlush(?CancellationInterface $cancellation = null): bool
     {
         return $this->spanProcessor->forceFlush();
     }
 
+    #[\Override]
     public function shutdown(?CancellationInterface $cancellation = null): bool
     {
         return $this->spanProcessor->shutdown();

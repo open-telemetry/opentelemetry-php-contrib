@@ -37,6 +37,7 @@ class TestCase extends \Cake\TestSuite\TestCase
             ->activate();
     }
 
+    #[\Override]
     public function tearDown(): void
     {
         parent::tearDown();

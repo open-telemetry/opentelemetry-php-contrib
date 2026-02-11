@@ -38,6 +38,8 @@ class Detector implements ResourceDetectorInterface
     private const AWS_REGION_ENV = 'AWS_REGION';
     private const CLOUD_PROVIDER = 'aws';
 
+    #[\Override]
+
     public function getResource(): ResourceInfo
     {
         $lambdaName = getenv(self::LAMBDA_NAME_ENV);

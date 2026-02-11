@@ -21,6 +21,7 @@ final class RequestPropagationGetter implements PropagationGetterInterface
     }
 
     /** @psalm-suppress InvalidReturnType */
+    #[\Override]
     public function keys($carrier): array
     {
         assert($carrier instanceof MessageInterface);
@@ -28,7 +29,9 @@ final class RequestPropagationGetter implements PropagationGetterInterface
         return array_keys($carrier->headers());
     }
 
-    public function get($carrier, string $key) : ?string
+    #[\Override]
+    /** @phpstan-ignore return.unusedType (implementing interface that allows null) */
+    public function get($carrier, string $key): ?string
     {
         assert($carrier instanceof MessageInterface);
 

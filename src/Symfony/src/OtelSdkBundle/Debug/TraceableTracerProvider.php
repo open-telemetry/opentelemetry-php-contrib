@@ -27,21 +27,25 @@ class TraceableTracerProvider implements TracerProviderInterface
         $this->dataCollector->setTracerProvider($tracerProvider);
     }
 
+    #[\Override]
     public function forceFlush(?CancellationInterface $cancellation = null): bool
     {
         return $this->tracerProvider->forceFlush();
     }
 
+    #[\Override]
     public function shutdown(?CancellationInterface $cancellation = null): bool
     {
         return $this->tracerProvider->shutdown();
     }
 
+    #[\Override]
     public function getTracer(string $name, ?string $version = null, ?string $schemaUrl = null, iterable $attributes = []): TracerInterface
     {
         return $this->tracerProvider->getTracer($name, $version, $schemaUrl, $attributes);
     }
 
+    #[\Override]
     public function updateConfigurator(Configurator $configurator): void
     {
     }

@@ -15,16 +15,18 @@ use function sprintf;
  * Samples based on a list of rule sets. The first matching rule set will be
  * used for sampling decisions.
  */
-final class RuleBasedSampler implements SamplerInterface
+final readonly class RuleBasedSampler implements SamplerInterface
 {
     /**
      * @param list<RuleSet> $ruleSets
      */
     public function __construct(
-        private readonly array $ruleSets,
-        private readonly SamplerInterface $fallback,
+        private array $ruleSets,
+        private SamplerInterface $fallback,
     ) {
     }
+
+    #[\Override]
 
     public function shouldSample(
         ContextInterface $parentContext,
@@ -51,6 +53,8 @@ final class RuleBasedSampler implements SamplerInterface
     {
         return sprintf('RuleBasedSampler{rules=[%s],fallback=%s}', implode(',', $this->ruleSets), $this->fallback->getDescription());
     }
+
+    #[\Override]
 
     public function getDescription(): string
     {

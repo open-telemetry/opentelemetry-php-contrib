@@ -24,6 +24,7 @@ final class SamplingRuleSpanKind implements ComponentProvider
      *     kind: 'INTERNAL'|'CLIENT'|'SERVER'|'PRODUCER'|'CONSUMER',
      * } $properties
      */
+    #[\Override]
     public function createPlugin(array $properties, Context $context): SamplingRule
     {
         return new SpanKindRule(
@@ -37,6 +38,7 @@ final class SamplingRuleSpanKind implements ComponentProvider
         );
     }
 
+    #[\Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
         $node = $builder->arrayNode('span_kind');

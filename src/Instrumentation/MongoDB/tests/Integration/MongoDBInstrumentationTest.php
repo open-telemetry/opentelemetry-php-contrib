@@ -32,7 +32,8 @@ class MongoDBInstrumentationTest extends TestCase
     private ArrayObject $storage;
     private ?ImmutableSpan $span = null;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->host = $_SERVER['MONGODB_HOST'] ?? '127.0.0.1';
         $this->port = (int) ($_SERVER['MONGODB_PORT'] ?? 27017);
@@ -50,7 +51,8 @@ class MongoDBInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

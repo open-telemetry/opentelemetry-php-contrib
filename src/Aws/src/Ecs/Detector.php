@@ -92,6 +92,7 @@ class Detector implements ResourceDetectorInterface
      * - aws.log.stream.names
      * - aws.log.stream.arns
      */
+    #[\Override]
     public function getResource(): ResourceInfo
     {
         $metadataEndpointV4 = getenv(self::ECS_METADATA_KEY_V4);

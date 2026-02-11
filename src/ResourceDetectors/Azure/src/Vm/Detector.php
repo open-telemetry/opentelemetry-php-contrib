@@ -53,6 +53,8 @@ class Detector implements ResourceDetectorInterface
         $this->requestFactory = $requestFactory ?: Psr17FactoryDiscovery::findRequestFactory();
     }
 
+    #[\Override]
+
     public function getResource(): ResourceInfo
     {
         try {

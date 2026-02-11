@@ -20,6 +20,7 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
 
     public array $collectedSpans = [];
 
+    #[\Override]
     public function reset(): void
     {
         $this->data = [];
@@ -28,6 +29,7 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function collect(Request $request, Response $response, ?Throwable $exception = null): void
     {
         // Everything is collected during the request, and formatted on kernel terminate.
@@ -36,6 +38,7 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function getName(): string
     {
         return 'otel';
@@ -52,6 +55,7 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function lateCollect(): void
     {
         $this->loadDataFromTracerSharedState();
@@ -138,16 +142,19 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
         ];
     }
 
+    #[\Override]
     public function getVersion() : ?string
     {
         return null;
     }
 
+    #[\Override]
     public function getSchemaUrl() : ?string
     {
         return null;
     }
 
+    #[\Override]
     public function init() : bool
     {
         return true;

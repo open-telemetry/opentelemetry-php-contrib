@@ -132,10 +132,7 @@ final class AttributesResolver
         $matches = [];
         preg_match_all('/( from| into| update| join)\s*([a-zA-Z0-9`"[\]_]+)/i', $query, $matches);
 
-        $targetName = null;
-        if ($matches !== []) {
-            $targetName = $matches[2][0] ?? null;
-        }
+        $targetName = $matches[2][0] ?? null;
         if ($targetName === null) {
             return null;
         }

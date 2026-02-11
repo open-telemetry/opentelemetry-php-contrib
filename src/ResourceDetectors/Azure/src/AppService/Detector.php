@@ -44,6 +44,8 @@ class Detector implements ResourceDetectorInterface
     public const ENV_WEBSITE_SITE_NAME_KEY = 'WEBSITE_SITE_NAME';
     public const ENV_WEBSITE_SLOT_NAME_KEY = 'WEBSITE_SLOT_NAME';
 
+    #[\Override]
+
     public function getResource(): ResourceInfo
     {
         $name = getenv(self::ENV_WEBSITE_SITE_NAME_KEY);

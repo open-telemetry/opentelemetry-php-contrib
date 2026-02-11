@@ -1,6 +1,16 @@
-PHP_VERSION ?= 7.4
-include .env
+# Save variables if passed via command-line or environment before .env overrides them
+_ORIG_PROJECT := $(PROJECT)
+_ORIG_PHP_VERSION := $(PHP_VERSION)
+-include .env
+# Restore variables if passed externally, otherwise use .env value or default
+ifneq ($(_ORIG_PROJECT),)
+PROJECT := $(_ORIG_PROJECT)
+endif
+ifneq ($(_ORIG_PHP_VERSION),)
+PHP_VERSION := $(_ORIG_PHP_VERSION)
+endif
 PROJECT ?= Aws
+PHP_VERSION ?= 8.2
 ROOT=/usr/src/myapp/src
 DC_RUN = ${DOCKER_COMPOSE} run --rm
 DC_RUN_PHP = $(DC_RUN) -w ${ROOT}/${PROJECT} php
@@ -8,7 +18,7 @@ DC_RUN_PHP = $(DC_RUN) -w ${ROOT}/${PROJECT} php
 .DEFAULT_GOAL : help
 
 help: ## Show this help
-	@echo "example: PROJECT=Aws PHP_VERSION=8.1 make <command>"
+	@echo "example: PROJECT=Aws PHP_VERSION=8.2 make <command>"
 	@printf "\033[33m%s:\033[0m\n" 'Available commands'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 all-checks: style validate phan psalm phpstan test ## All checks + tests
@@ -38,6 +48,44 @@ psalm-info: ## Run psalm with info
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/psalm --show-info=true --threads=1
 phpstan: ## Run phpstan
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=256M
+rector: ## Run rector
+	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/rector
+rector-dry-run: ## Run rector (dry-run)
+	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/rector --dry-run
+
+# List of all packages for rector-all target
+PACKAGES := Aws Context/Swoole Exporter/Instana Instrumentation/AwsSdk Instrumentation/CakePHP \
+	Instrumentation/CodeIgniter Instrumentation/Curl Instrumentation/Doctrine Instrumentation/ExtAmqp \
+	Instrumentation/ExtRdKafka Instrumentation/Guzzle Instrumentation/HttpAsyncClient Instrumentation/HttpConfig \
+	Instrumentation/IO Instrumentation/Laravel Instrumentation/MongoDB Instrumentation/MySqli \
+	Instrumentation/OpenAIPHP Instrumentation/PDO Instrumentation/PostgreSql Instrumentation/Psr3 \
+	Instrumentation/Psr6 Instrumentation/Psr14 Instrumentation/Psr15 Instrumentation/Psr16 Instrumentation/Psr18 \
+	Instrumentation/ReactPHP Instrumentation/Session Instrumentation/Slim Instrumentation/Symfony \
+	Instrumentation/Yii Logs/Monolog Propagation/CloudTrace Propagation/Instana Propagation/ServerTiming \
+	Propagation/TraceResponse ResourceDetectors/Azure ResourceDetectors/Container ResourceDetectors/DigitalOcean \
+	Sampler/RuleBased Sampler/Xray Shims/OpenTracing SqlCommenter Symfony/src/OtelBundle \
+	Symfony/src/OtelSdkBundle Utils/Test
+
+rector-all: ## Run rector on all packages (with composer update)
+	@for pkg in $(PACKAGES); do \
+		echo "=== Running rector on $$pkg ==="; \
+		$(MAKE) --no-print-directory PROJECT=$$pkg update && \
+		$(MAKE) --no-print-directory PROJECT=$$pkg rector || exit 1; \
+	done
+
+psalm-all: ## Run psalm on all packages (with composer update)
+	@for pkg in $(PACKAGES); do \
+		echo "=== Running psalm on $$pkg ==="; \
+		$(MAKE) --no-print-directory PROJECT=$$pkg update && \
+		$(MAKE) --no-print-directory PROJECT=$$pkg psalm || exit 1; \
+	done
+
+style-all: ## Run php-cs-fixer on all packages (with composer update)
+	@for pkg in $(PACKAGES); do \
+		echo "=== Running style on $$pkg ==="; \
+		$(MAKE) --no-print-directory PROJECT=$$pkg update && \
+		$(MAKE) --no-print-directory PROJECT=$$pkg style || exit 1; \
+	done
 validate: ## Validate composer file
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer validate --no-plugins
 packages-composer: ## Validate all composer packages

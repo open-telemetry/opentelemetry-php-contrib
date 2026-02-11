@@ -25,7 +25,8 @@ class Psr14InstrumentationTest extends TestCase
 
     private EventDispatcherInterface $dispatcher;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $this->tracerProvider = new TracerProvider(
@@ -41,6 +42,7 @@ class Psr14InstrumentationTest extends TestCase
            ->activate();
 
         $this->dispatcher = new class() implements EventDispatcherInterface {
+            #[\Override]
             public function dispatch(object $event)
             {
                 return $event;
@@ -48,7 +50,8 @@ class Psr14InstrumentationTest extends TestCase
         };
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }

@@ -27,6 +27,8 @@ final class Container implements ResourceDetectorInterface
         $this->dir = $dir;
     }
 
+    #[\Override]
+
     public function getResource(): ResourceInfo
     {
         $attributes = [];

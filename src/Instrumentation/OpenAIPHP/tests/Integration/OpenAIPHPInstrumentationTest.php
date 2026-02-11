@@ -30,7 +30,8 @@ class OpenAIPHPInstrumentationTest extends TestCase
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -45,7 +46,8 @@ class OpenAIPHPInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }
@@ -71,7 +73,7 @@ class OpenAIPHPInstrumentationTest extends TestCase
             ->make();
     }
 
-    public function dataProvider(): array
+    public static function dataProvider(): array
     {
         return [
             'audio->transcribe' => ['audio', 'transcribe', [['model' => 'whisper-1']], 'audio-transcribe', [OpenAIAttributes::OPENAI_MODEL => 'whisper-1', OpenAIAttributes::OPENAI_RESOURCE => 'audio/transcribe']],

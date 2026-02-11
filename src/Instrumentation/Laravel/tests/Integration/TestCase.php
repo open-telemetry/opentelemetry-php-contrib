@@ -52,6 +52,7 @@ abstract class TestCase extends BaseTestCase
             ->activate();
     }
 
+    #[\Override]
     public function tearDown(): void
     {
         parent::tearDown();

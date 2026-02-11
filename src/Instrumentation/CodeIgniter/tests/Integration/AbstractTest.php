@@ -18,7 +18,8 @@ abstract class AbstractTest extends CIUnitTestCase
     private ScopeInterface $scope;
     protected ArrayObject $storage;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -35,7 +36,8 @@ abstract class AbstractTest extends CIUnitTestCase
         parent::setUp();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         parent::tearDown();
 

@@ -17,7 +17,7 @@ class SerializerTest extends TestCase
         $this->assertSame($expected, Serializer::serializeCommand($command, $params));
     }
 
-    public function serializeCases(): iterable
+    public static function serializeCases(): iterable
     {
         // Only serialize command
         yield ['ECHO', ['param1'], 'ECHO [1 other arguments]'];
@@ -35,6 +35,6 @@ class SerializerTest extends TestCase
         // Parameters of array type
         yield ['EVAL', ['param1', 'param2', ['arg1', 'arg2']], 'EVAL param1 param2 ["arg1","arg2"]'];
 
-        yield ['pipeline', [function () {}], 'pipeline Callable'];
+        yield ['pipeline', [static fn () => null], 'pipeline Callable'];
     }
 }

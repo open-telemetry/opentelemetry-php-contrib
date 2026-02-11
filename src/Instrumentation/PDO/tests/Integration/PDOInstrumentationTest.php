@@ -59,7 +59,8 @@ class PDOInstrumentationTest extends TestCase
         SQL;
     }
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -73,7 +74,8 @@ class PDOInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }
@@ -106,7 +108,7 @@ class PDOInstrumentationTest extends TestCase
          *
          * @psalm-suppress UndefinedClass
          * @psalm-suppress InvalidClass
-         * @var Pdo\Sqlite $db
+         * @var PDO $db
          */
         $db = self::createDBWithNewSubclass();
         $this->assertCount(1, $this->storage);

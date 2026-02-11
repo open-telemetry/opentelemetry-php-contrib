@@ -21,6 +21,7 @@ final class RequestPropagationGetter implements PropagationGetterInterface
     }
 
     /** @psalm-suppress InvalidReturnType */
+    #[\Override]
     public function keys($carrier): array
     {
         assert($carrier instanceof Request);
@@ -28,17 +29,12 @@ final class RequestPropagationGetter implements PropagationGetterInterface
         return array_keys($carrier->getHeaders()->toArray());
     }
 
-    public function get($carrier, string $key) : ?string
+    #[\Override]
+    public function get($carrier, string $key): ?string
     {
         assert($carrier instanceof Request);
 
-        $result = $carrier->getHeaders()->get($key, null, true);
-
-        if (is_array($result)) {
-            return (string) array_values($result)[0];
-        }
-
-        return $result;
-        
+        // When $first=true (3rd param), get() returns string|null, not an array
+        return $carrier->getHeaders()->get($key, null, true);
     }
 }

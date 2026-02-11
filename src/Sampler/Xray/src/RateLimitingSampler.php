@@ -26,6 +26,8 @@ class RateLimitingSampler implements SamplerInterface
         $this->limiter = new RateLimiter($maxTracesPerSecond);
     }
 
+    #[\Override]
+
     public function shouldSample(
         ContextInterface $parentContext,
         string $traceId,
@@ -40,6 +42,8 @@ class RateLimitingSampler implements SamplerInterface
 
         return new SamplingResult(SamplingResult::DROP, [], null);
     }
+
+    #[\Override]
 
     public function getDescription(): string
     {

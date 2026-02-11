@@ -17,7 +17,8 @@ class ContainerTest extends TestCase
     private vfsStreamFile $mountinfo;
     private Container $detector;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $root = vfsStream::setup();
         $this->cgroup = vfsStream::newFile('cgroup')->at($root);

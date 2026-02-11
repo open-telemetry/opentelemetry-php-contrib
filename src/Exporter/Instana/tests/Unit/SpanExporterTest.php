@@ -15,7 +15,7 @@ class SpanExporterTest extends TestCase
     private SpanExporter $exporter;
 
     #[\Override]
-    public function setUp(): void
+    protected function setUp(): void
     {
         $transportMock = $this->createMock(TransportInterface::class);
         $transportMock

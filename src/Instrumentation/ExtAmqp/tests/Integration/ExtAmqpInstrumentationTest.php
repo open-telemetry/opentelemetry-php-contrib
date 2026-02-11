@@ -22,7 +22,8 @@ class ExtAmqpInstrumentationTest extends TestCase
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
-    public function setUp(): void
+    #[\Override]
+    protected function setUp(): void
     {
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
@@ -37,7 +38,8 @@ class ExtAmqpInstrumentationTest extends TestCase
             ->activate();
     }
 
-    public function tearDown(): void
+    #[\Override]
+    protected function tearDown(): void
     {
         $this->scope->detach();
     }
@@ -115,7 +117,7 @@ class ExtAmqpInstrumentationTest extends TestCase
         }
     }
 
-    public function getRabbitMessageInteractions(): array
+    public static function getRabbitMessageInteractions(): array
     {
         return [
             ['ack'],

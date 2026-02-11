@@ -80,7 +80,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $this->assertSame(InvalidArgumentException::class, $event->getAttributes()->get('exception.type'));
     }
 
-    public function requestProvider(): array
+    public static function requestProvider(): array
     {
         return [
             ['GET', 'http://localhost:8057', Response::HTTP_OK, StatusCode::STATUS_UNSET],

@@ -20,7 +20,7 @@ class CallableFormatterTest extends TestCase
         $this->assertSame($expected, CallableFormatter::format($callable));
     }
 
-    public function callableProvider(): array
+    public static function callableProvider(): array
     {
         return [
             'builtin' => [

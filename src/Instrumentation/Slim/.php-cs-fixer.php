@@ -1,8 +1,8 @@
 <?php
 $finder = PhpCsFixer\Finder::create()
     ->exclude('vendor')
-    ->exclude('tests/Unit81') //contains php8.1 syntax
     ->exclude('var/cache')
+    ->exclude('tests/Unit81')
     ->exclude('tests/coverage')
     ->in(__DIR__);
 
