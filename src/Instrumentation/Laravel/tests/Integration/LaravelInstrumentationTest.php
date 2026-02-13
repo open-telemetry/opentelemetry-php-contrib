@@ -9,7 +9,8 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 
 /** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
@@ -19,9 +20,9 @@ class LaravelInstrumentationTest extends TestCase
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
     }
 
@@ -62,7 +63,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(3, $this->storage);
         $span = $this->storage[2];
         $this->assertSame('GET /hello', $span->getName());
-        $this->assertSame('http://localhost/hello', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertSame('http://localhost/hello', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertCount(4, $span->getEvents());
         $this->assertSame('cache set', $span->getEvents()[0]->getName());
         $this->assertSame('cache miss', $span->getEvents()[1]->getName());
@@ -82,7 +83,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('info', $logRecord->getSeverityText());
         $this->assertSame(9, $logRecord->getSeverityNumber());
         $this->assertArrayHasKey('context', $logRecord->getAttributes()->toArray());
-        $this->assertSame(json_encode(['test' => true]), $logRecord->getAttributes()->toArray()['context']);
+        $this->assertSame(['test' => true], $logRecord->getAttributes()->get('context'));
     }
 
     public function test_low_cardinality_route_span_name(): void
@@ -112,9 +113,9 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/exception', fn () => throw new Exception('Test exception'));
         $this->call('GET', '/exception');
         $logRecord = $this->storage[0];
-        $this->assertEquals(Exception::class, $logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_TYPE));
-        $this->assertEquals('Test exception', $logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_MESSAGE));
-        $this->assertNotNull($logRecord->getAttributes()->get(TraceAttributes::EXCEPTION_STACKTRACE));
+        $this->assertEquals(Exception::class, $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
+        $this->assertEquals('Test exception', $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
+        $this->assertNotNull($logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_STACKTRACE));
     }
 
     private function router(): Router
