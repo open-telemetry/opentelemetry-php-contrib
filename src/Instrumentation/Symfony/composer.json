@@ -14,7 +14,8 @@
     "open-telemetry/api": "^1.6",
     "open-telemetry/sem-conv": "^1.32",
     "symfony/http-kernel": "*",
-    "symfony/http-client-contracts": "*"
+    "symfony/http-client-contracts": "*",
+    "symfony/routing": "*"
   },
   "suggest": {
     "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",

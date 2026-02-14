@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Routing\Router;
 
 /** @psalm-suppress UnusedClass */
 final class SymfonyInstrumentation
@@ -127,13 +128,16 @@ final class SymfonyInstrumentation
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $response = ($params[1] instanceof Response) ? $params[1] : null;
                 if (null !== $request) {
-                    $routeName = $request->attributes->get('_route', '');
+                    // Prefer route path template (per OpenTelemetry semantic conventions)
+                    // Fall back to route name for backwards compatibility
+                    $httpRoute = $request->attributes->get('_route_path', '')
+                        ?: $request->attributes->get('_route', '');
 
-                    if ('' !== $routeName) {
+                    if ('' !== $httpRoute) {
                         /** @psalm-suppress ArgumentTypeCoercion */
                         $span
-                            ->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
-                            ->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                            ->updateName(sprintf('%s %s', $request->getMethod(), $httpRoute))
+                            ->setAttribute(TraceAttributes::HTTP_ROUTE, $httpRoute);
                     }
                 }
 
@@ -189,6 +193,43 @@ final class SymfonyInstrumentation
                     ->recordException($throwable);
 
                 return $params;
+            },
+        );
+
+        // Hook into Router to capture route path template
+        /** @psalm-suppress UnusedFunctionCall */
+        hook(
+            Router::class,
+            'matchRequest',
+            post: static function (
+                Router $router,
+                array $params,
+                ?array $result,
+                ?\Throwable $exception
+            ): void {
+                if (null !== $exception || null === $result) {
+                    return;
+                }
+
+                $request = $params[0] ?? null;
+                if (!$request instanceof Request) {
+                    return;
+                }
+
+                $routeName = $result['_route'] ?? null;
+                if (null === $routeName) {
+                    return;
+                }
+
+                try {
+                    $route = $router->getRouteCollection()->get($routeName);
+                    if (null !== $route) {
+                        // Store the route path template for use by the terminate hook
+                        $request->attributes->set('_route_path', $route->getPath());
+                    }
+                } catch (\Throwable) {
+                    // Silently ignore - don't break the request for telemetry
+                }
             },
         );
     }
