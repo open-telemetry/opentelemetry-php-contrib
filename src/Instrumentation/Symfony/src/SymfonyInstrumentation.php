@@ -94,17 +94,34 @@ final class SymfonyInstrumentation
                 ?\Throwable $exception
             ): void {
                 $scope = Context::storage()->scope();
-                if (null === $scope || null === $exception) {
+                if (null === $scope) {
+                    return;
+                }
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
+                $isSubRequest = ($type === HttpKernelInterface::SUB_REQUEST);
+
+                // MAIN_REQUEST without exception: let terminate() handle everything
+                if (!$isSubRequest && null === $exception) {
                     return;
                 }
 
                 $span = Span::fromContext($scope->context());
                 $scope->detach();
-                $span->recordException($exception, [
-                    TraceAttributes::EXCEPTION_ESCAPED => true,
-                ]);
-                if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+
+                // Record exception if present
+                if (null !== $exception) {
+                    $span->recordException($exception, [
+                        TraceAttributes::EXCEPTION_ESCAPED => true,
+                    ]);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
+                // SUB_REQUEST: end span here since terminate() only handles MAIN_REQUEST
+                if ($isSubRequest) {
+                    if (null !== $response) {
+                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    }
+                    $span->end();
                 }
             }
         );
