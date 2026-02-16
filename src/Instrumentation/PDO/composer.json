@@ -29,7 +29,7 @@
     "open-telemetry/sdk": "^1.0",
     "open-telemetry/test-utils": "^0.2.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "6.4.0"
+    "vimeo/psalm": "6.15.1"
   },
   "autoload": {
     "psr-4": {
