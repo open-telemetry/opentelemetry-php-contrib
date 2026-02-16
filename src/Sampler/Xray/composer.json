@@ -20,7 +20,7 @@
         "phpstan/phpstan-phpunit": "^1.0",
         "psalm/plugin-phpunit": "^0.19.2",
         "phpunit/phpunit": "^10 || ^11",
-        "vimeo/psalm": "^4|^5|6.4.0"
+        "vimeo/psalm": "6.15.1"
     },
     "autoload": {
         "psr-4": {
