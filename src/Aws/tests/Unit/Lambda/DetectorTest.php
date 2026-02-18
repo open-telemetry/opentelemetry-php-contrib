@@ -100,7 +100,7 @@ class DetectorTest extends TestCase
         putenv(self::AWS_REGION_ENV);
     }
 
-    private const ACCOUNT_ID_SYMLINK_PATH = '/tmp/.otel-account-id';
+    private const ACCOUNT_ID_SYMLINK_PATH = '/tmp/.otel-aws-account-id';
 
     private function removeSymlinkIfExists(): ?string
     {

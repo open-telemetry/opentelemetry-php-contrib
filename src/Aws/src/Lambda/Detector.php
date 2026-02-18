@@ -37,7 +37,7 @@ class Detector implements ResourceDetectorInterface
     private const LAMBDA_VERSION_ENV = 'AWS_LAMBDA_FUNCTION_VERSION';
     private const AWS_REGION_ENV = 'AWS_REGION';
     private const CLOUD_PROVIDER = 'aws';
-    private const ACCOUNT_ID_SYMLINK_PATH = '/tmp/.otel-account-id';
+    private const ACCOUNT_ID_SYMLINK_PATH = '/tmp/.otel-aws-account-id';
 
     public function getResource(): ResourceInfo
     {
