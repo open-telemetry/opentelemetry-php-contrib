@@ -18,7 +18,7 @@ class LaravelInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.laravel',
             null,
-            Version::VERSION_1_38_0->url()
+            Version::VERSION_1_32_0->url()
         );
 
         Hooks\Illuminate\Console\Command::hook($instrumentation);

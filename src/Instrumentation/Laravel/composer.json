@@ -21,7 +21,7 @@
     "ext-opentelemetry": "*",
     "laravel/framework": "^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0",
     "open-telemetry/api": "^1.8",
-    "open-telemetry/sem-conv": "^1.38"
+    "open-telemetry/sem-conv": "^1.32"
   },
   "suggest": {
     "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
