@@ -14,6 +14,7 @@ use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
+use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
@@ -36,18 +37,17 @@ class QueueTest extends TestCase
     {
         $this->queue->push(new DummyJob('A'));
         $this->queue->push(function (LoggerInterface $logger) {
-            $logger->info('Logged from closure');
+            $currentSpan = Span::getCurrent();
+            $currentSpan->setAttribute('task.name', 'Job from closure');
         });
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord0 */
-        $logRecord0 = $this->storage[0];
-        $this->assertEquals('Task: A', $logRecord0->getBody());
-        $this->assertEquals('sync process', $this->storage[1]->getName());
+        $this->assertCount(2, $this->storage);
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord2 */
-        $logRecord2 = $this->storage[2];
-        $this->assertEquals('Logged from closure', $logRecord2->getBody());
-        $this->assertEquals('sync process', $this->storage[3]->getName());
+        $this->assertEquals('sync process', $this->storage[0]->getName());
+        $this->assertEquals('A', $this->storage[0]->getAttributes()->get('task.name'));
+
+        $this->assertEquals('sync process', $this->storage[1]->getName());
+        $this->assertEquals('Job from closure', $this->storage[1]->getAttributes()->get('task.name'));
     }
 
     public function test_it_can_push_a_message_with_a_delay(): void
@@ -56,19 +56,22 @@ class QueueTest extends TestCase
         $this->queue->later(new DateInterval('PT10M'), new DummyJob('DateInterval'));
         $this->queue->later(new DateTimeImmutable('2024-04-15 22:29:00.123Z'), new DummyJob('DateTime'));
 
-        $this->assertEquals('create sync', $this->storage[2]->getName());
+        $this->assertEquals('create sync', $this->storage[1]->getName());
+        $this->assertSame('int', $this->storage[0]->getAttributes()->get('task.name'));
         $this->assertIsInt(
-            $this->storage[2]->getAttributes()->get('messaging.message.delivery_timestamp'),
+            $this->storage[1]->getAttributes()->get('messaging.message.delivery_timestamp'),
+        );
+
+        $this->assertEquals('create sync', $this->storage[3]->getName());
+        $this->assertSame('DateInterval', $this->storage[2]->getAttributes()->get('task.name'));
+        $this->assertIsInt(
+            $this->storage[3]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
         $this->assertEquals('create sync', $this->storage[5]->getName());
+        $this->assertSame('DateTime', $this->storage[4]->getAttributes()->get('task.name'));
         $this->assertIsInt(
             $this->storage[5]->getAttributes()->get('messaging.message.delivery_timestamp'),
-        );
-
-        $this->assertEquals('create sync', $this->storage[8]->getName());
-        $this->assertIsInt(
-            $this->storage[8]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
     }
 
@@ -146,14 +149,14 @@ class QueueTest extends TestCase
         }
 
         /** @psalm-suppress PossiblyInvalidMethodCall */
-        $this->assertEquals(204, $this->storage->count());
+        $this->assertEquals(102, $this->storage->count());
 
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord100 */
-        $logRecord100 = $this->storage[100];
-        $this->assertEquals('Task: 500', $logRecord100->getBody());
+        $logRecord100 = $this->storage[50];
+        $this->assertEquals('500', $logRecord100->getAttributes()->get('task.name'));
 
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord200 */
-        $logRecord200 = $this->storage[200];
-        $this->assertEquals('Task: More work', $logRecord200->getBody());
+        $logRecord200 = $this->storage[100];
+        $this->assertEquals('More work', $logRecord200->getAttributes()->get('task.name'));
     }
 }

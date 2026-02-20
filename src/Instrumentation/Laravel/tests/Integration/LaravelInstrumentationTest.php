@@ -9,6 +9,8 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 
@@ -60,8 +62,8 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(3, $this->storage);
-        $span = $this->storage[2];
+        $this->assertCount(2, $this->storage);
+        $span = $this->storage[1];
         $this->assertSame('GET /hello', $span->getName());
         $this->assertSame('http://localhost/hello', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertCount(4, $span->getEvents());
@@ -70,20 +72,12 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('cache hit', $span->getEvents()[2]->getName());
         $this->assertSame('cache forget', $span->getEvents()[3]->getName());
 
-        $span = $this->storage[1];
+        $span = $this->storage[0];
         $this->assertSame('sql SELECT', $span->getName());
         $this->assertSame('SELECT', $span->getAttributes()->get('db.operation.name'));
         $this->assertSame(':memory:', $span->getAttributes()->get('db.namespace'));
         $this->assertSame('select 1', $span->getAttributes()->get('db.query.text'));
         $this->assertSame('sqlite', $span->getAttributes()->get('db.system.name'));
-
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord */
-        $logRecord = $this->storage[0];
-        $this->assertSame('Log info', $logRecord->getBody());
-        $this->assertSame('info', $logRecord->getSeverityText());
-        $this->assertSame(9, $logRecord->getSeverityNumber());
-        $this->assertArrayHasKey('context', $logRecord->getAttributes()->toArray());
-        $this->assertSame(['test' => true], $logRecord->getAttributes()->get('context'));
     }
 
     public function test_low_cardinality_route_span_name(): void
@@ -108,14 +102,23 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('GET', $span->getName());
     }
 
-    public function test_records_exception_in_logs(): void
+    public function test_records_exception_in_span_events(): void
     {
         $this->router()->get('/exception', fn () => throw new Exception('Test exception'));
         $this->call('GET', '/exception');
-        $logRecord = $this->storage[0];
-        $this->assertEquals(Exception::class, $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
-        $this->assertEquals('Test exception', $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
-        $this->assertNotNull($logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_STACKTRACE));
+
+        /** @var ImmutableSpan $span */
+        $span = $this->storage[0];
+
+        $this->assertCount(1, $span->getEvents());
+
+        $event = $span->getEvents()[0];
+        $this->assertSame('exception', $event->getName());
+
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertEquals(Exception::class, $event->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
+        $this->assertEquals('Test exception', $event->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
+        $this->assertNotNull($event->getAttributes()->get(ExceptionAttributes::EXCEPTION_STACKTRACE));
     }
 
     private function router(): Router
