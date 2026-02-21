@@ -107,6 +107,8 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/exception', fn () => throw new Exception('Test exception'));
         $this->call('GET', '/exception');
 
+        $this->assertNotEmpty($this->storage);
+
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
 
