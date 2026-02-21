@@ -15,6 +15,7 @@ use Illuminate\Queue\WorkerOptions;
 use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
@@ -151,12 +152,12 @@ class QueueTest extends TestCase
         /** @psalm-suppress PossiblyInvalidMethodCall */
         $this->assertEquals(102, $this->storage->count());
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord100 */
-        $logRecord100 = $this->storage[50];
-        $this->assertEquals('500', $logRecord100->getAttributes()->get('task.name'));
+        /** @var ImmutableSpan $span50 */
+        $span50 = $this->storage[50];
+        $this->assertEquals('500', $span50->getAttributes()->get('task.name'));
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord200 */
-        $logRecord200 = $this->storage[100];
-        $this->assertEquals('More work', $logRecord200->getAttributes()->get('task.name'));
+        /** @var ImmutableSpan $span100 */
+        $span100 = $this->storage[100];
+        $this->assertEquals('More work', $span100->getAttributes()->get('task.name'));
     }
 }
