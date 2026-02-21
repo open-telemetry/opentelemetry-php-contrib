@@ -19,7 +19,6 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
-use Psr\Log\LoggerInterface;
 
 /** @psalm-suppress UnusedClass */
 class QueueTest extends TestCase
@@ -37,7 +36,7 @@ class QueueTest extends TestCase
     public function test_it_handles_pushing_to_a_queue(): void
     {
         $this->queue->push(new DummyJob('A'));
-        $this->queue->push(function (LoggerInterface $logger) {
+        $this->queue->push(function () {
             $currentSpan = Span::getCurrent();
             $currentSpan->setAttribute('task.name', 'Job from closure');
         });
@@ -56,6 +55,8 @@ class QueueTest extends TestCase
         $this->queue->later(15, new DummyJob('int'));
         $this->queue->later(new DateInterval('PT10M'), new DummyJob('DateInterval'));
         $this->queue->later(new DateTimeImmutable('2024-04-15 22:29:00.123Z'), new DummyJob('DateTime'));
+
+        $this->assertCount(6, $this->storage);
 
         $this->assertEquals('create sync', $this->storage[1]->getName());
         $this->assertSame('int', $this->storage[0]->getAttributes()->get('task.name'));
