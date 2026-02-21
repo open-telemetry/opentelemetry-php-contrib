@@ -6,7 +6,7 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Psr\Log\LoggerInterface;
+use OpenTelemetry\API\Trace\Span;
 
 class DummyJob implements ShouldQueue
 {
@@ -19,8 +19,9 @@ class DummyJob implements ShouldQueue
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
-    public function handle(LoggerInterface $logger): void
+    public function handle(): void
     {
-        $logger->info("Task: {$this->name}");
+        $currentSpan = Span::getCurrent();
+        $currentSpan->setAttribute('task.name', $this->name);
     }
 }
