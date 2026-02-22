@@ -9,7 +9,7 @@ use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as Instrumenta
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use Throwable;
 
 /** @psalm-suppress UnusedClass */
@@ -19,7 +19,7 @@ class Queue implements Hook
 
     /** @psalm-suppress PossiblyUnusedReturnValue */
     public function instrument(
-        LaravelInstrumentation $instrumentation,
+        LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {

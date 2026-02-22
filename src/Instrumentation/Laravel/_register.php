@@ -8,11 +8,17 @@
 declare(strict_types=1);
 
 use Nevay\SPI\ServiceLoader;
+use OpenTelemetry\API\Configuration\Config\ComponentProvider;
+use OpenTelemetry\API\Configuration\ConfigEnv\EnvComponentLoader;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\ComponentLoader\LaravelComponentLoader;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\ComponentProvider\LaravelComponentProvider;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 
 ServiceLoader::register(Instrumentation::class, LaravelInstrumentation::class);
+ServiceLoader::register(ComponentProvider::class, LaravelComponentProvider::class);
+ServiceLoader::register(EnvComponentLoader::class, LaravelComponentLoader::class);
 
 ServiceLoader::register(Hooks\Hook::class, Hooks\Illuminate\Console\Command::class);
 

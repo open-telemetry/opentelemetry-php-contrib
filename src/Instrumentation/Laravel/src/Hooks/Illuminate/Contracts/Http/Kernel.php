@@ -19,6 +19,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\HeadersPropagator;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\ResponsePropagationSetter;
@@ -40,12 +41,12 @@ class Kernel implements Hook
     use PostHookTrait;
 
     public function instrument(
-        LaravelInstrumentation $instrumentation,
+        LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
         $tracer = $context->tracerProvider->getTracer(
-            $instrumentation->buildProviderName('http', 'kernel'),
+            LaravelInstrumentation::buildProviderName('http', 'kernel'),
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 
