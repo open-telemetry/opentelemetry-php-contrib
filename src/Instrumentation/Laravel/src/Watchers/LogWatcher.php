@@ -8,9 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
 use OpenTelemetry\API\Logs\LoggerInterface;
-use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\API\Logs\Severity;
-use OpenTelemetry\SDK\Common\Exception\StackTraceFormatter;
 use Throwable;
 use TypeError;
 
@@ -55,36 +53,31 @@ class LogWatcher extends Watcher
             // Should this fail, we should continue to emit the LogRecord.
         }
 
-        $contextToEncode = array_filter($log->context);
+        $logBuilder = $this
+            ->logger
+            ->logRecordBuilder();
 
+        $context = array_filter($log->context, static fn ($value) => $value !== null);
         $exception = $this->getExceptionFromContext($log->context);
 
         if ($exception !== null) {
-            unset($contextToEncode['exception']);
+            $logBuilder->setException($exception);
+
+            unset($context['exception']);
         }
 
-        $attributes = [
-            'context' => json_encode($contextToEncode),
-            ...$exception !== null ? [
-                'exception.type' => $exception::class,
-                'exception.message' => $exception->getMessage(),
-                'exception.stacktrace' => StackTraceFormatter::format($exception),
-            ] : [],
-        ];
-
-        $record = (new LogRecord($log->message))
+        $logBuilder->setBody($log->message)
             ->setSeverityText($log->level)
             ->setSeverityNumber(Severity::fromPsr3($log->level))
-            ->setAttributes($attributes);
-
-        $this->logger->emit($record);
+            ->setAttribute('context', $context)
+            ->emit();
     }
 
     private function getExceptionFromContext(array $context): ?Throwable
     {
         if (
-            ! isset($context['exception']) ||
-            ! $context['exception'] instanceof Throwable
+            !isset($context['exception']) ||
+            !$context['exception'] instanceof Throwable
         ) {
             return null;
         }

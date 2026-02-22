@@ -18,7 +18,7 @@ require __DIR__ . '/../vendor/autoload.php';
 /**
  * Example of using the opentelemetry extension to:
  * - export logs in OTLP format (if mode=`export`)
- * - inject traceId/spanId into context (if mode=`inject`) - NB that cake's built-in formatters only use context for interpolation
+ * - inject trace_id/span_id into context (if mode=`inject`) - NB that cake's built-in formatters only use context for interpolation
  */
 
 Log::setConfig('default', [
@@ -30,7 +30,7 @@ $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->start
 $scope = $span->activate();
 
 Log::warning('hello world', ['foo' => 'bar', 'exception' => new \Exception('kaboom', 500, new \RuntimeException('kablam'))]);
-Log::info('hello, OpenTelemetry traceId={traceId}');
+Log::info('hello, OpenTelemetry trace_id={trace_id}');
 
 $scope->detach();
 $span->end();

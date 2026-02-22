@@ -1,7 +1,14 @@
 {
   "name": "open-telemetry/opentelemetry-auto-laravel",
   "description": "OpenTelemetry auto-instrumentation for Laravel",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "laravel", "instrumentation"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "laravel",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
@@ -12,7 +19,7 @@
     "php": "^8.1",
     "ext-json": "*",
     "laravel/framework": "^10.0 || ^11.0 || ^12.0",
-    "open-telemetry/api": "^1.6",
+    "open-telemetry/api": "^1.8",
     "open-telemetry/sem-conv": "^1.32"
   },
   "require-dev": {

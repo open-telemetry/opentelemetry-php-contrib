@@ -17,7 +17,7 @@ require __DIR__ . '/../vendor/autoload.php';
 /**
  * Example of using the opentelemetry extension with symfony to:
  * - export logs in OTLP format (if mode=`export`)
- * - inject traceId/spanId into context (if mode=`inject`)
+ * - inject trace_id/span_id into context (if mode=`inject`)
  */
 
 $logger = new \Symfony\Component\Console\Logger\ConsoleLogger(new Symfony\Component\Console\Output\StreamOutput(STDOUT));
@@ -26,7 +26,7 @@ $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->start
 $scope = $span->activate();
 
 $logger->warning('hello world', ['foo' => 'bar', 'exception' => new \Exception('kaboom', 500, new \RuntimeException('kablam'))]);
-$logger->error('hello, OpenTelemetry traceId={traceId} spanId={spanId}');
+$logger->error('hello, OpenTelemetry trace_id={trace_id} span_id={span_id}');
 
 $scope->detach();
 $span->end();

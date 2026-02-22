@@ -34,6 +34,7 @@ class SerializerTest extends TestCase
         // Parameters of array type
         yield ['EVAL', ['param1', 'param2', ['arg1', 'arg2']], 'EVAL param1 param2 ["arg1","arg2"]'];
 
-        yield ['pipeline', [function () {}], 'pipeline Callable'];
+        yield ['pipeline', [function () {
+        }], 'pipeline Callable'];
     }
 }
