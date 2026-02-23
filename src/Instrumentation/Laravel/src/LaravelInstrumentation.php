@@ -21,16 +21,35 @@ class LaravelInstrumentation
             Version::VERSION_1_32_0->url()
         );
 
-        Hooks\Illuminate\Console\Command::hook($instrumentation);
-        Hooks\Illuminate\Contracts\Console\Kernel::hook($instrumentation);
-        Hooks\Illuminate\Contracts\Http\Kernel::hook($instrumentation);
-        Hooks\Illuminate\Contracts\Queue\Queue::hook($instrumentation);
-        Hooks\Illuminate\Foundation\Application::hook($instrumentation);
-        Hooks\Illuminate\Foundation\Console\ServeCommand::hook($instrumentation);
-        Hooks\Illuminate\Queue\SyncQueue::hook($instrumentation);
-        Hooks\Illuminate\Queue\Queue::hook($instrumentation);
-        Hooks\Illuminate\Queue\Worker::hook($instrumentation);
-        Hooks\Illuminate\Database\Eloquent\Model::hook($instrumentation);
+        $config = InstrumentationConfig::getInstance();
+
+        if ($config->isInstrumentationEnabled(InstrumentationConfig::HTTP)) {
+            Hooks\Illuminate\Contracts\Http\Kernel::hook($instrumentation);
+        }
+
+        if ($config->isInstrumentationEnabled(InstrumentationConfig::CONSOLE)) {
+            Hooks\Illuminate\Console\Command::hook($instrumentation);
+            Hooks\Illuminate\Contracts\Console\Kernel::hook($instrumentation);
+        }
+
+        if ($config->isInstrumentationEnabled(InstrumentationConfig::QUEUE)) {
+            Hooks\Illuminate\Contracts\Queue\Queue::hook($instrumentation);
+            Hooks\Illuminate\Queue\SyncQueue::hook($instrumentation);
+            Hooks\Illuminate\Queue\Queue::hook($instrumentation);
+            Hooks\Illuminate\Queue\Worker::hook($instrumentation);
+        }
+
+        if ($config->isInstrumentationEnabled(InstrumentationConfig::ELOQUENT)) {
+            Hooks\Illuminate\Database\Eloquent\Model::hook($instrumentation);
+        }
+
+        if ($config->isInstrumentationEnabled(InstrumentationConfig::SERVE)) {
+            Hooks\Illuminate\Foundation\Console\ServeCommand::hook($instrumentation);
+        }
+
+        if ($config->hasAnyWatcherEnabled()) {
+            Hooks\Illuminate\Foundation\Application::hook($instrumentation);
+        }
     }
 
     public static function shouldTraceCli(): bool
