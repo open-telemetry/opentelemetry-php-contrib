@@ -15,11 +15,18 @@ use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 class LaravelComponentProvider implements ComponentProvider
 {
     /**
+     * @param array{
+     *     enabled: bool,
+     *     trace_cli_enabled: bool,
+     * } $properties
      * @phan-suppress PhanTypeMismatchReturn
      */
     public function createPlugin(array $properties, Context $context): InstrumentationConfiguration
     {
-        return LaravelConfiguration::fromArray($properties);
+        return new LaravelConfiguration(
+            enabled: $properties['enabled'],
+            traceCliEnabled: $properties['trace_cli_enabled'],
+        );
     }
 
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
@@ -27,7 +34,9 @@ class LaravelComponentProvider implements ComponentProvider
         return $builder
             ->arrayNode('laravel')
             ->canBeDisabled()
-            ->addDefaultsIfNotSet()
+            ->children()
+                ->booleanNode('trace_cli_enabled')->defaultFalse()->end()
+            ->end()
         ;
     }
 }

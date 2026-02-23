@@ -8,7 +8,7 @@ use Illuminate\Foundation\Console\ServeCommand as FoundationServeCommand;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 
 /**
  * Instrument Laravel's local PHP development server.
@@ -18,7 +18,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 class ServeCommand implements Hook
 {
     public function instrument(
-        LaravelInstrumentation $instrumentation,
+        LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {

@@ -9,6 +9,7 @@ use Illuminate\Foundation\Application as FoundationalApplication;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\CacheWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ClientRequestWatcher;
@@ -24,17 +25,17 @@ use Throwable;
 class Application implements Hook
 {
     public function instrument(
-        LaravelInstrumentation $instrumentation,
+        LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
         $logger = $context->loggerProvider->getLogger(
-            $instrumentation->buildProviderName('foundation', 'application'),
+            LaravelInstrumentation::buildProviderName('foundation', 'application'),
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 
         $tracer = $context->tracerProvider->getTracer(
-            $instrumentation->buildProviderName('foundation', 'application'),
+            LaravelInstrumentation::buildProviderName('foundation', 'application'),
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 

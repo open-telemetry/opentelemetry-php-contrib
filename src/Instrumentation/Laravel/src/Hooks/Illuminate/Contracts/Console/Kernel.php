@@ -16,6 +16,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
@@ -28,16 +29,16 @@ class Kernel implements Hook
     use PostHookTrait;
 
     public function instrument(
-        LaravelInstrumentation $instrumentation,
+        LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
         $tracer = $context->tracerProvider->getTracer(
-            $instrumentation->buildProviderName('console', 'kernel'),
+            LaravelInstrumentation::buildProviderName('console', 'kernel'),
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 
-        if ($instrumentation->shouldTraceCli()) {
+        if ($configuration->shouldTraceCli()) {
             $this->hookHandle($hookManager, $tracer);
         }
     }
