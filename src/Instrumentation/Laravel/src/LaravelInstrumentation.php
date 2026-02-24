@@ -4,40 +4,37 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
-use OpenTelemetry\SDK\Common\Configuration\Configuration;
-use OpenTelemetry\SemConv\Version;
+use Nevay\SPI\ServiceLoader;
+use OpenTelemetry\API\Configuration\ConfigProperties;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 
-class LaravelInstrumentation
+class LaravelInstrumentation implements Instrumentation
 {
-    public const NAME = 'laravel';
+    public const INSTRUMENTATION_NAME = 'io.opentelemetry.contrib.php.laravel';
 
     /** @psalm-suppress PossiblyUnusedMethod */
-    public static function register(): void
+    public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, Context $context): void
     {
-        $instrumentation = new CachedInstrumentation(
-            'io.opentelemetry.contrib.php.laravel',
-            null,
-            Version::VERSION_1_32_0->url()
-        );
+        $config = $configuration->get(LaravelConfiguration::class) ?? new LaravelConfiguration();
 
-        Hooks\Illuminate\Console\Command::hook($instrumentation);
-        Hooks\Illuminate\Contracts\Console\Kernel::hook($instrumentation);
-        Hooks\Illuminate\Contracts\Http\Kernel::hook($instrumentation);
-        Hooks\Illuminate\Contracts\Queue\Queue::hook($instrumentation);
-        Hooks\Illuminate\Foundation\Application::hook($instrumentation);
-        Hooks\Illuminate\Foundation\Console\ServeCommand::hook($instrumentation);
-        Hooks\Illuminate\Queue\SyncQueue::hook($instrumentation);
-        Hooks\Illuminate\Queue\Queue::hook($instrumentation);
-        Hooks\Illuminate\Queue\Worker::hook($instrumentation);
-        Hooks\Illuminate\Database\Eloquent\Model::hook($instrumentation);
+        if (! $config->enabled) {
+            return;
+        }
+
+        foreach (ServiceLoader::load(Hook::class) as $hook) {
+            /** @var Hook $hook */
+            $hook->instrument($config, $hookManager, $context);
+        }
     }
 
-    public static function shouldTraceCli(): bool
+    public static function buildProviderName(string ...$component): string
     {
-        return PHP_SAPI !== 'cli' || (
-            class_exists(Configuration::class)
-            && Configuration::getBoolean('OTEL_PHP_TRACE_CLI_ENABLED', false)
-        );
+        return implode('.', [
+            self::INSTRUMENTATION_NAME,
+            ...$component,
+        ]);
     }
 }

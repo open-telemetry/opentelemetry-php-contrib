@@ -9,8 +9,8 @@ use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Redis\Events\CommandExecuted;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\TraceAttributeValues;
@@ -24,7 +24,7 @@ use Throwable;
 class RedisCommandWatcher extends Watcher
 {
     public function __construct(
-        private CachedInstrumentation $instrumentation,
+        private readonly TracerInterface $tracer,
     ) {
     }
 
@@ -46,7 +46,7 @@ class RedisCommandWatcher extends Watcher
         $operationName = strtoupper($event->command);
 
         /** @psalm-suppress ArgumentTypeCoercion */
-        $span = $this->instrumentation->tracer()
+        $span = $this->tracer
             ->spanBuilder($operationName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setStartTimestamp($this->calculateQueryStartTime($nowInNs, $event->time))
@@ -82,7 +82,7 @@ class RedisCommandWatcher extends Watcher
             }
 
             return null;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -98,7 +98,7 @@ class RedisCommandWatcher extends Watcher
             }
 
             return null;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return null;
         }
     }

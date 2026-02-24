@@ -7,49 +7,60 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contrac
 use DateInterval;
 use DateTimeInterface;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
-class Queue implements LaravelHook
+/** @psalm-suppress UnusedClass */
+class Queue implements Hook
 {
     use AttributesBuilder;
-    use LaravelHookTrait;
     use PostHookTrait;
 
-    public function instrument(): void
-    {
-        $this->hookBulk();
-        $this->hookLater();
-        $this->hookPushRaw();
+    public function instrument(
+        LaravelConfiguration $configuration,
+        HookManagerInterface $hookManager,
+        InstrumentationContext $context,
+    ): void {
+        $tracer = $context->tracerProvider->getTracer(
+            LaravelInstrumentation::buildProviderName('queue'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        );
+
+        $this->hookBulk($hookManager, $tracer);
+        $this->hookLater($hookManager, $tracer);
+        $this->hookPushRaw($hookManager, $tracer);
     }
 
     /** @psalm-suppress PossiblyUnusedReturnValue  */
-    protected function hookBulk(): bool
+    protected function hookBulk(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             QueueContract::class,
             'bulk',
-            pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            preHook: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 $attributes = array_merge([
-                    TraceAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
-                    TraceAttributes::CODE_FILE_PATH => $filename,
-                    TraceAttributes::CODE_LINE_NUMBER => $lineno,
-                    TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
+                    CodeAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
+                    CodeAttributes::CODE_FILE_PATH => $filename,
+                    CodeAttributes::CODE_LINE_NUMBER => $lineno,
+                    MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
                 ], $this->contextualMessageSystemAttributes($queue, []));
 
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span = $this->instrumentation
-                    ->tracer()
+                $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_SEND,
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND,
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
                     ]))
@@ -61,19 +72,19 @@ class Queue implements LaravelHook
 
                 return $params;
             },
-            post: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
+            postHook: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
                 $this->endSpan($exception);
             },
         );
     }
 
     /** @psalm-suppress PossiblyUnusedReturnValue  */
-    protected function hookLater(): bool
+    protected function hookLater(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             QueueContract::class,
             'later',
-            pre: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            preHook: function (QueueContract $queue, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 $estimateDeliveryTimestamp = match (true) {
                     is_int($params[0]) => (new \DateTimeImmutable())->add(new DateInterval("PT{$params[0]}S"))->getTimestamp(),
                     $params[0] instanceof DateInterval => (new \DateTimeImmutable())->add($params[0])->getTimestamp(),
@@ -82,17 +93,16 @@ class Queue implements LaravelHook
                 };
 
                 $attributes = [
-                    TraceAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
-                    TraceAttributes::CODE_FILE_PATH => $filename,
-                    TraceAttributes::CODE_LINE_NUMBER => $lineno,
+                    CodeAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
+                    CodeAttributes::CODE_FILE_PATH => $filename,
+                    CodeAttributes::CODE_LINE_NUMBER => $lineno,
                     'messaging.message.delivery_timestamp' => $estimateDeliveryTimestamp,
                 ];
 
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span = $this->instrumentation
-                    ->tracer()
+                $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_CREATE,
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
                         method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
                     ]))
@@ -104,29 +114,28 @@ class Queue implements LaravelHook
 
                 return $params;
             },
-            post: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
+            postHook: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
                 $this->endSpan($exception);
             },
         );
     }
 
     /** @psalm-suppress PossiblyUnusedReturnValue  */
-    protected function hookPushRaw(): bool
+    protected function hookPushRaw(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             QueueContract::class,
             'pushRaw',
-            pre: function (QueueContract $queue, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) {
+            preHook: function (QueueContract $queue, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
                 /** @phan-suppress-next-line PhanParamTooFewUnpack */
                 $attributes = $this->buildMessageAttributes($queue, ...$params);
 
                 $parent = Context::getCurrent();
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span = $this->instrumentation
-                    ->tracer()
+                $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_CREATE,
+                        $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
@@ -136,7 +145,7 @@ class Queue implements LaravelHook
 
                 return $params;
             },
-            post: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
+            postHook: function (QueueContract $queue, array $params, $returnValue, ?Throwable $exception) {
                 $this->endSpan($exception);
             },
         );
