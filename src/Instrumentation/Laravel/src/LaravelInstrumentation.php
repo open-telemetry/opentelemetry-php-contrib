@@ -19,7 +19,6 @@ class LaravelInstrumentation implements Instrumentation
     public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, Context $context): void
     {
         $config = $configuration->get(LaravelConfiguration::class) ?? new LaravelConfiguration();
-        var_dump($config);
 
         if (! $config->enabled) {
             return;

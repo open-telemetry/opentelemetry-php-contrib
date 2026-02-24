@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\ComponentLoader;
 
 use OpenTelemetry\API\Configuration\ConfigEnv\EnvComponentLoader;
@@ -12,9 +15,10 @@ use function in_array;
 /**
  * @implements EnvComponentLoader<InstrumentationConfiguration>
  */
-final class LaravelComponentLoader implements EnvComponentLoader {
-
-    public function load(EnvResolver $env, EnvComponentLoaderRegistry $registry, Context $context): InstrumentationConfiguration {
+final class LaravelComponentLoader implements EnvComponentLoader
+{
+    public function load(EnvResolver $env, EnvComponentLoaderRegistry $registry, Context $context): InstrumentationConfiguration
+    {
         $disabledInstrumentations = $env->list('OTEL_PHP_DISABLED_INSTRUMENTATIONS');
 
         return new LaravelConfiguration(
@@ -23,7 +27,8 @@ final class LaravelComponentLoader implements EnvComponentLoader {
         );
     }
 
-    public function name(): string {
+    public function name(): string
+    {
         return LaravelConfiguration::class;
     }
 }
