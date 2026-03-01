@@ -55,7 +55,7 @@
         "symfony/options-resolver": "^4.4|^5.3|^6.0",
         "symfony/proxy-manager-bridge": "^4.4|^5.3|^6.0",
         "symfony/yaml": "^4.4|^5.3|^6.0",
-        "vimeo/psalm": "6.4.0"
+        "vimeo/psalm": "6.15.1"
     },
     "suggest": {
         "symfony/config": "Needed to use otel-sdk-bundle",

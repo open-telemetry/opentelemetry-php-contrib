@@ -32,7 +32,7 @@
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.8",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "6.4.0"
+    "vimeo/psalm": "6.15.1"
   },
   "autoload": {
     "psr-4": {

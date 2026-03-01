@@ -25,7 +25,7 @@
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
     "react/async": "^4.3.0",
-    "vimeo/psalm": "6.4.0"
+    "vimeo/psalm": "6.15.1"
   },
   "autoload": {
     "psr-4": {
