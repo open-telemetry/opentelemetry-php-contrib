@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\PDO;
 
+use Error;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\AttributeTrackerByObject;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\SemConv\TraceAttributes;
 use PDO;
@@ -14,25 +16,23 @@ use WeakReference;
 /**
  * @phan-file-suppress PhanNonClassMethodCall,PhanTypeArraySuspicious
  */
-final class PDOTracker
+final class PDOTracker extends AttributeTrackerByObject
 {
-    /**
-     * @var WeakMap<PDO, array<non-empty-string, bool|int|float|string|array|null>>
-     */
-    private WeakMap $pdoToAttributesMap;
     /**
      * @var WeakMap<PDOStatement, WeakReference<PDO>>
      */
     private WeakMap $statementMapToPdoMap;
     private WeakMap $preparedStatementToSpanMap;
 
+    private WeakMap $pdoInstances;
+
     public function __construct()
     {
         /** @psalm-suppress PropertyTypeCoercion */
-        $this->pdoToAttributesMap = new WeakMap();
-        /** @psalm-suppress PropertyTypeCoercion */
         $this->statementMapToPdoMap = new WeakMap();
         $this->preparedStatementToSpanMap = new WeakMap();
+        $this->pdoInstances = new WeakMap();
+        parent::__construct();
     }
 
     /**
@@ -58,7 +58,7 @@ final class PDOTracker
         }
 
         /** @psalm-var array<non-empty-string, bool|int|float|string|array|null> */
-        return $this->pdoToAttributesMap[$pdo] ?? [];
+        return $this->get($pdo);
     }
 
     /**
@@ -75,15 +75,14 @@ final class PDOTracker
             $dbSystem = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
             /** @psalm-suppress InvalidArrayAssignment */
             $attributes[TraceAttributes::DB_SYSTEM_NAME] = self::mapDriverNameToAttribute($dbSystem);
-        } catch (\Error) {
-            // if we caught an exception, the driver is likely not supporting the operation, default to "other"
+        } catch (Error) {
+            // if we caught an exception, and it is not set from extractAttributesFromDSN,
+            // the driver is likely not supporting the operation, default to "other"
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'other_sql';
+            $attributes[TraceAttributes::DB_SYSTEM_NAME] ??= 'other_sql';
         }
 
-        $this->pdoToAttributesMap[$pdo] = $attributes;
-
-        return $attributes;
+        return $this->add($pdo, $attributes);
     }
 
     /**
@@ -93,7 +92,22 @@ final class PDOTracker
     public function trackedAttributesForPdo(PDO $pdo): array
     {
         /** @psalm-var array<non-empty-string, bool|int|float|string|array|null> */
-        return $this->pdoToAttributesMap[$pdo] ?? [];
+        return $this->get($pdo);
+    }
+
+    public function trackPdoInstancesDestruction(PDO $pdo, callable $callbackFunction): void
+    {
+        $this->pdoInstances[$pdo] = new class($pdo, $callbackFunction) {
+            public function __construct(
+                private PDO $instance,
+                private $callback
+            ) {
+            }
+            public function __destruct()
+            {
+                ($this->callback)($this->instance);
+            }
+        };
     }
 
     public function getSpanForPreparedStatement(PDOStatement $statement): ?SpanContextInterface
