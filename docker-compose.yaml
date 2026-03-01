@@ -4,6 +4,7 @@ services:
     image: ghcr.io/open-telemetry/opentelemetry-php/opentelemetry-php-base:${PHP_VERSION}
     volumes:
     - ./:/usr/src/myapp
+    - ./docker/opcache/opcache.ini:/etc/php/${PHP_VERSION}/cli/conf.d/opcache.ini
     user: "${PHP_USER}:root"
     environment:
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
