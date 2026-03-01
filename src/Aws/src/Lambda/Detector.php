@@ -37,6 +37,7 @@ class Detector implements ResourceDetectorInterface
     private const LAMBDA_VERSION_ENV = 'AWS_LAMBDA_FUNCTION_VERSION';
     private const AWS_REGION_ENV = 'AWS_REGION';
     private const CLOUD_PROVIDER = 'aws';
+    private const ACCOUNT_ID_SYMLINK_PATH = '/tmp/.otel-aws-account-id';
 
     public function getResource(): ResourceInfo
     {
@@ -51,13 +52,23 @@ class Detector implements ResourceDetectorInterface
         $functionVersion = $functionVersion ? $functionVersion : null;
         $awsRegion = $awsRegion ? $awsRegion : null;
 
-        return !$lambdaName && !$awsRegion && !$functionVersion
+        $accountId = null;
+        $symlinkPath = self::ACCOUNT_ID_SYMLINK_PATH;
+        if (is_link($symlinkPath)) {
+            $target = readlink($symlinkPath);
+            if ($target !== false) {
+                $accountId = $target;
+            }
+        }
+
+        return !$lambdaName && !$awsRegion && !$functionVersion && !$accountId
             ? ResourceInfoFactory::emptyResource()
             : ResourceInfo::create(Attributes::create([
                 ResourceAttributes::FAAS_NAME => $lambdaName,
                 ResourceAttributes::FAAS_VERSION => $functionVersion,
                 ResourceAttributes::CLOUD_REGION => $awsRegion,
                 ResourceAttributes::CLOUD_PROVIDER => self::CLOUD_PROVIDER,
+                ResourceAttributes::CLOUD_ACCOUNT_ID => $accountId,
             ]));
     }
 }
