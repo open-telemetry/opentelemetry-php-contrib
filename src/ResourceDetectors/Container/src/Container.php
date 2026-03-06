@@ -8,6 +8,7 @@ use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceDetectorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SemConv\ResourceAttributes;
+use OpenTelemetry\SemConv\Version;
 
 /**
  * @see https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/resource/semantic_conventions/container.md
@@ -35,7 +36,7 @@ final class Container implements ResourceDetectorInterface
             $attributes[ResourceAttributes::CONTAINER_ID] = $id;
         }
 
-        return ResourceInfo::create(Attributes::create($attributes), ResourceAttributes::SCHEMA_URL);
+        return ResourceInfo::create(Attributes::create($attributes), Version::VERSION_1_38_0->url());
     }
 
     private function getContainerId(): ?string
