@@ -10,7 +10,8 @@
   "prefer-stable": true,
   "require": {
     "php": "^8.1",
-    "open-telemetry/sdk": "^1.0"
+    "open-telemetry/sdk": "^1.0",
+    "open-telemetry/sem-conv": "^1.38"
   },
   "autoload": {
     "psr-4": {
