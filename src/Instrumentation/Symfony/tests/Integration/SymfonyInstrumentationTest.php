@@ -143,8 +143,9 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request = new Request();
         $request->attributes->set('_controller', 'ErrorController');
 
-        $response = $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
-        $kernel->terminate($request, $response);
+        // Note: terminate() is not called — sub-requests never receive a terminate() call
+        // in Symfony. The span is ended and exported directly from the handle post-hook.
+        $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
 
         $this->assertCount(1, $this->storage);
 
@@ -199,6 +200,81 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request->attributes->set('_controller', null);
         $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
+    }
+
+    public function test_main_request_span_is_exported_when_subrequest_occurs(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $mainRequest = new Request();
+        $mainRequest->attributes->set('_route', 'main_route');
+        $subRequest = new Request();
+        $subRequest->attributes->set('_controller', 'ErrorController');
+
+        // Simulate what Symfony does internally for error responses:
+        // handle(MAIN_REQUEST) is called, which internally calls handle(SUB_REQUEST)
+        // to render the error page, before terminate() is called.
+        $kernel->handle($mainRequest, HttpKernelInterface::MAIN_REQUEST);
+        $kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+        $response = new Response('Not Found', 404);
+        $kernel->terminate($mainRequest, $response);
+
+        // Both spans must be exported: sub-request span (ended in handle post-hook)
+        // and main request span (ended in terminate post-hook).
+        $this->assertCount(2, $this->storage);
+
+        $spans = iterator_to_array($this->storage);
+        $mainSpan = null;
+        $subSpan = null;
+        foreach ($spans as $span) {
+            if ($span->getKind() === SpanKind::KIND_SERVER) {
+                $mainSpan = $span;
+            } else {
+                $subSpan = $span;
+            }
+        }
+
+        $this->assertNotNull($mainSpan, 'Main request span (KIND_SERVER) must be exported');
+        $this->assertNotNull($subSpan, 'Sub-request span (KIND_INTERNAL) must be exported');
+
+        // Sub-request span must be a child of the main request span
+        $this->assertSame(
+            $mainSpan->getContext()->getSpanId(),
+            $subSpan->getParentSpanId(),
+            'Sub-request span must be a child of the main request span'
+        );
+
+        // Main request span must be the root (no parent)
+        $this->assertSame('0000000000000000', $mainSpan->getParentSpanId());
+    }
+
+    public function test_subrequest_scope_does_not_leak_into_next_request(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+
+        // First request: main + sub (simulating error response rendering)
+        $mainRequest = new Request();
+        $mainRequest->attributes->set('_route', 'first_route');
+        $subRequest = new Request();
+        $subRequest->attributes->set('_controller', 'ErrorController');
+
+        $kernel->handle($mainRequest, HttpKernelInterface::MAIN_REQUEST);
+        $kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($mainRequest, new Response('', 404));
+
+        $this->assertCount(2, $this->storage);
+        $this->storage->exchangeArray([]);
+
+        // Second request: must be independent with no leftover scope from the first
+        $secondRequest = new Request();
+        $secondRequest->attributes->set('_route', 'second_route');
+        $response = $kernel->handle($secondRequest, HttpKernelInterface::MAIN_REQUEST);
+        $kernel->terminate($secondRequest, $response);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame(SpanKind::KIND_SERVER, $span->getKind());
+        // Must be a root span with no parent from the previous request
+        $this->assertSame('0000000000000000', $span->getParentSpanId());
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
