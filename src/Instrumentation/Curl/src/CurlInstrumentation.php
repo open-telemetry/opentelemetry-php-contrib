@@ -14,6 +14,7 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextKeys;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -149,6 +150,10 @@ class CurlInstrumentation
             null,
             'curl_exec',
             pre: static function ($obj, array $params, ?string $class, ?string $function, ?string $filename, ?int $lineno) use ($instrumentation, $curlHandleToAttributes, &$curlSetOptInstrumentationSuppressed) {
+                $parent = Context::getCurrent();
+                if ($parent->get(ContextKeys::suppress())) {
+                    return;
+                }
                 if (!($params[0] instanceof CurlHandle)) {
                     return;
                 }
@@ -164,7 +169,6 @@ class CurlInstrumentation
                 }
 
                 $propagator = Globals::propagator();
-                $parent = Context::getCurrent();
 
                 $builder = $instrumentation->tracer()
                     ->spanBuilder($spanName)
@@ -207,6 +211,9 @@ class CurlInstrumentation
                 $curlSetOptInstrumentationSuppressed = false;
             },
             post: static function ($obj, array $params, mixed $retVal) use ($curlHandleToAttributes) {
+                if (Context::getCurrent()->get(ContextKeys::suppress())) {
+                    return;
+                }
                 if (!($params[0] instanceof CurlHandle)) {
                     return;
                 }
@@ -302,6 +309,9 @@ class CurlInstrumentation
             'curl_multi_exec',
             pre: null,
             post: static function ($obj, array $params, mixed $retVal) use ($curlMultiToHandle, $instrumentation, $curlHandleToAttributes, &$curlSetOptInstrumentationSuppressed) {
+                if (Context::getCurrent()->get(ContextKeys::suppress())) {
+                    return;
+                }
                 if ($retVal == CURLM_OK) {
                     $mHandle = &$curlMultiToHandle[$params[0]];
 
