@@ -1,4 +1,4 @@
-FROM composer:2@sha256:1997db9e43fde2a5a20f32fcfd50f26f698d951b3787334ebd6493d0562de97f as composer
+FROM composer:2@sha256:743aebe48ca67097c36819040633ea77e44a561eca135e4fc84c002e63a1ba07 as composer
 FROM php:8.5@sha256:f13d143eb7a29dd41758a6473f297ee0aaf18b10303818c2caa59c021165e9fe
 WORKDIR /srv/app
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
