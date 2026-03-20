@@ -93,18 +93,33 @@ final class SymfonyInstrumentation
                 ?Response $response,
                 ?\Throwable $exception
             ): void {
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
                 $scope = Context::storage()->scope();
-                if (null === $scope || null === $exception) {
+
+                if (null === $scope) {
+                    return;
+                }
+
+                // Main request with no exception: terminate() hook handles ending the span
+                if ($type === HttpKernelInterface::MAIN_REQUEST && null === $exception) {
                     return;
                 }
 
                 $span = Span::fromContext($scope->context());
                 $scope->detach();
-                $span->recordException($exception, [
-                    TraceAttributes::EXCEPTION_ESCAPED => true,
-                ]);
-                if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
-                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+
+                if (null !== $exception) {
+                    $span->recordException($exception, [
+                        TraceAttributes::EXCEPTION_ESCAPED => true,
+                    ]);
+                    if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+                        $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    }
+                }
+
+                // Sub-requests never receive a terminate() call, so the span must be ended here
+                if ($type === HttpKernelInterface::SUB_REQUEST) {
+                    $span->end();
                 }
             }
         );
@@ -163,8 +178,12 @@ final class SymfonyInstrumentation
 
                 $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
 
-                $prop = Globals::responsePropagator();
-                $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                try {
+                    $prop = Globals::responsePropagator();
+                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                } catch (\Throwable) {
+                    // ensure span->end() is always called even if response propagation fails
+                }
 
                 $span->end();
             }
