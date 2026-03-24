@@ -1,7 +1,14 @@
 {
   "name": "open-telemetry/opentelemetry-logger-monolog",
   "description": "OpenTelemetry Monolog handler.",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "logs", "monolog", "handler"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "logs",
+    "monolog",
+    "handler"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io",
   "readme": "./README.md",
@@ -25,7 +32,6 @@
     "nyholm/psr7": "^1.6",
     "open-telemetry/exporter-otlp": ">=1.0",
     "open-telemetry/sdk": ">=1.0",
-    "phan/phan": "^5.0",
     "phpbench/phpbench": "^1.2",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",

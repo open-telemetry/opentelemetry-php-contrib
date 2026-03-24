@@ -1,7 +1,12 @@
 {
   "name": "open-telemetry/opentelemetry-config-http",
   "description": "OpenTelemetry HTTP configuration options",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "instrumentation"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "instrumentation"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/php",
   "readme": "./README.md",
@@ -16,7 +21,6 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.7",
     "league/uri": "^7.5",
-    "phan/phan": "^5.4",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.3",
