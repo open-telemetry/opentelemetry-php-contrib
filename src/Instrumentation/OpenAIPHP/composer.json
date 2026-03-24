@@ -1,7 +1,15 @@
 {
   "name": "open-telemetry/opentelemetry-auto-openai-php",
   "description": "OpenTelemetry auto-instrumentation for openai-php/client",
-  "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "io", "instrumentation", "openai"],
+  "keywords": [
+    "opentelemetry",
+    "otel",
+    "open-telemetry",
+    "tracing",
+    "io",
+    "instrumentation",
+    "openai"
+  ],
   "type": "library",
   "homepage": "https://opentelemetry.io/docs/languages/php/",
   "readme": "./README.md",
@@ -18,7 +26,6 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "phan/phan": "^5.0",
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
