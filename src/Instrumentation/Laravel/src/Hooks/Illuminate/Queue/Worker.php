@@ -6,37 +6,48 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Worker as QueueWorker;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
-class Worker implements LaravelHook
+/** @psalm-suppress UnusedClass */
+class Worker implements Hook
 {
     use AttributesBuilder;
-    use LaravelHookTrait;
     use PostHookTrait;
 
-    public function instrument(): void
-    {
-        $this->hookWorkerProcess();
-        $this->hookWorkerGetNextJob();
+    public function instrument(
+        LaravelConfiguration $configuration,
+        HookManagerInterface $hookManager,
+        InstrumentationContext $context,
+    ): void {
+        $tracer = $context->tracerProvider->getTracer(
+            LaravelInstrumentation::buildProviderName('queue', 'worker'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        );
+
+        $this->hookWorkerProcess($hookManager, $tracer);
+        $this->hookWorkerGetNextJob($hookManager, $tracer);
     }
 
     /** @psalm-suppress UnusedReturnValue */
-    private function hookWorkerProcess(): bool
+    private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             QueueWorker::class,
             'process',
-            pre: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) {
+            preHook: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
                 $connectionName = $params[0];
                 /** @var Job $job */
                 $job = $params[1];
@@ -49,11 +60,10 @@ class Worker implements LaravelHook
                 $attributes = $this->buildMessageAttributes($queue, $job->getRawBody(), $job->getQueue());
 
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span = $this->instrumentation
-                    ->tracer()
+                $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS,
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
+                        $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setParent($parent)
@@ -64,7 +74,7 @@ class Worker implements LaravelHook
 
                 return $params;
             },
-            post: function (QueueWorker $worker, array $params, $returnValue, ?Throwable $exception) {
+            postHook: function (QueueWorker $worker, array $params, $returnValue, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -84,12 +94,12 @@ class Worker implements LaravelHook
     }
 
     /** @psalm-suppress UnusedReturnValue */
-    private function hookWorkerGetNextJob(): bool
+    private function hookWorkerGetNextJob(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        return hook(
+        $hookManager->hook(
             QueueWorker::class,
             'getNextJob',
-            pre: function (QueueWorker $_worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) {
+            preHook: function (QueueWorker $_worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
                 /** @var \Illuminate\Contracts\Queue\Queue $connection */
                 $connection = $params[0];
                 $queue = $params[1];
@@ -97,11 +107,10 @@ class Worker implements LaravelHook
                 $attributes = $this->buildMessageAttributes($connection, '', $queue);
 
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $span = $this->instrumentation
-                    ->tracer()
+                $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_RECEIVE,
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_RECEIVE,
+                        $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes)
@@ -111,7 +120,7 @@ class Worker implements LaravelHook
 
                 return $params;
             },
-            post: function (QueueWorker $_worker, array $params, ?Job $job, ?Throwable $exception) {
+            postHook: function (QueueWorker $_worker, array $params, ?Job $job, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;

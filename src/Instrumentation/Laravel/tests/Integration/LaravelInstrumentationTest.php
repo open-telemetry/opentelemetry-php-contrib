@@ -37,7 +37,7 @@ class LaravelInstrumentationTest extends TestCase
         $span = $this->storage[0];
         $this->assertSame('GET /', $span->getName());
 
-        $response = Http::get('opentelemetry.io');
+        $response = Http::fake()->get('opentelemetry.io');
         $this->assertEquals(200, $response->status());
         $span = $this->storage[1];
         $this->assertSame('GET', $span->getName());
