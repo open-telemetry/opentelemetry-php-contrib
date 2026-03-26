@@ -76,7 +76,12 @@ final class AwsSdkInstrumentation
                 if ($result instanceof ResultInterface && isset($result['@metadata'])) {
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $result['@metadata']['statusCode']); // @phan-suppress-current-line PhanTypeMismatchDimFetch
 
-                    $awsRequestId = $result['@metadata']['headers']['x-amz-request-id'] ?? null;
+                    $headers = $result['@metadata']['headers'] ?? []; // @phan-suppress-current-line PhanTypeMismatchDimFetch
+
+                    $awsRequestId = $headers['x-amz-request-id']
+                        ?? $headers['x-amzn-requestid']
+                        ?? $headers['x-amzn-request-id']
+                        ?? null;
 
                     if ($awsRequestId !== null) {
                         $span->setAttribute(TraceAttributes::AWS_REQUEST_ID, $awsRequestId); // @phan-suppress-current-line PhanTypeMismatchDimFetch
