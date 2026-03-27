@@ -6,9 +6,10 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Queue\TracingParent;
 use Psr\Log\LoggerInterface;
 
-class DummyJob implements ShouldQueue
+class DummyJob implements ShouldQueue, TracingParent
 {
     use Queueable;
 
