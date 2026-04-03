@@ -49,6 +49,23 @@ class DetectorTest extends TestCase
         );
     }
 
+    public function test_returns_empty_resource_on_http_error()
+    {
+        $mockGuzzle = new MockHandler([
+            new \GuzzleHttp\Exception\ConnectException(
+                'Connection refused',
+                new \GuzzleHttp\Psr7\Request('GET', '/metadata/instance/compute')
+            ),
+        ]);
+        $handlerStack = HandlerStack::create($mockGuzzle);
+        $client = new Client(['handler' => $handlerStack]);
+        $requestFactory = new HttpFactory();
+        $detector = new Detector($client, $requestFactory);
+
+        $resource = @$detector->getResource();
+        $this->assertCount(0, $resource->getAttributes());
+    }
+
     private function getResponseBodyFor($filename)
     {
         return file_get_contents(dirname(__FILE__) . DIRECTORY_SEPARATOR . $filename);
