@@ -40,6 +40,17 @@ final class InstanaPropagatorTest extends TestCase
         $this->SAMPLED = $instanaMultiFields[2];
     }
 
+    public function test_get_instance_creates_new_instance(): void
+    {
+        $reflection = new \ReflectionClass(InstanaPropagator::class);
+        $property = $reflection->getProperty('instance');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+
+        $instance = InstanaPropagator::getInstance();
+        $this->assertInstanceOf(InstanaPropagator::class, $instance);
+    }
+
     public function test_fields(): void
     {
         $this->assertSame(
