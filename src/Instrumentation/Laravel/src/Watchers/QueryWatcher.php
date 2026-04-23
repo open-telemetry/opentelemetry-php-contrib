@@ -9,7 +9,8 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 
 class QueryWatcher extends Watcher
 {
@@ -37,6 +38,7 @@ class QueryWatcher extends Watcher
         if (! in_array($operationName, ['SELECT', 'INSERT', 'UPDATE', 'DELETE'])) {
             $operationName = null;
         }
+
         /** @psalm-suppress ArgumentTypeCoercion */
         $span = $this->instrumentation->tracer()->spanBuilder('sql ' . $operationName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -44,13 +46,15 @@ class QueryWatcher extends Watcher
             ->startSpan();
 
         $attributes = [
-            TraceAttributes::DB_SYSTEM_NAME => $query->connection->getDriverName(),
-            TraceAttributes::DB_NAMESPACE => $query->connection->getDatabaseName(),
-            TraceAttributes::DB_OPERATION_NAME => $operationName,
-            //TraceAttributes::DB_USER => $query->connection->getConfig('username'),
+            DbAttributes::DB_SYSTEM_NAME => $this->getDbSystemName($query->connection->getDriverName()),
+            DbAttributes::DB_NAMESPACE => $query->connection->getDatabaseName(),
+            DbAttributes::DB_OPERATION_NAME => $operationName,
+            DbAttributes::DB_QUERY_TEXT => $query->sql,
+
+            ServerAttributes::SERVER_ADDRESS => $query->connection->getConfig('host'),
+            ServerAttributes::SERVER_PORT => $query->connection->getConfig('port'),
         ];
 
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = $query->sql;
         /** @psalm-suppress PossiblyInvalidArgument */
         $span->setAttributes($attributes);
         $span->end($nowInNs);
@@ -59,5 +63,21 @@ class QueryWatcher extends Watcher
     private function calculateQueryStartTime(int $nowInNs, float $queryTimeMs): int
     {
         return (int) ($nowInNs - ($queryTimeMs * 1E6));
+    }
+
+    /**
+     * Map Laravel's database driver names to OpenTelemetry's db.system values.
+     *
+     * @see Illuminate\Database\DatabaseManager::supportedDrivers() for the list of supported drivers.
+     */
+    private function getDbSystemName(string $driverName): string
+    {
+        return match ($driverName) {
+            'mysql' => DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL,
+            'pgsql' => DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL,
+            'mariadb' => DbAttributes::DB_SYSTEM_NAME_VALUE_MARIADB,
+            'sqlsrv' => DbAttributes::DB_SYSTEM_NAME_VALUE_MICROSOFT_SQL_SERVER,
+            default => $driverName,
+        };
     }
 }

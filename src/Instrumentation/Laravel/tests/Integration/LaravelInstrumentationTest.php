@@ -9,7 +9,9 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 
 /** @psalm-suppress UnusedClass */
@@ -72,10 +74,12 @@ class LaravelInstrumentationTest extends TestCase
 
         $span = $this->storage[1];
         $this->assertSame('sql SELECT', $span->getName());
-        $this->assertSame('SELECT', $span->getAttributes()->get('db.operation.name'));
-        $this->assertSame(':memory:', $span->getAttributes()->get('db.namespace'));
-        $this->assertSame('select 1', $span->getAttributes()->get('db.query.text'));
-        $this->assertSame('sqlite', $span->getAttributes()->get('db.system.name'));
+        $this->assertSame('SELECT', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
+        $this->assertSame(':memory:', $span->getAttributes()->get(DbAttributes::DB_NAMESPACE));
+        $this->assertSame('select 1', $span->getAttributes()->get(DbAttributes::DB_QUERY_TEXT));
+        $this->assertSame('sqlite', $span->getAttributes()->get(DbAttributes::DB_SYSTEM_NAME));
+        $this->assertNull($span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertNull($span->getAttributes()->get(ServerAttributes::SERVER_PORT));
 
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord */
         $logRecord = $this->storage[0];
