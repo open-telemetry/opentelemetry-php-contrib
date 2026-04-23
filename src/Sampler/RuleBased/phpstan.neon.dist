@@ -7,6 +7,7 @@ parameters:
     paths:
         - src
         - tests
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         -
             message: "#Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeParentInterface::.*#"
