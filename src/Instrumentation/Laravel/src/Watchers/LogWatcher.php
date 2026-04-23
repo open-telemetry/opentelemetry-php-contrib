@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
+use Illuminate\Support\Arr;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs\Severity;
@@ -86,7 +87,7 @@ class LogWatcher extends Watcher
                 $logBuilder->setAttribute($key, $value);
             }
         } else {
-            $logBuilder->setAttribute('context', json_encode($contextToProcess));
+            $logBuilder->setAttribute('context', json_encode($contextToProcess) ?: '{}');
         }
 
         $logBuilder->emit();
@@ -120,33 +121,7 @@ class LogWatcher extends Watcher
      */
     private function buildFlattenedAttributes(array $context): array
     {
-        $attributes = [];
-
-        foreach ($context as $key => $value) {
-            if (is_array($value)) {
-                $this->flattenArray((string) $key, $value, $attributes);
-            } else {
-                $attributes[(string) $key] = $this->normalizeValue($value);
-            }
-        }
-
-        return $attributes;
-    }
-
-    /**
-     * Recursively flatten a nested array into dot-notation keys.
-     */
-    private function flattenArray(string $prefix, array $array, array &$result): void
-    {
-        foreach ($array as $key => $value) {
-            $newKey = $prefix . '.' . $key;
-
-            if (is_array($value)) {
-                $this->flattenArray($newKey, $value, $result);
-            } else {
-                $result[$newKey] = $this->normalizeValue($value);
-            }
-        }
+        return array_map(fn ($value) => $this->normalizeValue($value), Arr::dot($context));
     }
 
     /**
@@ -164,6 +139,6 @@ class LogWatcher extends Watcher
         }
 
         // For objects that can't be stringified, JSON encode them
-        return json_encode($value);
+        return json_encode($value) ?: null;
     }
 }
