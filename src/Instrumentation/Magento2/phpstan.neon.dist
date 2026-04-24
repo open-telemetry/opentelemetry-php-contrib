@@ -1,0 +1,9 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+    tmpDir: var/cache/phpstan
+    level: 9
+    paths:
+        - src
+        - tests

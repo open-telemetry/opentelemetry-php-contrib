@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="4.x-dev@f630a0dc399170e5c7e8bd57ee28c2f5d01505e6">
+  <file src="vendor/phpunit/phpunit/src/Framework/TestCase.php">
+    <MissingConstructor occurrences="2">
+      <code>$backupStaticAttributes</code>
+      <code>$runTestInSeparateProcess</code>
+    </MissingConstructor>
+  </file>
+</files>
