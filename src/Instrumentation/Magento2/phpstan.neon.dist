@@ -7,3 +7,8 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        -
+            message: '#Parameter .* of anonymous function has invalid type .*#'
+            paths:
+                - src/Magento2Instrumentation.php
