@@ -7,17 +7,30 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
+use Illuminate\Support\Arr;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs\Severity;
+use Stringable;
 use Throwable;
 use TypeError;
 
 class LogWatcher extends Watcher
 {
+    /**
+     * When enabled, log context attributes are spread as individual OTLP attributes
+     * instead of being JSON-encoded into a single 'context' attribute.
+     * This improves searchability in observability backends like SigNoz.
+     */
+    public const OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN = 'OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN';
+
     private LogManager $logger;
+    private bool $flattenAttributes;
+
     public function __construct(
         private CachedInstrumentation $instrumentation,
     ) {
+        $this->flattenAttributes = $this->shouldFlattenAttributes();
     }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
@@ -56,20 +69,28 @@ class LogWatcher extends Watcher
             ->logger()
             ->logRecordBuilder();
 
-        $context = array_filter($log->context, static fn ($value) => $value !== null);
+        $contextToProcess = array_filter($log->context, static fn ($value) => $value !== null);
         $exception = $this->getExceptionFromContext($log->context);
 
         if ($exception !== null) {
             $logBuilder->setException($exception);
 
-            unset($context['exception']);
+            unset($contextToProcess['exception']);
         }
 
         $logBuilder->setBody($log->message)
             ->setSeverityText($log->level)
-            ->setSeverityNumber(Severity::fromPsr3($log->level))
-            ->setAttribute('context', $context)
-            ->emit();
+            ->setSeverityNumber(Severity::fromPsr3($log->level));
+
+        if ($this->flattenAttributes) {
+            foreach ($this->buildFlattenedAttributes($contextToProcess) as $key => $value) {
+                $logBuilder->setAttribute($key, $value);
+            }
+        } else {
+            $logBuilder->setAttribute('context', json_encode($contextToProcess) ?: '{}');
+        }
+
+        $logBuilder->emit();
     }
 
     private function getExceptionFromContext(array $context): ?Throwable
@@ -82,5 +103,42 @@ class LogWatcher extends Watcher
         }
 
         return $context['exception'];
+    }
+
+    private function shouldFlattenAttributes(): bool
+    {
+        $resolver = new ConfigurationResolver();
+
+        return $resolver->has(self::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN)
+            && $resolver->getBoolean(self::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
+    }
+
+    /**
+     * Build flattened attributes from context array.
+     * Nested arrays are flattened with dot notation for better searchability.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildFlattenedAttributes(array $context): array
+    {
+        return array_map(fn ($value) => $this->normalizeValue($value), Arr::dot($context));
+    }
+
+    /**
+     * Normalize a value for OTLP attributes.
+     * OTLP attributes support: string, bool, int, float, and arrays of these.
+     */
+    private function normalizeValue(mixed $value): string|bool|int|float|null
+    {
+        if ($value === null || is_scalar($value)) {
+            return $value;
+        }
+
+        if ($value instanceof Stringable) {
+            return (string) $value;
+        }
+
+        // For objects that can't be stringified, JSON encode them
+        return json_encode($value) ?: null;
     }
 }
