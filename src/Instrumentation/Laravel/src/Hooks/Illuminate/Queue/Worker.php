@@ -156,7 +156,7 @@ class Worker implements LaravelHook
          */
         if ($this->inheritsTracingInterface($job, TracingIsolated::class)) {
 
-            $spanBuilder->setParent(null);
+            $spanBuilder->setParent(false);
 
             return Context::getCurrent();
         }
@@ -167,7 +167,7 @@ class Worker implements LaravelHook
         if ($this->inheritsTracingInterface($job, TracingLinked::class) && $parentContext instanceof ContextInterface) {
 
             $spanBuilder
-                ->setParent(null)
+                ->setParent(false)
                 ->addLink(Span::fromContext($parentContext)->getContext());
 
             return Context::getCurrent();
