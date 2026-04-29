@@ -37,12 +37,51 @@ class CloudTracePropagatorTest extends TestCase
         [$this->xcloud] = $this->cloudTracePropagator->fields();
     }
 
+    public function test_get_instance_returns_same_instance(): void
+    {
+        $instance1 = CloudTracePropagator::getInstance();
+        $instance2 = CloudTracePropagator::getInstance();
+        $this->assertSame($instance1, $instance2);
+    }
+
+    public function test_get_instance_creates_new_instance(): void
+    {
+        $reflection = new \ReflectionClass(CloudTracePropagator::class);
+        $property = $reflection->getProperty('instance');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+
+        $instance = CloudTracePropagator::getInstance();
+        $this->assertInstanceOf(TextMapPropagatorInterface::class, $instance);
+    }
+
+    public function test_get_one_way_instance_creates_new_instance(): void
+    {
+        $reflection = new \ReflectionClass(CloudTracePropagator::class);
+        $property = $reflection->getProperty('oneWayInstance');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+
+        $instance = CloudTracePropagator::getOneWayInstance();
+        $this->assertInstanceOf(TextMapPropagatorInterface::class, $instance);
+    }
+
     public function test_fields(): void
     {
         $this->assertSame(
             ['x-cloud-trace-context'],
             $this->cloudTracePropagator->fields()
         );
+    }
+
+    public function test_extract_invalid_header(): void
+    {
+        $carrier = [
+            'x-cloud-trace-context' => 'invalid-header-value',
+        ];
+        $context = $this->cloudTracePropagator->extract($carrier);
+        $spanContext = $this->getSpanContext($context);
+        $this->assertFalse($spanContext->isValid());
     }
 
     public function test_inject_invalid_context(): void
