@@ -17,7 +17,7 @@ services:
       POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgresql}
 
   zipkin:
-    image: openzipkin/zipkin-slim@sha256:d951994017185bce1c859b62e13adf640e26c37e08b90ca2e4de2669dc1aad87
+    image: openzipkin/zipkin-slim@sha256:fc29b9862c14f4fc241cf0259c585e1cfd4e9b18f01ad36d86adaabb7d01815c
     ports:
     - 9411:9411
   jaeger:
@@ -29,7 +29,7 @@ services:
     - 16686:16686
 
   collector:
-    image: otel/opentelemetry-collector-contrib@sha256:8164eab2e6bca9c9b0837a8d2f118a6618489008a839db7f9d6510e66be3923c
+    image: otel/opentelemetry-collector-contrib@sha256:d57bfe8eee2378f31cb1193239fbcac521d54a5a071fca2bfc106916a32b892d # 0.151.0
     command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./files/collector/otel-collector-config.yml:/etc/otel-collector-config.yml
@@ -45,7 +45,7 @@ services:
     ports:
       - "5672:5672/tcp"
   kafka:
-    image: confluentinc/cp-kafka:7.9.5@sha256:c4c6b755551da17fff056b9c8b39700f99020083bd2d69a171ece4784f33e640
+    image: confluentinc/cp-kafka:7.9.6@sha256:9e178783dba8cf44cd8b1d260f548a587a21235921957edd4ed7aa7d060b0852
     hostname: kafka
     ports:
       - "9092:9092/tcp"
