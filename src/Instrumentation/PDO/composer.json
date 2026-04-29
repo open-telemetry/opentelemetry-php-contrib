@@ -25,7 +25,7 @@
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.19.2",
+    "psalm/plugin-phpunit": "^0.20.0",
     "open-telemetry/sdk": "^1.0",
     "open-telemetry/test-utils": "^0.2.0",
     "phpunit/phpunit": "^9.5",
