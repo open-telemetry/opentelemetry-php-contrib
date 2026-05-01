@@ -144,7 +144,7 @@ class LogWatcherTest extends TestCase
         putenv(LogWatcher::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN . '=true');
         $watcher = $this->createWatcher();
 
-        $stringable = new class () implements Stringable {
+        $stringable = new class() implements Stringable {
             public function __toString(): string
             {
                 return 'stringable-value';
