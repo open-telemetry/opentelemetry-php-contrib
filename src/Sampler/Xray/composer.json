@@ -8,7 +8,7 @@
         "aws/aws-sdk-php": "^3.0",                    
         "open-telemetry/api": "^1.1.0",
         "open-telemetry/sdk": "^1.1.0",
-        "open-telemetry/sdk-configuration": "^0.0.5",
+        "open-telemetry/sdk-configuration": "^0.8.0",
         "open-telemetry/sem-conv": "^1.32"
     },
     "require-dev": {
