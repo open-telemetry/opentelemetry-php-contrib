@@ -18,6 +18,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\HeadersPropagator;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Propagators\ResponsePropagationSetter;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Support\FpmFinishRequest;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +32,7 @@ class Kernel implements LaravelHook
     public function instrument(): void
     {
         $this->hookHandle();
+        $this->hookTerminate();
     }
 
     /** @psalm-suppress PossiblyUnusedReturnValue  */
@@ -128,5 +130,22 @@ class Kernel implements LaravelHook
         }
 
         return '';
+    }
+
+    /**
+     * Always registered regardless of the feature flag.
+     * handle() evaluates the env toggle on first call (then caches it);
+     * subsequent terminate() calls are a single cached property read.
+     * @psalm-suppress UnusedReturnValue
+     */
+    private function hookTerminate(): bool
+    {
+        return hook(
+            KernelContract::class,
+            'terminate',
+            post: static function (): void {
+                FpmFinishRequest::handle();
+            }
+        );
     }
 }
