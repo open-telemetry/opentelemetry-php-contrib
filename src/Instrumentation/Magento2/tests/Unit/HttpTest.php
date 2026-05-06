@@ -175,9 +175,6 @@ final class HttpTest extends TestCase
             ->getMock();
         $this->objectManagerMock = $this->createMock(ObjectManagerInterface::class);
         $this->responseMock = $this->createMock(ResponseHttp::class);
-
-        // $this->frontController = new FrontController();
-
         $this->frontControllerMock = $this->createMock(FrontControllerInterface::class);
         $this->eventManagerMock = $this->getMockBuilder(Manager::class)
             ->disableOriginalConstructor()

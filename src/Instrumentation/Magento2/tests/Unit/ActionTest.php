@@ -38,10 +38,6 @@ use PHPUnit\Framework\TestCase;
  *   - Records any exception thrown during dispatch and sets span status to ERROR
  *   - Ends the span unconditionally
  *
- * Why NOT Forward/AbstractAction:
- *   Forward extends AbstractAction, NOT Action. The OTel hook fires for the class
- *   where the method is defined; using Forward would never trigger Action::dispatch.
- *
  * Property injection via reflection:
  *   Action::dispatch accesses $this->_response and $this->_actionFlag. Because the
  *   constructor is disabled to skip complex dependency setup, injectProperty() walks

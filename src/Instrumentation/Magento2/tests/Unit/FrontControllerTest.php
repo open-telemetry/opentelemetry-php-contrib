@@ -276,9 +276,6 @@ final class FrontControllerTest extends TestCase
         $this->request
             ->method('isDispatched')
             ->willReturnOnConsecutiveCalls(false, true);
-        //        $this->request
-        //            ->method('setDispatched')
-        //            ->with(true);
 
         $this->assertEquals($response, $this->model->dispatch($this->request));
 

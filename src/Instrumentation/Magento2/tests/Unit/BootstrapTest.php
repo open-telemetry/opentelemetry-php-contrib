@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * Tests for the Bootstrap::terminate and Bootstrap::run instrumentation hooks
+ * Tests for the Bootstrap::terminate instrumentation hooks
  * in Magento2Instrumentation.
  *
  * Bootstrap::terminate hook (pre-only):
@@ -41,19 +41,8 @@ use Psr\Log\LoggerInterface;
  *   - Ends the span immediately inside the pre-closure (terminate is fire-and-forget,
  *     and exits the process, so there is no post-closure)
  *
- * Bootstrap::run hook (covered indirectly via test_run_with_maintenance_errors):
- *   - Creates a SERVER-kind span 'Bootstrap.run'
- *   - Ends in the post-closure; exceptions from the application are propagated via
- *     the terminate() call which is separately instrumented
- *
- * Accessing protected Bootstrap::terminate():
- *   ReflectionMethod::invoke() is used to call the protected method directly without
- *   triggering the real terminate() body (which calls exit(1)). The bootstrapMock
- *   already stubs terminate() via onlyMethods, so the real body never executes.
- *
  * Span ordering (SimpleSpanProcessor exports on end()):
  *   - terminate test: 1 span – storage[0] = Bootstrap::terminate span
- *   - run/maintenance test: 1 span – storage[0] = Bootstrap.run span
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @see \OpenTelemetry\Contrib\Instrumentation\Magento2\Magento2Instrumentation
