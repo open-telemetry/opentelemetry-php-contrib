@@ -38,6 +38,7 @@ jobs:
           'Instrumentation/HttpConfig',
           'Instrumentation/IO',
           'Instrumentation/Laravel',
+          'Instrumentation/Magento2',
           'Instrumentation/MongoDB',
           'Instrumentation/MySqli',
           'Instrumentation/OpenAIPHP',
