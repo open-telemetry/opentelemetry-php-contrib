@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -16,9 +17,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolverInterface;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 class SymfonyInstrumentationTest extends AbstractTest
 {
@@ -199,6 +202,57 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request->attributes->set('_controller', null);
         $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
+    }
+
+    public function test_exception_in_main_request_is_recorded_when_error_handled_via_subrequest(): void
+    {
+        $exception = new \RuntimeException('Something went wrong');
+        $dispatcher = new EventDispatcher();
+
+        $controllerResolver = $this->createMock(ControllerResolverInterface::class);
+        $controllerResolver
+            ->method('getController')
+            ->willReturnOnConsecutiveCalls(
+                static function () use ($exception): void {
+                    throw $exception;
+                },
+                static fn () => new Response('Error Page', 500),
+            );
+
+        $argumentResolver = $this->createMock(ArgumentResolverInterface::class);
+        $argumentResolver->method('getArguments')->willReturn([]);
+
+        $kernel = new HttpKernel($dispatcher, $controllerResolver, null, $argumentResolver);
+
+        $dispatcher->addListener(
+            KernelEvents::EXCEPTION,
+            static function (ExceptionEvent $event) use ($kernel): void {
+                $subRequest = Request::create('/error');
+                $subRequest->attributes->set('_controller', 'error_controller');
+                $event->setResponse($kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST, false));
+            }
+        );
+
+        $mainRequest = new Request();
+        $response = $kernel->handle($mainRequest);
+        $kernel->terminate($mainRequest, $response);
+
+        // Sub-request span ended first (in handle post hook), main request span ended in terminate
+        $this->assertCount(2, $this->storage);
+
+        $subRequestSpan = $this->storage[0];
+        $this->assertSame(SpanKind::KIND_INTERNAL, $subRequestSpan->getKind());
+        $this->assertSame('GET error_controller', $subRequestSpan->getName());
+
+        $mainRequestSpan = $this->storage[1];
+        $this->assertSame(SpanKind::KIND_SERVER, $mainRequestSpan->getKind());
+        $this->assertSame(StatusCode::STATUS_ERROR, $mainRequestSpan->getStatus()->getCode());
+
+        $events = $mainRequestSpan->getEvents();
+        $this->assertCount(1, $events, 'Main request span must have the exception event');
+        $this->assertSame('exception', $events[0]->getName());
+        $this->assertSame(\RuntimeException::class, $events[0]->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
+        $this->assertSame('Something went wrong', $events[0]->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
