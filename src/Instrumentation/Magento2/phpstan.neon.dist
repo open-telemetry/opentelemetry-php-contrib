@@ -9,6 +9,6 @@ parameters:
         - tests
     ignoreErrors:
         -
-            message: '#Parameter .* of anonymous function has invalid type .*#'
-            paths:
+           message: '#Parameter .* expects iterable<.*>, .* given.#'
+           paths:
                 - src/Magento2Instrumentation.php

@@ -7,21 +7,26 @@
   "readme": "./README.md",
   "license": "Apache-2.0",
   "require": {
-    "php": "^8.1",
+    "php": "^8.3",
     "ext-opentelemetry": "*",
     "ext-json": "*",
     "open-telemetry/api": "^1.6",
-    "open-telemetry/sem-conv": "^1.36"
+    "open-telemetry/sem-conv": "^1.36",
+    "magento/framework": "^103.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "phan/phan": "^5.0",
+    "mockery/mockery": "^1.5",
+    "phan/phan": "^5 || ^6",
+    "php-http/mock-client": "*",
+    "phpstan/phpstan-mockery": "^1.1.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.19.2",
+    "psalm/plugin-phpunit": "^0.20.0",
     "open-telemetry/sdk": "^1.8",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "6.4.0"
+    "vimeo/psalm": "^7.0",
+    "magento/community-edition": "dev-2.4-develop"
   },
   "autoload": {
     "psr-4": {
@@ -39,7 +44,11 @@
   "config": {
     "allow-plugins": {
       "php-http/discovery": false,
-      "tbachert/spi": false
+      "tbachert/spi": false,
+      "magento/magento-composer-installer": true,
+      "magento/composer-dependency-version-audit-plugin": true
     }
-  }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
