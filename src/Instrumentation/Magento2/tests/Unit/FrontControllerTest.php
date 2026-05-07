@@ -54,7 +54,6 @@ use Psr\Log\LoggerInterface;
  *     FrontController.dispatch ends second; findSpanByName() is used to locate the outer span
  *   - NotFoundException path (noroute):    1+ spans; FrontController.dispatch span present
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @see \OpenTelemetry\Contrib\Instrumentation\Magento2\Magento2Instrumentation
  */
 final class FrontControllerTest extends TestCase

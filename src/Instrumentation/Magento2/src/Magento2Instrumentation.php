@@ -11,7 +11,6 @@ use Magento\Framework\App\Bootstrap;
 use Magento\Framework\App\FrontController;
 use Magento\Framework\App\Http;
 use Magento\Framework\App\Request\Http as HttpRequest;
-
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
@@ -37,8 +36,6 @@ use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
-// @phan-file-suppress PhanUndeclaredClassReference
-// @phan-file-suppress PhanUndeclaredTypeParameter
 final class Magento2Instrumentation
 {
     use LogsMessagesTrait;
@@ -164,11 +161,9 @@ final class Magento2Instrumentation
             }
         );
 
-        /** @psalm-suppress UndefinedClass */
         hook(
             FrontController::class,
             'dispatch',
-            /** @psalm-suppress UndefinedClass */
             pre: static function (FrontController $frontController, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = $instrumentation->tracer()
                     ->spanBuilder('FrontController.dispatch')
@@ -178,7 +173,6 @@ final class Magento2Instrumentation
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
-            /** @psalm-suppress UndefinedClass */
             post: static function (FrontController $frontController, array $params, ResponseInterface|ResultInterface|null $response, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {

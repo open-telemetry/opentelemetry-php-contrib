@@ -44,7 +44,6 @@ use Psr\Log\LoggerInterface;
  * Span ordering (SimpleSpanProcessor exports on end()):
  *   - terminate test: 1 span – storage[0] = Bootstrap::terminate span
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @see \OpenTelemetry\Contrib\Instrumentation\Magento2\Magento2Instrumentation
  */
 final class BootstrapTest extends TestCase
