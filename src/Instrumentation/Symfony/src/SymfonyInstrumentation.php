@@ -109,9 +109,7 @@ final class SymfonyInstrumentation
                 $scope->detach();
 
                 if (null !== $exception) {
-                    $span->recordException($exception, [
-                        TraceAttributes::EXCEPTION_ESCAPED => true,
-                    ]);
+                    $span->recordException($exception);
 
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
@@ -119,6 +117,10 @@ final class SymfonyInstrumentation
                 if ($isSubRequest) {
                     if (null !== $response) {
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+
+                        if ($response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+                            $span->setStatus(StatusCode::STATUS_ERROR);
+                        }
                     }
                     $span->end();
                 }
@@ -205,7 +207,9 @@ final class SymfonyInstrumentation
                 $throwable = $params[0];
 
                 Span::getCurrent()
-                    ->recordException($throwable);
+                    ->recordException($throwable)
+                    ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage())
+                ;
 
                 return $params;
             },
