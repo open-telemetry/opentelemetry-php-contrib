@@ -32,7 +32,6 @@ use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
-use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
@@ -100,14 +99,8 @@ final class Magento2Instrumentation
                     ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                     ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                    ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
                     ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(ServerAttributes::SERVER_PORT, $request->getUri()->getPort() ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80));
-
-                /** @psalm-suppress MixedAssignment */
-                foreach ($request->getHeaders() as $key => $value) {
-                    $spanBuilder->setAttribute(HttpAttributes::HTTP_REQUEST_HEADER . '.' . $key, implode(',', $value));
-                }
 
                 $span = $spanBuilder->startSpan();
 
@@ -129,12 +122,6 @@ final class Magento2Instrumentation
                     $responseMeta[ErrorAttributes::ERROR_TYPE] = (string) $exception->getCode();
                 }
                 if ($response instanceof HttpResponse) {
-                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, strlen($response->getBody()));
-                    /** @psalm-suppress MixedAssignment */
-                    foreach ($response->getHeaders()->toArray() as $key => $value) {
-                        $span->setAttribute(HttpAttributes::HTTP_RESPONSE_HEADER . '.' . $key, (string) $value);
-                    }
-                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_SIZE, strlen($response->toString()));
                     $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                     $responseMeta[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $response->getStatusCode();
                     $prop = Globals::responsePropagator();

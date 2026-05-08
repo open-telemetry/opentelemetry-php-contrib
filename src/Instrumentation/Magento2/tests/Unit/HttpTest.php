@@ -34,7 +34,6 @@ use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
-use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use Override;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -272,17 +271,6 @@ final class HttpTest extends TestCase
         $this->responseMock->expects($this->exactly(2))
             ->method('getStatusCode')
             ->willReturn(200);
-        $this->responseMock->expects($this->once())
-            ->method('getBody')
-            ->willReturn('Body');
-        $this->responseMock->expects($this->once())
-            ->method('toString')
-            ->willReturn('String');
-        $headers = new Headers();
-        $headers->addHeaders(['k1' => 'v1', 'k2' => 'v2', 'k3' => 'v3']);
-        $this->responseMock->expects($this->once())
-            ->method('getHeaders')
-            ->willReturn($headers);
         $this->eventManagerMock->expects($this->once())
             ->method('dispatch')
             ->with(
@@ -327,18 +315,6 @@ final class HttpTest extends TestCase
         // --- response attributes (values are controlled by the mock) ---
         $this->assertArrayHasKey(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $attributes);
         $this->assertSame(200, $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE]);
-        $this->assertArrayHasKey(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $attributes);
-        $this->assertSame(4, $attributes[HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE]);
-        $this->assertArrayHasKey(HttpIncubatingAttributes::HTTP_RESPONSE_SIZE, $attributes);
-        $this->assertSame(6, $attributes[HttpIncubatingAttributes::HTTP_RESPONSE_SIZE]);
-
-        // --- response headers ---
-        $this->assertArrayHasKey(HttpAttributes::HTTP_RESPONSE_HEADER . '.k1', $attributes);
-        $this->assertSame('v1', $attributes[HttpAttributes::HTTP_RESPONSE_HEADER . '.k1']);
-        $this->assertArrayHasKey(HttpAttributes::HTTP_RESPONSE_HEADER . '.k2', $attributes);
-        $this->assertSame('v2', $attributes[HttpAttributes::HTTP_RESPONSE_HEADER . '.k2']);
-        $this->assertArrayHasKey(HttpAttributes::HTTP_RESPONSE_HEADER . '.k3', $attributes);
-        $this->assertSame('v3', $attributes[HttpAttributes::HTTP_RESPONSE_HEADER . '.k3']);
     }
 
     /**
