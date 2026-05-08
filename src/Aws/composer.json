@@ -26,12 +26,12 @@
         "friendsofphp/php-cs-fixer": "^3.0",
         "mikey179/vfsstream": "^1.6",
         "open-telemetry/dev-tools": "dev-main",
-        "phan/phan": "^4.1 || ^5",
+        "phan/phan": "^5 || ^6",
         "php-http/mock-client": "*",
         "phpstan/phpstan": "^1.4",
         "phpstan/phpstan-phpunit": "^1.0",
         "phpunit/phpunit": "~9",
-        "psalm/plugin-phpunit": "^0.20.0",
+        "psalm/plugin-phpunit": "^0.19.7",
         "vimeo/psalm": "6.16.1"
     },
     "autoload": {
