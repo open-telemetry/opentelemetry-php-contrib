@@ -16,6 +16,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
+use OpenTelemetry\API\Common\Time\Clock;
 use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -24,7 +25,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
@@ -86,6 +86,7 @@ final class Magento2Instrumentation
                 $factory = new Psr17Factory();
                 $request = (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
                 $parent = Globals::propagator()->extract($request->getHeaders());
+
                 $spanBuilder = $instrumentation->tracer()
                     ->spanBuilder(sprintf('%s %s', $request->getMethod(), self::getScriptNameFromRequest($request)))
                     ->setParent($parent)
@@ -102,11 +103,21 @@ final class Magento2Instrumentation
                     ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(ServerAttributes::SERVER_PORT, $request->getUri()->getPort() ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80));
 
-                $span = $spanBuilder->startSpan();
+                $requestStart = Clock::getDefault()->now();
+                $span = $spanBuilder->setStartTimestamp($requestStart)->startSpan();
 
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+                $scope = Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+
+                $requestMeta = [
+                    HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
+                    UrlAttributes::URL_SCHEME => $request->getUri()->getScheme(),
+                    NetworkAttributes::NETWORK_PROTOCOL_VERSION => $request->getProtocolVersion(),
+                ];
+                $scope->offsetSet('requestMeta', $requestMeta);
+                $scope->offsetSet('requestStart', $requestStart);
             },
             post: static function (Http $http, array $params, ResultInterface|HttpResponse|null $response, ?Throwable $exception) use (&$histogram, $instrumentation) {
+                $requestEnd = Clock::getDefault()->now();
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -135,15 +146,12 @@ final class Magento2Instrumentation
                     'Duration of HTTP server requests.',
                     ['ExplicitBucketBoundaries' => [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]]
                 );
-                if ($span instanceof ReadableSpanInterface) {
-                    $spanAttrs = [
-                        HttpAttributes::HTTP_REQUEST_METHOD => $span->getAttribute(HttpAttributes::HTTP_REQUEST_METHOD),
-                        UrlAttributes::URL_SCHEME => $span->getAttribute(UrlAttributes::URL_SCHEME),
-                        NetworkAttributes::NETWORK_PROTOCOL_VERSION => $span->getAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION),
-                    ];
-                    /** @psalm-suppress PossiblyInvalidArgument */
-                    $histogram->record($span->getDuration() / ClockInterface::NANOS_PER_SECOND, array_merge($spanAttrs, $responseMeta));
-                }
+
+                $requestMeta = $scope->offsetGet('requestMeta');
+                /** @var int $requestStart */
+                $requestStart = $scope->offsetGet('requestStart');
+                /** @psalm-suppress PossiblyInvalidArgument */
+                $histogram->record((float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND), array_merge((array) $requestMeta, $responseMeta));
                 $span->end();
             }
         );
