@@ -13,7 +13,11 @@ use Magento\Framework\App\Http;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\App\View;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Event\InvokerInterface;
+use Magento\Framework\Event\Manager;
+use Magento\Framework\View\Element\Template;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\API\Common\Time\Clock;
@@ -229,6 +233,112 @@ final class Magento2Instrumentation
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
             post: static function (ActionInterface $actionInterface, array $params, ResponseInterface|ResultInterface|null $response, ?Throwable $exception) {
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+                if ($exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+                $span->end();
+            }
+        );
+
+        hook(
+            Manager::class,
+            'dispatch',
+            pre: static function (Manager $manager, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                $eventName = (string) ($params[0]);
+                $span = $instrumentation->tracer()
+                    ->spanBuilder('EVENT: ' . $eventName)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+            },
+            post: static function (Manager $manager, array $params) {
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+                $span->end();
+            }
+        );
+
+        hook(
+            InvokerInterface::class,
+            'dispatch',
+            pre: static function (InvokerInterface $invokerInterface, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                $configuration = is_array($params[0]) ? $params[0] : [];
+                $observerName = (isset($configuration['name']) && is_string($configuration['name']) && $configuration['name'] !== '')
+                    ? $configuration['name']
+                    : 'unknown';
+                $span = $instrumentation->tracer()
+                    ->spanBuilder('OBSERVER: ' . $observerName)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+            },
+            post: static function (InvokerInterface $invokerInterface, array $params) {
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+                $span->end();
+            }
+        );
+
+        hook(
+            Template::class,
+            'fetchView',
+            pre: static function (Template $template, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                $filename = is_string($params[0]) ? $params[0] : null;
+                $span = $instrumentation->tracer()
+                    ->spanBuilder('TEMPLATE: ' . ($filename ?? 'unknown'))
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+            },
+            post: static function (Template $template, array $params, ?string $html, ?Throwable $exception) {
+                $scope = Context::storage()->scope();
+                if (!$scope) {
+                    return;
+                }
+                $scope->detach();
+                $span = Span::fromContext($scope->context());
+                if ($exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+                $span->end();
+            }
+        );
+
+        hook(
+            View::class,
+            'renderLayout',
+            pre: static function (View $view, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                $span = $instrumentation->tracer()
+                    ->spanBuilder('LAYOUT: layout_render')
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->startSpan();
+                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
+            },
+            post: static function (View $view, array $params, ?View $returnView, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;

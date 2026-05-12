@@ -285,10 +285,9 @@ final class HttpTest extends TestCase
             );
         $this->http->launch();
 
-        $this->assertCount(1, $this->storage);
-        $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
-        /** @var ImmutableSpan $span */
-        $span = $this->storage[0];
+        $this->assertGreaterThanOrEqual(1, count($this->storage));
+        $span = $this->findHttpLaunchSpan();
+        $this->assertNotNull($span, 'Http::launch span not found in exported spans');
         $this->assertNotEmpty($span->getName());
         $this->assertCount(0, $span->getEvents());
 
@@ -349,10 +348,9 @@ final class HttpTest extends TestCase
         try {
             $this->http->launch();
         } finally {
-            $this->assertCount(1, $this->storage);
-            $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
-            /** @var ImmutableSpan $span */
-            $span = $this->storage[0];
+            $this->assertGreaterThanOrEqual(1, count($this->storage));
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
             $this->assertNotEmpty($span->getName());
 
             $attributes = $span->getAttributes()->toArray();
@@ -376,6 +374,21 @@ final class HttpTest extends TestCase
             $this->assertArrayHasKey(ExceptionAttributes::EXCEPTION_STACKTRACE, $eventAttributes);
             $this->assertNotEmpty($eventAttributes[ExceptionAttributes::EXCEPTION_STACKTRACE]);
         }
+    }
+
+    /**
+     * Find the Http::launch span by looking for a span that has the URL_FULL attribute,
+     * which is only set by the Http::launch pre-hook.
+     */
+    private function findHttpLaunchSpan(): ?ImmutableSpan
+    {
+        foreach ($this->storage as $item) {
+            if ($item instanceof ImmutableSpan && $item->getAttributes()->has(UrlAttributes::URL_FULL)) {
+                return $item;
+            }
+        }
+
+        return null;
     }
 
 }
