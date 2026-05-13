@@ -14,11 +14,17 @@ install and configure the extension and SDK.
 
 ## Overview
 Auto-instrumentation hooks are registered via composer, and spans will automatically be created for:
-- `Http::launch()` - http launch root span
-- `Bootstrap::terminate()` - bootstrap terminate span
-- `FrontController::dispatch` - front controller dispatch span
-- `Action::dispatch` - action dispatch span
-- `ActionInterface::execute` - action execute span
+- `Http::launch()` - creates the root HTTP server span, attaches request attributes, records the response status code, propagates response headers, and records exceptions.
+- `Bootstrap::terminate()` - creates a `Bootstrap::terminate` span and records any terminating exception.
+- `FrontController::dispatch()` - creates a `FrontController.dispatch` span around front controller routing.
+- `Action::dispatch()` - creates a span named from the Magento full action name, or `unknown` when it is unavailable.
+- `ActionInterface::execute()` - creates an `ActionInterface.execute` span around action execution.
+- `Manager::dispatch()` - creates `EVENT: {event name}` spans for Magento event dispatches, with `unknown` as a fallback.
+- `InvokerInterface::dispatch()` - creates `OBSERVER: {observer name}` spans for observer execution, with `unknown` as a fallback.
+- `Template::fetchView()` - creates `TEMPLATE: {template path}` spans for template rendering and records rendering exceptions.
+- `View::renderLayout()` - creates a `LAYOUT: layout_render` span around layout rendering and records rendering exceptions.
+
+In addition to spans, `Http::launch()` also records the `http.server.request.duration` metric with request metadata and response/error attributes.
 
 ## Configuration
 
