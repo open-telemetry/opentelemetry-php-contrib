@@ -67,19 +67,11 @@ final class Magento2Instrumentation
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->startSpan();
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-                // end current span
-                $scope = Context::storage()->scope();
-                if (!$scope) {
-                    return;
-                }
-                $scope->detach();
-                $currentSpan = Span::fromContext($scope->context());
                 if ($exception) {
-                    $currentSpan->recordException($exception);
-                    $currentSpan->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
-                $currentSpan->end();
+                $span->end();
             }
         );
 
