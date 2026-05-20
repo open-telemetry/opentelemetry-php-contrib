@@ -90,7 +90,6 @@ final class Magento2Instrumentation
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute(UrlAttributes::URL_FULL, (string) $request->getUri())
                     ->setAttribute(UrlAttributes::URL_SCHEME, $request->getUri()->getScheme())
                     ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
                     ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
