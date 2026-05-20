@@ -147,7 +147,7 @@ final class Magento2Instrumentation
                 $requestStart = $scope->offsetGet('requestStart');
                 /** @psalm-suppress PossiblyInvalidArgument */
                 $histogram->record((float) (($requestEnd - $requestStart) / ClockInterface::NANOS_PER_SECOND), array_merge((array) $requestMeta, $responseMeta));
-                $span->end();
+                $span->end($requestEnd);
             }
         );
 
