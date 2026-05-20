@@ -256,7 +256,7 @@ final class HttpTest extends TestCase
      *   - carries no exception events
      *   - contains all expected code attributes (function name, file path, line number)
      *   - contains all request attributes set by the pre-hook
-     *     (url.full as string, url.scheme, url.path, http.request.method,
+     *     (url.scheme, url.path, http.request.method,
      *      network.protocol.version, server.address, server.port)
      *   - contains response attributes controlled by the mock
      *     (http.response.status_code=200, body_size=4, response_size=6)
@@ -302,8 +302,6 @@ final class HttpTest extends TestCase
         $this->assertNotEmpty($attributes[CodeAttributes::CODE_LINE_NUMBER]);
 
         // --- request attributes (values are environment-derived; assert presence and type) ---
-        $this->assertArrayHasKey(UrlAttributes::URL_FULL, $attributes);
-        $this->assertIsString($attributes[UrlAttributes::URL_FULL]);
         $this->assertArrayHasKey(UrlAttributes::URL_SCHEME, $attributes);
         $this->assertArrayHasKey(UrlAttributes::URL_PATH, $attributes);
         $this->assertArrayHasKey(HttpAttributes::HTTP_REQUEST_METHOD, $attributes);
@@ -314,6 +312,44 @@ final class HttpTest extends TestCase
         // --- response attributes (values are controlled by the mock) ---
         $this->assertArrayHasKey(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $attributes);
         $this->assertSame(200, $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE]);
+    }
+
+    public function test_launch_sets_url_query_attribute_when_query_exists(): void
+    {
+        $originalServer = $_SERVER;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/index.php?foo=bar&baz=1';
+        $_SERVER['QUERY_STRING'] = 'foo=bar&baz=1';
+        $_SERVER['HTTP_HOST'] = 'localhost';
+        $_SERVER['SERVER_NAME'] = 'localhost';
+        $_SERVER['SERVER_PORT'] = '80';
+        $_SERVER['HTTPS'] = 'off';
+
+        try {
+            $this->setUpLaunch();
+            $this->requestMock->expects($this->once())
+                ->method('isHead')
+                ->willReturn(false);
+            $this->responseMock->expects($this->exactly(2))
+                ->method('getStatusCode')
+                ->willReturn(200);
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+
+            $this->http->launch();
+
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
+            $attributes = $span->getAttributes()->toArray();
+            $this->assertArrayHasKey(UrlAttributes::URL_QUERY, $attributes);
+            $this->assertSame('foo=bar&baz=1', $attributes[UrlAttributes::URL_QUERY]);
+        } finally {
+            $_SERVER = $originalServer;
+        }
     }
 
     /**
@@ -377,13 +413,13 @@ final class HttpTest extends TestCase
     }
 
     /**
-     * Find the Http::launch span by looking for a span that has the URL_FULL attribute,
+     * Find the Http::launch span by looking for a span that has the HTTP_REQUEST_METHOD attribute,
      * which is only set by the Http::launch pre-hook.
      */
     private function findHttpLaunchSpan(): ?ImmutableSpan
     {
         foreach ($this->storage as $item) {
-            if ($item instanceof ImmutableSpan && $item->getAttributes()->has(UrlAttributes::URL_FULL)) {
+            if ($item instanceof ImmutableSpan && $item->getAttributes()->has(HttpAttributes::HTTP_REQUEST_METHOD)) {
                 return $item;
             }
         }

@@ -92,7 +92,7 @@ final class Magento2Instrumentation
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(UrlAttributes::URL_SCHEME, $request->getUri()->getScheme())
                     ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
-                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, strlen($request->getMethod()) > 0 ? $request->getMethod() : '_OTHER')
                     ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
                     ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
@@ -100,6 +100,10 @@ final class Magento2Instrumentation
 
                 $requestStart = Clock::getDefault()->now();
                 $span = $spanBuilder->setStartTimestamp($requestStart)->startSpan();
+
+                if (strlen($request->getUri()->getQuery()) > 0) {
+                    $span->setAttribute(UrlAttributes::URL_QUERY, $request->getUri()->getQuery());
+                }
 
                 $scope = Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
