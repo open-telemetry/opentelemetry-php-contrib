@@ -79,6 +79,9 @@ final class Magento2Instrumentation
             Http::class,
             'launch',
             pre: static function (Http $http, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+                if ($class !== Http::class) {
+                    return;
+                }
                 $factory = new Psr17Factory();
                 $request = (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
                 $parent = Globals::propagator()->extract($request->getHeaders());
@@ -121,7 +124,10 @@ final class Magento2Instrumentation
                 $scope->offsetSet('requestMeta', $requestMeta);
                 $scope->offsetSet('requestStart', $requestStart);
             },
-            post: static function (Http $http, array $params, ResultInterface|HttpResponse|null $response, ?Throwable $exception) use (&$histogram, $instrumentation) {
+            post: static function (Http $http, array $params, ResultInterface|HttpResponse|null $response, ?Throwable $exception, string $class) use (&$histogram, $instrumentation) {
+                if ($class !== Http::class) {
+                    return;
+                }
                 $requestEnd = Clock::getDefault()->now();
                 $scope = Context::storage()->scope();
                 if (!$scope) {
