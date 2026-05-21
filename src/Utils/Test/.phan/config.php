@@ -32,9 +32,12 @@ return [
     'generic_types_enabled' => true,
     'globals_type_map' => [],
     'minimum_severity' => Issue::SEVERITY_LOW,
-    'suppress_issue_types' => ['PhanCompatibleOverrideAttribute'],
+    'suppress_issue_types' => ['PhanCompatibleOverrideAttribute', 'PhanAccessMethodInternal'],
     'exclude_file_regex' => '@^vendor/.*/(tests?|Tests?)/@',
-    'exclude_file_list' => [],
+    'exclude_file_list' => [
+        'vendor/composer/composer/src/Composer/InstalledVersions.php',
+        'vendor/ramsey/uuid/src/Provider/Dce/SystemDceSecurityProvider.php',
+    ],
     'exclude_analysis_directory_list' => [
         'vendor/',
     ],

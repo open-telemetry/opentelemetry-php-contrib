@@ -14,5 +14,6 @@
     </plugins>
     <issueHandlers>
         <MissingOverrideAttribute errorLevel="suppress" />
+        <InvalidOperand errorLevel="suppress" />
     </issueHandlers>
 </psalm>

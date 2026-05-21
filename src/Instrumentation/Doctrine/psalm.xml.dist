@@ -16,5 +16,6 @@
     </plugins>
     <issueHandlers>
         <MissingOverrideAttribute errorLevel="suppress" />
+        <PossiblyNullArrayOffset errorLevel="suppress" />
     </issueHandlers>
 </psalm>

@@ -16,15 +16,5 @@
     </plugins>
     <issueHandlers>
         <MissingOverrideAttribute errorLevel="suppress" />
-        <UndefinedInterfaceMethod>
-            <errorLevel type="suppress">
-                <directory name="src/ComponentProvider"/>
-            </errorLevel>
-        </UndefinedInterfaceMethod>
-        <MoreSpecificImplementedParamType>
-            <errorLevel type="suppress">
-                <directory name="src/ComponentProvider"/>
-            </errorLevel>
-        </MoreSpecificImplementedParamType>
     </issueHandlers>
 </psalm>

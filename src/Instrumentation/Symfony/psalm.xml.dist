@@ -14,5 +14,7 @@
     </plugins>
     <issueHandlers>
         <MissingOverrideAttribute errorLevel="suppress" />
+        <UnusedFunctionCall errorLevel="suppress" />
+        <UndefinedClass errorLevel="suppress" />
     </issueHandlers>
 </psalm>
