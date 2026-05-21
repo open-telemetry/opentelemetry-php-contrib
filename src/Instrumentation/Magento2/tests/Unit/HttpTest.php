@@ -278,7 +278,7 @@ final class HttpTest extends TestCase
             $this->requestMock->expects($this->once())
                 ->method('isHead')
                 ->willReturn(false);
-            $this->responseMock->expects($this->exactly(2))
+            $this->responseMock->expects($this->exactly(1))
                 ->method('getStatusCode')
                 ->willReturn(200);
             $this->eventManagerMock->expects($this->once())
@@ -347,7 +347,7 @@ final class HttpTest extends TestCase
             $this->requestMock->expects($this->once())
                 ->method('isHead')
                 ->willReturn(false);
-            $this->responseMock->expects($this->exactly(2))
+            $this->responseMock->expects($this->exactly(1))
                 ->method('getStatusCode')
                 ->willReturn(200);
             $this->eventManagerMock->expects($this->once())
@@ -386,7 +386,7 @@ final class HttpTest extends TestCase
             $this->requestMock->expects($this->once())
                 ->method('isHead')
                 ->willReturn(false);
-            $this->responseMock->expects($this->exactly(2))
+            $this->responseMock->expects($this->exactly(1))
                 ->method('getStatusCode')
                 ->willReturn(200);
             $this->eventManagerMock->expects($this->once())
@@ -425,7 +425,7 @@ final class HttpTest extends TestCase
             $this->requestMock->expects($this->once())
                 ->method('isHead')
                 ->willReturn(false);
-            $this->responseMock->expects($this->exactly(2))
+            $this->responseMock->expects($this->exactly(1))
                 ->method('getStatusCode')
                 ->willReturn(200);
             $this->eventManagerMock->expects($this->once())
@@ -463,7 +463,7 @@ final class HttpTest extends TestCase
             $this->requestMock->expects($this->once())
                 ->method('isHead')
                 ->willReturn(false);
-            $this->responseMock->expects($this->exactly(2))
+            $this->responseMock->expects($this->exactly(1))
                 ->method('getStatusCode')
                 ->willReturn(200);
             $this->eventManagerMock->expects($this->once())
@@ -501,7 +501,7 @@ final class HttpTest extends TestCase
             $this->requestMock->expects($this->once())
                 ->method('isHead')
                 ->willReturn(false);
-            $this->responseMock->expects($this->exactly(2))
+            $this->responseMock->expects($this->exactly(1))
                 ->method('getStatusCode')
                 ->willReturn(200);
             $this->eventManagerMock->expects($this->once())
@@ -539,7 +539,7 @@ final class HttpTest extends TestCase
             $this->requestMock->expects($this->once())
                 ->method('isHead')
                 ->willReturn(false);
-            $this->responseMock->expects($this->exactly(2))
+            $this->responseMock->expects($this->exactly(1))
                 ->method('getStatusCode')
                 ->willReturn(200);
             $this->eventManagerMock->expects($this->once())

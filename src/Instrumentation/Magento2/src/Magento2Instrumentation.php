@@ -147,11 +147,15 @@ final class Magento2Instrumentation
                 if ($exception) {
                     $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
-                    $responseMeta[ErrorAttributes::ERROR_TYPE] = (string) $exception->getCode();
+                    $responseMeta[ErrorAttributes::ERROR_TYPE] = $exception::class;
                 }
                 if ($response instanceof HttpResponse) {
-                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
-                    $responseMeta[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $response->getStatusCode();
+                    $statusCode = $response->getStatusCode();
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                    $responseMeta[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $statusCode;
+                    if ($statusCode >= 500) {
+                        $responseMeta[ErrorAttributes::ERROR_TYPE] = $statusCode;
+                    }
                     $prop = Globals::responsePropagator();
                     $prop->inject($response, ResponsePropagationSetter::getInstance(), $scope->context());
                 }
