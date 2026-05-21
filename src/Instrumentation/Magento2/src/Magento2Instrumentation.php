@@ -94,9 +94,15 @@ final class Magento2Instrumentation
                     ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
                     ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, strlen($request->getMethod()) > 0 ? $request->getMethod() : '_OTHER')
                     ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                    ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                    ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                    ->setAttribute(ServerAttributes::SERVER_PORT, $request->getUri()->getPort() ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80));
+                    ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'));
+
+                [$serverAddress, $serverPort] = self::resolveServerAddressAndPort($request);
+                if ($serverAddress !== null) {
+                    $spanBuilder->setAttribute(ServerAttributes::SERVER_ADDRESS, $serverAddress);
+                }
+                if ($serverPort !== null) {
+                    $spanBuilder->setAttribute(ServerAttributes::SERVER_PORT, $serverPort);
+                }
 
                 $requestStart = Clock::getDefault()->now();
                 $span = $spanBuilder->setStartTimestamp($requestStart)->startSpan();
@@ -357,5 +363,152 @@ final class Magento2Instrumentation
         }
 
         return $scriptName;
+    }
+
+    /**
+     * Best-effort extraction as defined by HTTP semconv:
+     * Forwarded host -> X-Forwarded-Host -> :authority -> Host.
+     *
+     * @return array{0: string|null, 1: int|null}
+     */
+    private static function resolveServerAddressAndPort(ServerRequestInterface $request): array
+    {
+        $forwardedHost = self::extractForwardedHost($request->getHeaderLine('Forwarded'));
+        if ($forwardedHost !== null) {
+            return self::parseHostAndPort($forwardedHost);
+        }
+
+        $xForwardedHost = self::getFirstHeaderListValue($request->getHeaderLine('X-Forwarded-Host'));
+        if ($xForwardedHost !== null) {
+            return self::parseHostAndPort($xForwardedHost);
+        }
+
+        $authority = trim($request->getHeaderLine(':authority'));
+        if ($authority !== '') {
+            return self::parseHostAndPort($authority);
+        }
+
+        $host = trim($request->getHeaderLine('Host'));
+        if ($host !== '') {
+            return self::parseHostAndPort($host);
+        }
+
+        $uriHost = $request->getUri()->getHost();
+        $uriPort = $request->getUri()->getPort();
+
+        return [$uriHost !== '' ? $uriHost : null, $uriPort];
+    }
+
+    /**
+     * @param string $forwardedHeader
+     * @return string|null
+     * @psalm-pure
+     */
+    private static function extractForwardedHost(string $forwardedHeader): ?string
+    {
+        if ($forwardedHeader === '') {
+            return null;
+        }
+
+        $entries = explode(',', $forwardedHeader);
+        foreach ($entries as $entry) {
+            $parts = explode(';', $entry);
+            foreach ($parts as $part) {
+                $pair = explode('=', trim($part), 2);
+                if (count($pair) !== 2) {
+                    continue;
+                }
+
+                if (strtolower(trim($pair[0])) !== 'host') {
+                    continue;
+                }
+
+                $value = trim($pair[1]);
+                $value = trim($value, "\"'");
+
+                return $value !== '' ? $value : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $headerValue
+     * @return string|null
+     * @psalm-pure
+     */
+    private static function getFirstHeaderListValue(string $headerValue): ?string
+    {
+        if ($headerValue === '') {
+            return null;
+        }
+
+        $first = trim(explode(',', $headerValue)[0]);
+
+        return $first !== '' ? $first : null;
+    }
+
+    /**
+     * @return array{0: string|null, 1: int|null}
+     * @psalm-pure
+     */
+    private static function parseHostAndPort(string $hostAndPort): array
+    {
+        $hostAndPort = self::getFirstHeaderListValue($hostAndPort) ?? '';
+        if ($hostAndPort === '') {
+            return [null, null];
+        }
+
+        if (str_starts_with($hostAndPort, '[')) {
+            $end = strpos($hostAndPort, ']');
+            if ($end === false) {
+                return [$hostAndPort, null];
+            }
+
+            $address = substr($hostAndPort, 1, $end - 1);
+            $remainder = trim(substr($hostAndPort, $end + 1));
+            if (str_starts_with($remainder, ':')) {
+                $port = self::parsePort(substr($remainder, 1));
+
+                return [$address !== '' ? $address : null, $port];
+            }
+
+            return [$address !== '' ? $address : null, null];
+        }
+
+        if (substr_count($hostAndPort, ':') > 1) {
+            return [$hostAndPort, null];
+        }
+
+        if (str_contains($hostAndPort, ':')) {
+            $parts = explode(':', $hostAndPort, 2);
+            $address = $parts[0];
+            $portString = $parts[1] ?? '';
+
+            return [
+                $address !== '' ? $address : null,
+                self::parsePort($portString),
+            ];
+        }
+
+        return [$hostAndPort, null];
+    }
+
+    /**
+     * @param string $port
+     * @return int|null
+     * @psalm-pure
+     */
+    private static function parsePort(string $port): ?int
+    {
+        $port = trim($port);
+        if ($port === '' || !ctype_digit($port)) {
+            return null;
+        }
+
+        $portNumber = (int) $port;
+
+        return $portNumber > 0 && $portNumber <= 65535 ? $portNumber : null;
     }
 }

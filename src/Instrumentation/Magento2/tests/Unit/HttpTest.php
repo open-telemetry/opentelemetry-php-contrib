@@ -264,54 +264,186 @@ final class HttpTest extends TestCase
      */
     public function test_launch(): void
     {
-        $this->setUpLaunch();
-        $this->requestMock->expects($this->once())
-            ->method('isHead')
-            ->willReturn(false);
-        $this->responseMock->expects($this->exactly(2))
-            ->method('getStatusCode')
-            ->willReturn(200);
-        $this->eventManagerMock->expects($this->once())
-            ->method('dispatch')
-            ->with(
-                'controller_front_send_response_before',
-                ['request' => $this->requestMock, 'response' => $this->responseMock]
-            );
-        $this->eventManagerMock->expects($this->once())
-            ->method('dispatch')
-            ->with(
-                'controller_front_send_response_before',
-                ['request' => $this->requestMock, 'response' => $this->responseMock]
-            );
-        $this->http->launch();
+        $originalServer = $_SERVER;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['HTTP_HOST'] = 'localhost:8080';
+        $_SERVER['SERVER_NAME'] = 'localhost';
+        $_SERVER['SERVER_PORT'] = '8080';
+        $_SERVER['HTTPS'] = 'off';
 
-        $this->assertGreaterThanOrEqual(1, count($this->storage));
-        $span = $this->findHttpLaunchSpan();
-        $this->assertNotNull($span, 'Http::launch span not found in exported spans');
-        $this->assertNotEmpty($span->getName());
-        $this->assertCount(0, $span->getEvents());
+        try {
+            $this->setUpLaunch();
+            $this->requestMock->expects($this->once())
+                ->method('isHead')
+                ->willReturn(false);
+            $this->responseMock->expects($this->exactly(2))
+                ->method('getStatusCode')
+                ->willReturn(200);
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+            $this->http->launch();
 
-        $attributes = $span->getAttributes()->toArray();
+            $this->assertGreaterThanOrEqual(1, count($this->storage));
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
+            $this->assertNotEmpty($span->getName());
+            $this->assertCount(0, $span->getEvents());
 
-        // --- code attributes ---
-        $this->assertArrayHasKey(CodeAttributes::CODE_FUNCTION_NAME, $attributes);
-        $this->assertNotEmpty($attributes[CodeAttributes::CODE_FUNCTION_NAME]);
-        $this->assertArrayHasKey(CodeAttributes::CODE_FILE_PATH, $attributes);
-        $this->assertNotEmpty($attributes[CodeAttributes::CODE_FILE_PATH]);
-        $this->assertArrayHasKey(CodeAttributes::CODE_LINE_NUMBER, $attributes);
-        $this->assertNotEmpty($attributes[CodeAttributes::CODE_LINE_NUMBER]);
+            $attributes = $span->getAttributes()->toArray();
 
-        // --- request attributes (values are environment-derived; assert presence and type) ---
-        $this->assertArrayHasKey(UrlAttributes::URL_SCHEME, $attributes);
-        $this->assertArrayHasKey(UrlAttributes::URL_PATH, $attributes);
-        $this->assertArrayHasKey(HttpAttributes::HTTP_REQUEST_METHOD, $attributes);
-        $this->assertArrayHasKey(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $attributes);
-        $this->assertArrayHasKey(ServerAttributes::SERVER_ADDRESS, $attributes);
-        $this->assertArrayHasKey(ServerAttributes::SERVER_PORT, $attributes);
+            // --- code attributes ---
+            $this->assertArrayHasKey(CodeAttributes::CODE_FUNCTION_NAME, $attributes);
+            $this->assertNotEmpty($attributes[CodeAttributes::CODE_FUNCTION_NAME]);
+            $this->assertArrayHasKey(CodeAttributes::CODE_FILE_PATH, $attributes);
+            $this->assertNotEmpty($attributes[CodeAttributes::CODE_FILE_PATH]);
+            $this->assertArrayHasKey(CodeAttributes::CODE_LINE_NUMBER, $attributes);
+            $this->assertNotEmpty($attributes[CodeAttributes::CODE_LINE_NUMBER]);
 
-        // --- response attributes (values are controlled by the mock) ---
-        $this->assertArrayHasKey(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $attributes);
-        $this->assertSame(200, $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE]);
+            // --- request attributes (values are environment-derived; assert presence and type) ---
+            $this->assertArrayHasKey(UrlAttributes::URL_SCHEME, $attributes);
+            $this->assertArrayHasKey(UrlAttributes::URL_PATH, $attributes);
+            $this->assertArrayHasKey(HttpAttributes::HTTP_REQUEST_METHOD, $attributes);
+            $this->assertArrayHasKey(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $attributes);
+            $this->assertArrayHasKey(ServerAttributes::SERVER_ADDRESS, $attributes);
+            $this->assertSame('localhost', $attributes[ServerAttributes::SERVER_ADDRESS]);
+            $this->assertArrayHasKey(ServerAttributes::SERVER_PORT, $attributes);
+            $this->assertSame(8080, $attributes[ServerAttributes::SERVER_PORT]);
+
+            // --- response attributes (values are controlled by the mock) ---
+            $this->assertArrayHasKey(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $attributes);
+            $this->assertSame(200, $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE]);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
+    public function test_launch_uses_forwarded_host_before_host_header(): void
+    {
+        $originalServer = $_SERVER;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['HTTP_FORWARDED'] = 'for=192.0.2.43;host=shop-forwarded.example:8443;proto=https';
+        $_SERVER['HTTP_X_FORWARDED_HOST'] = 'proxy.example:9443';
+        $_SERVER['HTTP_HOST'] = 'origin.example:8080';
+        $_SERVER['SERVER_NAME'] = 'origin.example';
+        $_SERVER['SERVER_PORT'] = '8080';
+        $_SERVER['HTTPS'] = 'off';
+
+        try {
+            $this->setUpLaunch();
+            $this->requestMock->expects($this->once())
+                ->method('isHead')
+                ->willReturn(false);
+            $this->responseMock->expects($this->exactly(2))
+                ->method('getStatusCode')
+                ->willReturn(200);
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+
+            $this->http->launch();
+
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
+            $attributes = $span->getAttributes()->toArray();
+            $this->assertSame('shop-forwarded.example', $attributes[ServerAttributes::SERVER_ADDRESS] ?? null);
+            $this->assertSame(8443, $attributes[ServerAttributes::SERVER_PORT] ?? null);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
+    public function test_launch_uses_x_forwarded_host_before_host_header(): void
+    {
+        $originalServer = $_SERVER;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['HTTP_X_FORWARDED_HOST'] = 'proxy.example:9443';
+        $_SERVER['HTTP_HOST'] = 'origin.example:8080';
+        $_SERVER['SERVER_NAME'] = 'origin.example';
+        $_SERVER['SERVER_PORT'] = '8080';
+        $_SERVER['HTTPS'] = 'off';
+
+        try {
+            $this->setUpLaunch();
+            $this->requestMock->expects($this->once())
+                ->method('isHead')
+                ->willReturn(false);
+            $this->responseMock->expects($this->exactly(2))
+                ->method('getStatusCode')
+                ->willReturn(200);
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+
+            $this->http->launch();
+
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
+            $attributes = $span->getAttributes()->toArray();
+            $this->assertSame('proxy.example', $attributes[ServerAttributes::SERVER_ADDRESS] ?? null);
+            $this->assertSame(9443, $attributes[ServerAttributes::SERVER_PORT] ?? null);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
+    public function test_launch_uses_host_header(): void
+    {
+        $originalServer = $_SERVER;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['HTTP_HOST'] = 'origin.example:8080';
+        $_SERVER['SERVER_NAME'] = 'origin.example';
+        $_SERVER['SERVER_PORT'] = '8080';
+        $_SERVER['HTTPS'] = 'off';
+
+        try {
+            $this->setUpLaunch();
+            $this->requestMock->expects($this->once())
+                ->method('isHead')
+                ->willReturn(false);
+            $this->responseMock->expects($this->exactly(2))
+                ->method('getStatusCode')
+                ->willReturn(200);
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+
+            $this->http->launch();
+
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
+            $attributes = $span->getAttributes()->toArray();
+            $this->assertSame('origin.example', $attributes[ServerAttributes::SERVER_ADDRESS] ?? null);
+            $this->assertSame(8080, $attributes[ServerAttributes::SERVER_PORT] ?? null);
+        } finally {
+            $_SERVER = $originalServer;
+        }
     }
 
     public function test_launch_sets_url_query_attribute_when_query_exists(): void
