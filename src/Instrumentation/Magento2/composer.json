@@ -12,7 +12,8 @@
     "ext-json": "*",
     "open-telemetry/api": "^1.6",
     "open-telemetry/sem-conv": "^1.36",
-    "magento/framework": "^103.0"
+    "magento/framework": "^103.0",
+    "nyholm/psr7": "^1.8"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",

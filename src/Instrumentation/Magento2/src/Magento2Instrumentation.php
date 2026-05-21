@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Magento2;
 
-use Http\Discovery\Psr17Factory;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Bootstrap;
@@ -18,6 +17,7 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\InvokerInterface;
 use Magento\Framework\Event\Manager;
 use Magento\Framework\View\Element\Template;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
 use OpenTelemetry\API\Common\Time\Clock;
