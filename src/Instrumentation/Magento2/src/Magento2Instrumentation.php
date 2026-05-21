@@ -36,6 +36,7 @@ use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
+use OpenTelemetry\SemConv\TraceAttributeValues;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
@@ -86,6 +87,12 @@ final class Magento2Instrumentation
                 $request = (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
                 $parent = Globals::propagator()->extract($request->getHeaders());
 
+                $requestMeta = [
+                    HttpAttributes::HTTP_REQUEST_METHOD => self::canonizeMethod($request->getMethod()) ?? '_OTHER',
+                    UrlAttributes::URL_SCHEME => $request->getUri()->getScheme(),
+                    NetworkAttributes::NETWORK_PROTOCOL_VERSION => $request->getProtocolVersion(),
+                ];
+
                 $spanBuilder = $instrumentation->tracer()
                     ->spanBuilder(sprintf('%s %s', $request->getMethod(), self::getScriptNameFromRequest($request)))
                     ->setParent($parent)
@@ -95,9 +102,13 @@ final class Magento2Instrumentation
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute(UrlAttributes::URL_SCHEME, $request->getUri()->getScheme())
                     ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
-                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, strlen($request->getMethod()) > 0 ? $request->getMethod() : '_OTHER')
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $requestMeta[HttpAttributes::HTTP_REQUEST_METHOD])
                     ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'));
+
+                if ($requestMeta[HttpAttributes::HTTP_REQUEST_METHOD] === '_OTHER') {
+                    $spanBuilder->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD_ORIGINAL, $request->getMethod());
+                }
 
                 [$serverAddress, $serverPort] = self::resolveServerAddressAndPort($request);
                 if ($serverAddress !== null) {
@@ -116,11 +127,6 @@ final class Magento2Instrumentation
 
                 $scope = Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
-                $requestMeta = [
-                    HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
-                    UrlAttributes::URL_SCHEME => $request->getUri()->getScheme(),
-                    NetworkAttributes::NETWORK_PROTOCOL_VERSION => $request->getProtocolVersion(),
-                ];
                 $scope->offsetSet('requestMeta', $requestMeta);
                 $scope->offsetSet('requestStart', $requestStart);
             },
@@ -516,5 +522,32 @@ final class Magento2Instrumentation
         $portNumber = (int) $port;
 
         return $portNumber > 0 && $portNumber <= 65535 ? $portNumber : null;
+    }
+
+    /**
+     * @param string $method
+     * @return string|null
+     * @psalm-pure
+     */
+    private static function canonizeMethod(string $method): ?string
+    {
+        // RFC9110, RFC5789
+        $knownMethods = [
+            TraceAttributeValues::HTTP_REQUEST_METHOD_GET,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_HEAD,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_POST,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_PUT,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_DELETE,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_CONNECT,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_OPTIONS,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_TRACE,
+            TraceAttributeValues::HTTP_REQUEST_METHOD_PATCH,
+        ];
+
+        if (in_array($method, $knownMethods)) {
+            return $method;
+        }
+
+        return null;
     }
 }

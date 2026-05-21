@@ -408,6 +408,45 @@ final class HttpTest extends TestCase
         }
     }
 
+    public function test_launch_uses_first_value_from_x_forwarded_host_list(): void
+    {
+        $originalServer = $_SERVER;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['HTTP_X_FORWARDED_HOST'] = 'proxy-a.example:9443, proxy-b.example:9555';
+        $_SERVER['HTTP_HOST'] = 'origin.example:8080';
+        $_SERVER['SERVER_NAME'] = 'origin.example';
+        $_SERVER['SERVER_PORT'] = '8080';
+        $_SERVER['HTTPS'] = 'off';
+
+        try {
+            $this->setUpLaunch();
+            $this->requestMock->expects($this->once())
+                ->method('isHead')
+                ->willReturn(false);
+            $this->responseMock->expects($this->exactly(2))
+                ->method('getStatusCode')
+                ->willReturn(200);
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+
+            $this->http->launch();
+
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
+            $attributes = $span->getAttributes()->toArray();
+            $this->assertSame('proxy-a.example', $attributes[ServerAttributes::SERVER_ADDRESS] ?? null);
+            $this->assertSame(9443, $attributes[ServerAttributes::SERVER_PORT] ?? null);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
     public function test_launch_uses_host_header(): void
     {
         $originalServer = $_SERVER;
@@ -479,6 +518,44 @@ final class HttpTest extends TestCase
             $attributes = $span->getAttributes()->toArray();
             $this->assertArrayHasKey(UrlAttributes::URL_QUERY, $attributes);
             $this->assertSame('foo=bar&baz=1', $attributes[UrlAttributes::URL_QUERY]);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
+    public function test_launch_uses_uri_host_and_port_when_no_host_headers_exist(): void
+    {
+        $originalServer = $_SERVER;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI'] = '/index.php';
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['SERVER_NAME'] = 'fallback.example';
+        $_SERVER['SERVER_PORT'] = '8443';
+        $_SERVER['HTTPS'] = 'on';
+        unset($_SERVER['HTTP_FORWARDED'], $_SERVER['HTTP_X_FORWARDED_HOST'], $_SERVER['HTTP_HOST']);
+
+        try {
+            $this->setUpLaunch();
+            $this->requestMock->expects($this->once())
+                ->method('isHead')
+                ->willReturn(false);
+            $this->responseMock->expects($this->exactly(2))
+                ->method('getStatusCode')
+                ->willReturn(200);
+            $this->eventManagerMock->expects($this->once())
+                ->method('dispatch')
+                ->with(
+                    'controller_front_send_response_before',
+                    ['request' => $this->requestMock, 'response' => $this->responseMock]
+                );
+
+            $this->http->launch();
+
+            $span = $this->findHttpLaunchSpan();
+            $this->assertNotNull($span, 'Http::launch span not found in exported spans');
+            $attributes = $span->getAttributes()->toArray();
+            $this->assertSame('fallback.example', $attributes[ServerAttributes::SERVER_ADDRESS] ?? null);
+            $this->assertSame(8443, $attributes[ServerAttributes::SERVER_PORT] ?? null);
         } finally {
             $_SERVER = $originalServer;
         }
