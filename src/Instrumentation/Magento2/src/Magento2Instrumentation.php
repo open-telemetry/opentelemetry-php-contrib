@@ -277,13 +277,17 @@ final class Magento2Instrumentation
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
-            post: static function (Manager $manager, array $params) {
+            post: static function (Manager $manager, array $params, mixed $void, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
                 }
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
+                if ($exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
                 $span->end();
             }
         );
@@ -304,13 +308,17 @@ final class Magento2Instrumentation
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
-            post: static function (InvokerInterface $invokerInterface, array $params) {
+            post: static function (InvokerInterface $invokerInterface, array $params, mixed $void, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
                 }
                 $scope->detach();
                 $span = Span::fromContext($scope->context());
+                if ($exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
                 $span->end();
             }
         );
