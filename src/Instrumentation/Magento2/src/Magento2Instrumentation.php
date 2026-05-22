@@ -94,7 +94,7 @@ final class Magento2Instrumentation
                 ];
 
                 $spanBuilder = $instrumentation->tracer()
-                    ->spanBuilder(sprintf('%s %s', $request->getMethod(), self::getScriptNameFromRequest($request)))
+                    ->spanBuilder(sprintf('%s %s', $request->getMethod(), strlen($request->getUri()->getPath()) > 0 ? $request->getUri()->getPath() : self::getScriptNameFromRequest($request)))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
