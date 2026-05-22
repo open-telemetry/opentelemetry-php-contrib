@@ -94,15 +94,35 @@ final class SymfonyInstrumentation
                 ?\Throwable $exception
             ): void {
                 $scope = Context::storage()->scope();
-                if (null === $scope || null === $exception) {
+                if (null === $scope) {
+                    return;
+                }
+
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
+                $isSubRequest = $type === HttpKernelInterface::SUB_REQUEST;
+
+                if (!$isSubRequest && null === $exception) {
                     return;
                 }
 
                 $span = Span::fromContext($scope->context());
                 $scope->detach();
-                $span->recordException($exception);
-                if (null !== $response && $response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+
+                if (null !== $exception) {
+                    $span->recordException($exception);
+
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
+                if ($isSubRequest) {
+                    if (null !== $response) {
+                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+
+                        if ($response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+                            $span->setStatus(StatusCode::STATUS_ERROR);
+                        }
+                    }
+                    $span->end();
                 }
             }
         );
@@ -119,8 +139,11 @@ final class SymfonyInstrumentation
                 if (null === $scope) {
                     return;
                 }
-                $scope->detach();
                 $span = Span::fromContext($scope->context());
+                if (!$span->isRecording()) {
+                    return;
+                }
+                $scope->detach();
 
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $response = ($params[1] instanceof Response) ? $params[1] : null;
@@ -184,7 +207,9 @@ final class SymfonyInstrumentation
                 $throwable = $params[0];
 
                 Span::getCurrent()
-                    ->recordException($throwable);
+                    ->recordException($throwable)
+                    ->setStatus(StatusCode::STATUS_ERROR, $throwable->getMessage())
+                ;
 
                 return $params;
             },
