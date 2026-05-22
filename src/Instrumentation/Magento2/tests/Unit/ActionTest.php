@@ -162,7 +162,7 @@ final class ActionTest extends TestCase
 
         $this->action->dispatch($this->httpRequest);
 
-        $this->assertSame('catalog_product_view', $this->getSingleSpan()->getName());
+        $this->assertSame('action.dispatch catalog_product_view', $this->getSingleSpan()->getName());
     }
 
     /**
@@ -178,7 +178,7 @@ final class ActionTest extends TestCase
 
         $this->action->dispatch($this->httpRequest);
 
-        $this->assertSame('unknown', $this->getSingleSpan()->getName());
+        $this->assertSame('action.dispatch unknown', $this->getSingleSpan()->getName());
     }
 
     /**

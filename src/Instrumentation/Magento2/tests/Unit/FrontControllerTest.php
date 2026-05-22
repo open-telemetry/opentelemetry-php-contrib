@@ -183,7 +183,7 @@ final class FrontControllerTest extends TestCase
             $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
             /** @var ImmutableSpan $span */
             $span = $this->storage[0];
-            $this->assertSame('FrontController.dispatch', $span->getName());
+            $this->assertSame('frontController.dispatch', $span->getName());
 
             $attributes = $span->getAttributes()->toArray();
             $this->assertArrayHasKey(CodeAttributes::CODE_FUNCTION_NAME, $attributes);
@@ -280,7 +280,7 @@ final class FrontControllerTest extends TestCase
 
         // FrontController.dispatch + ActionInterface.execute
         $this->assertCount(2, $this->storage);
-        $frontControllerSpan = $this->findSpanByName('FrontController.dispatch');
+        $frontControllerSpan = $this->findSpanByName('frontController.dispatch');
         $this->assertNotNull($frontControllerSpan);
 
         $attributes = $frontControllerSpan->getAttributes()->toArray();

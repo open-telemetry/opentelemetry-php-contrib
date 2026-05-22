@@ -68,7 +68,7 @@ final class TemplateTest extends TestCase
         $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        $this->assertSame('TEMPLATE: ' . $templateFile, $span->getName());
+        $this->assertSame('template ' . $templateFile, $span->getName());
         $this->assertCount(0, $span->getEvents());
 
         $attrs = $span->getAttributes()->toArray();

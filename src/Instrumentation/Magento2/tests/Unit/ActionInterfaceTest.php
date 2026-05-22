@@ -131,7 +131,7 @@ final class ActionInterfaceTest extends TestCase
 
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        $this->assertSame('ActionInterface.execute', $span->getName());
+        $this->assertSame('actionInterface.execute', $span->getName());
 
         $attributes = $span->getAttributes()->toArray();
         $this->assertArrayHasKey(CodeAttributes::CODE_FUNCTION_NAME, $attributes);
@@ -178,7 +178,7 @@ final class ActionInterfaceTest extends TestCase
 
             /** @var ImmutableSpan $span */
             $span = $this->storage[0];
-            $this->assertSame('ActionInterface.execute', $span->getName());
+            $this->assertSame('actionInterface.execute', $span->getName());
 
             $events = $span->getEvents();
             $this->assertCount(1, $events);

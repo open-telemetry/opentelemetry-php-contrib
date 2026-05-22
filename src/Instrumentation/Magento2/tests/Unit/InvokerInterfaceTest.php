@@ -64,7 +64,7 @@ final class InvokerInterfaceTest extends TestCase
         $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        $this->assertSame('OBSERVER: checkout_cart_product_add_after', $span->getName());
+        $this->assertSame('observer checkout_cart_product_add_after', $span->getName());
 
         $attrs = $span->getAttributes()->toArray();
         $this->assertArrayHasKey(CodeAttributes::CODE_FUNCTION_NAME, $attrs);
@@ -90,6 +90,6 @@ final class InvokerInterfaceTest extends TestCase
         $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        $this->assertSame('OBSERVER: unknown', $span->getName());
+        $this->assertSame('observer unknown', $span->getName());
     }
 }

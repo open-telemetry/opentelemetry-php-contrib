@@ -63,7 +63,7 @@ final class ManagerTest extends TestCase
         $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        $this->assertSame('EVENT: catalog_controller_product_view', $span->getName());
+        $this->assertSame('event.dispatch catalog_controller_product_view', $span->getName());
 
         $attrs = $span->getAttributes()->toArray();
         $this->assertArrayHasKey(CodeAttributes::CODE_FUNCTION_NAME, $attrs);

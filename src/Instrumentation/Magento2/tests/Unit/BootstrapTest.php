@@ -208,7 +208,7 @@ final class BootstrapTest extends TestCase
         $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        $this->assertSame('Bootstrap::terminate', $span->getName());
+        $this->assertSame('bootstrap.terminate', $span->getName());
 
         $attributes = $span->getAttributes()->toArray();
         $this->assertArrayHasKey(CodeAttributes::CODE_FUNCTION_NAME, $attributes);

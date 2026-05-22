@@ -66,7 +66,7 @@ final class ViewTest extends TestCase
         $this->assertInstanceOf(ImmutableSpan::class, $this->storage[0]);
         /** @var ImmutableSpan $span */
         $span = $this->storage[0];
-        $this->assertSame('LAYOUT: layout_render', $span->getName());
+        $this->assertSame('view.render.layout', $span->getName());
         $this->assertCount(0, $span->getEvents());
 
         $attrs = $span->getAttributes()->toArray();
