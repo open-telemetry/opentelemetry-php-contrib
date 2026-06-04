@@ -22,3 +22,55 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=laravel
 ```
+
+### Selective Instrumentation
+
+You can selectively enable or disable specific instrumentations using the following environment variables:
+
+| Environment Variable | Description |
+|---------------------|-------------|
+| `OTEL_LARAVEL_ENABLED_INSTRUMENTATIONS` | Comma-separated list of instrumentations to enable (only these will be active) |
+| `OTEL_LARAVEL_DISABLED_INSTRUMENTATIONS` | Comma-separated list of instrumentations to disable |
+
+#### Available Instrumentation Names
+
+| Name | Description |
+|------|-------------|
+| `http` | HTTP request/response handling |
+| `console` | Artisan CLI commands |
+| `queue` | Queue jobs (push, process, worker) |
+| `eloquent` | Eloquent ORM operations |
+| `serve` | Local development server (`php artisan serve`) |
+| `cache` | Cache events (hit, miss, write, forget) |
+| `db` | Database queries |
+| `http-client` | HTTP client requests (external API calls) |
+| `exception` | Exception recording |
+| `log` | Log messages |
+| `redis` | Redis commands |
+
+#### Group Aliases
+
+| Alias | Expands To |
+|-------|------------|
+| `all` | All instrumentations |
+| `watchers` | `cache`, `db`, `http-client`, `exception`, `log`, `redis` |
+
+#### Priority
+
+- If neither variable is set: all instrumentations are enabled (default behavior)
+- If only `OTEL_LARAVEL_ENABLED_INSTRUMENTATIONS` is set: only specified instrumentations are enabled
+- If only `OTEL_LARAVEL_DISABLED_INSTRUMENTATIONS` is set: specified instrumentations are disabled
+- If both are set: `OTEL_LARAVEL_DISABLED_INSTRUMENTATIONS` takes priority (disabled items are removed from enabled list)
+
+#### Examples
+
+```shell
+# Enable only HTTP and Queue instrumentation
+OTEL_LARAVEL_ENABLED_INSTRUMENTATIONS=http,queue
+
+# Disable only Redis and Log (all others remain enabled)
+OTEL_LARAVEL_DISABLED_INSTRUMENTATIONS=redis,log
+
+# Enable only watchers (cache, db, http-client, exception, log, redis)
+OTEL_LARAVEL_ENABLED_INSTRUMENTATIONS=watchers
+```
