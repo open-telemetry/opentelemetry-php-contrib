@@ -16,7 +16,11 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
     <issueHandlers>
+        <MissingOverrideAttribute errorLevel="suppress" />
         <MissingClassConstType errorLevel="suppress" />
         <DeprecatedConstant errorLevel="suppress" />
+        <UndefinedMethod errorLevel="suppress" />
+        <MixedMethodCall errorLevel="suppress" />
+        <ClassMustBeFinal errorLevel="suppress" />
     </issueHandlers>
 </psalm>

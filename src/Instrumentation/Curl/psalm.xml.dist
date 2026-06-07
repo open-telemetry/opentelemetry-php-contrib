@@ -15,6 +15,7 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
     <issueHandlers>
+        <MissingOverrideAttribute errorLevel="suppress" />
         <TypeDoesNotContainType>
             <errorLevel type="suppress">
                 <directory name="src"/>

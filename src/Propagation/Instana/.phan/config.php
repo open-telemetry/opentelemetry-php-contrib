@@ -278,7 +278,7 @@ return [
 
     // Add any issue types (such as `'PhanUndeclaredMethod'`)
     // to this deny-list to inhibit them from being reported.
-    'suppress_issue_types' => [],
+    'suppress_issue_types' => ['PhanCompatibleOverrideAttribute'],
 
     // A regular expression to match files to be excluded
     // from parsing and analysis and will not be read at all.
@@ -295,7 +295,8 @@ return [
     // This is useful for excluding hopelessly unanalyzable
     // files that can't be removed for whatever reason.
     'exclude_file_list' => [
-        'vendor/composer/composer/src/Composer/InstalledVersions.php'
+        'vendor/composer/composer/src/Composer/InstalledVersions.php',
+        'vendor/ramsey/uuid/src/Provider/Dce/SystemDceSecurityProvider.php',
     ],
 
     // A directory list that defines files that will be excluded

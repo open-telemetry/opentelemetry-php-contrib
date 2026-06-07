@@ -28,11 +28,11 @@
     "monolog/monolog": "*",
     "php-http/guzzle7-adapter": "*",
     "nyholm/psr7": "*",
-    "phan/phan": "^5.0",
+    "phan/phan": "^5 || ^6",
     "php-http/mock-client": "*",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.20.0",
+    "psalm/plugin-phpunit": "^0.19.7",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "6.16.1"
