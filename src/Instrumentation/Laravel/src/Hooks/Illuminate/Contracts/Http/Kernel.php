@@ -112,9 +112,9 @@ class Kernel implements LaravelHook
     private function httpTarget(Request $request): string
     {
         $query = $request->getQueryString();
-        $question = $request->getBaseUrl() . $request->getPathInfo() === '/' ? '/?' : '?';
+        $path = $request->getBaseUrl() . $request->getPathInfo();
 
-        return $query ? $request->path() . $question . $query : $request->path();
+        return $query ? $path . '?' . $query : $path;
     }
 
     private function httpHostName(Request $request): string

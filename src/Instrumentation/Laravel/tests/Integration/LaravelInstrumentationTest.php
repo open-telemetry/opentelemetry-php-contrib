@@ -13,6 +13,7 @@ use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\TraceAttributes;
 
 /** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
@@ -120,6 +121,38 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertEquals(Exception::class, $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
         $this->assertEquals('Test exception', $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
         $this->assertNotNull($logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_STACKTRACE));
+    }
+
+    public function test_url_path_root(): void
+    {
+        $this->router()->get('/', fn () => null);
+        $this->call('GET', '/');
+        $span = $this->storage[0];
+        $this->assertSame('/', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+    }
+
+    public function test_url_path_non_root(): void
+    {
+        $this->router()->get('/hello', fn () => null);
+        $this->call('GET', '/hello');
+        $span = $this->storage[0];
+        $this->assertSame('/hello', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+    }
+
+    public function test_url_path_root_with_query_string(): void
+    {
+        $this->router()->get('/', fn () => null);
+        $this->call('GET', '/?foo=bar');
+        $span = $this->storage[0];
+        $this->assertSame('/?foo=bar', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+    }
+
+    public function test_url_path_with_query_string(): void
+    {
+        $this->router()->get('/hello', fn () => null);
+        $this->call('GET', '/hello?foo=bar');
+        $span = $this->storage[0];
+        $this->assertSame('/hello?foo=bar', $span->getAttributes()->get(TraceAttributes::URL_PATH));
     }
 
     private function router(): Router
