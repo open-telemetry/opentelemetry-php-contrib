@@ -10,8 +10,6 @@ use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs as API;
-use OpenTelemetry\SDK\Common\Exception\StackTraceFormatter;
-use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 
 use Throwable;
 
@@ -60,15 +58,16 @@ class Handler extends AbstractProcessingHandler
     protected function write($record): void
     {
         $formatted = $record['formatted'];
-        $logRecord = (new API\LogRecord())
+        $recordBuilder = $this->getLogger($record['channel'])->logRecordBuilder()
             ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
             ->setSeverityNumber(API\Severity::fromPsr3($record['level_name']))
             ->setSeverityText($record['level_name'])
             ->setBody($formatted['message'])
         ;
+
         foreach (['context', 'extra'] as $key) {
             if (self::$mode === self::MODE_PSR3 && isset($formatted[$key]) && count($formatted[$key]) > 0) {
-                $logRecord->setAttribute($key, $formatted[$key]);
+                $recordBuilder->setAttribute($key, $formatted[$key]);
             }
             if (isset($record[$key]) && $record[$key] !== []) {
                 foreach ($record[$key] as $attributeName => $attribute) {
@@ -77,26 +76,24 @@ class Handler extends AbstractProcessingHandler
                         && $attributeName === 'exception'
                         && $attribute instanceof Throwable
                     ) {
-                        $logRecord->setAttribute(ExceptionAttributes::EXCEPTION_TYPE, $attribute::class);
-                        $logRecord->setAttribute(ExceptionAttributes::EXCEPTION_MESSAGE, $attribute->getMessage());
-                        $logRecord->setAttribute(ExceptionAttributes::EXCEPTION_STACKTRACE, StackTraceFormatter::format($attribute));
+                        $recordBuilder->setException($attribute);
 
                         continue;
                     }
                     switch (self::$mode) {
                         case self::MODE_PSR3:
-                            $logRecord->setAttribute(sprintf('%s.%s', $key, $attributeName), $attribute);
+                            $recordBuilder->setAttribute(sprintf('%s.%s', $key, $attributeName), $attribute);
 
                             break;
                         case self::MODE_OTEL:
-                            $logRecord->setAttribute($attributeName, $attribute);
+                            $recordBuilder->setAttribute($attributeName, $attribute);
 
                             break;
                     }
                 }
             }
         }
-        $this->getLogger($record['channel'])->emit($logRecord);
+        $recordBuilder->emit();
     }
 
     private static function getMode(): string
