@@ -206,6 +206,37 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
     }
 
+    public function test_http_kernel_handle_uncaught_exception_ends_span(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), function () {
+            throw new \RuntimeException('something went wrong');
+        });
+
+        try {
+            $kernel->handle(new Request());
+        } catch (\RuntimeException) {
+            // expected
+        }
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame('something went wrong', $span->getStatus()->getDescription());
+    }
+
+    public function test_http_kernel_handle_5xx_response_is_error(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new Response('Internal Server Error', 500));
+
+        $response = $kernel->handle(new Request());
+        $kernel->terminate(new Request(), $response);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame(500, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
     {
         $controller ??= fn () => new Response('Hello');
