@@ -160,7 +160,8 @@ class SymfonyInstrumentationTest extends AbstractTest
         // String controller
         $request = new Request();
         $request->attributes->set('_controller', 'SomeController::index');
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET SomeController::index', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
 
@@ -168,14 +169,16 @@ class SymfonyInstrumentationTest extends AbstractTest
         $controllerObj = new class() {};
         $request = new Request();
         $request->attributes->set('_controller', [$controllerObj, 'fooAction']);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET ' . get_class($controllerObj) . '::fooAction', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
 
         // Array: [class, method]
         $request = new Request();
         $request->attributes->set('_controller', ['SomeClass', 'barAction']);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET SomeClass::barAction', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
     }
@@ -191,13 +194,15 @@ class SymfonyInstrumentationTest extends AbstractTest
         $controllerObj2 = new class() {};
         $request = new Request();
         $request->attributes->set('_controller', $controllerObj2);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
 
         // Null/other controller (should fallback to 'sub-request')
         $request = new Request();
         $request->attributes->set('_controller', null);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
     }
 
