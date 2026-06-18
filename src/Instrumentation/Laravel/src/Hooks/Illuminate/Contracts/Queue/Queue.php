@@ -94,7 +94,7 @@ class Queue implements LaravelHook
                     ->spanBuilder(vsprintf('%s %s', [
                         TraceAttributeValues::MESSAGING_OPERATION_TYPE_CREATE,
                         /** @phan-suppress-next-line PhanUndeclaredMethod */
-                        method_exists($queue, 'getQueue') ? $queue->getQueue($params[2] ?? null) : $queue->getConnectionName(),
+                        method_exists($queue, 'getQueue') ? $queue->getQueue($params[3] ?? null) : $queue->getConnectionName(),
                     ]))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     ->setAttributes($attributes)
