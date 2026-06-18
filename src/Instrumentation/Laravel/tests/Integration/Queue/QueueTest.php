@@ -72,6 +72,19 @@ class QueueTest extends TestCase
         );
     }
 
+    public function test_it_uses_correct_queue_name_when_later_is_called_with_explicit_queue(): void
+    {
+        /** @var SqsQueue|MockInterface $mockQueue */
+        $mockQueue = $this->createMock(SqsQueue::class);
+        /** @psalm-suppress UndefinedMethod */
+        $mockQueue->method('getQueue')->with('custom-queue')->willReturn('custom-queue');
+
+        /** @psalm-suppress PossiblyUndefinedMethod */
+        $mockQueue->later(15, new DummyJob('test'), '', 'custom-queue');
+
+        $this->assertEquals('create custom-queue', $this->storage[0]->getName());
+    }
+
     public function test_it_can_publish_in_bulk(): void
     {
         $jobs = [];
