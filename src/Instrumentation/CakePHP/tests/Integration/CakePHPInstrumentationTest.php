@@ -105,27 +105,41 @@ class CakePHPInstrumentationTest extends TestCase
         $this->assertSame('/{controller}/{action}/*', $attributes['http.route']);
     }
 
-    public function test_response_code_gte_400(): void
+    public function test_response_code_4xx_does_not_set_error_status(): void
     {
         $this->assertCount(0, $this->storage);
 
         $this->get('/article/clientErrorResponse');
 
         $this->assertCount(2, $this->storage);
-        /** @var ImmutableSpan $span */
-        $span = $this->storage[0];
-        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
-        $events = $span->getEvents();
-        $this->assertCount(0, $events);
-        $attributes = $span->getAttributes()->toArray();
-        $this->assertSame(400, $attributes['http.response.status_code']);
+        /** @var ImmutableSpan $controllerSpan */
+        $controllerSpan = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_UNSET, $controllerSpan->getStatus()->getCode());
+        $this->assertCount(0, $controllerSpan->getEvents());
+        $this->assertSame(400, $controllerSpan->getAttributes()->toArray()['http.response.status_code']);
 
-        /** @var ImmutableSpan $span */
+        /** @var ImmutableSpan $serverSpan */
         $serverSpan = $this->storage[1];
-        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
-        $events = $span->getEvents();
-        $this->assertCount(0, $events);
-        $attributes = $span->getAttributes()->toArray();
-        $this->assertSame(400, $attributes['http.response.status_code']);
+        $this->assertSame(StatusCode::STATUS_UNSET, $serverSpan->getStatus()->getCode());
+        $this->assertCount(0, $serverSpan->getEvents());
+        $this->assertSame(400, $serverSpan->getAttributes()->toArray()['http.response.status_code']);
+    }
+
+    public function test_response_code_5xx_sets_error_status(): void
+    {
+        $this->assertCount(0, $this->storage);
+
+        $this->get('/article/serverErrorResponse');
+
+        $this->assertCount(2, $this->storage);
+        /** @var ImmutableSpan $controllerSpan */
+        $controllerSpan = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_ERROR, $controllerSpan->getStatus()->getCode());
+        $this->assertSame(500, $controllerSpan->getAttributes()->toArray()['http.response.status_code']);
+
+        /** @var ImmutableSpan $serverSpan */
+        $serverSpan = $this->storage[1];
+        $this->assertSame(StatusCode::STATUS_ERROR, $serverSpan->getStatus()->getCode());
+        $this->assertSame(500, $serverSpan->getAttributes()->toArray()['http.response.status_code']);
     }
 }
