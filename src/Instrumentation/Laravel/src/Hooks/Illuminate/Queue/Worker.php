@@ -126,7 +126,9 @@ class Worker implements LaravelHook
 
                 // Discard empty receives.
                 if (!$job) {
+                    $span = Span::fromContext($scope->context());
                     $scope->detach();
+                    $span->end();
 
                     return;
                 }
