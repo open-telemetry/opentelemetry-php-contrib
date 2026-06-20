@@ -159,14 +159,14 @@ class QueueTest extends TestCase
         }
 
         /** @psalm-suppress PossiblyInvalidMethodCall */
-        $this->assertEquals(204, $this->storage->count());
+        $this->assertEquals(1206, $this->storage->count());
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord100 */
-        $logRecord100 = $this->storage[100];
-        $this->assertEquals('Task: 500', $logRecord100->getBody());
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord600 */
+        $logRecord600 = $this->storage[600];
+        $this->assertEquals('Task: 500', $logRecord600->getBody());
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord200 */
-        $logRecord200 = $this->storage[200];
-        $this->assertEquals('Task: More work', $logRecord200->getBody());
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord1200 */
+        $logRecord1200 = $this->storage[1200];
+        $this->assertEquals('Task: More work', $logRecord1200->getBody());
     }
 }
