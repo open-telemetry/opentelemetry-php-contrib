@@ -39,7 +39,7 @@ class Controller implements CakeHook
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 $response = $app->getResponse();
-                if ($response->getStatusCode() >= 400) {
+                if ($response->getStatusCode() >= 500) {
                     $span->setStatus(StatusCode::STATUS_ERROR);
                 }
                 $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());

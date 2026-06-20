@@ -53,7 +53,7 @@ class Server implements CakeHook
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {
-                    if ($response->getStatusCode() >= 400) {
+                    if ($response->getStatusCode() >= 500) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
 
