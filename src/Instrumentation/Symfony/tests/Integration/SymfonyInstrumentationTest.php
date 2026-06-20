@@ -160,7 +160,8 @@ class SymfonyInstrumentationTest extends AbstractTest
         // String controller
         $request = new Request();
         $request->attributes->set('_controller', 'SomeController::index');
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET SomeController::index', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
 
@@ -168,14 +169,16 @@ class SymfonyInstrumentationTest extends AbstractTest
         $controllerObj = new class() {};
         $request = new Request();
         $request->attributes->set('_controller', [$controllerObj, 'fooAction']);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET ' . get_class($controllerObj) . '::fooAction', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
 
         // Array: [class, method]
         $request = new Request();
         $request->attributes->set('_controller', ['SomeClass', 'barAction']);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET SomeClass::barAction', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
     }
@@ -191,14 +194,47 @@ class SymfonyInstrumentationTest extends AbstractTest
         $controllerObj2 = new class() {};
         $request = new Request();
         $request->attributes->set('_controller', $controllerObj2);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
 
         // Null/other controller (should fallback to 'sub-request')
         $request = new Request();
         $request->attributes->set('_controller', null);
-        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($request, $response);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
+    }
+
+    public function test_http_kernel_handle_uncaught_exception_ends_span(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), function () {
+            throw new \RuntimeException('something went wrong');
+        });
+
+        try {
+            $kernel->handle(new Request());
+        } catch (\RuntimeException) {
+            // expected
+        }
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame('something went wrong', $span->getStatus()->getDescription());
+    }
+
+    public function test_http_kernel_handle_5xx_response_is_error(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new Response('Internal Server Error', 500));
+
+        $response = $kernel->handle(new Request());
+        $kernel->terminate(new Request(), $response);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame(500, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
