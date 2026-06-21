@@ -155,6 +155,21 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('/hello?foo=bar', $span->getAttributes()->get(TraceAttributes::URL_PATH));
     }
 
+    public function test_unknown_sql_operation_span_name(): void
+    {
+        $this->router()->get('/pragma', function () {
+            DB::statement('PRAGMA table_info(sqlite_master)');
+
+            return response('ok');
+        });
+
+        $this->call('GET', '/pragma');
+
+        $span = $this->storage[0];
+        $this->assertSame('sql', $span->getName());
+        $this->assertNull($span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
+    }
+
     private function router(): Router
     {
         /** @psalm-suppress PossiblyNullReference */
