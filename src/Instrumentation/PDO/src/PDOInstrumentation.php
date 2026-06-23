@@ -226,8 +226,12 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::prepare', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+                $query = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
+                if (!is_string($query)) {
+                    $query = self::UNDEFINED;
+                }
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $query);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -236,6 +240,35 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+
+                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+                    if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
+                        /** @psalm-suppress PossiblyInvalidCast */
+                        switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
+                            case 'postgresql':
+                            case 'mysql':
+                                /**
+                                 * @psalm-suppress UndefinedClass
+                                 */
+                                $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
+                                $query = $commenter->inject($query);
+                                if ($commenter->isAttributeEnabled()) {
+                                    $span->setAttributes([
+                                        DbAttributes::DB_QUERY_TEXT => (string) $query,
+                                    ]);
+                                }
+
+                                return [
+                                    0 => $query,
+                                ];
+                            default:
+                                // Do nothing, not a database we want to propagate
+                                break;
+                        }
+                    }
+                }
+
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) use ($pdoTracker) {
                 if ($statement instanceof PDOStatement) {
