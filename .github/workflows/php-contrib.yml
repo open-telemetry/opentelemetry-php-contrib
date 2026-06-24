@@ -148,9 +148,8 @@ jobs:
       # We need to do this to ensure that the files are present when a workflow caller initiates this workflow.
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          repository: 'ChrisLightfootWild/opentelemetry-php-contrib'
+          repository: 'open-telemetry/opentelemetry-php-contrib'
           path: 'shared-contrib'
-          ref: 'poc/shared-ci'
 
       - name: Start MongoDB
         if: ${{ contains(fromJson(inputs.services), 'mongodb') }}

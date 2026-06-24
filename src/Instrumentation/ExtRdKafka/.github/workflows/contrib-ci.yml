@@ -4,6 +4,6 @@ on:
 
 jobs:
   CI:
-    uses: ChrisLightfootWild/opentelemetry-php-contrib/.github/workflows/instrumentation-ext-rdkafka.yml@poc/shared-ci
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-ext-rdkafka.yml@main
     with:
       package-root: '.'

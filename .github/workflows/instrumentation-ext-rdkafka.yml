@@ -2,7 +2,7 @@ name: "[CI] ExtRdKafka"
 
 on:
   push:
-    #branches: [main]
+    branches: [main]
     paths:
       - 'src/Instrumentation/ExtRdKafka/**'
 

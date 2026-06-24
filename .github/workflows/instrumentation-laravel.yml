@@ -2,7 +2,7 @@ name: "[CI] Laravel"
 
 on:
   push:
-    #branches: [main]
+    branches: [main]
     paths:
       - 'src/Instrumentation/Laravel/**'
 

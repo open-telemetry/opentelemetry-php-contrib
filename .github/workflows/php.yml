@@ -32,14 +32,14 @@ jobs:
           'Instrumentation/Curl',
           'Instrumentation/Doctrine',
           'Instrumentation/ExtAmqp',
-          'Instrumentation/ExtRdKafka',
+          # 'Instrumentation/ExtRdKafka', # # Experiment: moved to instrumentation-ext-rdkafka.yml
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/HttpConfig',
           'Instrumentation/IO',
-          'Instrumentation/Laravel',
+          # 'Instrumentation/Laravel', # Experiment: moved to instrumentation-laravel.yml
           'Instrumentation/MongoDB',
-          'Instrumentation/MySqli',
+          # 'Instrumentation/MySqli', # # Experiment: moved to instrumentation-mysqli.yml
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
           'Instrumentation/PostgreSql',
