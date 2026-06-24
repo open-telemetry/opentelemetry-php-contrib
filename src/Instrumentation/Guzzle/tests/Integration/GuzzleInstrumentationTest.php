@@ -260,9 +260,14 @@ class GuzzleInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
 
         // A numerically-indexed "headers" option makes Client::applyOptions()
-        // throw InvalidArgumentException before transfer() returns a promise.
+        // throw InvalidArgumentException synchronously inside transfer(), before
+        // a promise is returned. send()/sendAsync() must be used here: the get()
+        // magic method routes through requestAsync(), which unsets the headers
+        // option before transfer() is called, so applyOptions() never sees it.
+        $request = new Request('GET', 'https://example.com/foo');
+
         try {
-            $this->client->get('/foo', ['headers' => ['invalid']]);
+            $this->client->send($request, ['headers' => ['invalid']]);
             $this->fail('Expected InvalidArgumentException was not thrown');
         } catch (\InvalidArgumentException $e) {
             // expected
