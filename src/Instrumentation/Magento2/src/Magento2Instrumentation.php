@@ -154,7 +154,7 @@ final class Magento2Instrumentation
                     $statusCode = $response->getStatusCode();
                     $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
                     $responseMeta[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $statusCode;
-                    if ($statusCode >= 500) {
+                    if ($statusCode >= 500 && !$exception) {
                         $responseMeta[ErrorAttributes::ERROR_TYPE] = $statusCode;
                     }
                     $prop = Globals::responsePropagator();
@@ -333,9 +333,9 @@ final class Magento2Instrumentation
             Template::class,
             'fetchView',
             pre: static function (Template $template, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $filename = is_string($params[0]) ? $params[0] : null;
+                $templateFile = is_string($params[0]) ? $params[0] : null;
                 $span = $instrumentation->tracer()
-                    ->spanBuilder('template ' . ($filename ?? 'unknown'))
+                    ->spanBuilder('template ' . ($templateFile ?? 'unknown'))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
