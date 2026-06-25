@@ -54,6 +54,7 @@ class GuzzleInstrumentation
                     ->spanBuilder(sprintf('%s', $request->getMethod()))
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
+                    ->setAttribute(TraceAttributes::PEER_SERVICE, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
