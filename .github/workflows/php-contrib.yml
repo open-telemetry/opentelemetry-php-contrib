@@ -1,0 +1,212 @@
+name: "OpenTelemetry PHP Contrib shared workflow"
+
+on:
+  workflow_call:
+    inputs:
+      codecov-flags:
+        description: 'Flags to pass to CodeCov when sending coverage'
+        type: string
+        default: ''
+      job-name:
+        description: 'Friendly name for this job'
+        type: string
+        default: ''
+      php-version:
+        description: 'Target PHP runtime'
+        required: true
+        type: string
+      package-root:
+        description: 'Root directory for this package'
+        type: string
+        default: '.'
+      composer-requires:
+        description: 'Composer packages to explicitly require'
+        type: string
+        default: ''
+      services:
+        description: 'Additional service dependencies as JSON encoded list'
+        type: string
+        default: '[]'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.php-version }}-${{ inputs.package-root }}-${{ inputs.composer-requires }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    name: ${{ inputs.job-name && format('{0} / Setup', inputs.job-name) || 'Setup' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: xdebug
+          extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ inputs.package-root }}/vendor
+          key: ${{ runner.os }}-${{ inputs.php-version }}-php-${{ inputs.composer-requires }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ inputs.php-version }}-php-${{ inputs.composer-requires }}-
+
+      - name: Install composer dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true' && inputs.composer-requires == ''
+        working-directory: ${{ inputs.package-root }}
+        run: |
+          composer config --no-plugins allow-plugins.php-http/discovery false
+          composer install --prefer-dist --no-progress
+
+      - name: Install specific composer dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true' && inputs.composer-requires != ''
+        working-directory: ${{ inputs.package-root }}
+        run: |
+          composer config --no-plugins allow-plugins.php-http/discovery false
+          composer require ${{ inputs.composer-requires }} --prefer-dist --no-progress
+
+      - name: Validate Packages composer.json
+        working-directory: ${{ inputs.package-root }}
+        run: composer validate
+
+  quality:
+    name: ${{ inputs.job-name && format('{0} / Quality Checks', inputs.job-name) || 'Quality Checks' }}
+    needs: [setup]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: xdebug
+          extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ inputs.package-root }}/vendor
+          key: ${{ runner.os }}-${{ inputs.php-version }}-php-${{ inputs.composer-requires }}-${{ hashFiles('**/composer.json') }}
+
+      - name: Check Style
+        if: ${{ !cancelled() }}
+        working-directory: ${{ inputs.package-root }}
+        run: PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv
+
+      - name: Run Phan
+        if: ${{ !cancelled() }}
+        working-directory: ${{ inputs.package-root }}
+        env:
+          PHAN_DISABLE_XDEBUG_WARN: 1
+        run: vendor/bin/phan
+
+      - name: Run Psalm
+        if: ${{ !cancelled() }}
+        working-directory: ${{ inputs.package-root }}
+        run: vendor/bin/psalm --output-format=github --php-version=${{ inputs.php-version }}
+
+      - name: Run PHPStan
+        if: ${{ !cancelled() }}
+        working-directory: ${{ inputs.package-root }}
+        run: vendor/bin/phpstan analyse --error-format=github
+
+  tests:
+    name: ${{ inputs.job-name && format('{0} / Tests', inputs.job-name) || 'Tests' }}
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: xdebug
+          extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ inputs.package-root }}/vendor
+          key: ${{ runner.os }}-${{ inputs.php-version }}-php-${{ inputs.composer-requires }}-${{ hashFiles('**/composer.json') }}
+
+      ###############################################################
+      ### BEGIN service setup
+      ###############################################################
+
+      # Checkout open-telemetry/opentelemetry-php-contrib
+      # We need to do this to ensure that the files are present when a workflow caller initiates this workflow.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: 'open-telemetry/opentelemetry-php-contrib'
+          path: 'shared-contrib'
+
+      - name: Start MongoDB
+        if: ${{ contains(fromJson(inputs.services), 'mongodb') }}
+        uses: supercharge/mongodb-github-action@315db7fe45ac2880b7758f1933e6e5d59afd5e94 # 1.12.1
+        with:
+          mongodb-version: 6.0
+          mongodb-replica-set: otel-php
+
+      - name: Start RabbitMQ
+        if: ${{ contains(fromJson(inputs.services), 'rabbitmq') }}
+        shell: bash
+        working-directory: shared-contrib
+        run: |
+          docker compose up rabbitmq -d --wait
+
+      - name: Start Kafka
+        if: ${{ contains(fromJson(inputs.services), 'kafka') }}
+        shell: bash
+        working-directory: shared-contrib
+        env:
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092
+        run: |
+          docker compose up kafka -d --wait
+
+      - name: Start Mysql
+        if: ${{ contains(fromJson(inputs.services), 'mysql') }}
+        shell: bash
+        working-directory: shared-contrib
+        run: |
+          docker compose up mysql -d --wait
+
+      - name: Start PostgreSql
+        if: ${{ contains(fromJson(inputs.services), 'postgresql') }}
+        shell: bash
+        working-directory: shared-contrib
+        run: |
+          docker compose up postgresql -d --wait
+
+      ###############################################################
+      ### END service setup
+      ###############################################################
+
+      - name: Run PHPUnit
+        working-directory: ${{ inputs.package-root }}
+        run: vendor/bin/phpunit
+
+      - name: Run PHPUnit (coverage)
+        working-directory: ${{ inputs.package-root }}
+        run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
+
+      - name: Code Coverage
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        # only generate coverage against the latest PHP version
+        if: ${{ github.repository == 'open-telemetry/opentelemetry-php-contrib' && inputs.codecov-flags && inputs.php-version == '8.4' }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ${{ inputs.package-root }}
+          files: ./coverage.clover
+          flags: ${{ inputs.codecov-flags }}
+          verbose: false
