@@ -37,12 +37,8 @@ jobs:
           'Instrumentation/HttpAsyncClient',
           'Instrumentation/HttpConfig',
           'Instrumentation/IO',
-<<<<<<< magento2
-          'Instrumentation/Laravel',
-          'Instrumentation/Magento2',
-=======
           # 'Instrumentation/Laravel', # Experiment: moved to instrumentation-laravel.yml
->>>>>>> main
+          'Instrumentation/Magento2',
           'Instrumentation/MongoDB',
           # 'Instrumentation/MySqli', # # Experiment: moved to instrumentation-mysqli.yml
           'Instrumentation/OpenAIPHP',
