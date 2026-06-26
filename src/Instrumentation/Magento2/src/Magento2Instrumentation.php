@@ -148,7 +148,7 @@ final class Magento2Instrumentation
                 $responseMeta = [];
 
                 if ($exception) {
-                    $span->recordException($exception);
+                    $instrumentation->logger()->logRecordBuilder()->setException($exception)->emit();
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $responseMeta[ErrorAttributes::ERROR_TYPE] = $exception::class;
                 }
