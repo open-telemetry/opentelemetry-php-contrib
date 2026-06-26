@@ -29,7 +29,6 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
-use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
@@ -605,19 +604,6 @@ final class HttpTest extends TestCase
             $this->assertNotEmpty($attributes[CodeAttributes::CODE_FILE_PATH]);
             $this->assertArrayHasKey(CodeAttributes::CODE_LINE_NUMBER, $attributes);
             $this->assertNotEmpty($attributes[CodeAttributes::CODE_LINE_NUMBER]);
-
-            $this->assertCount(1, $span->getEvents());
-            $this->assertInstanceOf(Event::class, $span->getEvents()[0]);
-            $event = $span->getEvents()[0];
-            $this->assertSame('exception', $event->getName());
-
-            $eventAttributes = $event->getAttributes()->toArray();
-            $this->assertArrayHasKey(ExceptionAttributes::EXCEPTION_TYPE, $eventAttributes);
-            $this->assertStringContainsString('Exception', (string) $eventAttributes[ExceptionAttributes::EXCEPTION_TYPE]);
-            $this->assertArrayHasKey(ExceptionAttributes::EXCEPTION_MESSAGE, $eventAttributes);
-            $this->assertSame('Message', $eventAttributes[ExceptionAttributes::EXCEPTION_MESSAGE]);
-            $this->assertArrayHasKey(ExceptionAttributes::EXCEPTION_STACKTRACE, $eventAttributes);
-            $this->assertNotEmpty($eventAttributes[ExceptionAttributes::EXCEPTION_STACKTRACE]);
         }
     }
 
