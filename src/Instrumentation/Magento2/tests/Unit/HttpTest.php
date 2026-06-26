@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Magento2\Unit;
 
 use ArrayObject;
-use Laminas\Http\Headers;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\App\ExceptionHandlerInterface;
 use Magento\Framework\App\FrontControllerInterface;
@@ -23,9 +22,14 @@ use Magento\Framework\Stdlib\StringUtils;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as HelperObjectManager;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
-use OpenTelemetry\SDK\Trace\Event;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
+use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter as LogInMemoryExporter;
+use OpenTelemetry\SDK\Logs\LoggerProvider;
+use OpenTelemetry\SDK\Logs\Processor\SimpleLogRecordProcessor;
+use OpenTelemetry\SDK\Logs\ReadWriteLogRecord;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
-use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
+use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter as SpanInMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
@@ -120,12 +124,19 @@ final class HttpTest extends TestCase
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
-                new InMemoryExporter($this->storage)
+                new SpanInMemoryExporter($this->storage)
             )
+        );
+        $loggerProvider = new LoggerProvider(
+            new SimpleLogRecordProcessor(
+                new LogInMemoryExporter($this->storage),
+            ),
+            new InstrumentationScopeFactory(Attributes::factory())
         );
 
         $this->scope = Configurator::create()
             ->withTracerProvider($tracerProvider)
+            ->withLoggerProvider($loggerProvider)
             ->activate();
 
         /** @psalm-suppress DeprecatedClass */
@@ -604,6 +615,14 @@ final class HttpTest extends TestCase
             $this->assertNotEmpty($attributes[CodeAttributes::CODE_FILE_PATH]);
             $this->assertArrayHasKey(CodeAttributes::CODE_LINE_NUMBER, $attributes);
             $this->assertNotEmpty($attributes[CodeAttributes::CODE_LINE_NUMBER]);
+
+            $logRecord = $this->findExceptionLogRecord();
+            $this->assertNotNull($logRecord, 'Expected an exception log record to be emitted');
+            $logRecordAttributes = $logRecord->getAttributes()->toArray();
+            $this->assertSame(\Exception::class, $logRecordAttributes['exception.type'] ?? null);
+            $this->assertSame('Message', $logRecordAttributes['exception.message'] ?? null);
+            $this->assertArrayHasKey('exception.stacktrace', $logRecordAttributes);
+            $this->assertNotEmpty($logRecordAttributes['exception.stacktrace']);
         }
     }
 
@@ -622,4 +641,14 @@ final class HttpTest extends TestCase
         return null;
     }
 
+    private function findExceptionLogRecord(): ?ReadWriteLogRecord
+    {
+        foreach ($this->storage as $item) {
+            if ($item instanceof ReadWriteLogRecord) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
 }
