@@ -22,7 +22,7 @@ final class DefaultSanitizer implements UriSanitizer
     {
         $this->sanitizer = MultiSanitizer::composite([
             new RedactUsernamePasswordSanitizer(),
-            new RedactSensitiveQueryStringValuesSanitizer(['AWSAccessKeyId', 'Signature', 'sig', 'X-Goog-Signature']),
+            new RedactSensitiveQueryStringValuesSanitizer(['X-Amz-Signature', 'X-Amz-Credential', 'X-Amz-Security-Token', 'sig', 'X-Goog-Signature']),
         ]);
     }
 
