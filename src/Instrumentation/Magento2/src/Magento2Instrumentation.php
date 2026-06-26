@@ -28,6 +28,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\DefaultSanitizer;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
@@ -95,7 +96,7 @@ final class Magento2Instrumentation
                 ];
 
                 $spanBuilder = $instrumentation->tracer()
-                    ->spanBuilder(sprintf('%s %s', $request->getMethod(), strlen($request->getUri()->getPath()) > 0 ? $request->getUri()->getPath() : self::getScriptNameFromRequest($request)))
+                    ->spanBuilder(sprintf('%s %s', self::canonizeMethod($request->getMethod()) ?? 'HTTP', strlen($request->getUri()->getPath()) > 0 ? $request->getUri()->getPath() : self::getScriptNameFromRequest($request)))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
@@ -123,7 +124,8 @@ final class Magento2Instrumentation
                 $span = $spanBuilder->setStartTimestamp($requestStart)->startSpan();
 
                 if (strlen($request->getUri()->getQuery()) > 0) {
-                    $span->setAttribute(UrlAttributes::URL_QUERY, $request->getUri()->getQuery());
+
+                    $span->setAttribute(UrlAttributes::URL_QUERY, (new DefaultSanitizer())->sanitize($request->getUri())->getQuery());
                 }
 
                 $scope = Context::storage()->attach($span->storeInContext(Context::getCurrent()));
