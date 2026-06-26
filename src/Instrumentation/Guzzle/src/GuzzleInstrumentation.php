@@ -87,7 +87,7 @@ class GuzzleInstrumentation
 
                 return [$request];
             },
-            post: static function (Client $client, array $params, PromiseInterface $promise, ?Throwable $exception): void {
+            post: static function (Client $client, array $params, ?PromiseInterface $promise, ?Throwable $exception): void {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
@@ -100,6 +100,14 @@ class GuzzleInstrumentation
                     $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                     $span->end();
+                }
+
+                if ($promise === null) {
+                    if (!$exception) {
+                        $span->end();
+                    }
+
+                    return;
                 }
 
                 $p = $promise->then(
