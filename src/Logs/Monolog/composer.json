@@ -11,7 +11,7 @@
   "require": {
     "php": "^8.1",
     "monolog/monolog": "^1.1|^2|^3",
-    "open-telemetry/api": "^1.0"
+    "open-telemetry/api": "^1.8"
   },
   "autoload": {
     "psr-4": {
@@ -29,9 +29,9 @@
     "phpbench/phpbench": "^1.2",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.20.0",
+    "psalm/plugin-phpunit": "^0.19.2",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "6.16.1"
+    "vimeo/psalm": "6.4.0"
   },
   "config": {
     "allow-plugins": {

@@ -60,16 +60,16 @@ Please remember to run all tests as you develop, the makefile supports a `PROJEC
 $ PROJECT=Symfony PHP_VERSION=8.1 make all
 ```
 
-<!-- References -->
+## Contributing
 
-[opentelemetry-php]: https://github.com/open-telemetry/opentelemetry-php
-[ext-opentelemetry]: https://pecl.php.net/package/opentelemetry
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ### Emeritus
 
 - [Ago Allikmaa](https://github.com/agoallikmaa), Approver
 - [Amber Sistla](https://github.com/zsistla), Triager
 - [Beniamin](https://github.com/beniamin), Triager
+- [Cedric Ziel](https://github.com/cedricziel), Approver
 - [Fahmy Mohammed](https://github.com/Fahmy-Mohammed), Triager
 - [Jodee Varney](https://github.com/jodeev), Triager
 - [Kishan Sangani](https://github.com/kishannsangani), Triager
@@ -79,3 +79,8 @@ $ PROJECT=Symfony PHP_VERSION=8.1 make all
 
 For more information about the emeritus role, see the
 [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
+
+<!-- References -->
+
+[opentelemetry-php]: https://github.com/open-telemetry/opentelemetry-php
+[ext-opentelemetry]: https://pecl.php.net/package/opentelemetry

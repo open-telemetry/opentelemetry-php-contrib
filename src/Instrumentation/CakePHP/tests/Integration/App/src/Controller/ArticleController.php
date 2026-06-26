@@ -45,6 +45,11 @@ class ArticleController extends Controller
         return $this->response->withStatus(400);
     }
 
+    public function serverErrorResponse(): ResponseInterface
+    {
+        return $this->response->withStatus(500);
+    }
+
     public function add(): ResponseInterface
     {
         return $this->response;

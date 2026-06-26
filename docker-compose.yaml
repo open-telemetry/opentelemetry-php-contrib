@@ -1,3 +1,5 @@
+# This docker compose stack is used as part of the shared .github/workflows/php-contrib.yml
+
 services:
   php:
     # the developer image comes from opentelemetry-php (the core repository), and is built by github actions
@@ -20,6 +22,7 @@ services:
     image: openzipkin/zipkin-slim@sha256:fc29b9862c14f4fc241cf0259c585e1cfd4e9b18f01ad36d86adaabb7d01815c
     ports:
     - 9411:9411
+
   jaeger:
     image: jaegertracing/all-in-one@sha256:ab6f1a1f0fb49ea08bcd19f6b84f6081d0d44b364b6de148e1798eb5816bacac
     environment:
@@ -29,7 +32,7 @@ services:
     - 16686:16686
 
   collector:
-    image: otel/opentelemetry-collector-contrib@sha256:d57bfe8eee2378f31cb1193239fbcac521d54a5a071fca2bfc106916a32b892d # 0.151.0
+    image: otel/opentelemetry-collector-contrib@sha256:b3079f45e19bdb7326bf49cdddce6cf60dfd865138db39f2733ea48ab17bc4cb # 0.151.0
     command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./files/collector/otel-collector-config.yml:/etc/otel-collector-config.yml
@@ -44,8 +47,9 @@ services:
       retries: 3
     ports:
       - "5672:5672/tcp"
+
   kafka:
-    image: confluentinc/cp-kafka:7.9.6@sha256:9e178783dba8cf44cd8b1d260f548a587a21235921957edd4ed7aa7d060b0852
+    image: apache/kafka-native:4.3.1@sha256:2885898ba17065023f1bd605f3a81efcfa986014f062b73b91ef5462485f9060
     hostname: kafka
     ports:
       - "9092:9092/tcp"
@@ -58,9 +62,6 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    command: "bash -c '/tmp/update_run.sh && /etc/confluent/docker/run'"
-    volumes:
-      - ./docker/kafka/update_run.sh:/tmp/update_run.sh
 
   mongodb:
     image: mongo:4@sha256:52c42cbab240b3c5b1748582cc13ef46d521ddacae002bbbda645cebed270ec0
@@ -69,7 +70,7 @@ services:
       - "27017:27017/tcp"
 
   mysql:
-    image: mysql:8.4@sha256:21d5c55b7f74a97dcbd281dfbb10356a16b1199da956a63b55493418afe2b940
+    image: mysql:8.4@sha256:d36d39a64cd12a5c1cc9e6aa2bfb5f8d4c81a2f6586e0a04a9ae13939db02209
     hostname: mysql
     ports:
       - "3306:3306/tcp"
@@ -87,7 +88,7 @@ services:
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   postgresql:
-    image: postgres:17.9@sha256:5b96f1a16bd9768b060dd2ffe55cb6225c4d9ef4d214a8b21eb08134869a97e4
+    image: postgres:17.10@sha256:ef92240eff6b0bcce8ccf038c2edcd0d8fd8ef90621849993b8c8995881ab09a
     hostname: postgresql
     ports:
       - "5432:5432/tcp"

@@ -1,0 +1,36 @@
+name: "[CI] ExtRdKafka"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Instrumentation/ExtRdKafka/**'
+
+  pull_request:
+    paths:
+      - 'src/Instrumentation/ExtRdKafka/**'
+
+  # To call from https://github.com/opentelemetry-php/contrib-auto-ext-rdkafka repo/forks.
+  workflow_call:
+    inputs:
+      package-root:
+        type: string
+        required: true
+
+jobs:
+  CI:
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
+
+    uses: ./.github/workflows/php-contrib.yml
+    with:
+      job-name: "PHP ${{ matrix.php-version }}"
+      codecov-flags: 'Instrumentation/ExtRdKafka'
+      package-root: ${{ inputs.package-root || 'src/Instrumentation/ExtRdKafka' }}
+      php-version: ${{ matrix.php-version }}
+      services: '["kafka"]'
