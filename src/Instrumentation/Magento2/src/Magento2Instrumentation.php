@@ -24,6 +24,7 @@ use OpenTelemetry\API\Common\Time\Clock;
 use OpenTelemetry\API\Common\Time\ClockInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Trace\LocalRootSpan;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -96,7 +97,7 @@ final class Magento2Instrumentation
                 ];
 
                 $spanBuilder = $instrumentation->tracer()
-                    ->spanBuilder(sprintf('%s %s', self::canonizeMethod($request->getMethod()) ?? 'HTTP', strlen($request->getUri()->getPath()) > 0 ? $request->getUri()->getPath() : self::getScriptNameFromRequest($request)))
+                    ->spanBuilder(sprintf('%s %s', self::canonizeMethod($request->getMethod()) ?? 'HTTP', self::getScriptNameFromRequest($request)))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
@@ -217,6 +218,10 @@ final class Magento2Instrumentation
                 $request = $params[0] instanceof HttpRequest ? $params[0] : null;
                 /** @var non-empty-string $actionName */
                 $actionName = $request?->getFullActionName() ?? 'unknown';
+                if ($request->getRouteName()) {
+                    // Update local root span name as route is resolved
+                    LocalRootSpan::current()->updateName(sprintf('%s %s', $request->getMethod(), $request->getRouteName()));
+                }
                 $span = $instrumentation->tracer()
                     ->spanBuilder('action.dispatch ' . $actionName)
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
