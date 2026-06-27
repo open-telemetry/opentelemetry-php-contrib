@@ -11,10 +11,9 @@ final class HttpConfig implements InstrumentationConfiguration
 {
 
     /**
-     * @see https://www.rfc-editor.org/rfc/rfc9110.html#name-methods
-     * @see https://www.rfc-editor.org/rfc/rfc5789.html
+     * @see https://opentelemetry.io/docs/specs/semconv/registry/attributes/http/#http-request-method
      */
-    public const HTTP_METHODS = ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TRACE'];
+    public const HTTP_METHODS = ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'QUERY', 'TRACE'];
 
     public function __construct(
         public readonly HttpClientConfig $client = new HttpClientConfig(),

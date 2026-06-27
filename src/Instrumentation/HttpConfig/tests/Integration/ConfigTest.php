@@ -39,7 +39,7 @@ final class ConfigTest extends TestCase
         $this->assertInstanceOf(HttpConfig::class, $httpConfig);
 
         $this->assertSame(
-            ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TRACE', 'CUSTOM'],
+            ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'QUERY', 'TRACE', 'CUSTOM'],
             $httpConfig->knownHttpMethods,
         );
     }
@@ -108,7 +108,7 @@ final class ConfigTest extends TestCase
         $this->assertFalse($httpConfig->server->captureResponseSize);
 
         $this->assertSame(
-            ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TRACE'],
+            ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'QUERY', 'TRACE'],
             $httpConfig->knownHttpMethods,
         );
         $this->assertEquals(new DefaultSanitizer(), $httpConfig->sanitizer);
