@@ -218,8 +218,9 @@ final class Magento2Instrumentation
                 $request = $params[0] instanceof HttpRequest ? $params[0] : null;
                 /** @var non-empty-string $actionName */
                 $actionName = $request?->getFullActionName() ?? 'unknown';
-                if ($request->getRouteName()) {
+                if ($request?->getRouteName()) {
                     // Update local root span name as route is resolved
+                    /** @psalm-suppress PossiblyNullArgument */
                     LocalRootSpan::current()->updateName(sprintf('%s %s', $request->getMethod(), $request->getRouteName()));
                 }
                 $span = $instrumentation->tracer()
