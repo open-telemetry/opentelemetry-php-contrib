@@ -64,7 +64,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   mongodb:
-    image: mongo:4.4.30@sha256:4be76f674fc4b27859816811b8baa3c51830eb1dbf4ca81a51e26b79edd662ef
+    image: mongo:8.3.4@sha256:48a009d2d8007e92d6d7e8baa31713cd11c48c06e827e856240e5a1d319b49d9
     hostname: mongodb
     ports:
       - "27017:27017/tcp"
