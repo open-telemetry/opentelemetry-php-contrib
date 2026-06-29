@@ -544,7 +544,7 @@ final class Magento2Instrumentation
     private static function parsePort(string $port): ?int
     {
         $port = trim($port);
-        if ($port === '' || !ctype_digit($port)) {
+        if ($port === '' || !preg_match('/^\d+$/', $port)) {
             return null;
         }
 
