@@ -38,7 +38,7 @@ use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
@@ -562,15 +562,16 @@ final class Magento2Instrumentation
     {
         // RFC9110, RFC5789
         $knownMethods = [
-            TraceAttributeValues::HTTP_REQUEST_METHOD_GET,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_HEAD,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_POST,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_PUT,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_DELETE,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_CONNECT,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_OPTIONS,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_TRACE,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_PATCH,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_GET,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_HEAD,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_POST,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_PUT,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_DELETE,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_CONNECT,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_OPTIONS,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_TRACE,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_PATCH,
+            HttpIncubatingAttributes::HTTP_REQUEST_METHOD_VALUE_QUERY,
         ];
 
         if (in_array($method, $knownMethods)) {

@@ -11,7 +11,7 @@
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.6",
     "open-telemetry/opentelemetry-config-http": "^0.1.0",
-    "open-telemetry/sem-conv": "^1.36",
+    "open-telemetry/sem-conv": "^1.38",
     "magento/framework": "^103.0",
     "nyholm/psr7": "^1.8"
   },
