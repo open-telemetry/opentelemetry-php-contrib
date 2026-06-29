@@ -54,6 +54,7 @@
       "OpenTelemetry\\Contrib\\Resource\\Detector\\Azure\\": "src/ResourceDetectors/Azure/src",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\Container\\": "src/ResourceDetectors/Container/src",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "src/ResourceDetectors/DigitalOcean/src",
+      "OpenTelemetry\\Contrib\\Metrics\\Runtime\\": "src/Metrics/Runtime/src",
       "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\": "src/Sampler/RuleBased/src",
       "OpenTelemetry\\Contrib\\Shim\\OpenTracing\\": "src/Shims/OpenTracing/src",
       "OpenTelemetry\\Contrib\\SqlCommenter\\": "src/SqlCommenter/src",
@@ -91,6 +92,7 @@
       "src/Instrumentation/Yii/_register.php",
       "src/Propagation/CloudTrace/_register.php",
       "src/Propagation/Instana/_register.php",
+      "src/Metrics/Runtime/_register.php",
       "src/ResourceDetectors/Azure/_register.php",
       "src/ResourceDetectors/Container/_register.php",
       "src/ResourceDetectors/DigitalOcean/_register.php"
@@ -127,6 +129,7 @@
       "OpenTelemetry\\Tests\\Propagation\\CloudTrace\\": "src/Propagation/CloudTrace/tests",
       "OpenTelemetry\\Tests\\Resource\\Detector\\Azure\\": "src/ResourceDetectors/Azure/tests",
       "OpenTelemetry\\Contrib\\Resource\\Detector\\DigitalOcean\\": "src/ResourceDetectors/DigitalOcean/tests",
+      "OpenTelemetry\\Contrib\\Metrics\\Runtime\\Tests\\": "src/Metrics/Runtime/tests",
       "OpenTelemetry\\Tests\\Contrib\\SqlCommenter\\": "src/SqlCommenter/tests",
       "OpenTelemetry\\Tests\\Contrib\\Symfony\\": "src/Symfony/tests",
       "OpenTelemetry\\TestUtils\\Tests\\": "src/Utils/Test/tests"
@@ -175,6 +178,7 @@
     "open-telemetry/opentelemetry-propagation-instana": "self.version",
     "open-telemetry/opentelemetry-propagation-server-timing": "self.version",
     "open-telemetry/opentelemetry-propagation-traceresponse": "self.version",
+    "open-telemetry/opentelemetry-metrics-runtime": "self.version",
     "open-telemetry/opentelemetry-sqlcommenter": "self.version",
     "open-telemetry/opentracing-shim": "self.version",
     "open-telemetry/sampler-rule-based": "self.version",
