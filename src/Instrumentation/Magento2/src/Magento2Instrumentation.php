@@ -158,6 +158,7 @@ final class Magento2Instrumentation
                     $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
                     $responseMeta[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $statusCode;
                     if ($statusCode >= 500 && !$exception) {
+                        $span->setStatus(StatusCode::STATUS_ERROR);
                         $responseMeta[ErrorAttributes::ERROR_TYPE] = $statusCode;
                     }
                     $prop = Globals::responsePropagator();
