@@ -89,4 +89,23 @@ class SqlCommenterTest extends TestCase
         $result = $this->commenter->isAttributeEnabled();
         $this->assertFalse($result);
     }
+
+    public function testInjectWithNullPropagatorUsesGlobal()
+    {
+        $commenter = new SqlCommenter(null);
+        $_SERVER['OTEL_PHP_SQLCOMMENTER_PREPEND'] = false;
+        $query = 'SELECT 1';
+        $result = $commenter->inject($query);
+        // With no configured propagator, uses Globals::propagator() (noop by default)
+        $this->assertSame('SELECT 1', $result);
+    }
+
+    public function testInjectAppendWithoutSemicolon()
+    {
+        $commenter = new SqlCommenter(new SqlCommenterTestPropagator());
+        $_SERVER['OTEL_PHP_SQLCOMMENTER_PREPEND'] = false;
+        $query = 'SELECT 1';
+        $result = $commenter->inject($query);
+        $this->assertEquals("SELECT 1/*key1='value1',key2='value2',key3='value3'*/", $result);
+    }
 }
