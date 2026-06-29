@@ -38,6 +38,7 @@ jobs:
           'Instrumentation/HttpConfig',
           'Instrumentation/IO',
           # 'Instrumentation/Laravel', # Experiment: moved to instrumentation-laravel.yml
+          'Instrumentation/Magento2',
           'Instrumentation/MongoDB',
           # 'Instrumentation/MySqli', # # Experiment: moved to instrumentation-mysqli.yml
           'Instrumentation/OpenAIPHP',
@@ -88,6 +89,10 @@ jobs:
             php-version: 8.1
           - project: 'Instrumentation/Session'
             php-version: 8.1
+          - project: 'Instrumentation/Magento2'
+            php-version: 8.1
+          - project: 'Instrumentation/Magento2'
+            php-version: 8.2
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 

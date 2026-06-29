@@ -1,0 +1,14 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+    tmpDir: var/cache/phpstan
+    level: 9
+    paths:
+        - src
+        - tests
+    ignoreErrors:
+        -
+           message: '#Parameter .* expects iterable<.*>, .* given.#'
+           paths:
+                - src/Magento2Instrumentation.php
