@@ -1,5 +1,6 @@
 <?php
 $finder = PhpCsFixer\Finder::create()
+    ->exclude('app/etc')
     ->exclude('vendor')
     ->exclude('var/cache')
     ->in(__DIR__);
