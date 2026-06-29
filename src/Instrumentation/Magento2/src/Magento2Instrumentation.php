@@ -560,7 +560,7 @@ final class Magento2Instrumentation
      */
     private static function canonizeMethod(string $method): ?string
     {
-        // RFC9110, RFC5789
+        // RFC9110, RFC5789, RFC10008
         $knownMethods = [
             HttpAttributes::HTTP_REQUEST_METHOD_VALUE_GET,
             HttpAttributes::HTTP_REQUEST_METHOD_VALUE_HEAD,
