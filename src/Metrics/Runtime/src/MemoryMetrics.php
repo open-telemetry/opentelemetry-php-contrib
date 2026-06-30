@@ -42,25 +42,13 @@ class MemoryMetrics
                 'Memory limit configured in php.ini (-1 means unlimited)',
             )
             ->observe(static function (ObserverInterface $observer): void {
-                $limit = ini_get('memory_limit');
-                $observer->observe(self::parseMemoryLimit((string) $limit));
+                $limit = ini_get('memory_limit') ?: '-1';
+                $observer->observe(ini_parse_quantity($limit));
             });
     }
 
     public static function parseMemoryLimit(string $limit): int
     {
-        if ($limit === '-1') {
-            return -1;
-        }
-
-        $value = (int) $limit;
-        $unit = strtolower(substr($limit, -1));
-
-        return match ($unit) {
-            'g' => $value * 1024 * 1024 * 1024,
-            'm' => $value * 1024 * 1024,
-            'k' => $value * 1024,
-            default => $value,
-        };
+        return ini_parse_quantity($limit !== '' ? $limit : '-1');
     }
 }

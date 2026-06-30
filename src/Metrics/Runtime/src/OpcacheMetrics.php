@@ -24,144 +24,95 @@ class OpcacheMetrics
 
     public static function register(MeterInterface $meter): void
     {
-        $meter
-            ->createObservableUpDownCounter(
-                'process.runtime.php.opcache.memory_used',
-                'By',
-                'OPcache memory used by cached scripts',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['memory_usage']['used_memory']);
-            });
+        $memoryUsed = $meter->createObservableUpDownCounter(
+            'process.runtime.php.opcache.memory_used',
+            'By',
+            'OPcache memory used by cached scripts',
+        );
+        $memoryFree = $meter->createObservableUpDownCounter(
+            'process.runtime.php.opcache.memory_free',
+            'By',
+            'OPcache memory free',
+        );
+        $memoryWasted = $meter->createObservableUpDownCounter(
+            'process.runtime.php.opcache.memory_wasted',
+            'By',
+            'OPcache memory wasted (fragmented, not usable without restart)',
+        );
+        $hitRate = $meter->createObservableGauge(
+            'process.runtime.php.opcache.hit_rate',
+            '%',
+            'OPcache hit rate percentage',
+        );
+        $hits = $meter->createObservableCounter(
+            'process.runtime.php.opcache.hits',
+            '{hit}',
+            'Total OPcache hits',
+        );
+        $misses = $meter->createObservableCounter(
+            'process.runtime.php.opcache.misses',
+            '{miss}',
+            'Total OPcache misses',
+        );
+        $cachedScripts = $meter->createObservableGauge(
+            'process.runtime.php.opcache.cached_scripts',
+            '{script}',
+            'Number of scripts currently cached in OPcache',
+        );
+        $internedStringsMemoryUsed = $meter->createObservableUpDownCounter(
+            'process.runtime.php.opcache.interned_strings.memory_used',
+            'By',
+            'Memory used by OPcache interned strings',
+        );
+        $internedStringsMemoryFree = $meter->createObservableUpDownCounter(
+            'process.runtime.php.opcache.interned_strings.memory_free',
+            'By',
+            'Memory free in OPcache interned strings buffer',
+        );
+        $internedStringsCount = $meter->createObservableGauge(
+            'process.runtime.php.opcache.interned_strings.count',
+            '{string}',
+            'Number of interned strings currently stored in OPcache',
+        );
 
-        $meter
-            ->createObservableUpDownCounter(
-                'process.runtime.php.opcache.memory_free',
-                'By',
-                'OPcache memory free',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
+        $meter->batchObserve(
+            static function (
+                ObserverInterface $memUsedObs,
+                ObserverInterface $memFreeObs,
+                ObserverInterface $memWastedObs,
+                ObserverInterface $hitRateObs,
+                ObserverInterface $hitsObs,
+                ObserverInterface $missesObs,
+                ObserverInterface $cachedScriptsObs,
+                ObserverInterface $internedMemUsedObs,
+                ObserverInterface $internedMemFreeObs,
+                ObserverInterface $internedCountObs,
+            ): void {
                 $status = opcache_get_status(false);
                 if ($status === false) {
                     return;
                 }
-                $observer->observe((int) $status['memory_usage']['free_memory']);
-            });
-
-        $meter
-            ->createObservableUpDownCounter(
-                'process.runtime.php.opcache.memory_wasted',
-                'By',
-                'OPcache memory wasted (fragmented, not usable without restart)',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['memory_usage']['wasted_memory']);
-            });
-
-        $meter
-            ->createObservableGauge(
-                'process.runtime.php.opcache.hit_rate',
-                '%',
-                'OPcache hit rate percentage',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((float) $status['opcache_statistics']['opcache_hit_rate']);
-            });
-
-        $meter
-            ->createObservableCounter(
-                'process.runtime.php.opcache.hits',
-                '{hits}',
-                'Total OPcache hits',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['opcache_statistics']['hits']);
-            });
-
-        $meter
-            ->createObservableCounter(
-                'process.runtime.php.opcache.misses',
-                '{misses}',
-                'Total OPcache misses',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['opcache_statistics']['misses']);
-            });
-
-        $meter
-            ->createObservableGauge(
-                'process.runtime.php.opcache.cached_scripts',
-                '{scripts}',
-                'Number of scripts currently cached in OPcache',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['opcache_statistics']['num_cached_scripts']);
-            });
-
-        $meter
-            ->createObservableUpDownCounter(
-                'process.runtime.php.opcache.interned_strings.memory_used',
-                'By',
-                'Memory used by OPcache interned strings',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['interned_strings_usage']['used_memory']);
-            });
-
-        $meter
-            ->createObservableUpDownCounter(
-                'process.runtime.php.opcache.interned_strings.memory_free',
-                'By',
-                'Memory free in OPcache interned strings buffer',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['interned_strings_usage']['free_memory']);
-            });
-
-        $meter
-            ->createObservableGauge(
-                'process.runtime.php.opcache.interned_strings.count',
-                '{strings}',
-                'Number of interned strings currently stored in OPcache',
-            )
-            ->observe(static function (ObserverInterface $observer): void {
-                $status = opcache_get_status(false);
-                if ($status === false) {
-                    return;
-                }
-                $observer->observe((int) $status['interned_strings_usage']['number_of_strings']);
-            });
+                $memUsedObs->observe((int) $status['memory_usage']['used_memory']);
+                $memFreeObs->observe((int) $status['memory_usage']['free_memory']);
+                $memWastedObs->observe((int) $status['memory_usage']['wasted_memory']);
+                $hitRateObs->observe((float) $status['opcache_statistics']['opcache_hit_rate']);
+                $hitsObs->observe((int) $status['opcache_statistics']['hits']);
+                $missesObs->observe((int) $status['opcache_statistics']['misses']);
+                $cachedScriptsObs->observe((int) $status['opcache_statistics']['num_cached_scripts']);
+                $internedMemUsedObs->observe((int) $status['interned_strings_usage']['used_memory']);
+                $internedMemFreeObs->observe((int) $status['interned_strings_usage']['free_memory']);
+                $internedCountObs->observe((int) $status['interned_strings_usage']['number_of_strings']);
+            },
+            $memoryUsed,
+            $memoryFree,
+            $memoryWasted,
+            $hitRate,
+            $hits,
+            $misses,
+            $cachedScripts,
+            $internedStringsMemoryUsed,
+            $internedStringsMemoryFree,
+            $internedStringsCount,
+        );
     }
 }

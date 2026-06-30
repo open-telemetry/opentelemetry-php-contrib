@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Metrics\Runtime\Tests\Unit;
 
 use OpenTelemetry\API\Metrics\MeterInterface;
+use OpenTelemetry\API\Metrics\MeterProviderInterface;
+use OpenTelemetry\API\Metrics\ObservableCallbackInterface;
 use OpenTelemetry\API\Metrics\ObservableCounterInterface;
 use OpenTelemetry\API\Metrics\ObservableGaugeInterface;
 use OpenTelemetry\API\Metrics\ObservableUpDownCounterInterface;
@@ -18,7 +20,7 @@ class RuntimeMetricsTest extends TestCase
         putenv('OTEL_PHP_DISABLED_METRICS');
     }
 
-    public function test_register_does_not_throw(): void
+    private function makeMeter(): MeterInterface
     {
         $meter = $this->createMock(MeterInterface::class);
         $meter->method('createObservableUpDownCounter')
@@ -27,9 +29,24 @@ class RuntimeMetricsTest extends TestCase
             ->willReturn($this->createMock(ObservableGaugeInterface::class));
         $meter->method('createObservableCounter')
             ->willReturn($this->createMock(ObservableCounterInterface::class));
+        $meter->method('batchObserve')
+            ->willReturn($this->createMock(ObservableCallbackInterface::class));
 
+        return $meter;
+    }
+
+    private function makeMeterProvider(): MeterProviderInterface
+    {
+        $meterProvider = $this->createMock(MeterProviderInterface::class);
+        $meterProvider->method('getMeter')->willReturn($this->makeMeter());
+
+        return $meterProvider;
+    }
+
+    public function test_register_does_not_throw(): void
+    {
         $this->expectNotToPerformAssertions();
-        RuntimeMetrics::register($meter);
+        RuntimeMetrics::register($this->makeMeterProvider());
     }
 
     public function test_instrumentation_name_is_non_empty_string(): void
@@ -37,55 +54,41 @@ class RuntimeMetricsTest extends TestCase
         $this->assertNotEmpty(RuntimeMetrics::getInstrumentationName());
     }
 
-    public function test_disabled_memory_group_skips_memory_instruments(): void
+    public function test_disabled_memory_group_skips_memory_meter(): void
     {
         putenv('OTEL_PHP_DISABLED_METRICS=memory');
 
-        $meter = $this->createMock(MeterInterface::class);
-        $meter->expects($this->never())->method('createObservableUpDownCounter');
-        $meter->method('createObservableGauge')
-            ->willReturn($this->createMock(ObservableGaugeInterface::class));
-        $meter->method('createObservableCounter')
-            ->willReturn($this->createMock(ObservableCounterInterface::class));
+        $requestedNames = [];
+        $meterProvider = $this->createMock(MeterProviderInterface::class);
+        $meterProvider->method('getMeter')
+            ->willReturnCallback(function (string $name) use (&$requestedNames): MeterInterface {
+                $requestedNames[] = $name;
 
-        RuntimeMetrics::register($meter);
+                return $this->makeMeter();
+            });
+
+        RuntimeMetrics::register($meterProvider);
+
+        $this->assertNotContains('io.opentelemetry.contrib.php.runtime.memory', $requestedNames);
     }
 
-    public function test_disabled_gc_group_skips_gc_instruments(): void
-    {
-        putenv('OTEL_PHP_DISABLED_METRICS=gc,cpu');
-
-        $meter = $this->createMock(MeterInterface::class);
-        $meter->method('createObservableUpDownCounter')
-            ->willReturn($this->createMock(ObservableUpDownCounterInterface::class));
-        $meter->method('createObservableGauge')
-            ->willReturn($this->createMock(ObservableGaugeInterface::class));
-        $meter->expects($this->never())->method('createObservableCounter');
-
-        RuntimeMetrics::register($meter);
-    }
-
-    public function test_disabled_multiple_groups_via_comma_list(): void
+    public function test_disabled_multiple_groups_skips_their_meters(): void
     {
         putenv('OTEL_PHP_DISABLED_METRICS=memory,gc,opcache,cpu');
 
-        $meter = $this->createMock(MeterInterface::class);
-        $meter->expects($this->never())->method('createObservableUpDownCounter');
-        $meter->expects($this->never())->method('createObservableCounter');
-        $meter->expects($this->never())->method('createObservableGauge');
+        $meterProvider = $this->createMock(MeterProviderInterface::class);
+        $meterProvider->expects($this->never())->method('getMeter');
 
-        RuntimeMetrics::register($meter);
+        RuntimeMetrics::register($meterProvider);
     }
 
     public function test_disabled_env_is_case_insensitive(): void
     {
         putenv('OTEL_PHP_DISABLED_METRICS=Memory,GC,Opcache,CPU');
 
-        $meter = $this->createMock(MeterInterface::class);
-        $meter->expects($this->never())->method('createObservableUpDownCounter');
-        $meter->expects($this->never())->method('createObservableCounter');
-        $meter->expects($this->never())->method('createObservableGauge');
+        $meterProvider = $this->createMock(MeterProviderInterface::class);
+        $meterProvider->expects($this->never())->method('getMeter');
 
-        RuntimeMetrics::register($meter);
+        RuntimeMetrics::register($meterProvider);
     }
 }

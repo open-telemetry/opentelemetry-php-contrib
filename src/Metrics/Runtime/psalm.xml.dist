@@ -15,5 +15,11 @@
     <issueHandlers>
         <!-- #[Override] attribute requires PHP 8.3; package supports 8.1+ -->
         <MissingOverrideAttribute errorLevel="info"/>
+        <!-- RuntimeMetricsInstrumentation is loaded dynamically via SPI, not referenced in PHP code -->
+        <UnusedClass>
+            <errorLevel type="suppress">
+                <referencedClass name="OpenTelemetry\Contrib\Metrics\Runtime\RuntimeMetricsInstrumentation"/>
+            </errorLevel>
+        </UnusedClass>
     </issueHandlers>
 </psalm>

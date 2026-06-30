@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Metrics\Runtime\Tests\Unit;
 
 use OpenTelemetry\API\Metrics\MeterInterface;
+use OpenTelemetry\API\Metrics\ObservableCallbackInterface;
 use OpenTelemetry\API\Metrics\ObservableCounterInterface;
 use OpenTelemetry\API\Metrics\ObservableGaugeInterface;
 use OpenTelemetry\API\Metrics\ObservableUpDownCounterInterface;
@@ -37,6 +38,10 @@ class OpcacheMetricsTest extends TestCase
         $meter->expects($this->exactly(2))
             ->method('createObservableCounter')
             ->willReturn($this->createMock(ObservableCounterInterface::class));
+
+        $meter->expects($this->once())
+            ->method('batchObserve')
+            ->willReturn($this->createMock(ObservableCallbackInterface::class));
 
         OpcacheMetrics::register($meter);
     }

@@ -30,6 +30,10 @@ class CpuMetricsTest extends TestCase
             ->method('createObservableCounter')
             ->willReturn($this->createMock(ObservableCounterInterface::class));
 
+        $meter->expects($this->once())
+            ->method('batchObserve')
+            ->willReturn($this->createMock(ObservableCallbackInterface::class));
+
         CpuMetrics::register($meter);
     }
 
@@ -41,26 +45,21 @@ class CpuMetricsTest extends TestCase
 
         $capturedCallback = null;
 
-        $callbackStub = $this->createMock(ObservableCallbackInterface::class);
-        $counter = $this->createMock(ObservableCounterInterface::class);
-        $counter->method('observe')
-            ->willReturnCallback(function (callable $cb) use (&$capturedCallback, $callbackStub): ObservableCallbackInterface {
-                if ($capturedCallback === null) {
-                    $capturedCallback = $cb;
-                }
-
-                return $callbackStub;
-            });
-
         $meter = $this->createMock(MeterInterface::class);
-        $meter->method('createObservableCounter')->willReturn($counter);
+        $meter->method('createObservableCounter')->willReturn($this->createMock(ObservableCounterInterface::class));
+        $meter->method('batchObserve')
+            ->willReturnCallback(function (callable $cb) use (&$capturedCallback): ObservableCallbackInterface {
+                $capturedCallback = $cb;
+
+                return $this->createMock(ObservableCallbackInterface::class);
+            });
 
         CpuMetrics::register($meter);
 
         assert($capturedCallback !== null);
 
-        $observer = $this->createMock(ObserverInterface::class);
-        $observer->expects($this->exactly(2))
+        $cpuObserver = $this->createMock(ObserverInterface::class);
+        $cpuObserver->expects($this->exactly(2))
             ->method('observe')
             ->with(
                 $this->isType('float'),
@@ -70,6 +69,9 @@ class CpuMetricsTest extends TestCase
                 ),
             );
 
-        $capturedCallback($observer);
+        $vcsObserver = $this->createMock(ObserverInterface::class);
+        $ivcsObserver = $this->createMock(ObserverInterface::class);
+
+        $capturedCallback($cpuObserver, $vcsObserver, $ivcsObserver);
     }
 }
