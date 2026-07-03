@@ -43,6 +43,7 @@ jobs:
           # 'Instrumentation/MySqli', # # Experiment: moved to instrumentation-mysqli.yml
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
+          'Instrumentation/Opcache',
           'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
           'Instrumentation/Psr3',
@@ -87,6 +88,7 @@ jobs:
             php-version: 8.1
           - project: 'Instrumentation/PostgreSql'
             php-version: 8.1
+          - project: 'Instrumentation/Opcache'
           - project: 'Instrumentation/Session'
             php-version: 8.1
           - project: 'Instrumentation/Magento2'
