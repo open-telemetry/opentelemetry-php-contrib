@@ -7,6 +7,9 @@ namespace OpenTelemetry\Contrib\Metrics\Runtime;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
 
+/**
+ * @internal
+ */
 class OpcacheMetrics
 {
     public const GROUP = 'opcache';
@@ -25,52 +28,52 @@ class OpcacheMetrics
     public static function register(MeterInterface $meter): void
     {
         $memoryUsed = $meter->createObservableUpDownCounter(
-            'process.runtime.php.opcache.memory_used',
+            'php.opcache.memory_used',
             'By',
             'OPcache memory used by cached scripts',
         );
         $memoryFree = $meter->createObservableUpDownCounter(
-            'process.runtime.php.opcache.memory_free',
+            'php.opcache.memory_free',
             'By',
             'OPcache memory free',
         );
         $memoryWasted = $meter->createObservableUpDownCounter(
-            'process.runtime.php.opcache.memory_wasted',
+            'php.opcache.memory_wasted',
             'By',
             'OPcache memory wasted (fragmented, not usable without restart)',
         );
         $hitRate = $meter->createObservableGauge(
-            'process.runtime.php.opcache.hit_rate',
+            'php.opcache.hit_rate',
             '%',
             'OPcache hit rate percentage',
         );
         $hits = $meter->createObservableCounter(
-            'process.runtime.php.opcache.hits',
+            'php.opcache.hits',
             '{hit}',
             'Total OPcache hits',
         );
         $misses = $meter->createObservableCounter(
-            'process.runtime.php.opcache.misses',
+            'php.opcache.misses',
             '{miss}',
             'Total OPcache misses',
         );
         $cachedScripts = $meter->createObservableGauge(
-            'process.runtime.php.opcache.cached_scripts',
+            'php.opcache.cached_scripts',
             '{script}',
             'Number of scripts currently cached in OPcache',
         );
         $internedStringsMemoryUsed = $meter->createObservableUpDownCounter(
-            'process.runtime.php.opcache.interned_strings.memory_used',
+            'php.opcache.interned_strings.memory_used',
             'By',
             'Memory used by OPcache interned strings',
         );
         $internedStringsMemoryFree = $meter->createObservableUpDownCounter(
-            'process.runtime.php.opcache.interned_strings.memory_free',
+            'php.opcache.interned_strings.memory_free',
             'By',
             'Memory free in OPcache interned strings buffer',
         );
         $internedStringsCount = $meter->createObservableGauge(
-            'process.runtime.php.opcache.interned_strings.count',
+            'php.opcache.interned_strings.count',
             '{string}',
             'Number of interned strings currently stored in OPcache',
         );

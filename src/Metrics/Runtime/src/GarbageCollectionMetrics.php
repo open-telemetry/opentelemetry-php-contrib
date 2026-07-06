@@ -7,6 +7,9 @@ namespace OpenTelemetry\Contrib\Metrics\Runtime;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
 
+/**
+ * @internal
+ */
 class GarbageCollectionMetrics
 {
     public const GROUP = 'gc';
@@ -14,22 +17,22 @@ class GarbageCollectionMetrics
     public static function register(MeterInterface $meter): void
     {
         $runs = $meter->createObservableCounter(
-            'process.runtime.php.gc.runs',
+            'php.gc.runs',
             '{run}',
             'Total number of garbage collection cycles run',
         );
         $collected = $meter->createObservableCounter(
-            'process.runtime.php.gc.collected',
+            'php.gc.collected',
             '{object}',
             'Total number of objects collected by the garbage collector',
         );
         $threshold = $meter->createObservableGauge(
-            'process.runtime.php.gc.threshold',
+            'php.gc.threshold',
             '{object}',
             'Number of roots needed to trigger a garbage collection cycle',
         );
         $roots = $meter->createObservableGauge(
-            'process.runtime.php.gc.roots',
+            'php.gc.roots',
             '{object}',
             'Current number of objects in the root buffer',
         );
@@ -56,17 +59,17 @@ class GarbageCollectionMetrics
         // Timing metrics available since PHP 8.3
         if (PHP_VERSION_ID >= 80300) {
             $collectorTime = $meter->createObservableCounter(
-                'process.runtime.php.gc.collector_time',
+                'php.gc.collector_time',
                 's',
                 'Cumulative time spent in the garbage collector',
             );
             $destructorTime = $meter->createObservableCounter(
-                'process.runtime.php.gc.destructor_time',
+                'php.gc.destructor_time',
                 's',
                 'Cumulative time spent running destructors during GC',
             );
             $freeTime = $meter->createObservableCounter(
-                'process.runtime.php.gc.free_time',
+                'php.gc.free_time',
                 's',
                 'Cumulative time spent freeing memory during GC',
             );

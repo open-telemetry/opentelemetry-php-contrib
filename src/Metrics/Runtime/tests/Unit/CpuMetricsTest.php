@@ -26,7 +26,7 @@ class CpuMetricsTest extends TestCase
 
         $meter = $this->createMock(MeterInterface::class);
 
-        $meter->expects($this->exactly(3))
+        $meter->expects($this->exactly(2))
             ->method('createObservableCounter')
             ->willReturn($this->createMock(ObservableCounterInterface::class));
 
@@ -69,9 +69,45 @@ class CpuMetricsTest extends TestCase
                 ),
             );
 
-        $vcsObserver = $this->createMock(ObserverInterface::class);
-        $ivcsObserver = $this->createMock(ObserverInterface::class);
+        $contextSwitchesObserver = $this->createMock(ObserverInterface::class);
 
-        $capturedCallback($cpuObserver, $vcsObserver, $ivcsObserver);
+        $capturedCallback($cpuObserver, $contextSwitchesObserver);
+    }
+
+    public function test_context_switches_callback_observes_voluntary_and_involuntary_types(): void
+    {
+        if (!CpuMetrics::isAvailable()) {
+            $this->markTestSkipped('getrusage() not available on this platform');
+        }
+
+        $capturedCallback = null;
+
+        $meter = $this->createMock(MeterInterface::class);
+        $meter->method('createObservableCounter')->willReturn($this->createMock(ObservableCounterInterface::class));
+        $meter->method('batchObserve')
+            ->willReturnCallback(function (callable $cb) use (&$capturedCallback): ObservableCallbackInterface {
+                $capturedCallback = $cb;
+
+                return $this->createMock(ObservableCallbackInterface::class);
+            });
+
+        CpuMetrics::register($meter);
+
+        assert($capturedCallback !== null);
+
+        $cpuObserver = $this->createMock(ObserverInterface::class);
+
+        $contextSwitchesObserver = $this->createMock(ObserverInterface::class);
+        $contextSwitchesObserver->expects($this->atMost(2))
+            ->method('observe')
+            ->with(
+                $this->isType('int'),
+                $this->logicalOr(
+                    $this->equalTo(['process.context_switch.type' => 'voluntary']),
+                    $this->equalTo(['process.context_switch.type' => 'involuntary']),
+                ),
+            );
+
+        $capturedCallback($cpuObserver, $contextSwitchesObserver);
     }
 }

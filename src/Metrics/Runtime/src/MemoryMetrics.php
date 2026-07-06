@@ -7,6 +7,9 @@ namespace OpenTelemetry\Contrib\Metrics\Runtime;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
 
+/**
+ * @internal
+ */
 class MemoryMetrics
 {
     public const GROUP = 'memory';
@@ -15,29 +18,31 @@ class MemoryMetrics
     {
         $meter
             ->createObservableUpDownCounter(
-                'process.runtime.php.memory.usage',
+                'php.memory.usage',
                 'By',
                 'Current memory usage (real allocation from OS)',
             )
             ->observe(static function (ObserverInterface $observer): void {
-                $observer->observe(memory_get_usage(true), ['memory.type' => 'real']);
-                $observer->observe(memory_get_usage(false), ['memory.type' => 'emalloc']);
+                $emalloc = memory_get_usage(false);
+                $observer->observe($emalloc, ['memory.type' => 'emalloc']);
+                $observer->observe(memory_get_usage(true) - $emalloc, ['memory.type' => 'overhead']);
             });
 
         $meter
             ->createObservableUpDownCounter(
-                'process.runtime.php.memory.peak_usage',
+                'php.memory.peak_usage',
                 'By',
                 'Peak memory usage since script start',
             )
             ->observe(static function (ObserverInterface $observer): void {
-                $observer->observe(memory_get_peak_usage(true), ['memory.type' => 'real']);
-                $observer->observe(memory_get_peak_usage(false), ['memory.type' => 'emalloc']);
+                $emalloc = memory_get_peak_usage(false);
+                $observer->observe($emalloc, ['memory.type' => 'emalloc']);
+                $observer->observe(memory_get_peak_usage(true) - $emalloc, ['memory.type' => 'overhead']);
             });
 
         $meter
             ->createObservableGauge(
-                'process.runtime.php.memory.limit',
+                'php.memory.limit',
                 'By',
                 'Memory limit configured in php.ini (-1 means unlimited)',
             )

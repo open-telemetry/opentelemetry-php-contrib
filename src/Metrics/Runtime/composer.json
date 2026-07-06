@@ -12,7 +12,8 @@
     "php": "^8.1",
     "open-telemetry/api": "^1.1",
     "open-telemetry/sem-conv": "^1.38",
-    "symfony/polyfill-php82": "^1.0"
+    "symfony/polyfill-php82": "^1.0",
+    "composer-runtime-api": "^2.0"
   },
   "require-dev": {
     "open-telemetry/sdk": "^1.0",
@@ -27,7 +28,10 @@
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Metrics\\Runtime\\": "src/"
-    }
+    },
+    "files": [
+      "_register.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
@@ -41,10 +45,8 @@
     }
   },
   "extra": {
-    "spi": {
-      "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\Instrumentation": [
-        "OpenTelemetry\\Contrib\\Metrics\\Runtime\\RuntimeMetricsInstrumentation"
-      ]
+    "spi-config": {
+      "autoload-files": true
     }
   }
 }

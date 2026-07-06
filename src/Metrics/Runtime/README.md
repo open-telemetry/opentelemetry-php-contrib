@@ -49,21 +49,21 @@ RuntimeMetrics::register($meterProvider);
 
 | Metric | Type | Unit | Description |
 |--------|------|------|-------------|
-| `process.runtime.php.memory.usage` | UpDownCounter | `By` | Current memory usage. Reported for both `real` (OS allocation) and `emalloc` (PHP internal) via the `memory.type` attribute. |
-| `process.runtime.php.memory.peak_usage` | UpDownCounter | `By` | Peak memory usage since script start. Same `memory.type` attribute breakdown. |
-| `process.runtime.php.memory.limit` | Gauge | `By` | Memory limit from `php.ini`. `-1` means unlimited. |
+| `php.memory.usage` | UpDownCounter | `By` | Current memory usage. Reported for `emalloc` (PHP internal allocation) and `overhead` (additional OS allocation beyond `emalloc`) via the `memory.type` attribute; the two sum to the real OS allocation. |
+| `php.memory.peak_usage` | UpDownCounter | `By` | Peak memory usage since script start. Same `memory.type` attribute breakdown. |
+| `php.memory.limit` | Gauge | `By` | Memory limit from `php.ini`. `-1` means unlimited. |
 
 ### Garbage Collection (`gc`)
 
 | Metric | Type | Unit | Description |
 |--------|------|------|-------------|
-| `process.runtime.php.gc.runs` | Counter | `{run}` | Total number of GC cycles run. |
-| `process.runtime.php.gc.collected` | Counter | `{object}` | Total number of objects collected. |
-| `process.runtime.php.gc.roots` | Gauge | `{object}` | Current number of objects in the root buffer. |
-| `process.runtime.php.gc.threshold` | Gauge | `{object}` | Number of roots required to trigger a GC cycle. |
-| `process.runtime.php.gc.collector_time` | Counter | `s` | Cumulative time spent in the GC collector. **PHP 8.3+** |
-| `process.runtime.php.gc.destructor_time` | Counter | `s` | Cumulative time spent running destructors during GC. **PHP 8.3+** |
-| `process.runtime.php.gc.free_time` | Counter | `s` | Cumulative time spent freeing memory during GC. **PHP 8.3+** |
+| `php.gc.runs` | Counter | `{run}` | Total number of GC cycles run. |
+| `php.gc.collected` | Counter | `{object}` | Total number of objects collected. |
+| `php.gc.roots` | Gauge | `{object}` | Current number of objects in the root buffer. |
+| `php.gc.threshold` | Gauge | `{object}` | Number of roots required to trigger a GC cycle. |
+| `php.gc.collector_time` | Counter | `s` | Cumulative time spent in the GC collector. **PHP 8.3+** |
+| `php.gc.destructor_time` | Counter | `s` | Cumulative time spent running destructors during GC. **PHP 8.3+** |
+| `php.gc.free_time` | Counter | `s` | Cumulative time spent freeing memory during GC. **PHP 8.3+** |
 
 ### OPcache (`opcache`)
 
@@ -71,16 +71,16 @@ Registered only when OPcache is enabled (`opcache.enable=1`). In CLI context, al
 
 | Metric | Type | Unit | Description |
 |--------|------|------|-------------|
-| `process.runtime.php.opcache.memory_used` | UpDownCounter | `By` | Memory used by cached scripts. |
-| `process.runtime.php.opcache.memory_free` | UpDownCounter | `By` | Free memory in the OPcache buffer. |
-| `process.runtime.php.opcache.memory_wasted` | UpDownCounter | `By` | Wasted (fragmented) memory — requires restart to reclaim. |
-| `process.runtime.php.opcache.hits` | Counter | `{hit}` | Total cache hits. |
-| `process.runtime.php.opcache.misses` | Counter | `{miss}` | Total cache misses. |
-| `process.runtime.php.opcache.hit_rate` | Gauge | `%` | Cache hit rate percentage. |
-| `process.runtime.php.opcache.cached_scripts` | Gauge | `{script}` | Number of scripts currently in cache. |
-| `process.runtime.php.opcache.interned_strings.memory_used` | UpDownCounter | `By` | Memory used by interned strings. |
-| `process.runtime.php.opcache.interned_strings.memory_free` | UpDownCounter | `By` | Free memory in the interned strings buffer. |
-| `process.runtime.php.opcache.interned_strings.count` | Gauge | `{string}` | Number of interned strings currently stored. |
+| `php.opcache.memory_used` | UpDownCounter | `By` | Memory used by cached scripts. |
+| `php.opcache.memory_free` | UpDownCounter | `By` | Free memory in the OPcache buffer. |
+| `php.opcache.memory_wasted` | UpDownCounter | `By` | Wasted (fragmented) memory — requires restart to reclaim. |
+| `php.opcache.hits` | Counter | `{hit}` | Total cache hits. |
+| `php.opcache.misses` | Counter | `{miss}` | Total cache misses. |
+| `php.opcache.hit_rate` | Gauge | `%` | Cache hit rate percentage. |
+| `php.opcache.cached_scripts` | Gauge | `{script}` | Number of scripts currently in cache. |
+| `php.opcache.interned_strings.memory_used` | UpDownCounter | `By` | Memory used by interned strings. |
+| `php.opcache.interned_strings.memory_free` | UpDownCounter | `By` | Free memory in the interned strings buffer. |
+| `php.opcache.interned_strings.count` | Gauge | `{string}` | Number of interned strings currently stored. |
 
 ### CPU (`cpu`)
 
@@ -89,8 +89,7 @@ Registered only on platforms where `getrusage()` is available (Linux, macOS, Win
 | Metric | Type | Unit | Description |
 |--------|------|------|-------------|
 | `process.cpu.time` | Counter | `s` | CPU time consumed. Reported for `user` and `system` modes via the `cpu.mode` attribute. |
-| `process.runtime.php.cpu.voluntary_context_switches` | Counter | `{switch}` | Number of times the process voluntarily yielded the CPU. |
-| `process.runtime.php.cpu.involuntary_context_switches` | Counter | `{switch}` | Number of times the process was preempted involuntarily. |
+| `process.context_switches` | Counter | `{context_switch}` | Number of times the process has been context switched. Reported for `voluntary` and `involuntary` switches via the `process.context_switch.type` attribute. |
 
 ## Configuration
 

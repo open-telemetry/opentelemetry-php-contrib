@@ -29,7 +29,7 @@ class MemoryMetricsTest extends TestCase
         MemoryMetrics::register($meter);
     }
 
-    public function test_memory_usage_callback_observes_real_and_emalloc(): void
+    public function test_memory_usage_callback_observes_emalloc_and_overhead(): void
     {
         $capturedCallbacks = [];
 
@@ -49,7 +49,15 @@ class MemoryMetricsTest extends TestCase
         MemoryMetrics::register($meter);
 
         $observer = $this->createMock(ObserverInterface::class);
-        $observer->expects($this->exactly(2))->method('observe');
+        $observer->expects($this->exactly(2))
+            ->method('observe')
+            ->with(
+                $this->isType('int'),
+                $this->logicalOr(
+                    $this->equalTo(['memory.type' => 'emalloc']),
+                    $this->equalTo(['memory.type' => 'overhead']),
+                ),
+            );
 
         $capturedCallbacks[0]($observer);
     }

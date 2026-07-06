@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Metrics\Runtime;
 
+use Composer\InstalledVersions;
 use OpenTelemetry\API\Metrics\MeterProviderInterface;
 use OpenTelemetry\SemConv\Version;
 
@@ -31,27 +32,28 @@ class RuntimeMetrics
      */
     public static function register(MeterProviderInterface $meterProvider): void
     {
+        $version = InstalledVersions::getPrettyVersion('open-telemetry/opentelemetry-metrics-runtime');
         $schemaUrl = Version::VERSION_1_38_0->url();
         $disabled = self::disabledGroups();
 
         if (!\in_array(MemoryMetrics::GROUP, $disabled, true)) {
             MemoryMetrics::register(
-                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.memory', null, $schemaUrl),
+                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.memory', $version, $schemaUrl),
             );
         }
         if (!\in_array(GarbageCollectionMetrics::GROUP, $disabled, true)) {
             GarbageCollectionMetrics::register(
-                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.gc', null, $schemaUrl),
+                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.gc', $version, $schemaUrl),
             );
         }
         if (!\in_array(OpcacheMetrics::GROUP, $disabled, true) && OpcacheMetrics::isAvailable()) {
             OpcacheMetrics::register(
-                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.opcache', null, $schemaUrl),
+                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.opcache', $version, $schemaUrl),
             );
         }
         if (!\in_array(CpuMetrics::GROUP, $disabled, true) && CpuMetrics::isAvailable()) {
             CpuMetrics::register(
-                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.cpu', null, $schemaUrl),
+                $meterProvider->getMeter(self::INSTRUMENTATION_NAME . '.cpu', $version, $schemaUrl),
             );
         }
     }
