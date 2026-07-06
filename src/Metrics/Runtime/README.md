@@ -41,6 +41,9 @@ If you need to control when metrics are registered:
 use OpenTelemetry\Contrib\Metrics\Runtime\RuntimeMetrics;
 
 RuntimeMetrics::register($meterProvider);
+
+// Optionally, disable individual groups (memory, gc, opcache, cpu):
+RuntimeMetrics::register($meterProvider, disabled: ['opcache', 'cpu']);
 ```
 
 ## Metrics
@@ -101,17 +104,22 @@ OTEL_PHP_DISABLED_INSTRUMENTATIONS=metrics-runtime
 
 ### Disable individual metric groups
 
-**Option 1: via `OTEL_PHP_DISABLED_METRICS`** — lightweight, no config file needed:
+**Option 1: via `OTEL_PHP_DISABLED_INSTRUMENTATIONS`** — lightweight, no config file needed. Each group is addressed as `metrics-runtime-{group}`:
 
 ```shell
 # Disable OPcache and CPU metrics only
-OTEL_PHP_DISABLED_METRICS=opcache,cpu
+OTEL_PHP_DISABLED_INSTRUMENTATIONS=metrics-runtime-opcache,metrics-runtime-cpu
 
 # Disable GC metrics only
-OTEL_PHP_DISABLED_METRICS=gc
+OTEL_PHP_DISABLED_INSTRUMENTATIONS=metrics-runtime-gc
 ```
 
-Available group names: `memory`, `gc`, `opcache`, `cpu`. Values are case-insensitive.
+| Group | Instrumentation name |
+|-------|----------------------|
+| `memory` | `metrics-runtime-memory` |
+| `gc` | `metrics-runtime-gc` |
+| `opcache` | `metrics-runtime-opcache` |
+| `cpu` | `metrics-runtime-cpu` |
 
 **Option 2: via `OTEL_CONFIG_FILE`** — standard OTel SDK configuration, supports fine-grained control (e.g. filtering by attributes). Each group uses its own meter named `io.opentelemetry.contrib.php.runtime.{group}`, which can be targeted with meter configurators or views:
 
