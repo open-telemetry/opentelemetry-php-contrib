@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Console\Kernel;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Console\FailingCommand;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
