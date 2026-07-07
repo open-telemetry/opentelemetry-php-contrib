@@ -41,10 +41,11 @@ class Kernel implements LaravelHook
             'handle',
             pre: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
+                $method = $request ? $this->httpMethod($request) : 'unknown';
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $this->instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
+                    ->spanBuilder($method)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
@@ -56,7 +57,7 @@ class Kernel implements LaravelHook
                     $span = $builder
                         ->setParent($parent)
                         ->setAttribute(TraceAttributes::URL_FULL, $request->fullUrl())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->method())
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $method)
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
@@ -87,7 +88,7 @@ class Kernel implements LaravelHook
                 $route = $request?->route();
 
                 if ($request && $route instanceof Route) {
-                    $span->updateName("{$request->method()} /" . ltrim($route->uri, '/'));
+                    $span->updateName($this->httpMethod($request) . ' /' . ltrim($route->uri, '/'));
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route->uri);
                 }
 
@@ -117,14 +118,39 @@ class Kernel implements LaravelHook
         return $query ? $path . '?' . $query : $path;
     }
 
+    /**
+     * $request->method()/getMethod() throws SuspiciousOperationException for a
+     * malformed method override (e.g. a hostile `_method` or
+     * `X-HTTP-METHOD-OVERRIDE` value). Instrumentation must not raise on
+     * hostile input, since this hook runs before the framework's own
+     * exception handling is engaged.
+     */
+    private function httpMethod(Request $request): string
+    {
+        try {
+            return $request->method();
+        } catch (Throwable) {
+            return 'unknown';
+        }
+    }
+
+    /**
+     * getHost() throws SuspiciousOperationException for a Host header that
+     * fails validation (e.g. invalid characters, or a mismatch against
+     * trusted host patterns). See httpMethod() for why this must not throw.
+     */
     private function httpHostName(Request $request): string
     {
-        if (method_exists($request, 'host')) {
-            return $request->host();
-        }
+        try {
+            if (method_exists($request, 'host')) {
+                return $request->host();
+            }
 
-        if (method_exists($request, 'getHost')) {
-            return $request->getHost();
+            if (method_exists($request, 'getHost')) {
+                return $request->getHost();
+            }
+        } catch (Throwable) {
+            return '';
         }
 
         return '';

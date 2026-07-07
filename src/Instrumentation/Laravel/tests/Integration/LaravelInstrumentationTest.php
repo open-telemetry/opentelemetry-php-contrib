@@ -155,6 +155,22 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('/hello?foo=bar', $span->getAttributes()->get(TraceAttributes::URL_PATH));
     }
 
+    public function test_malformed_method_override_header_does_not_break_instrumentation(): void
+    {
+        $this->router()->post('/', fn () => response('ok'));
+
+        // `_method`/`X-HTTP-METHOD-OVERRIDE` values that aren't plain letters
+        // make Symfony's Request::getMethod() throw a SuspiciousOperationException.
+        // The Kernel::handle pre-hook must not let that propagate, since it runs
+        // before Laravel's own exception handling is engaged.
+        $response = $this->call('POST', '/', server: ['HTTP_X_HTTP_METHOD_OVERRIDE' => '__construct']);
+
+        $this->assertSame(200, $response->status());
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame('POST /', $span->getName());
+    }
+
     public function test_unknown_sql_operation_span_name(): void
     {
         $this->router()->get('/pragma', function () {
