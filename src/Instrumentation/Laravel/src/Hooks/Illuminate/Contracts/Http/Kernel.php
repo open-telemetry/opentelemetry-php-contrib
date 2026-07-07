@@ -118,13 +118,7 @@ class Kernel implements LaravelHook
         return $query ? $path . '?' . $query : $path;
     }
 
-    /**
-     * $request->method()/getMethod() throws SuspiciousOperationException for a
-     * malformed method override (e.g. a hostile `_method` or
-     * `X-HTTP-METHOD-OVERRIDE` value). Instrumentation must not raise on
-     * hostile input, since this hook runs before the framework's own
-     * exception handling is engaged.
-     */
+    // getMethod() throws on a malformed override; this hook runs pre-boot, before Laravel's own exception handling.
     private function httpMethod(Request $request): string
     {
         try {
@@ -134,11 +128,7 @@ class Kernel implements LaravelHook
         }
     }
 
-    /**
-     * getHost() throws SuspiciousOperationException for a Host header that
-     * fails validation (e.g. invalid characters, or a mismatch against
-     * trusted host patterns). See httpMethod() for why this must not throw.
-     */
+    // getHost() has the same pre-boot throw risk for an invalid Host header; see httpMethod() above.
     private function httpHostName(Request $request): string
     {
         try {

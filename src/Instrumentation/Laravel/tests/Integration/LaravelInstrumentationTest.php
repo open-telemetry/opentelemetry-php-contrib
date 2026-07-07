@@ -159,10 +159,7 @@ class LaravelInstrumentationTest extends TestCase
     {
         $this->router()->post('/', fn () => response('ok'));
 
-        // `_method`/`X-HTTP-METHOD-OVERRIDE` values that aren't plain letters
-        // make Symfony's Request::getMethod() throw a SuspiciousOperationException.
-        // The Kernel::handle pre-hook must not let that propagate, since it runs
-        // before Laravel's own exception handling is engaged.
+        // Triggers Symfony's SuspiciousOperationException in getMethod(); see Kernel::httpMethod().
         $response = $this->call('POST', '/', server: ['HTTP_X_HTTP_METHOD_OVERRIDE' => '__construct']);
 
         $this->assertSame(200, $response->status());
