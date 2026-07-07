@@ -118,7 +118,6 @@ class Kernel implements LaravelHook
         return $query ? $path . '?' . $query : $path;
     }
 
-    // getMethod() throws on a malformed override; this hook runs pre-boot, before Laravel's own exception handling.
     private function httpMethod(Request $request): string
     {
         try {
@@ -128,7 +127,6 @@ class Kernel implements LaravelHook
         }
     }
 
-    // getHost() has the same pre-boot throw risk for an invalid Host header; see httpMethod() above.
     private function httpHostName(Request $request): string
     {
         try {
