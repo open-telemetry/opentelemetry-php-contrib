@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration;
 
 use Exception;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -166,6 +168,23 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
         $this->assertSame('POST /', $span->getName());
+    }
+
+    public function test_malformed_host_header_does_not_break_instrumentation(): void
+    {
+        $this->router()->get('/', fn () => response('ok'));
+
+        // `Request::create()`'s URI parsing always overwrites HTTP_HOST, so the
+        // header has to be forced onto the request after construction.
+        $request = Request::create('/');
+        $request->headers->set('HOST', 'evil host!.example.com');
+
+        $response = $this->app->make(HttpKernel::class)->handle($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame('', $span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
     }
 
     public function test_unknown_sql_operation_span_name(): void

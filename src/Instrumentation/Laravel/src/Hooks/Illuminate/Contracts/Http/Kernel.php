@@ -56,7 +56,7 @@ class Kernel implements LaravelHook
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, $request->fullUrl())
+                        ->setAttribute(TraceAttributes::URL_FULL, $this->httpFullUrl($request))
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $method)
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
@@ -127,18 +127,27 @@ class Kernel implements LaravelHook
         }
     }
 
-    private function httpHostName(Request $request): string
+    private function httpFullUrl(Request $request): string
     {
         try {
-            if (method_exists($request, 'host')) {
-                return $request->host();
-            }
-
-            if (method_exists($request, 'getHost')) {
-                return $request->getHost();
-            }
+            return $request->fullUrl();
         } catch (Throwable) {
             return '';
+        }
+    }
+
+    private function httpHostName(Request $request): string
+    {
+        if (method_exists($request, 'host')) {
+            try {
+                return $request->host();
+            } catch (Throwable) {
+                return '';
+            }
+        }
+
+        if (method_exists($request, 'getHost')) {
+            return $request->getHost();
         }
 
         return '';
