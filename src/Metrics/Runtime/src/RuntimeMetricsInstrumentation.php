@@ -16,6 +16,8 @@ class RuntimeMetricsInstrumentation implements Instrumentation
         $config = $configuration->get(RuntimeMetricsConfig::class);
         $disabled = $config instanceof RuntimeMetricsConfig ? $config->disabled : [];
 
-        RuntimeMetrics::register($context->meterProvider, $disabled);
+$config = $configuration->get(RuntimeMetricsConfig::class) ?? new RuntimeMetricsConfig();
+
+RuntimeMetrics::register($context->meterProvider, $config);
     }
 }
