@@ -10,6 +10,7 @@ use OpenTelemetry\API\Metrics\ObservableCounterInterface;
 use OpenTelemetry\API\Metrics\ObservableGaugeInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
 use OpenTelemetry\Contrib\Metrics\Runtime\GarbageCollectionMetrics;
+use const PHP_VERSION_ID;
 use PHPUnit\Framework\TestCase;
 
 class GarbageCollectionMetricsTest extends TestCase
@@ -23,7 +24,7 @@ class GarbageCollectionMetricsTest extends TestCase
             ->method('createObservableCounter')
             ->willReturn($this->createMock(ObservableCounterInterface::class));
 
-        $meter->expects($this->exactly(2))
+        $meter->expects($this->exactly(PHP_VERSION_ID >= 80300 ? 3 : 2))
             ->method('createObservableGauge')
             ->willReturn($this->createMock(ObservableGaugeInterface::class));
 
@@ -110,6 +111,7 @@ class GarbageCollectionMetricsTest extends TestCase
 
         $callbacks[1](
             $collectorObs,
+            $this->createMock(ObserverInterface::class),
             $this->createMock(ObserverInterface::class),
             $this->createMock(ObserverInterface::class),
         );

@@ -68,6 +68,7 @@ RuntimeMetrics::register($meterProvider, new RuntimeMetricsConfig(disabled: ['op
 | `php.gc.collector_time` | Counter | `s` | Cumulative time spent in the GC collector. **PHP 8.3+** |
 | `php.gc.destructor_time` | Counter | `s` | Cumulative time spent running destructors during GC. **PHP 8.3+** |
 | `php.gc.free_time` | Counter | `s` | Cumulative time spent freeing memory during GC. **PHP 8.3+** |
+| `process.uptime` | Gauge | `s` | The time the process has been running. **PHP 8.3+** |
 
 ### OPcache (`opcache`)
 

@@ -73,12 +73,18 @@ class GarbageCollectionMetrics
                 's',
                 'Cumulative time spent freeing memory during GC',
             );
+            $processUptime = $meter->createObservableGauge(
+                'process.uptime',
+                's',
+                'The time the process has been running',
+            );
 
             $meter->batchObserve(
                 static function (
                     ObserverInterface $collectorObs,
                     ObserverInterface $destructorObs,
                     ObserverInterface $freeObs,
+                    ObserverInterface $uptimeObs,
                 ): void {
                     /** @var array<string, int|float> $status */
                     $status = gc_status();
@@ -88,10 +94,13 @@ class GarbageCollectionMetrics
                     $destructorObs->observe($status['destructor_time']);
                     // @phan-suppress-next-line PhanTypeInvalidDimOffset, PhanTypeMismatchArgument -- fields added in PHP 8.3
                     $freeObs->observe($status['free_time']);
+                    // @phan-suppress-next-line PhanTypeInvalidDimOffset, PhanTypeMismatchArgument -- fields added in PHP 8.3
+                    $uptimeObs->observe($status['application_time']);
                 },
                 $collectorTime,
                 $destructorTime,
                 $freeTime,
+                $processUptime,
             );
         }
     }
