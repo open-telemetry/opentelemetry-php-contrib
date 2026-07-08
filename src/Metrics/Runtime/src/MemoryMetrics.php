@@ -24,8 +24,9 @@ class MemoryMetrics
             )
             ->observe(static function (ObserverInterface $observer): void {
                 $emalloc = memory_get_usage(false);
+                $real = memory_get_usage(true);
                 $observer->observe($emalloc, ['memory.type' => 'emalloc']);
-                $observer->observe(memory_get_usage(true) - $emalloc, ['memory.type' => 'overhead']);
+                $observer->observe($real - $emalloc, ['memory.type' => 'overhead']);
             });
 
         $meter
@@ -36,19 +37,22 @@ class MemoryMetrics
             )
             ->observe(static function (ObserverInterface $observer): void {
                 $emalloc = memory_get_peak_usage(false);
+                $real = memory_get_peak_usage(true);
                 $observer->observe($emalloc, ['memory.type' => 'emalloc']);
-                $observer->observe(memory_get_peak_usage(true) - $emalloc, ['memory.type' => 'overhead']);
+                $observer->observe($real - $emalloc, ['memory.type' => 'overhead']);
             });
 
         $meter
             ->createObservableGauge(
                 'php.memory.limit',
                 'By',
-                'Memory limit configured in php.ini (-1 means unlimited)',
+                'Memory limit configured in php.ini',
             )
             ->observe(static function (ObserverInterface $observer): void {
-                $limit = ini_get('memory_limit') ?: '-1';
-                $observer->observe(ini_parse_quantity($limit));
+                $limit = self::parseMemoryLimit(ini_get('memory_limit') ?: '-1');
+                if ($limit >= 0) {
+                    $observer->observe($limit);
+                }
             });
     }
 
