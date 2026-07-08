@@ -14,10 +14,8 @@ class RuntimeMetricsInstrumentation implements Instrumentation
     public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, Context $context): void
     {
         $config = $configuration->get(RuntimeMetricsConfig::class);
-        $disabled = $config instanceof RuntimeMetricsConfig ? $config->disabled : [];
+        $config = $config instanceof RuntimeMetricsConfig ? $config : new RuntimeMetricsConfig();
 
-$config = $configuration->get(RuntimeMetricsConfig::class) ?? new RuntimeMetricsConfig();
-
-RuntimeMetrics::register($context->meterProvider, $config);
+        RuntimeMetrics::register($context->meterProvider, $config);
     }
 }

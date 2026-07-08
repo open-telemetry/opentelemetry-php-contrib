@@ -11,6 +11,7 @@ use OpenTelemetry\API\Metrics\ObservableCounterInterface;
 use OpenTelemetry\API\Metrics\ObservableGaugeInterface;
 use OpenTelemetry\API\Metrics\ObservableUpDownCounterInterface;
 use OpenTelemetry\Contrib\Metrics\Runtime\RuntimeMetrics;
+use OpenTelemetry\Contrib\Metrics\Runtime\RuntimeMetricsConfig;
 use PHPUnit\Framework\TestCase;
 
 class RuntimeMetricsTest extends TestCase
@@ -60,7 +61,7 @@ class RuntimeMetricsTest extends TestCase
                 return $this->makeMeter();
             });
 
-        RuntimeMetrics::register($meterProvider, ['memory']);
+        RuntimeMetrics::register($meterProvider, new RuntimeMetricsConfig(['memory']));
 
         $this->assertNotContains('io.opentelemetry.contrib.php.runtime.memory', $requestedNames);
     }
@@ -70,6 +71,6 @@ class RuntimeMetricsTest extends TestCase
         $meterProvider = $this->createMock(MeterProviderInterface::class);
         $meterProvider->expects($this->never())->method('getMeter');
 
-        RuntimeMetrics::register($meterProvider, ['memory', 'gc', 'opcache', 'cpu']);
+        RuntimeMetrics::register($meterProvider, new RuntimeMetricsConfig(['memory', 'gc', 'opcache', 'cpu']));
     }
 }

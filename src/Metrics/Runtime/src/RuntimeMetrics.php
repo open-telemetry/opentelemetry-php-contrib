@@ -20,16 +20,15 @@ class RuntimeMetrics
      * Each group gets its own meter (io.opentelemetry.contrib.php.runtime.{group}),
      * which allows disabling them via SDK meter configurators or views in OTEL_CONFIG_FILE.
      *
-     * Individual groups can also be disabled by passing their names in $disabled.
+     * Individual groups can also be disabled via $config->disabled.
      * Valid group names: memory, gc, opcache, cpu
      *
      * OPcache and CPU metrics are also skipped when the underlying PHP
-     * functions are unavailable, regardless of $disabled.
-     *
-     * @param list<string> $disabled
+     * functions are unavailable, regardless of $config->disabled.
      */
-    public static function register(MeterProviderInterface $meterProvider, array $disabled = []): void
+    public static function register(MeterProviderInterface $meterProvider, RuntimeMetricsConfig $config = new RuntimeMetricsConfig()): void
     {
+        $disabled = $config->disabled;
         $version = InstalledVersions::getPrettyVersion('open-telemetry/opentelemetry-metrics-runtime');
         $schemaUrl = Version::VERSION_1_38_0->url();
 

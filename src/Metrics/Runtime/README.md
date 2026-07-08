@@ -39,11 +39,12 @@ If you need to control when metrics are registered:
 
 ```php
 use OpenTelemetry\Contrib\Metrics\Runtime\RuntimeMetrics;
+use OpenTelemetry\Contrib\Metrics\Runtime\RuntimeMetricsConfig;
 
 RuntimeMetrics::register($meterProvider);
 
 // Optionally, disable individual groups (memory, gc, opcache, cpu):
-RuntimeMetrics::register($meterProvider, disabled: ['opcache', 'cpu']);
+RuntimeMetrics::register($meterProvider, new RuntimeMetricsConfig(disabled: ['opcache', 'cpu']));
 ```
 
 ## Metrics
