@@ -33,7 +33,7 @@ final class InstrumentationConfigurationRuntimeMetricsConfig implements EnvCompo
     {
         $disabledInstrumentations = $env->list('OTEL_PHP_DISABLED_INSTRUMENTATIONS') ?? [];
 
-        if (in_array('all', $disabledInstrumentations, true) || in_array(RuntimeMetrics::NAME, $disabledInstrumentations, true)) {
+        if ($disabledInstrumentations === ['all'] || in_array(RuntimeMetrics::NAME, $disabledInstrumentations, true)) {
             return new RuntimeMetricsConfig(self::GROUPS);
         }
 
