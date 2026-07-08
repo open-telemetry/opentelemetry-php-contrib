@@ -1,0 +1,52 @@
+name: "[CI] Laravel"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Instrumentation/Laravel/**'
+
+  pull_request:
+    paths:
+      - 'src/Instrumentation/Laravel/**'
+
+  # To call from https://github.com/opentelemetry-php/contrib-auto-laravel repo/forks.
+  workflow_call:
+    inputs:
+      package-root:
+        type: string
+        required: true
+
+jobs:
+  CI:
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.1
+          - 8.2
+          - 8.3
+          - 8.4
+        laravel-version:
+          - 10.x
+          - 11.x
+          - 12.x
+          - 13.x
+
+        exclude:
+          - php-version: 8.1
+            laravel-version: 11.x
+          - php-version: 8.1
+            laravel-version: 12.x
+          - php-version: 8.1
+            laravel-version: 13.x
+          - php-version: 8.2
+            laravel-version: 13.x
+
+    uses: ./.github/workflows/php-contrib.yml
+    with:
+      job-name: "PHP ${{ matrix.php-version }}: Laravel ${{ matrix.laravel-version }}"
+      codecov-flags: 'Instrumentation/Laravel'
+      package-root: ${{ inputs.package-root || 'src/Instrumentation/Laravel' }}
+      php-version: ${{ matrix.php-version }}
+      composer-requires: "laravel/laravel:${{ matrix.laravel-version }}"

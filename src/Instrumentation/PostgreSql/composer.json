@@ -1,6 +1,5 @@
 {
   "name": "open-telemetry/opentelemetry-auto-postgresql",
-  "version": "dev-main",
   "description": "OpenTelemetry auto-instrumentation for postgresql",
   "keywords": [
     "opentelemetry",

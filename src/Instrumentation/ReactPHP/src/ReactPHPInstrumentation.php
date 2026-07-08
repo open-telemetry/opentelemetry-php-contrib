@@ -82,7 +82,7 @@ class ReactPHPInstrumentation
      *
      * @see https://opentelemetry.io/docs/specs/semconv/attributes-registry/url/#url-query
      */
-    private const URL_QUERY_REDACT_KEYS = ['AWSAccessKeyId', 'Signature', 'sig', 'X-Goog-Signature'];
+    private const URL_QUERY_REDACT_KEYS = ['X-Amz-Signature', 'X-Amz-Credential', 'X-Amz-Security-Token', 'sig', 'X-Goog-Signature'];
     /**
      * Value used to replace any sensitive content in the URL.
      *

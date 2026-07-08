@@ -1,0 +1,9 @@
+name: Contrib CI Pipeline
+on:
+  workflow_dispatch:
+
+jobs:
+  CI:
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-ext-rdkafka.yml@main
+    with:
+      package-root: '.'

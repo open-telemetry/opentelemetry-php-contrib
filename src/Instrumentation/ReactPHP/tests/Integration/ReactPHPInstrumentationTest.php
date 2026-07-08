@@ -118,10 +118,10 @@ class ReactPHPInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $this->assertSame('http://REDACTED@example.com/success', $span->getAttributes()->get(TraceAttributes::URL_FULL));
 
-        $this->browser->request('GET', 'http://username:password@example.com/success?Signature=private')->then();
+        $this->browser->request('GET', 'http://username:password@example.com/success?sig=private')->then();
 
         $span = $this->storage->offsetGet(1);
-        $this->assertSame('http://REDACTED:REDACTED@example.com/success?Signature=REDACTED', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertSame('http://REDACTED:REDACTED@example.com/success?sig=REDACTED', $span->getAttributes()->get(TraceAttributes::URL_FULL));
     }
 
     public function test_fulfilled_promise_with_custom_redactions(): void
@@ -166,7 +166,8 @@ class ReactPHPInstrumentationTest extends TestCase
 
     public function test_rejected_promise_with_response_exception(): void
     {
-        $this->browser->request('GET', 'http://example.com/network_error')->then(null, function () {});
+        $this->browser->request('GET', 'http://example.com/network_error')->then(null, function () {
+        });
 
         $span = $this->storage->offsetGet(0);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
@@ -181,7 +182,8 @@ class ReactPHPInstrumentationTest extends TestCase
 
     public function test_rejected_promise_with_unknown_exception(): void
     {
-        $this->browser->request('GET', 'http://example.com/unknown_error')->then(null, function () {});
+        $this->browser->request('GET', 'http://example.com/unknown_error')->then(null, function () {
+        });
 
         $span = $this->storage->offsetGet(0);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());

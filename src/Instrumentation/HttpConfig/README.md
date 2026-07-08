@@ -43,14 +43,14 @@ instrumentation/development:
         - default:
         - redact_query_string_values:
             query_keys: [ passwd, secret ]
-      known_http_methods: [ CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE, CUSTOM ]
+      known_http_methods: [ CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, QUERY, TRACE, CUSTOM ]
 ```
 
 ### Env-based configuration
 
 ```dotenv
 OTEL_PHP_INSTRUMENTATION_URL_SANITIZE_FIELD_NAMES="passwd,secret"
-OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS="CONNECT,DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT,TRACE,CUSTOM"
+OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS="CONNECT,DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT,QUERY,TRACE,CUSTOM"
 ```
 
 ## Usage

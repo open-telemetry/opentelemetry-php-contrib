@@ -38,6 +38,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-io.git"
   - prefix: "src/Instrumentation/Laravel"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-laravel.git"
+  - prefix: "src/Instrumentation/Magento2"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-magento2.git"
   - prefix: "src/Instrumentation/MongoDB"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-auto-mongodb.git"
   - prefix: "src/Instrumentation/MySqli"

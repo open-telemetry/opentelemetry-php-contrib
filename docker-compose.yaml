@@ -1,3 +1,5 @@
+# This docker compose stack is used as part of the shared .github/workflows/php-contrib.yml
+
 services:
   php:
     # the developer image comes from opentelemetry-php (the core repository), and is built by github actions
@@ -17,11 +19,12 @@ services:
       POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgresql}
 
   zipkin:
-    image: openzipkin/zipkin-slim@sha256:fc29b9862c14f4fc241cf0259c585e1cfd4e9b18f01ad36d86adaabb7d01815c
+    image: openzipkin/zipkin-slim:3.6.1@sha256:fc29b9862c14f4fc241cf0259c585e1cfd4e9b18f01ad36d86adaabb7d01815c
     ports:
     - 9411:9411
+
   jaeger:
-    image: jaegertracing/all-in-one@sha256:ab6f1a1f0fb49ea08bcd19f6b84f6081d0d44b364b6de148e1798eb5816bacac
+    image: jaegertracing/all-in-one:1.76.0@sha256:ab6f1a1f0fb49ea08bcd19f6b84f6081d0d44b364b6de148e1798eb5816bacac
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: 9412
     ports:
@@ -29,13 +32,13 @@ services:
     - 16686:16686
 
   collector:
-    image: otel/opentelemetry-collector-contrib@sha256:b3079f45e19bdb7326bf49cdddce6cf60dfd865138db39f2733ea48ab17bc4cb # 0.151.0
+    image: otel/opentelemetry-collector-contrib:0.155.0@sha256:4935caa35e9a4cb387e35732e8fb22b2b5759af8d12e7043357f03837f6e8df5
     command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./files/collector/otel-collector-config.yml:/etc/otel-collector-config.yml
 
   rabbitmq:
-    image: rabbitmq:3@sha256:87178a0ee3e2f52980ba356d38646ed1056705ff2d5ff281f8965456eaa0c1e3
+    image: rabbitmq:3.13.7@sha256:87178a0ee3e2f52980ba356d38646ed1056705ff2d5ff281f8965456eaa0c1e3
     hostname: rabbitmq
     healthcheck:
       test: rabbitmq-diagnostics -q ping
@@ -44,8 +47,9 @@ services:
       retries: 3
     ports:
       - "5672:5672/tcp"
+
   kafka:
-    image: confluentinc/cp-kafka:7.9.7@sha256:d879d4b81bccb61c9b11f2e69dfcbc4219ea474f6c0df48cc89e75efed82cecb
+    image: apache/kafka-native:4.3.1@sha256:2885898ba17065023f1bd605f3a81efcfa986014f062b73b91ef5462485f9060
     hostname: kafka
     ports:
       - "9092:9092/tcp"
@@ -58,18 +62,15 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    command: "bash -c '/tmp/update_run.sh && /etc/confluent/docker/run'"
-    volumes:
-      - ./docker/kafka/update_run.sh:/tmp/update_run.sh
 
   mongodb:
-    image: mongo:4@sha256:52c42cbab240b3c5b1748582cc13ef46d521ddacae002bbbda645cebed270ec0
+    image: mongo:4.4.30@sha256:4be76f674fc4b27859816811b8baa3c51830eb1dbf4ca81a51e26b79edd662ef
     hostname: mongodb
     ports:
       - "27017:27017/tcp"
 
   mysql:
-    image: mysql:8.4@sha256:d36d39a64cd12a5c1cc9e6aa2bfb5f8d4c81a2f6586e0a04a9ae13939db02209
+    image: mysql:8.4.10@sha256:d36d39a64cd12a5c1cc9e6aa2bfb5f8d4c81a2f6586e0a04a9ae13939db02209
     hostname: mysql
     ports:
       - "3306:3306/tcp"
