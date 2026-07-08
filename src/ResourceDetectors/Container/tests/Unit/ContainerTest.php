@@ -130,4 +130,22 @@ EOS;
 
         $this->assertEmpty($resource->getAttributes());
     }
+
+    public function test_no_cgroup_files(): void
+    {
+        $root = vfsStream::setup('empty_root');
+        $detector = new Container($root->url());
+        $resource = $detector->getResource();
+
+        $this->assertEmpty($resource->getAttributes());
+    }
+
+    public function test_v1_cgroup_with_colon_in_section(): void
+    {
+        $data = "14:name=systemd:/docker/scope:abc123\n";
+        $this->cgroup->setContent($data);
+        $resource = $this->detector->getResource();
+
+        $this->assertSame(':abc123', $resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
+    }
 }

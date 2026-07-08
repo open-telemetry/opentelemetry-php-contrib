@@ -120,4 +120,10 @@ class UtilsTest extends TestCase
             ['10', 10, 16, 'a'],
         ];
     }
+
+    public function test_base_convert_invalid_character() : void
+    {
+        $result = Utils::baseConvert('!@#', 16, 10);
+        $this->assertSame('', $result);
+    }
 }

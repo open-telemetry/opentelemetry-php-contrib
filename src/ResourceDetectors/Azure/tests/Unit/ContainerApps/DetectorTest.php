@@ -48,4 +48,11 @@ class DetectorTest extends TestCase
             $detector->getResource()->getAttributes()
         );
     }
+
+    public function test_returns_empty_resource_when_env_vars_missing()
+    {
+        $detector = new Detector();
+        $resource = @$detector->getResource();
+        $this->assertCount(0, $resource->getAttributes());
+    }
 }
