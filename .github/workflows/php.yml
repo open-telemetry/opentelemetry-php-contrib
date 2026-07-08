@@ -57,7 +57,7 @@ jobs:
           'Instrumentation/Symfony',
           'Instrumentation/Yii',
           'Logs/Monolog',
-          'Metrics/Runtime',
+          # 'Metrics/Runtime', # Experiment: moved to metrics-runtime.yml
           'Propagation/CloudTrace',
           'Propagation/Instana',
           'Propagation/ServerTiming',
