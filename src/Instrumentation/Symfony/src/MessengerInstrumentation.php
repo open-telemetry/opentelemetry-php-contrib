@@ -14,6 +14,7 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 /**
@@ -60,13 +61,23 @@ final class MessengerInstrumentation
             ) use ($instrumentation): array {
                 /** @var object|Envelope $message */
                 $message = $params[0];
+
+                // A message dispatched by a worker after being pulled from a transport
+                // carries a ReceivedStamp. That is the consumer side of messaging, so it
+                // must be a CONSUMER span; a plain dispatch is the producer side. For an
+                // Envelope, report the wrapped message class rather than Envelope. See #1314.
+                $isReceiving = false;
                 $messageClass = \get_class($message);
+                if ($message instanceof Envelope) {
+                    $messageClass = \get_class($message->getMessage());
+                    $isReceiving = $message->last(ReceivedStamp::class) !== null;
+                }
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_PRODUCER)
+                    ->spanBuilder(\sprintf('%s %s', $isReceiving ? 'CONSUME' : 'DISPATCH', $messageClass))
+                    ->setSpanKind($isReceiving ? SpanKind::KIND_CONSUMER : SpanKind::KIND_PRODUCER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)

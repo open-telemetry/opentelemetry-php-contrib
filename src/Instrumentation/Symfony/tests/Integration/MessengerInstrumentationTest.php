@@ -9,6 +9,7 @@ use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Messenger\Transport\InMemoryTransport as LegacyInMemoryTransport;
 use Symfony\Component\Messenger\Transport\TransportInterface;
@@ -70,6 +71,28 @@ final class MessengerInstrumentationTest extends AbstractTest
             $this->assertTrue($span->getAttributes()->has($key), sprintf('Attribute %s not found', $key));
             $this->assertEquals($value, $span->getAttributes()->get($key));
         }
+    }
+
+    public function test_dispatch_of_received_message_is_a_consumer_span()
+    {
+        $bus = $this->getMessenger();
+
+        // A worker re-dispatches a message pulled from a transport with a ReceivedStamp.
+        $envelope = (new Envelope(new SendEmailMessage('Hello Again')))->with(new ReceivedStamp('async'));
+        $bus->dispatch($envelope);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+
+        $this->assertEquals(
+            'CONSUME OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+            $span->getName(),
+        );
+        $this->assertEquals(SpanKind::KIND_CONSUMER, $span->getKind());
+        $this->assertEquals(
+            'OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\SendEmailMessage',
+            $span->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSENGER_MESSAGE),
+        );
     }
 
     /**
