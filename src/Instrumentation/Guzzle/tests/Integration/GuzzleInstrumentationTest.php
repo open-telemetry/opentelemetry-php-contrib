@@ -252,6 +252,33 @@ class GuzzleInstrumentationTest extends TestCase
         }
     }
 
+    /**
+     * @link https://github.com/open-telemetry/opentelemetry-php/issues/1988
+     */
+    public function test_post_hook_when_transfer_throws_synchronously(): void
+    {
+        $this->assertCount(0, $this->storage);
+
+        // A numerically-indexed "headers" option makes Client::applyOptions()
+        // throw InvalidArgumentException synchronously inside transfer(), before
+        // a promise is returned. send()/sendAsync() must be used here: the get()
+        // magic method routes through requestAsync(), which unsets the headers
+        // option before transfer() is called, so applyOptions() never sees it.
+        $request = new Request('GET', 'https://example.com/foo');
+
+        try {
+            $this->client->send($request, ['headers' => ['invalid']]);
+            $this->fail('Expected InvalidArgumentException was not thrown');
+        } catch (\InvalidArgumentException $e) {
+            // expected
+        }
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage->offsetGet(0);
+        assert($span instanceof ImmutableSpan);
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+    }
+
     public static function exceptionProvider(): array
     {
         return [
