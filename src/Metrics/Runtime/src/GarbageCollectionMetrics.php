@@ -6,6 +6,7 @@ namespace OpenTelemetry\Contrib\Metrics\Runtime;
 
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
+use const PHP_SAPI;
 use const PHP_VERSION_ID;
 
 /**
@@ -86,8 +87,11 @@ class GarbageCollectionMetrics
                 $destructorObs->observe($status['destructor_time']);
                 // @phan-suppress-next-line PhanTypeInvalidDimOffset, PhanTypeMismatchArgument -- fields added in PHP 8.3
                 $freeObs->observe($status['free_time']);
-                // @phan-suppress-next-line PhanTypeInvalidDimOffset, PhanTypeMismatchArgument -- fields added in PHP 8.3
-                $uptimeObs->observe($status['application_time']);
+
+                if (PHP_SAPI === 'cli') {
+                    // @phan-suppress-next-line PhanTypeInvalidDimOffset, PhanTypeMismatchArgument -- fields added in PHP 8.3
+                    $uptimeObs->observe($status['application_time']);
+                }
             },
             $runs,
             $collected,
