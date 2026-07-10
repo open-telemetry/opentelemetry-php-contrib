@@ -10,6 +10,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-instrumentation-installer.git"
   - prefix: "src/Aws"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-aws.git"
+  - prefix: "src/Context/Revolt"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-revolt.git"
   - prefix: "src/Context/Swoole"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/context-swoole.git"
   - prefix: "src/Exporter/Instana"
