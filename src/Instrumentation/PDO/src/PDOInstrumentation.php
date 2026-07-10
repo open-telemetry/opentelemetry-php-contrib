@@ -120,9 +120,6 @@ class PDOInstrumentation
                 // when sqlcommenter is present: converting would replace non-UTF-8 bytes with `?`
                 // and corrupt binary literals (BINARY/VARBINARY/BLOB) on the wire. See #1960.
                 $displayQuery = is_string($query) ? mb_convert_encoding($query, 'UTF-8') : self::UNDEFINED;
-                if (!is_string($displayQuery)) {
-                    $displayQuery = self::UNDEFINED;
-                }
                 if ($class === PDO::class) {
                     $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $displayQuery);
                 }
@@ -181,9 +178,6 @@ class PDOInstrumentation
                 // when sqlcommenter is present: converting would replace non-UTF-8 bytes with `?`
                 // and corrupt binary literals (BINARY/VARBINARY/BLOB) on the wire. See #1960.
                 $displayQuery = is_string($query) ? mb_convert_encoding($query, 'UTF-8') : self::UNDEFINED;
-                if (!is_string($displayQuery)) {
-                    $displayQuery = self::UNDEFINED;
-                }
                 if ($class === PDO::class) {
                     $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $displayQuery);
                 }
