@@ -54,10 +54,22 @@ class CurlHandleMetadata
         if (count($this->headersToPropagate) == 0) {
             return null;
         }
-        $headers = array_merge($this->headersToPropagate, $this->headers);
+
+        // Deduplicate by header name (case-insensitive), so that a header already present on the
+        // handle (e.g. injected upstream by another instrumentation such as auto-guzzle/auto-psr18)
+        // does not end up duplicated alongside the value we're about to inject here.
+        $headers = [];
+        foreach ($this->headers as $header) {
+            $name = strtolower(trim(explode(':', $header, 2)[0]));
+            $headers[$name] = $header;
+        }
+        foreach ($this->headersToPropagate as $header) {
+            $name = strtolower(trim(explode(':', $header, 2)[0]));
+            $headers[$name] = $header;
+        }
         $this->headersToPropagate = [];
 
-        return $headers;
+        return array_values($headers);
     }
 
     public function getCapturedResponseHeaders(): array
