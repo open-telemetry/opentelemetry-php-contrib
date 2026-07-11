@@ -41,4 +41,15 @@ class LaravelInstrumentation
             && Configuration::getBoolean('OTEL_PHP_TRACE_CLI_ENABLED', false)
         );
     }
+
+    /**
+     * Trace context (and, in future, baggage) is only injected into outbound HTTP client requests
+     * when explicitly opted into, since the target of those requests may be a third-party service
+     * outside the application's control that should not receive internal trace/baggage data.
+     */
+    public static function shouldPropagateHttpClientTraceContext(): bool
+    {
+        return class_exists(Configuration::class)
+            && Configuration::getBoolean('OTEL_PHP_INSTRUMENTATION_LARAVEL_HTTP_CLIENT_PROPAGATION_ENABLED', false);
+    }
 }
