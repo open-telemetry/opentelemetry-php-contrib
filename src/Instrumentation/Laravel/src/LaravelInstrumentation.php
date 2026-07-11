@@ -27,6 +27,7 @@ class LaravelInstrumentation
         Hooks\Illuminate\Contracts\Queue\Queue::hook($instrumentation);
         Hooks\Illuminate\Foundation\Application::hook($instrumentation);
         Hooks\Illuminate\Foundation\Console\ServeCommand::hook($instrumentation);
+        Hooks\Illuminate\Http\Client\PendingRequest::hook($instrumentation);
         Hooks\Illuminate\Queue\SyncQueue::hook($instrumentation);
         Hooks\Illuminate\Queue\Queue::hook($instrumentation);
         Hooks\Illuminate\Queue\Worker::hook($instrumentation);
