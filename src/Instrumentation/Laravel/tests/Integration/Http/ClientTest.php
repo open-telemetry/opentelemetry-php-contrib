@@ -46,6 +46,32 @@ class ClientTest extends TestCase
         self::assertEquals(StatusCode::STATUS_UNSET, $span->getStatus()->getCode());
     }
 
+    public function test_it_injects_trace_context_into_outbound_requests(): void
+    {
+        Http::fake();
+
+        // A span must be active for there to be any trace context to propagate downstream,
+        // just as there would be one from the incoming request/command/job being traced.
+        $parent = $this->tracerProvider->getTracer('test')->spanBuilder('parent')->startSpan();
+        $scope = $parent->activate();
+
+        try {
+            Http::get('http://propagation.opentelemetry.io');
+        } finally {
+            $scope->detach();
+            $parent->end();
+        }
+
+        // Asserted separately from the header check below so a failure here points at the request
+        // never reaching PendingRequest::runBeforeSendingCallbacks(), rather than at the injected
+        // value being wrong.
+        Http::assertSentCount(1);
+
+        $traceparent = sprintf('00-%s-%s-01', $parent->getContext()->getTraceId(), $parent->getContext()->getSpanId());
+
+        Http::assertSent(static fn (Request $request): bool => $request->header('traceparent') === [$traceparent]);
+    }
+
     public function test_it_records_connection_failures(): void
     {
         Http::fake(fn (Request $request) => new RejectedPromise(new ConnectException('Failure', $request->toPsrRequest())));
