@@ -9,8 +9,6 @@ use Aws\Middleware;
 use Aws\ResultInterface;
 use Closure;
 use GuzzleHttp\Promise;
-use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
-use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
@@ -23,14 +21,14 @@ use Throwable;
 /**
  * @experimental
  */
-class AwsSdkInstrumentation implements InstrumentationInterface
+class AwsSdkInstrumentation
 {
-    use InstrumentationTrait;
-
     public const NAME = 'AWS SDK Instrumentation';
     public const VERSION = '0.0.1';
     public const SPAN_KIND = SpanKind::KIND_CLIENT;
 
+    private TextMapPropagatorInterface $propagator;
+    private TracerProviderInterface $tracerProvider;
     private array $clients = [];
 
     private array $instrumentedClients = [];
