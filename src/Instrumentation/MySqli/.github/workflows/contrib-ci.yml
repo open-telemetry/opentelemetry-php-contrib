@@ -4,6 +4,6 @@ on:
 
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-mysqli.yml@main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-mysqli.yml@03b5f937fb52995080ca2a94e7b3ea790cc470d5 # main
     with:
       package-root: '.'
