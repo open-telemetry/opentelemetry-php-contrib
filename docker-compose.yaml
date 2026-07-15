@@ -70,7 +70,7 @@ services:
       - "27017:27017/tcp"
 
   mysql:
-    image: mysql:8.4.10@sha256:d36d39a64cd12a5c1cc9e6aa2bfb5f8d4c81a2f6586e0a04a9ae13939db02209
+    image: mysql:8.4.10@sha256:c831a0f11348d402b43d77453e17d770be2eef356615a2823fe0f5a0d6c8b9af
     hostname: mysql
     ports:
       - "3306:3306/tcp"
@@ -88,7 +88,7 @@ services:
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   postgresql:
-    image: postgres:17.10@sha256:ef92240eff6b0bcce8ccf038c2edcd0d8fd8ef90621849993b8c8995881ab09a
+    image: postgres:17.10@sha256:ebba4f4de37f08f138f97c1443c987a435e783177afedcc4aaf2da1930fbc37a
     hostname: postgresql
     ports:
       - "5432:5432/tcp"
