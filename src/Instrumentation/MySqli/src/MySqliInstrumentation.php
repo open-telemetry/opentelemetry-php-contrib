@@ -447,26 +447,32 @@ class MySqliInstrumentation
         $span = self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, []);
         $mysqli = $obj ? $obj : $params[0];
         $query = $obj ? $params[0] : $params[1];
-        $query = mb_convert_encoding($query ?? self::UNDEFINED, 'UTF-8');
-        if (!is_string($query)) {
-            $query = self::UNDEFINED;
+
+        // The UTF-8 conversion is only for the (protobuf-safe) span attribute. It must not
+        // be assigned back to $query, which may be returned as the executed statement when
+        // sqlcommenter is present: converting would replace non-UTF-8 bytes with `?` and
+        // corrupt binary literals (BINARY/VARBINARY/BLOB) on the wire. See #1960.
+        $displayQuery = is_string($query) ? mb_convert_encoding($query, 'UTF-8') : self::UNDEFINED;
+        if (!is_string($displayQuery)) {
+            $displayQuery = self::UNDEFINED;
         }
         $span->setAttributes([
-            TraceAttributes::DB_QUERY_TEXT => $query,
-            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+            TraceAttributes::DB_QUERY_TEXT => $displayQuery,
+            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($displayQuery),
         ]);
 
         self::addTransactionLink($tracker, $span, $mysqli);
 
-        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+        if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && is_string($query)) {
             /**
              * @psalm-suppress UndefinedClass
              */
             $commenter = \OpenTelemetry\Contrib\SqlCommenter\SqlCommenter::getInstance();
+            // Inject into the raw query so binary literals are preserved on the wire.
             $query = $commenter->inject($query);
             if ($commenter->isAttributeEnabled()) {
                 $span->setAttributes([
-                    TraceAttributes::DB_QUERY_TEXT => (string) $query,
+                    TraceAttributes::DB_QUERY_TEXT => mb_convert_encoding($query, 'UTF-8'),
                 ]);
             }
             if ($obj) {
