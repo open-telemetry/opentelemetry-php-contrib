@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -143,8 +144,9 @@ class SymfonyInstrumentationTest extends AbstractTest
         $request = new Request();
         $request->attributes->set('_controller', 'ErrorController');
 
-        $response = $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
-        $kernel->terminate($request, $response);
+        // Sub-requests are never passed to terminate() by Symfony; their span is ended
+        // by the handle post-hook, so it is exported as soon as handle() returns.
+        $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
 
         $this->assertCount(1, $this->storage);
 
@@ -160,8 +162,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         // String controller
         $request = new Request();
         $request->attributes->set('_controller', 'SomeController::index');
-        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
-        $kernel->terminate($request, $response);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $this->assertSame('GET SomeController::index', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
 
@@ -169,16 +170,14 @@ class SymfonyInstrumentationTest extends AbstractTest
         $controllerObj = new class() {};
         $request = new Request();
         $request->attributes->set('_controller', [$controllerObj, 'fooAction']);
-        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
-        $kernel->terminate($request, $response);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $this->assertSame('GET ' . get_class($controllerObj) . '::fooAction', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
 
         // Array: [class, method]
         $request = new Request();
         $request->attributes->set('_controller', ['SomeClass', 'barAction']);
-        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
-        $kernel->terminate($request, $response);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $this->assertSame('GET SomeClass::barAction', $this->storage[0]->getName());
         $this->storage->exchangeArray([]);
     }
@@ -194,15 +193,14 @@ class SymfonyInstrumentationTest extends AbstractTest
         $controllerObj2 = new class() {};
         $request = new Request();
         $request->attributes->set('_controller', $controllerObj2);
-        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
-        $kernel->terminate($request, $response);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
+        $this->storage->exchangeArray([]);
 
         // Null/other controller (should fallback to 'sub-request')
         $request = new Request();
         $request->attributes->set('_controller', null);
-        $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
-        $kernel->terminate($request, $response);
+        $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
     }
 
@@ -235,6 +233,64 @@ class SymfonyInstrumentationTest extends AbstractTest
         $span = $this->storage[0];
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame(500, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    public function test_http_kernel_sub_request_scope_does_not_leak_main_span(): void
+    {
+        // Simulates Symfony's internal error-controller dispatch: a MAIN_REQUEST handle()
+        // call whose exception is caught internally, followed by a nested SUB_REQUEST
+        // handle() call that renders the error response successfully (no exception).
+        $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new Response('error page'));
+        $this->assertCount(0, $this->storage);
+
+        $mainRequest = new Request();
+        $mainRequest->attributes->set('_route', 'main_route');
+        $kernel->handle($mainRequest, HttpKernelInterface::MAIN_REQUEST, false);
+
+        // The sub-request is dispatched while the main request span's scope is still on
+        // the context storage stack, exactly as Symfony's ErrorListener does it.
+        $subRequest = new Request();
+        $subRequest->attributes->set('_controller', 'ErrorController');
+        $subResponse = $kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+
+        // The sub-request span must be ended and exported immediately: it never reaches
+        // `terminate()`, so leaving its scope attached would leak it and block the main
+        // request span from ever being reached again.
+        $this->assertCount(1, $this->storage);
+        $this->assertSame('GET ErrorController', $this->storage[0]->getName());
+        $this->assertSame(SpanKind::KIND_INTERNAL, $this->storage[0]->getKind());
+
+        // `terminate()` must now see the main request's scope, not a leaked sub-request one.
+        $kernel->terminate($mainRequest, $subResponse);
+
+        $this->assertCount(2, $this->storage);
+        $mainSpan = $this->storage[1];
+        $this->assertSame('GET main_route', $mainSpan->getName());
+        $this->assertSame(SpanKind::KIND_SERVER, $mainSpan->getKind());
+    }
+
+    public function test_http_kernel_records_exception_on_main_span_during_sub_request_error_handling(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new Response('error page'));
+
+        $mainRequest = new Request();
+        $kernel->handle($mainRequest, HttpKernelInterface::MAIN_REQUEST, false);
+
+        // Symfony's HttpKernel::handleThrowable() records the exception on whatever span
+        // is currently active before it dispatches the internal error sub-request; at
+        // that point the only span on the stack is the main request's.
+        \OpenTelemetry\API\Trace\Span::getCurrent()->recordException(new \RuntimeException('boom'));
+
+        $subRequest = new Request();
+        $subRequest->attributes->set('_controller', 'ErrorController');
+        $subResponse = $kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+        $kernel->terminate($mainRequest, $subResponse);
+
+        $this->assertCount(2, $this->storage);
+        $mainSpan = $this->storage[1];
+        $this->assertSame(SpanKind::KIND_SERVER, $mainSpan->getKind());
+        $this->assertCount(1, $mainSpan->getEvents());
+        $this->assertSame('exception', $mainSpan->getEvents()[0]->getName());
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel

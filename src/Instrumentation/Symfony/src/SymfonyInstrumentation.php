@@ -94,18 +94,41 @@ final class SymfonyInstrumentation
                 ?\Throwable $exception
             ): void {
                 $scope = Context::storage()->scope();
-                if (null === $scope || null === $exception) {
+                if (null === $scope) {
+                    return;
+                }
+
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
+                $isSubRequest = ($type === HttpKernelInterface::SUB_REQUEST);
+
+                // A MAIN_REQUEST that didn't throw is ended by the `terminate` hook.
+                if (!$isSubRequest && null === $exception) {
                     return;
                 }
 
                 $span = Span::fromContext($scope->context());
                 $scope->detach();
-                $span->recordException($exception);
-                $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+
+                if (null !== $exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
+                if ($isSubRequest && null !== $response) {
+                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                }
+
+                // We only reach this point for sub-requests or when an exception propagated
+                // out of handle(); neither is ever passed to `terminate()`, so the span must
+                // be ended here. Leaving a sub-request span open leaks its scope onto the
+                // context stack and prevents the main-request root span from being ended and
+                // exported (#1905). Only a MAIN_REQUEST that returned normally is left for
+                // `terminate()`, and that path already returned above.
                 $span->end();
             }
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'terminate',
