@@ -31,8 +31,6 @@ version: '3.7'
 services:
     jaeger:
         image: jaegertracing/jaeger
-        environment:
-            COLLECTOR_ZIPKIN_HTTP_PORT: 9412
         ports:
             - "9412:9412"
             - "16686:16686"
