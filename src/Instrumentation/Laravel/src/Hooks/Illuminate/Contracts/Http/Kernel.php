@@ -41,10 +41,11 @@ class Kernel implements LaravelHook
             'handle',
             pre: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
+                $method = $request ? $this->httpMethod($request) : 'unknown';
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $this->instrumentation
                     ->tracer()
-                    ->spanBuilder(sprintf('%s', $request?->method() ?? 'unknown'))
+                    ->spanBuilder($method)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
@@ -55,8 +56,8 @@ class Kernel implements LaravelHook
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, $request->fullUrl())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->method())
+                        ->setAttribute(TraceAttributes::URL_FULL, $this->httpFullUrl($request))
+                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $method)
                         ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
                         ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
@@ -87,7 +88,7 @@ class Kernel implements LaravelHook
                 $route = $request?->route();
 
                 if ($request && $route instanceof Route) {
-                    $span->updateName("{$request->method()} /" . ltrim($route->uri, '/'));
+                    $span->updateName($this->httpMethod($request) . ' /' . ltrim($route->uri, '/'));
                     $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route->uri);
                 }
 
@@ -117,10 +118,32 @@ class Kernel implements LaravelHook
         return $query ? $path . '?' . $query : $path;
     }
 
+    private function httpMethod(Request $request): string
+    {
+        try {
+            return $request->method();
+        } catch (Throwable) {
+            return 'unknown';
+        }
+    }
+
+    private function httpFullUrl(Request $request): string
+    {
+        try {
+            return $request->fullUrl();
+        } catch (Throwable) {
+            return '';
+        }
+    }
+
     private function httpHostName(Request $request): string
     {
         if (method_exists($request, 'host')) {
-            return $request->host();
+            try {
+                return $request->host();
+            } catch (Throwable) {
+                return '';
+            }
         }
 
         if (method_exists($request, 'getHost')) {
