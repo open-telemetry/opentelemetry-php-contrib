@@ -50,6 +50,7 @@ class PendingRequest implements LaravelHook
                     return $params;
                 }
 
+                /** @phan-suppress-next-line PhanAccessMethodInternal */
                 TraceContextPropagator::getInstance()->inject($request, RequestPropagationSetter::instance(), Context::getCurrent());
                 $params[0] = $request;
 
