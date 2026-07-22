@@ -7,17 +7,27 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
+use Illuminate\Support\Arr;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs\Severity;
+use Stringable;
 use Throwable;
 use TypeError;
 
 class LogWatcher extends Watcher
 {
+    public const OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN = 'OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN';
+
     private LogManager $logger;
+    private bool $flattenAttributes;
+
     public function __construct(
         private CachedInstrumentation $instrumentation,
     ) {
+        $resolver = new ConfigurationResolver();
+        $this->flattenAttributes = $resolver->has(self::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN)
+            && $resolver->getBoolean(self::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
     }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
@@ -67,9 +77,29 @@ class LogWatcher extends Watcher
 
         $logBuilder->setBody($log->message)
             ->setSeverityText($log->level)
-            ->setSeverityNumber(Severity::fromPsr3($log->level))
-            ->setAttribute('context', $context)
-            ->emit();
+            ->setSeverityNumber(Severity::fromPsr3($log->level));
+
+        if ($this->flattenAttributes) {
+            foreach (Arr::dot($context) as $key => $value) {
+                $logBuilder->setAttribute((string) $key, $this->normalizeValue($value));
+            }
+        } else {
+            $logBuilder->setAttribute('context', $context);
+        }
+
+        $logBuilder->emit();
+    }
+
+    private function normalizeValue(mixed $value): string|bool|int|float|null
+    {
+        if ($value === null || is_scalar($value)) {
+            return $value;
+        }
+        if ($value instanceof Stringable) {
+            return (string) $value;
+        }
+
+        return json_encode($value) ?: null;
     }
 
     private function getExceptionFromContext(array $context): ?Throwable
