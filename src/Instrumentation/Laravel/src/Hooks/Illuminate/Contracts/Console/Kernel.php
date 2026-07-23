@@ -43,7 +43,7 @@ class Kernel implements LaravelHook
                 $builder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder('Artisan handler')
-                    ->setSpanKind(SpanKind::KIND_PRODUCER)
+                    ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
