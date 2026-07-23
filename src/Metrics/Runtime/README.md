@@ -68,6 +68,7 @@ RuntimeMetrics::register($meterProvider, new RuntimeMetricsConfig(disabled: ['op
 | `php.gc.collector_time` | Counter | `s` | Cumulative time spent in the GC collector. **PHP 8.3+** |
 | `php.gc.destructor_time` | Counter | `s` | Cumulative time spent running destructors during GC. **PHP 8.3+** |
 | `php.gc.free_time` | Counter | `s` | Cumulative time spent freeing memory during GC. **PHP 8.3+** |
+| `process.uptime` | Gauge | `s` | The time the process has been running. **PHP 8.3+** |
 
 ### OPcache (`opcache`)
 
@@ -94,6 +95,7 @@ Registered only on platforms where `getrusage()` is available (Linux, macOS, Win
 |--------|------|------|-------------|
 | `process.cpu.time` | Counter | `s` | CPU time consumed. Reported for `user` and `system` modes via the `cpu.mode` attribute. |
 | `process.context_switches` | Counter | `{context_switch}` | Number of times the process has been context switched. Reported for `voluntary` and `involuntary` switches via the `process.context_switch.type` attribute. |
+| `process.paging.faults` | Counter | `{fault}` | Number of page faults the process has made. Reported for `minor` and `major` faults via the `system.paging.fault.type` attribute. |
 
 ## Configuration
 
