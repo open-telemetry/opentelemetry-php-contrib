@@ -4,6 +4,6 @@ on:
 
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-ext-rdkafka.yml@03b5f937fb52995080ca2a94e7b3ea790cc470d5 # main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-ext-rdkafka.yml@176b3fc537e89c8e718f2a259f4bbf1772b25545 # main
     with:
       package-root: '.'
