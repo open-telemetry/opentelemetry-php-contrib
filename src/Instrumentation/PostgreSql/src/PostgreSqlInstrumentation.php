@@ -139,6 +139,17 @@ class PostgreSqlInstrumentation
 
         hook(
             null,
+            'pg_query_params',
+            pre: static function (...$args) use ($instrumentation, $tracker) {
+                return self::basicPreHookWithContextPropagator('pg_query_params', $instrumentation, $tracker, ...$args);
+            },
+            post: static function (...$args) use ($instrumentation, $tracker) {
+                self::queryPostHook($instrumentation, $tracker, ...$args);
+            }
+        );
+
+        hook(
+            null,
             'pg_select',
             pre: static function (...$args) use ($instrumentation, $tracker) {
                 self::basicPreHook('pg_select', $instrumentation, $tracker, ...$args);
