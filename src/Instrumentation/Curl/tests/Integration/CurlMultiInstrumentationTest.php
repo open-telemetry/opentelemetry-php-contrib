@@ -131,7 +131,7 @@ class CurlMultiInstrumentationTest extends TestCase
     }
 
     /**
-     * @dataProvider CurlInstrumentationTest::capture_headers_config_options_names_data_provider
+     * @dataProvider \OpenTelemetry\Tests\Instrumentation\Curl\Integration\CurlInstrumentationTest::capture_headers_config_options_names_data_provider
      */
     public function test_curl_multi_exec_calls_user_defined_headerfunc(string $captureRequestHeadersCfgName, string $captureResponseHeadersCfgName): void
     {
@@ -186,7 +186,7 @@ class CurlMultiInstrumentationTest extends TestCase
     }
 
     /**
-     * @dataProvider CurlInstrumentationTest::capture_headers_config_options_names_data_provider
+     * @dataProvider \OpenTelemetry\Tests\Instrumentation\Curl\Integration\CurlInstrumentationTest::capture_headers_config_options_names_data_provider
      */
     public function test_curl_multi_exec_headers_capturing(string $captureRequestHeadersCfgName, string $captureResponseHeadersCfgName): void
     {
@@ -229,7 +229,7 @@ class CurlMultiInstrumentationTest extends TestCase
     }
 
     /**
-     * @dataProvider CurlInstrumentationTest::capture_headers_config_options_names_data_provider
+     * @dataProvider \OpenTelemetry\Tests\Instrumentation\Curl\Integration\CurlInstrumentationTest::capture_headers_config_options_names_data_provider
      */
     public function test_curl_multi_exec_sets_traceparent(string $captureRequestHeadersCfgName, /** @noinspection PhpUnusedParameterInspection */ string $captureResponseHeadersCfgName): void
     {
