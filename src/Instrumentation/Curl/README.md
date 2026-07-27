@@ -53,7 +53,7 @@ OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host,accept
 #### php.ini configuration
 
 ```ini
-OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type,server
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS=content-type,server
 ; or
 otel.instrumentation.http.response_headers[]=content-type
 otel.instrumentation.http.response_headers[]=server
@@ -63,7 +63,7 @@ otel.instrumentation.http.response_headers[]=server
 Similarly, to capture headers sent in a request to the server, use the following configuration:
 
 ```ini
-OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host,accept
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS=host,accept
 ; or
 otel.instrumentation.http.request_headers[]=host
 otel.instrumentation.http.request_headers[]=accept
