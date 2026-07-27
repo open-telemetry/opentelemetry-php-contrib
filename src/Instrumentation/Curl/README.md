@@ -40,6 +40,12 @@ To enable response header capture from the server, specify the required headers 
 #### Environment variables configuration
 
 ```bash
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS=content-type,server
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS=host,accept
+```
+The legacy options are still supported but are not recommended because they might be deprecated in a future release 
+
+```bash
 OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type,server
 OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host,accept
 ```
