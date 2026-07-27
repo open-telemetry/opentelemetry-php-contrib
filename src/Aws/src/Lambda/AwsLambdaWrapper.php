@@ -64,6 +64,7 @@ class AwsLambdaWrapper
                 ?: self::DEFAULT_OTLP_EXPORTER_ENDPOINT,
             'application/x-protobuf'
         );
+        /** @phan-suppress-next-line PhanTypeMismatchArgument */
         $exporter = new OtlpExporter($transport);
 
         $spanProcessor = new SimpleSpanProcessor($exporter);
