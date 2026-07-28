@@ -25,7 +25,7 @@
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.20.0",
     "open-telemetry/sdk": "^1.8",
-    "phpunit/phpunit": "^9.5",
+    "phpunit/phpunit": "^13.0",
     "vimeo/psalm": "^7.0",
     "magento/community-edition": "dev-2.4-develop"
   },

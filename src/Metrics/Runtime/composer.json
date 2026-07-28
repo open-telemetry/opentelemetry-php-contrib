@@ -23,7 +23,7 @@
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.19",
-    "phpunit/phpunit": "^10.0",
+    "phpunit/phpunit": "^13.0",
     "vimeo/psalm": "^6"
   },
   "autoload": {
