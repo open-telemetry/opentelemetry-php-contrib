@@ -31,13 +31,13 @@ jobs:
           # https://github.com/open-telemetry/community/blob/main/assets.md#otelbot
           #client-id: ${{ vars.OTELBOT_APP_ID }}
           #private-key: ${{ secrets.OTELBOT_PRIVATE_KEY }}
-          client-id: ${{ secrets.OPENTELEMETRY_PHP_APP_ID }}
+          client-id: ${{ vars.OPENTELEMETRY_PHP_CLIENT_ID }}
           private-key: ${{ secrets.OPENTELEMETRY_PHP_PRIVATE_KEY }}
           owner: opentelemetry-php
 
       - name: Ensure target repositories exist
         run: |
-          yq -r '.splits[] | select(.target != null) | [(.prefix | sub("src/"; "")), (.target | gsub("^.*github\\.com/|\\.git$"; ""))] | @tsv' .gitsplit.yml | while IFS=$'\t' read -r prefix repo; do
+          yq -r '.splits[] | select(.target != null) | [(.prefix | sub("src/"; "")), (.target | sub("^.*github\\.com/|\\.git$"; ""))] | @tsv' .gitsplit.yml | while IFS=$'\t' read -r prefix repo; do
             gh repo view --json url,description --template '{{printf "  -> %s %s\n" .url .description }}' $repo 2>/dev/null || gh repo create $repo --public --description "[READONLY] $prefix subtree split from open-telemetry/opentelemetry-php-contrib"
           done
         env:
@@ -46,4 +46,5 @@ jobs:
       - name: Split repositories
         uses: docker://jderusse/gitsplit:latest@sha256:ca619e08d0608d7ab8067be02db13409ec63a0e241c6308be42593f0c0ac705d
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
+          GH_TOKEN: "x-access-token:${{ steps.app-token.outputs.token }}"
