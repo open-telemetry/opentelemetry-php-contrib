@@ -35,7 +35,7 @@ jobs:
           # 'Instrumentation/ExtRdKafka', # # Experiment: moved to instrumentation-ext-rdkafka.yml
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
-          'Instrumentation/HttpConfig',
+          # 'Instrumentation/HttpConfig', # Experiment: moved to instrumentation-httpconfig.yml
           'Instrumentation/IO',
           # 'Instrumentation/Laravel', # Experiment: moved to instrumentation-laravel.yml
           'Instrumentation/Magento2',
