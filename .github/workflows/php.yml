@@ -35,7 +35,7 @@ jobs:
           # 'Instrumentation/ExtRdKafka', # # Experiment: moved to instrumentation-ext-rdkafka.yml
           'Instrumentation/Guzzle',
           'Instrumentation/HttpAsyncClient',
-          'Instrumentation/HttpConfig',
+          # 'Instrumentation/HttpConfig', # Experiment: moved to instrumentation-httpconfig.yml
           'Instrumentation/IO',
           # 'Instrumentation/Laravel', # Experiment: moved to instrumentation-laravel.yml
           'Instrumentation/Magento2',
@@ -45,7 +45,7 @@ jobs:
           'Instrumentation/PDO',
           'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
-          'Instrumentation/Psr3',
+          # 'Instrumentation/Psr3', # Experiment: moved to instrumentation-psr3.yml
           'Instrumentation/Psr6',
           'Instrumentation/Psr14',
           'Instrumentation/Psr15',

@@ -1,0 +1,11 @@
+name: Contrib CI Pipeline
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  CI:
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-httpconfig.yml@main
+    with:
+      package-root: '.'
