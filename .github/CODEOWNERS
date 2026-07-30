@@ -1,6 +1,6 @@
 #####################################################
 #
-# List of approvers for OpenTelemetry PHP API/SDK
+# List of approvers for OpenTelemetry PHP Contrib
 #
 #####################################################
 #
@@ -12,4 +12,4 @@
 #  https://help.github.com/en/articles/about-code-owners
 #
 
-* @open-telemetry/php-approvers
+* @open-telemetry/php-contrib-approvers
