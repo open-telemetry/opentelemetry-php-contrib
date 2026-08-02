@@ -46,5 +46,8 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add .github/dependabot.yml
           git commit -m "chore: update dependabot configuration [skip ci]"
-          # The checkout does not persist credentials, so push with an explicit token.
-          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"
+          # The checkout does not persist credentials. Pass auth as a header so the
+          # remote URL stays token-free, as actions/checkout itself does.
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=$AUTH_HEADER" \
+            push "https://github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"
