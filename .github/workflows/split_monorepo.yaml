@@ -21,11 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Generate App Token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           # There is an official OpenTelemetry GitHub App already, but it is not scoped to create new repositories.
           # https://github.com/open-telemetry/community/blob/main/assets.md#otelbot
@@ -33,7 +34,11 @@ jobs:
           #private-key: ${{ secrets.OTELBOT_PRIVATE_KEY }}
           client-id: ${{ vars.OPENTELEMETRY_PHP_CLIENT_ID }}
           private-key: ${{ secrets.OPENTELEMETRY_PHP_PRIVATE_KEY }}
-          owner: opentelemetry-php
+          # Owner scope is required: this workflow creates the split target
+          # repositories, so they cannot be named in `repositories:` beforehand.
+          owner: opentelemetry-php # zizmor: ignore[github-app]
+          permission-administration: write
+          permission-contents: write
 
       - name: Ensure target repositories exist
         run: |
