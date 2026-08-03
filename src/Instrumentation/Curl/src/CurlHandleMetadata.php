@@ -55,21 +55,21 @@ class CurlHandleMetadata
             return null;
         }
 
-        // Deduplicate by header name (case-insensitive), so that a header already present on the
-        // handle (e.g. injected upstream by another instrumentation such as auto-guzzle/auto-psr18)
-        // does not end up duplicated alongside the value we're about to inject here.
-        $headers = [];
-        foreach ($this->headers as $header) {
-            $name = strtolower(trim(explode(':', $header, 2)[0]));
-            $headers[$name] = $header;
-        }
+        // Replace only headers which are being propagated. Repeated unrelated headers may be
+        // intentional, and CURLOPT_HTTPHEADER permits them.
+        $headersToPropagate = [];
         foreach ($this->headersToPropagate as $header) {
             $name = strtolower(trim(explode(':', $header, 2)[0]));
-            $headers[$name] = $header;
+            $headersToPropagate[$name] = $header;
         }
+
+        $headers = array_values(array_filter(
+            $this->headers,
+            static fn (string $header): bool => !isset($headersToPropagate[strtolower(trim(explode(':', $header, 2)[0]))]),
+        ));
         $this->headersToPropagate = [];
 
-        return array_values($headers);
+        return [...$headers, ...array_values($headersToPropagate)];
     }
 
     public function getCapturedResponseHeaders(): array
