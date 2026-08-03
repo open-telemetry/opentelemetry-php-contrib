@@ -6,10 +6,15 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\ConsoleInstrumentation;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 final class ConsoleInstrumentationTest extends AbstractTest
 {
@@ -30,11 +35,13 @@ final class ConsoleInstrumentationTest extends AbstractTest
         };
 
         $this->assertCount(0, $this->storage);
+        $scope = Context::storage()->scope();
 
-        $exitCode = $command->run(new ArrayInput([]), new NullOutput());
+        $exitCode = $this->runCommand($command);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
         $this->assertCount(1, $this->storage);
+        $this->assertSame($scope, Context::storage()->scope());
 
         $span = $this->storage[0];
         $this->assertSame('app:test-command', $span->getName());
@@ -59,7 +66,7 @@ final class ConsoleInstrumentationTest extends AbstractTest
             }
         };
 
-        $exitCode = $command->run(new ArrayInput([]), new NullOutput());
+        $exitCode = $this->runCommand($command);
 
         $this->assertSame(Command::FAILURE, $exitCode);
         $this->assertCount(1, $this->storage);
@@ -86,7 +93,7 @@ final class ConsoleInstrumentationTest extends AbstractTest
         };
 
         try {
-            $command->run(new ArrayInput([]), new NullOutput());
+            $this->runCommand($command);
             $this->fail('Expected exception was not thrown');
         } catch (\RuntimeException $e) {
             $this->assertSame('something went wrong', $e->getMessage());
@@ -96,5 +103,48 @@ final class ConsoleInstrumentationTest extends AbstractTest
         $span = $this->storage[0];
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame('something went wrong', $span->getStatus()->getDescription());
+    }
+
+    public function test_terminate_listener_exit_code_is_recorded(): void
+    {
+        $command = new class() extends Command {
+            protected static $defaultName = 'app:test-command';
+
+            protected function configure(): void
+            {
+                $this->setName('app:test-command');
+            }
+
+            protected function execute($input, $output): int
+            {
+                return Command::SUCCESS;
+            }
+        };
+
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addListener(ConsoleEvents::TERMINATE, static function (ConsoleTerminateEvent $event): void {
+            $event->setExitCode(Command::FAILURE);
+        });
+
+        $exitCode = $this->runCommand($command, $dispatcher);
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertCount(1, $this->storage);
+
+        $span = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame(Command::FAILURE, $span->getAttributes()->get(ConsoleInstrumentation::ATTRIBUTE_CONSOLE_EXIT_CODE));
+    }
+
+    private function runCommand(Command $command, ?EventDispatcher $dispatcher = null): int
+    {
+        $application = new Application();
+        $application->setAutoExit(false);
+        $application->add($command);
+        if (null !== $dispatcher) {
+            $application->setDispatcher($dispatcher);
+        }
+
+        return $application->run(new ArrayInput(['command' => $command->getName()]), new NullOutput());
     }
 }

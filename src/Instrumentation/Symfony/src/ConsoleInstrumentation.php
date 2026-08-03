@@ -12,7 +12,9 @@ use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Creates a default root span for console command execution, mirroring the
@@ -33,17 +35,19 @@ final class ConsoleInstrumentation
 
         /** @psalm-suppress UnusedFunctionCall */
         hook(
-            Command::class,
-            'run',
+            Application::class,
+            'doRun',
             pre: static function (
-                Command $command,
+                Application $application,
                 array $params,
                 string $class,
                 string $function,
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
-                $name = $command->getName() ?? 'command';
+                /** @var InputInterface $input */
+                $input = $params[0];
+                $name = $input->getFirstArgument() ?? $application->getDefaultCommand() ?? 'command';
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
@@ -64,7 +68,7 @@ final class ConsoleInstrumentation
                 return $params;
             },
             post: static function (
-                Command $command,
+                Application $application,
                 array $params,
                 ?int $returnValue,
                 ?\Throwable $exception
