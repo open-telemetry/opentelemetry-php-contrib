@@ -116,6 +116,9 @@ final class SymfonyInstrumentation
 
                 if ($isSubRequest && null !== $response) {
                     $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    if ($response->isServerError()) {
+                        $span->setStatus(StatusCode::STATUS_ERROR);
+                    }
                 }
 
                 // We only reach this point for sub-requests or when an exception propagated

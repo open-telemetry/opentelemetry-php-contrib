@@ -155,6 +155,20 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertSame(SpanKind::KIND_INTERNAL, $span->getKind());
     }
 
+    public function test_http_kernel_handle_error_controller_subrequest_5xx_response_is_error(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), fn () => new Response('Internal Server Error', 500));
+        $request = new Request();
+        $request->attributes->set('_controller', 'ErrorController');
+
+        $kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame(500, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
     public function test_http_kernel_handle_subrequest_with_various_controller_types(): void
     {
         $kernel = $this->getHttpKernel(new EventDispatcher());
