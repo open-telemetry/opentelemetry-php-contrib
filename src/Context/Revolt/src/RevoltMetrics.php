@@ -37,8 +37,8 @@ final class RevoltMetrics implements Instrumentation
                 $callbacks = [];
                 foreach (EventLoop::getIdentifiers() as $identifier) {
                     $type = EventLoop::getType($identifier);
-                    $enabled = +EventLoop::isEnabled($identifier);
-                    $referenced = +EventLoop::isReferenced($identifier);
+                    $enabled = (int) EventLoop::isEnabled($identifier);
+                    $referenced = (int) EventLoop::isReferenced($identifier);
 
                     $callbacks[$type->name][$enabled][$referenced] ??= 0;
                     $callbacks[$type->name][$enabled][$referenced]++;

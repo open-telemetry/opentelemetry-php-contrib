@@ -65,6 +65,7 @@ final class RevoltDriver implements Driver
                         $scope->detach();
                     }
                 });
+                /** @phan-suppress-next-line PhanParamTooManyInternal */
                 $fiber->start($errorHandler, $exception, $s);
 
                 return null;
@@ -120,6 +121,7 @@ final class RevoltDriver implements Driver
      *
      * @psalm-suppress InvalidReturnType
      * @psalm-suppress InvalidReturnStatement
+     * @phan-suppress PhanTypeMismatchReturnSuperType
      */
     private function bindContext(Closure $closure): Closure
     {

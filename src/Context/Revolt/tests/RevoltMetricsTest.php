@@ -97,7 +97,7 @@ final class RevoltMetricsTest extends TestCase
 
     /**
      * @param list<Metric> $metrics
-     * @return array<string, array<string, int<1, max>>
+     * @psalm-return array<string, array<string, int<1, max>>
      */
     private function indexCallbackMetric(array $metrics): array
     {
