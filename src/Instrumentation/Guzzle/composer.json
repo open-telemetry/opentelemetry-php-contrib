@@ -13,11 +13,11 @@
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
     "open-telemetry/sem-conv": "^1.32",
-    "guzzlehttp/guzzle": "^7"
+    "guzzlehttp/guzzle": "^7 || ^8"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "guzzlehttp/promises": "^2",
+    "guzzlehttp/promises": "^2 || ^3",
     "nyholm/psr7": "*",
     "phan/phan": "^5.0",
     "phpstan/phpstan-mockery": "^1.1.0",

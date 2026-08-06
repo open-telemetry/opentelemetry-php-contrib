@@ -128,7 +128,9 @@ class GuzzleInstrumentation
                         $span->end();
                     },
                     onRejected: function (\Throwable $t) use ($span) {
-                        if ($t instanceof BadResponseException && $t->hasResponse()) {
+                        // BadResponseException always carries a response, in both guzzle 7 and 8.
+                        // Guzzle 8 dropped RequestException::hasResponse(), so don't call it.
+                        if ($t instanceof BadResponseException) {
                             $response = $t->getResponse();
                             $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                             $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());

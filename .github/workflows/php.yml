@@ -33,7 +33,7 @@ jobs:
           'Instrumentation/Doctrine',
           'Instrumentation/ExtAmqp',
           # 'Instrumentation/ExtRdKafka', # # Experiment: moved to instrumentation-ext-rdkafka.yml
-          'Instrumentation/Guzzle',
+          # 'Instrumentation/Guzzle', # Needs a guzzle version matrix: moved to instrumentation-guzzle.yml
           'Instrumentation/HttpAsyncClient',
           # 'Instrumentation/HttpConfig', # Experiment: moved to instrumentation-httpconfig.yml
           'Instrumentation/IO',
