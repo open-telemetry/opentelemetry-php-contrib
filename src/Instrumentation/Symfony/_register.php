@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use OpenTelemetry\Contrib\Instrumentation\Symfony\ConsoleInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\HttpClientInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\MessengerInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Symfony\SymfonyInstrumentation;
@@ -20,3 +21,4 @@ if (extension_loaded('opentelemetry') === false) {
 SymfonyInstrumentation::register();
 MessengerInstrumentation::register();
 HttpClientInstrumentation::register();
+ConsoleInstrumentation::register();
