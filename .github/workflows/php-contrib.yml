@@ -41,6 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -68,9 +70,11 @@ jobs:
       - name: Install specific composer dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true' && inputs.composer-requires != ''
         working-directory: ${{ inputs.package-root }}
+        env:
+          COMPOSER_REQUIRES: ${{ inputs.composer-requires }}
         run: |
           composer config --no-plugins allow-plugins.php-http/discovery false
-          composer require ${{ inputs.composer-requires }} --prefer-dist --no-progress
+          composer require $COMPOSER_REQUIRES --prefer-dist --no-progress
 
       - name: Validate Packages composer.json
         working-directory: ${{ inputs.package-root }}
@@ -82,6 +86,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -112,7 +118,9 @@ jobs:
       - name: Run Psalm
         if: ${{ !cancelled() }}
         working-directory: ${{ inputs.package-root }}
-        run: vendor/bin/psalm --output-format=github --php-version=${{ inputs.php-version }}
+        env:
+          PHP_VERSION: ${{ inputs.php-version }}
+        run: vendor/bin/psalm --output-format=github --php-version="$PHP_VERSION"
 
       - name: Run PHPStan
         if: ${{ !cancelled() }}
@@ -125,6 +133,8 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -148,6 +158,7 @@ jobs:
       # We need to do this to ensure that the files are present when a workflow caller initiates this workflow.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           repository: 'open-telemetry/opentelemetry-php-contrib'
           path: 'shared-contrib'
 
