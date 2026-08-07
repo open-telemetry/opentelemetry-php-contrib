@@ -87,7 +87,7 @@ class GuzzleInstrumentationTest extends TestCase
     /**
      * @dataProvider methodProvider
      */
-    public function test_magic_methods(string $method, string $expected): void
+    public function test_helper_methods(string $method, string $expected): void
     {
         $this->mock->append(new Response());
         $this->assertCount(0, $this->storage);
@@ -105,7 +105,7 @@ class GuzzleInstrumentationTest extends TestCase
     /**
      * @dataProvider methodProvider
      */
-    public function test_magic_methods_async(string $method, string $expected): void
+    public function test_helper_methods_async(string $method, string $expected): void
     {
         $this->mock->append(new Response());
         $promise = $this->client->{$method . 'Async'}('/');
@@ -121,17 +121,36 @@ class GuzzleInstrumentationTest extends TestCase
         $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
+    /**
+     * Guzzle 8 removed Client::__call(), so only the methods declared on
+     * ClientTrait are covered here. OPTIONS is covered by test_request_methods().
+     */
     public static function methodProvider(): array
     {
         return [
             'delete' => ['delete', 'DELETE'],
             'get' => ['get', 'GET'],
             'head' => ['head', 'HEAD'],
-            'options' => ['options', 'OPTIONS'],
             'patch' => ['patch', 'PATCH'],
             'post' => ['post', 'POST'],
             'put' => ['put', 'PUT'],
         ];
+    }
+
+    public function test_request_methods(): void
+    {
+        $this->mock->append(new Response());
+        $this->client->request('OPTIONS', '/foo');
+        $this->mock->append(new Response());
+        $this->client->requestAsync('OPTIONS', '/foo')->wait();
+
+        $this->assertCount(2, $this->storage);
+        foreach ($this->storage as $span) {
+            assert($span instanceof ImmutableSpan);
+            $this->assertSame('OPTIONS', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
+            $this->assertSame('/foo', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+            $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        }
     }
 
     public function test_concurrent_async(): void
