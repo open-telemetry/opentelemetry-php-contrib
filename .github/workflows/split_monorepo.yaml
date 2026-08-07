@@ -39,6 +39,7 @@ jobs:
           owner: opentelemetry-php # zizmor: ignore[github-app]
           permission-administration: write
           permission-contents: write
+          permission-workflows: write
 
       - name: Ensure target repositories exist
         run: |
