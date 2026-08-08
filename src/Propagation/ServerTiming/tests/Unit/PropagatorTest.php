@@ -123,6 +123,24 @@ class PropagatorTest extends TestCase
         $this->assertEmpty($carrier);
     }
 
+    public function test_get_instance_returns_same_instance()
+    {
+        $instance1 = ServerTimingPropagator::getInstance();
+        $instance2 = ServerTimingPropagator::getInstance();
+        $this->assertSame($instance1, $instance2);
+    }
+
+    public function test_get_instance_creates_new_instance()
+    {
+        $reflection = new \ReflectionClass(ServerTimingPropagator::class);
+        $property = $reflection->getProperty('instance');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+
+        $instance = ServerTimingPropagator::getInstance();
+        $this->assertInstanceOf(ServerTimingPropagator::class, $instance);
+    }
+
     private function withSpanContext(SpanContextInterface $spanContext, ContextInterface $context): ContextInterface
     {
         return $context->withContextValue(Span::wrap($spanContext));
