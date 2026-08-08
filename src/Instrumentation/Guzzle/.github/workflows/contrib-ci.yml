@@ -2,8 +2,11 @@ name: Contrib CI Pipeline
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-guzzle.yml@main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-guzzle.yml@cf408b4d64cd8fc118f50b19eecf4c3f1b1e5879 # main
     with:
       package-root: '.'
