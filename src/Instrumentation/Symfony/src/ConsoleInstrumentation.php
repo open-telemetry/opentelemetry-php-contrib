@@ -45,9 +45,10 @@ final class ConsoleInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
-                /** @var InputInterface $input */
-                $input = $params[0];
-                $name = $input->getFirstArgument() ?? $application->getDefaultCommand() ?? 'command';
+                $input = $params[0] ?? null;
+                $name = $input instanceof InputInterface
+                    ? $input->getFirstArgument() ?? 'command'
+                    : 'command';
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
