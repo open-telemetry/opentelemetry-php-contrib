@@ -3,7 +3,7 @@ on:
   # pull_request_target is suggested for projects where pull requests will be
   # made from forked repositories. If pull_request is used in these cases,
   # the github token will not have sufficient permission to update the PR.
-  pull_request_target:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] needed to request reviewers on PRs from forks without checking out PR code
 
 permissions:
   contents: read          # to read changed files
