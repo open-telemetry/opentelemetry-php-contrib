@@ -47,11 +47,9 @@ services:
       - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
 
   jaeger:
-    image: jaegertracing/all-in-one
+    image: jaegertracing/jaeger
     ports:
       - 16686:16686
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
 
 volumes:
   db_data:
