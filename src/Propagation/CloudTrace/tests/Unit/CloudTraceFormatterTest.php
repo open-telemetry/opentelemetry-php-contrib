@@ -32,6 +32,24 @@ class CloudTraceFormatterTest extends TestCase
         ];
     }
 
+    public function test_deserialize_invalid_header() : void
+    {
+        $result = CloudTraceFormatter::deserialize('not-a-valid-header');
+        $this->assertFalse($result->isValid());
+    }
+
+    public function test_deserialize_missing_span_id() : void
+    {
+        $result = CloudTraceFormatter::deserialize('00000000000000000000000000000001;o=1');
+        $this->assertFalse($result->isValid());
+    }
+
+    public function test_deserialize_missing_options() : void
+    {
+        $result = CloudTraceFormatter::deserialize('00000000000000000000000000000001/1');
+        $this->assertFalse($result->isValid());
+    }
+
     /**
      * @dataProvider for_test_serialize
      */
