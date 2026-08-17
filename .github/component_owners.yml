@@ -8,6 +8,8 @@ components:
     - intuibase
   src/Instrumentation/Laravel:
     - ChrisLightfootWild
+  src/Instrumentation/Magento2:
+    - jerrytfleung
   src/SqlCommenter:
     - jerrytfleung
 
