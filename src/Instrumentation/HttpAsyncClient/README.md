@@ -20,10 +20,40 @@ Auto-instrumentation hooks are registered via composer, which will:
 
 ## Configuration
 
+### Disabling the instrumentation
+
 The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
 
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=http-async-client
 ```
 
-Request headers can be added as span attributes, if the header's name is found in the `php.ini` variable: `otel.instrumentation.http.request_headers`
+### Request and response header capturing
+
+Header capturing is disabled by default and can be enabled through environment variables or `php.ini` directives.
+
+#### Environment variables
+
+```bash
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS=host,accept
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS=content-type,server
+```
+
+The legacy options are still supported but may be deprecated in a future release:
+
+```bash
+OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host,accept
+OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type,server
+```
+
+#### php.ini
+
+```ini
+otel.instrumentation.http.request_headers[]=host
+otel.instrumentation.http.request_headers[]=accept
+
+otel.instrumentation.http.response_headers[]=content-type
+otel.instrumentation.http.response_headers[]=server
+```
+
+Captured headers are added as span attributes using the `http.request.header.<name>` and `http.response.header.<name>` naming convention, with header names lowercased and hyphens replaced by underscores. The option values are case-insensitive.
