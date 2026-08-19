@@ -19,8 +19,38 @@ Auto-instrumentation hooks are registered via composer.
 
 ## Configuration
 
+### Disabling Guzzle instrumentation
+
 The extension can be disabled via [runtime configuration](https://opentelemetry.io/docs/instrumentation/php/sdk/#configuration):
 
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=guzzle
+```
+
+### Request and response header capturing
+
+Guzzle auto-instrumentation supports capturing headers from both requests and responses as span attributes. This feature is disabled by default and can be enabled through environment variables or array directives in the `php.ini` configuration file. Header name matching is case-insensitive.
+
+#### Environment variables configuration
+
+```bash
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS=host,accept
+OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS=content-type,server
+```
+
+The legacy options are still supported but are not recommended as they may be deprecated in a future release:
+
+```bash
+OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host,accept
+OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type,server
+```
+
+#### php.ini configuration
+
+```ini
+otel.instrumentation.http.request_headers[]=host
+otel.instrumentation.http.request_headers[]=accept
+
+otel.instrumentation.http.response_headers[]=content-type
+otel.instrumentation.http.response_headers[]=server
 ```
