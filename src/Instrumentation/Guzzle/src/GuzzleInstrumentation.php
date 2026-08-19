@@ -16,6 +16,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -28,6 +29,11 @@ class GuzzleInstrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
     public const NAME = 'guzzle';
+
+    private const CAPTURE_REQUEST_HEADERS_LEGACY_CFG_OPT_NAME = 'OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS';
+    private const CAPTURE_REQUEST_HEADERS_CFG_OPT_NAME = 'OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS';
+    private const CAPTURE_RESPONSE_HEADERS_LEGACY_CFG_OPT_NAME = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
+    private const CAPTURE_RESPONSE_HEADERS_CFG_OPT_NAME = 'OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS';
 
     public static function register(): void
     {
@@ -70,7 +76,7 @@ class GuzzleInstrumentation
                 foreach ($propagator->fields() as $field) {
                     $request = $request->withoutHeader($field);
                 }
-                foreach ((array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []) as $header) {
+                foreach (self::getRequestHeadersToCapture() as $header) {
                     if ($request->hasHeader($header)) {
                         $spanBuilder->setAttribute(
                             sprintf('http.request.header.%s', strtolower($header)),
@@ -116,7 +122,7 @@ class GuzzleInstrumentation
                         $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
 
-                        foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
+                        foreach (self::getResponseHeadersToCapture() as $header) {
                             if ($response->hasHeader($header)) {
                                 /** @psalm-suppress ArgumentTypeCoercion */
                                 $span->setAttribute(sprintf('http.response.header.%s', strtolower($header)), $response->getHeader($header));
@@ -148,5 +154,39 @@ class GuzzleInstrumentation
                 }
             }
         );
+    }
+
+    private static function getRequestHeadersToCapture(): array
+    {
+        if (
+            class_exists(Configuration::class)
+            &&
+            (
+                (count($values = Configuration::getList(self::CAPTURE_REQUEST_HEADERS_LEGACY_CFG_OPT_NAME, [])) > 0)
+                ||
+                (count($values = Configuration::getList(self::CAPTURE_REQUEST_HEADERS_CFG_OPT_NAME, [])) > 0)
+            )
+        ) {
+            return $values;
+        }
+
+        return (array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []);
+    }
+
+    private static function getResponseHeadersToCapture(): array
+    {
+        if (
+            class_exists(Configuration::class)
+            &&
+            (
+                (count($values = Configuration::getList(self::CAPTURE_RESPONSE_HEADERS_LEGACY_CFG_OPT_NAME, [])) > 0)
+                ||
+                (count($values = Configuration::getList(self::CAPTURE_RESPONSE_HEADERS_CFG_OPT_NAME, [])) > 0)
+            )
+        ) {
+            return $values;
+        }
+
+        return (array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []);
     }
 }
