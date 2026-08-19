@@ -13,6 +13,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -66,7 +67,7 @@ class HttpAsyncClientInstrumentation
                 foreach ($propagator->fields() as $field) {
                     $request = $request->withoutHeader($field);
                 }
-                foreach ((array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []) as $header) {
+                foreach (self::getRequestHeadersToCapture() as $header) {
                     if ($request->hasHeader($header)) {
                         $spanBuilder->setAttribute(
                             sprintf('http.request.header.%s', strtolower($header)),
@@ -104,7 +105,7 @@ class HttpAsyncClientInstrumentation
                         $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                         $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
 
-                        foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
+                        foreach (self::getResponseHeadersToCapture() as $header) {
                             if ($response->hasHeader($header)) {
                                 /** @psalm-suppress ArgumentTypeCoercion */
                                 $span->setAttribute(sprintf('http.response.header.%s', strtolower($header)), $response->getHeader($header));
@@ -127,5 +128,23 @@ class HttpAsyncClientInstrumentation
                 );
             }
         );
+    }
+
+    private static function getRequestHeadersToCapture(): array
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS', [])) > 0) {
+            return $values;
+        }
+
+        return (array) (get_cfg_var('otel.instrumentation.http.request_headers') ?: []);
+    }
+
+    private static function getResponseHeadersToCapture(): array
+    {
+        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS', [])) > 0) {
+            return $values;
+        }
+
+        return (array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []);
     }
 }
