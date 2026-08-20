@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Database\Eloquent;
 
 use Illuminate\Database\Eloquent\Model as EloquentModel;
+use MongoDB\Laravel\Query\Builder as MongoQuery;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
@@ -159,6 +160,14 @@ class Model implements LaravelHook
             'getModels',
             pre: function ($builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $model = $builder->getModel();
+                $query = $builder->getQuery();
+
+                if ($query instanceof MongoQuery) {
+                    $statement = json_encode($query->toMql());
+                } else {
+                    $statement = $query->toSql();
+                }
+
                 $builder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder($model::class . '::get')
@@ -169,7 +178,7 @@ class Model implements LaravelHook
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'get')
-                    ->setAttribute('db.statement', $builder->getQuery()->toSql());
+                    ->setAttribute('db.statement', $statement);
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();

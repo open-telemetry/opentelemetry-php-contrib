@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Database\Eloquent;
 
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use MongoDB\Laravel\MongoDBServiceProvider;
+use MongoDB\Laravel\Query\Builder as MongoQueryBuilder;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestMongoModel;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
 /**
@@ -14,6 +19,11 @@ use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
  */
 class ModelTest extends TestCase
 {
+    protected function getPackageProviders($app): array
+    {
+        return [MongoDBServiceProvider::class];
+    }
+
     protected function getEnvironmentSetUp($app): void
     {
         // Setup default database to use sqlite :memory:
@@ -22,6 +32,11 @@ class ModelTest extends TestCase
             'driver'   => 'sqlite',
             'database' => ':memory:',
             'prefix'   => '',
+        ]);
+        $app['config']->set('database.connections.mongodb', [
+            'driver'   => 'mongodb',
+            'dsn'      => 'mongodb://127.0.0.1:27017',
+            'database' => 'test_models_mongo_db',
         ]);
     }
 
@@ -100,7 +115,7 @@ class ModelTest extends TestCase
         // Mark as exists = false required, because performUpdate called if exists = true.
         $model = (new TestModel())->newInstance(['id' => 1, 'name' => 'test'], false);
         $model->save();
-        
+
         $spans = $this->filterOnlyEloquentSpans();
         $this->assertCount(1, $spans);
 
@@ -155,6 +170,36 @@ class ModelTest extends TestCase
         $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('get', $span->getAttributes()->get('laravel.eloquent.operation'));
+    }
+
+    public function test_get_models_uses_mql_statement_for_mongodb_query(): void
+    {
+        $model = new TestMongoModel();
+
+        $query = new class($model->getConnection()) extends MongoQueryBuilder {
+            #[\Override]
+            public function get($columns = [])
+            {
+                return new Collection();
+            }
+        };
+
+        $builder = new EloquentBuilder($query);
+        $builder->setModel($model);
+
+        $builder->getModels();
+
+        $expectedStatement = json_encode($query->toMql());
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(1, $spans);
+
+        $span = $spans[0];
+        $this->assertSame(TestMongoModel::class . '::get', $span->getName());
+        $this->assertSame(TestMongoModel::class, $span->getAttributes()->get('laravel.eloquent.model'));
+        $this->assertSame('test_models_mongo', $span->getAttributes()->get('laravel.eloquent.table'));
+        $this->assertSame('get', $span->getAttributes()->get('laravel.eloquent.operation'));
+        $this->assertSame($expectedStatement, $span->getAttributes()->get('db.statement'));
     }
 
     public function test_destory(): void
