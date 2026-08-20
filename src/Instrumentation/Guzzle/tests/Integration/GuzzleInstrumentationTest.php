@@ -23,7 +23,11 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 
@@ -78,10 +82,10 @@ class GuzzleInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
-        $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertSame('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame('/foo', $span->getAttributes()->get(TraceAttributes::URL_PATH));
-        $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame('example.com', $span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertSame('GET', $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame('/foo', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     /**
@@ -96,10 +100,10 @@ class GuzzleInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
-        $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertSame($expected, $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame('/foo', $span->getAttributes()->get(TraceAttributes::URL_PATH));
-        $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame('example.com', $span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertSame($expected, $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame('/foo', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     /**
@@ -116,9 +120,9 @@ class GuzzleInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
-        $this->assertSame($expected, $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame($expected, $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame('example.com', $span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     /**
@@ -147,9 +151,9 @@ class GuzzleInstrumentationTest extends TestCase
         $this->assertCount(2, $this->storage);
         foreach ($this->storage as $span) {
             assert($span instanceof ImmutableSpan);
-            $this->assertSame('OPTIONS', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-            $this->assertSame('/foo', $span->getAttributes()->get(TraceAttributes::URL_PATH));
-            $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+            $this->assertSame('OPTIONS', $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+            $this->assertSame('/foo', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+            $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
         }
     }
 
@@ -170,8 +174,8 @@ class GuzzleInstrumentationTest extends TestCase
         $spanTwo = $this->storage->offsetGet(1);
         assert($spanTwo instanceof ImmutableSpan);
 
-        $this->assertSame(200, $spanOne->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertSame(500, $spanTwo->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame(200, $spanOne->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame(500, $spanTwo->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     public function test_headers_propagation(): void
@@ -228,7 +232,7 @@ class GuzzleInstrumentationTest extends TestCase
             $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
             $this->assertSame('Test exception', $span->getStatus()->getDescription());
         } else {
-            $this->assertSame(201, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+            $this->assertSame(201, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
         }
     }
 
@@ -263,11 +267,11 @@ class GuzzleInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $attributes = $span->getAttributes()->toArray();
         if ($expected) {
-            $this->assertSame($expected, $attributes[TraceAttributes::HTTP_RESPONSE_STATUS_CODE]);
-            $this->assertGreaterThan(0, $attributes[TraceAttributes::HTTP_RESPONSE_BODY_SIZE]);
-            $this->assertArrayHasKey(TraceAttributes::NETWORK_PROTOCOL_VERSION, $attributes);
+            $this->assertSame($expected, $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE]);
+            $this->assertGreaterThan(0, $attributes[HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE]);
+            $this->assertArrayHasKey(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $attributes);
         } else {
-            $this->assertArrayNotHasKey(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $attributes);
+            $this->assertArrayNotHasKey(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $attributes);
         }
     }
 

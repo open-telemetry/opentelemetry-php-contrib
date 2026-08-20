@@ -14,6 +14,14 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\Attributes\ClientAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use Psr\Http\Message\ServerRequestInterface;
@@ -54,8 +62,8 @@ class WordpressInstrumentation
             pre: static function ($object, ?array $params, ?string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = self::builder($instrumentation, 'wpdb.__construct', $function, $class, $filename, $lineno)
                     //->setAttribute(TraceAttributes::DB_USER, $params[0] ?? 'unknown') //deprecated, no replacement
-                    ->setAttribute(TraceAttributes::DB_NAMESPACE, $params[2] ?? 'unknown')
-                    ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, 'mysql')
+                    ->setAttribute(DbAttributes::DB_NAMESPACE, $params[2] ?? 'unknown')
+                    ->setAttribute(DbAttributes::DB_SYSTEM_NAME, DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL)
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
@@ -73,7 +81,7 @@ class WordpressInstrumentation
             pre: static function ($object, ?array $params, ?string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                 $span = self::builder($instrumentation, 'wpdb.query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_QUERY_TEXT, $params[0] ?? 'undefined')
+                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, $params[0] ?? 'undefined')
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
@@ -96,15 +104,15 @@ class WordpressInstrumentation
                     ->spanBuilder(sprintf('%s %s', $request->getMethod(), self::getScriptNameFromRequest($request)))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
-                    ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
-                    ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                    ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::CLIENT_ADDRESS, $request->getUri()->getHost())
-                    ->setAttribute(TraceAttributes::CLIENT_PORT, $request->getUri()->getPort())
+                    ->setAttribute(UrlAttributes::URL_FULL, (string) $request->getUri())
+                    ->setAttribute(UrlAttributes::URL_SCHEME, $request->getUri()->getScheme())
+                    ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                    ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
+                    ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                    ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                    ->setAttribute(ClientAttributes::CLIENT_ADDRESS, $request->getUri()->getHost())
+                    ->setAttribute(ClientAttributes::CLIENT_PORT, $request->getUri()->getPort())
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
@@ -114,7 +122,7 @@ class WordpressInstrumentation
                     function_exists('is_admin') && $span->setAttribute('wp.is_admin', is_admin());
 
                     if (function_exists('is_404') && is_404()) {
-                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, 404);
+                        $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, 404);
                     }
                     //@todo check for other errors?
 
@@ -163,9 +171,9 @@ class WordpressInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
             ->spanBuilder($name)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $fqn)
-            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+            ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, $fqn)
+            ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+            ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
     }
 
     private static function end(?Throwable $exception): void

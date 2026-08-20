@@ -11,7 +11,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
@@ -68,7 +68,7 @@ class PhpSessionInstrumentation
         return $instrumentation->tracer()
             ->spanBuilder($name)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function);
+            ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, $function);
     }
 
     private static function end(?Throwable $exception, string $function, mixed $return = null): void

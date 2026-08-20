@@ -14,7 +14,8 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
@@ -80,12 +81,12 @@ class Psr18InstrumentationTest extends TestCase
         $span = $this->storage[0];
 
         $this->assertStringContainsString($method, $span->getName());
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
-        $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::URL_FULL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame($method, $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertTrue($span->getAttributes()->has(UrlAttributes::URL_FULL));
+        $this->assertSame($uri, $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame($method, $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame($statusCode, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     public function requestProvider(): array

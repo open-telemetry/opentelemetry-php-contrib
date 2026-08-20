@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Symfony\Component\HttpClient\CurlHttpClient;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
@@ -47,13 +49,13 @@ final class HttpClientInstrumentationTest extends AbstractTest
 
         $this->assertTrue($span->getAttributes()->has(TraceAttributes::PEER_SERVICE));
         $this->assertSame(parse_url($uri)['host'] ?? null, $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
-        $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::URL_FULL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame($method, $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertTrue($span->getAttributes()->has(UrlAttributes::URL_FULL));
+        $this->assertSame($uri, $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame($method, $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
         $this->assertSame($spanStatus, $span->getStatus()->getCode());
-        $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame($statusCode, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     public function test_throw_exception(): void
@@ -74,8 +76,8 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $span = $this->storage[0];
         $event = $span->getEvents()[0];
 
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertTrue($span->getAttributes()->has(UrlAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame(InvalidArgumentException::class, $event->getAttributes()->get('exception.type'));
     }

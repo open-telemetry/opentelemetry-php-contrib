@@ -12,7 +12,7 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use PHPUnit\Framework\TestCase;
 
 class DoctrineInstrumentationTest extends TestCase
@@ -79,7 +79,7 @@ class DoctrineInstrumentationTest extends TestCase
         $this->assertTrue($conn->isConnected());
         $span = $this->storage->offsetGet(0);
         $this->assertSame('Doctrine\DBAL\Driver::connect', $span->getName());
-        $this->assertEquals('sqlite', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+        $this->assertEquals('sqlite', $span->getAttributes()->get(DbAttributes::DB_SYSTEM_NAME));
     }
 
     public function test_connection_exception(): void
@@ -109,12 +109,12 @@ class DoctrineInstrumentationTest extends TestCase
         $connection->prepare('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(2);
         $this->assertSame('SELECT technology', $span->getName());
-        $this->assertSame('prepare', $span->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('prepare', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
 
         $connection->executeQuery('SELECT * FROM `technology`');
         $span = $this->storage->offsetGet(3);
         $this->assertSame('SELECT technology', $span->getName());
-        $this->assertSame('SELECT', $span->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('SELECT', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
         $this->assertCount(4, $this->storage);
     }
 
@@ -126,14 +126,14 @@ class DoctrineInstrumentationTest extends TestCase
 
         $stmt = $connection->prepare('SELECT * FROM `technology` WHERE name = :name');
         $prepare = $this->storage->offsetGet(2);
-        $this->assertSame('prepare', $prepare->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('prepare', $prepare->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
         $this->assertSame('SELECT technology', $prepare->getName());
 
         $stmt->bindValue('name', 'PHP');
         $stmt->executeQuery();
         $execute = $this->storage->offsetGet(3);
         $this->assertSame('Doctrine::execute', $execute->getName());
-        $this->assertSame('execute', $execute->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('execute', $execute->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
         $this->assertCount(1, $execute->getLinks());
         $this->assertEquals($prepare->getContext(), $execute->getLinks()[0]->getSpanContext(), 'execute span is linked to prepare span');
     }
@@ -175,7 +175,7 @@ class DoctrineInstrumentationTest extends TestCase
         $connection->beginTransaction();
         $span = $this->storage->offsetGet(1);
         $this->assertSame('Doctrine::beginTransaction', $span->getName());
-        $this->assertSame('begin', $span->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('begin', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
         $this->assertCount(2, $this->storage);
 
         $statement = self::fillDB();
@@ -185,7 +185,7 @@ class DoctrineInstrumentationTest extends TestCase
         $connection->commit();
         $span = $this->storage->offsetGet(3);
         $this->assertSame('Doctrine::commit', $span->getName());
-        $this->assertSame('commit', $span->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('commit', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
         $this->assertCount(4, $this->storage);
 
         $connection->beginTransaction();
@@ -195,7 +195,7 @@ class DoctrineInstrumentationTest extends TestCase
         $connection->rollback();
         $span = $this->storage->offsetGet(6);
         $this->assertSame('Doctrine::rollBack', $span->getName());
-        $this->assertSame('rollback', $span->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('rollback', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
         $this->assertCount(7, $this->storage);
         $this->assertFalse($connection->isTransactionActive());
 
@@ -214,7 +214,7 @@ class DoctrineInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('Doctrine::execute', $span->getName());
-        $this->assertSame('execute', $span->getAttributes()->get(TraceAttributes::DB_OPERATION_NAME));
+        $this->assertSame('execute', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
     }
 
     public function test_statement_execute_error(): void

@@ -10,6 +10,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHook;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use Throwable;
 
@@ -26,10 +27,10 @@ class Command implements CakeHook
                 $builder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, $function)
                     ->setAttribute(TraceAttributes::CODE_NAMESPACE, $class)
                     ->setAttribute(TraceAttributes::CODE_FILEPATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();

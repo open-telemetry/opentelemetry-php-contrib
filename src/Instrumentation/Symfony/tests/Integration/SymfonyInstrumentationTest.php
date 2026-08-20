@@ -6,7 +6,10 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -52,7 +55,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->terminate(new Request(), $response);
 
         $this->assertCount(1, $this->storage);
-        $this->assertSame(500, $this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame(500, $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
 
         $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
     }
@@ -70,13 +73,13 @@ class SymfonyInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('GET test_route', $this->storage[0]->getName());
-        $this->assertEquals('http://:/', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
-        $this->assertEquals('test_route', $attributes->get(TraceAttributes::HTTP_ROUTE));
-        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEquals('1.0', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
-        $this->assertEquals(5, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+        $this->assertEquals('http://:/', $attributes->get(UrlAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(UrlAttributes::URL_SCHEME));
+        $this->assertEquals('test_route', $attributes->get(HttpAttributes::HTTP_ROUTE));
+        $this->assertEquals(200, $attributes->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEquals('1.0', $attributes->get(NetworkAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertEquals(5, $attributes->get(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE));
 
     }
 
@@ -92,7 +95,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->terminate(new Request(), $response);
 
         $this->assertCount(1, $this->storage);
-        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+        $this->assertNull($this->storage[0]->getAttributes()->get(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE));
     }
 
     public function test_http_kernel_handle_binary_file_response(): void
@@ -104,7 +107,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->terminate(new Request(), $response);
 
         $this->assertCount(1, $this->storage);
-        $this->assertNull($this->storage[0]->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+        $this->assertNull($this->storage[0]->getAttributes()->get(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE));
 
     }
 
@@ -119,7 +122,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->terminate(new Request(), $response);
 
         $this->assertCount(1, $this->storage);
-        $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
+        $this->assertFalse($this->storage[0]->getAttributes()->has(HttpAttributes::HTTP_ROUTE));
 
     }
 
@@ -132,7 +135,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel->terminate(new Request(), $response);
 
         $this->assertCount(1, $this->storage);
-        $this->assertFalse($this->storage[0]->getAttributes()->has(TraceAttributes::HTTP_ROUTE));
+        $this->assertFalse($this->storage[0]->getAttributes()->has(HttpAttributes::HTTP_ROUTE));
 
     }
 
@@ -234,7 +237,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
-        $this->assertSame(500, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame(500, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel

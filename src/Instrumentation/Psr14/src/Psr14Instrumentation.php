@@ -10,7 +10,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -43,9 +43,9 @@ class Psr14Instrumentation
                 $event = is_object($params[0]) ? $params[0] : null;
                 $builder = $instrumentation->tracer()
                    ->spanBuilder(sprintf('event %s', $event ? $event::class : 'unknown'))
-                   ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                   ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                   ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                   ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                   ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                   ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 if ($event) {
                     $builder->setAttribute('psr14.event.name', $event::class);
