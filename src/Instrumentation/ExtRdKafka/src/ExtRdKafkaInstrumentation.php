@@ -156,7 +156,7 @@ class ExtRdKafkaInstrumentation
                 $builder = $instrumentation
                     ->tracer()
                     // @phan-suppress-next-line PhanTypeMismatchArgumentInternal - Doesn't seem to know this has to be a string
-                    ->spanBuilder(sprintf('%s %s', MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND, $message->topic_name))
+                    ->spanBuilder(sprintf('%s %s', MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS, $message->topic_name))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_KAFKA)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS)

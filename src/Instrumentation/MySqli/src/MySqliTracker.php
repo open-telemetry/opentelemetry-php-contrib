@@ -55,7 +55,7 @@ final class MySqliTracker
     public function storeMySqliAttributes(mysqli $mysqli, ?string $hostname = null, ?string $username = null, ?string $database = null, ?int $port = null, ?string $socket = null)
     {
         $attributes = [];
-        $attributes[DbAttributes::DB_SYSTEM_NAME] = 'mysql';
+        $attributes[DbAttributes::DB_SYSTEM_NAME] = DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL;
         $attributes[ServerAttributes::SERVER_ADDRESS] = $hostname ?? get_cfg_var('mysqli.default_host');
         $attributes[ServerAttributes::SERVER_PORT] = $port ?? get_cfg_var('mysqli.default_port');
         //$attributes[TraceAttributes::DB_USER] = $username ?? get_cfg_var('mysqli.default_user'); //deprecated, no replacment at this time

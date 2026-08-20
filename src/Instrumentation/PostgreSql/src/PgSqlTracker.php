@@ -262,7 +262,7 @@ final class PgSqlTracker
         $attributes[ServerAttributes::SERVER_ADDRESS] = $addr;
         $attributes[ServerAttributes::SERVER_PORT] = $addr !== null ? ($connectionData['port'] ?? null) : null;
         $attributes[DbAttributes::DB_NAMESPACE] = $connectionData['dbname'] ?? $connectionData['user'] ?? null;
-        $attributes[DbAttributes::DB_SYSTEM_NAME] =  'postgresql';
+        $attributes[DbAttributes::DB_SYSTEM_NAME] = DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL;
 
         return $attributes;
     }

@@ -62,7 +62,7 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, 'amqp')
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, 'publish')
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND)
 
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
 

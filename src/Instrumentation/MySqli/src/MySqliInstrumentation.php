@@ -420,7 +420,7 @@ class MySqliInstrumentation
         $attributes[ServerAttributes::SERVER_PORT] = $params[$paramsOffset + 4] ?? get_cfg_var('mysqli.default_port');
         //$attributes[TraceAttributes::DB_USER] = $params[$paramsOffset + 1] ?? get_cfg_var('mysqli.default_user');
         $attributes[DbAttributes::DB_NAMESPACE] = $params[$paramsOffset + 3] ?? null;
-        $attributes[DbAttributes::DB_SYSTEM_NAME] =  'mysql';
+        $attributes[DbAttributes::DB_SYSTEM_NAME] = DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL;
 
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, $attributes);
     }
