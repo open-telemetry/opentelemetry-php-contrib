@@ -46,7 +46,7 @@ class GuzzleInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.guzzle',
             null,
-            'https://opentelemetry.io/schemas/1.32.0',
+            'https://opentelemetry.io/schemas/1.38.0',
         );
 
         /** @psalm-suppress UnusedFunctionCall */

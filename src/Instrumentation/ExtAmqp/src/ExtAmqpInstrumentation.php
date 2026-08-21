@@ -34,7 +34,7 @@ final class ExtAmqpInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.ext_amqp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-amqp'),
-            'https://opentelemetry.io/schemas/1.36.0',
+            'https://opentelemetry.io/schemas/1.38.0',
         );
 
         /** @psalm-suppress UnusedFunctionCall */

@@ -34,7 +34,7 @@ class HttpAsyncClientInstrumentation
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.http-async-client',
-            schemaUrl: 'https://opentelemetry.io/schemas/1.36.0',
+            schemaUrl: 'https://opentelemetry.io/schemas/1.38.0',
         );
 
         /** @psalm-suppress UnusedFunctionCall */

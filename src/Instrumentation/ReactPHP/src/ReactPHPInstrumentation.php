@@ -103,7 +103,7 @@ class ReactPHPInstrumentation
         $instrumentation = new CachedInstrumentation(
             self::INSTRUMENTATION_LIBRARY_NAME,
             InstalledVersions::getPrettyVersion(self::COMPOSER_NAME),
-            Version::VERSION_1_36_0->url()
+            Version::VERSION_1_38_0->url()
         );
 
         /** @psalm-suppress UnusedFunctionCall */

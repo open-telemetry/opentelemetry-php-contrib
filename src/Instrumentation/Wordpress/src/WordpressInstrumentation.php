@@ -22,7 +22,6 @@ use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
-use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
@@ -39,7 +38,7 @@ class WordpressInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.wordpress',
             null,
-            Version::VERSION_1_36_0->url(),
+            Version::VERSION_1_38_0->url(),
         );
 
         self::_hook($instrumentation, 'WP', 'main', 'WP.main');
