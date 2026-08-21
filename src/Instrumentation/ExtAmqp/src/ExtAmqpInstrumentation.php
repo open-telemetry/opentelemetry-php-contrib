@@ -15,13 +15,14 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use Throwable;
 
 /**
  * This uses SemConv 1.24, until messaging SemConv becomes stable.
  * @see https://opentelemetry.io/docs/specs/semconv/messaging/rabbitmq/
- * @phan-file-suppress PhanDeprecatedClassConstant
  * @psalm-suppress UnusedClass
  */
 final class ExtAmqpInstrumentation
@@ -33,7 +34,7 @@ final class ExtAmqpInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.ext_amqp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-amqp'),
-            'https://opentelemetry.io/schemas/1.32.0',
+            'https://opentelemetry.io/schemas/1.38.0',
         );
 
         /** @psalm-suppress UnusedFunctionCall */
@@ -56,28 +57,23 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder(sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey) . ' publish')
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
-                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, 'publish')
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND)
 
-                    ->setAttribute('messaging.destination', $routingKey)
-                    ->setAttribute(TraceAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
-                    ->setAttribute('messaging.destination_publish.name', sprintf('%s%s', $exchange->getName() != '' ? $exchange->getName() . ' ': '', $routingKey))
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
 
-                    ->setAttribute('messaging.destination.kind', $exchange->getType() !== '' ? $exchange->getType() : 'unknown')
-
-                    ->setAttribute('messaging.rabbitmq.routing.key', $routingKey)
-                    ->setAttribute('messaging.rabbitmq.destination.routing.key', $routingKey)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $routingKey)
 
                     // network
-                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
-                    ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, 'tcp')
+                    ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
+                    ->setAttribute(NetworkAttributes::NETWORK_TRANSPORT, NetworkAttributes::NETWORK_TRANSPORT_VALUE_TCP)
 
-                    ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $exchange->getConnection()->getHost())
-                    ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $exchange->getConnection()->getPort())
+                    ->setAttribute(NetworkAttributes::NETWORK_PEER_ADDRESS, $exchange->getConnection()->getHost())
+                    ->setAttribute(NetworkAttributes::NETWORK_PEER_PORT, $exchange->getConnection()->getPort())
                 ;
 
                 $parent = Context::getCurrent();
@@ -165,26 +161,24 @@ final class ExtAmqpInstrumentation
                     ->spanBuilder($queueName . ' ' . $method)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     // code
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
-                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'amqp')
-                    ->setAttribute(TraceAttributes::MESSAGING_OPERATION_TYPE, $method)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SETTLE)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_NAME, $method)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME, $queueName)
 
-                    ->setAttribute('messaging.destination.kind', 'queue')
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $queueName)
 
-                    ->setAttribute('messaging.rabbitmq.routing.key', $queueName)
-                    ->setAttribute('messaging.rabbitmq.destination.routing_key', $queueName)
-                    ->setAttribute('messaging.destination_publish.name', $queueName)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_CLIENT_ID, $queue->getConsumerTag())
 
-                    ->setAttribute(TraceAttributes::MESSAGING_CLIENT_ID, $queue->getConsumerTag())
+                    ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
+                    ->setAttribute(NetworkAttributes::NETWORK_TRANSPORT, NetworkAttributes::NETWORK_TRANSPORT_VALUE_TCP)
 
-                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
-                    ->setAttribute(TraceAttributes::NETWORK_TRANSPORT, 'tcp')
-
-                    ->setAttribute(TraceAttributes::NETWORK_PEER_ADDRESS, $queue->getChannel()->getConnection()->getHost())
-                    ->setAttribute(TraceAttributes::NETWORK_PEER_PORT, $queue->getChannel()->getConnection()->getPort())
+                    ->setAttribute(NetworkAttributes::NETWORK_PEER_ADDRESS, $queue->getChannel()->getConnection()->getHost())
+                    ->setAttribute(NetworkAttributes::NETWORK_PEER_PORT, $queue->getChannel()->getConnection()->getPort())
                 ;
 
                 $parent = Context::getCurrent();

@@ -12,6 +12,9 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -42,7 +45,7 @@ final class HttpClientInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.symfony_http',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_38_0->url(),
         );
 
         /** @psalm-suppress UnusedFunctionCall */
@@ -63,11 +66,11 @@ final class HttpClientInstrumentation
                     ->spanBuilder(\sprintf('%s', $params[0]))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
                     ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
-                    ->setAttribute(TraceAttributes::URL_FULL, (string) $params[1])
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $params[0])
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(UrlAttributes::URL_FULL, (string) $params[1])
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $params[0])
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $propagator = Globals::propagator();
                 $parent = Context::getCurrent();
@@ -106,7 +109,7 @@ final class HttpClientInstrumentation
                     $statusCode = $info['http_code'];
 
                     if (0 !== $statusCode && null !== $statusCode && $span->isRecording()) {
-                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                        $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
 
                         if ($statusCode >= 400 && $statusCode < 600) {
                             $span->setStatus(StatusCode::STATUS_ERROR);
@@ -146,7 +149,7 @@ final class HttpClientInstrumentation
                 }
 
                 if ($response !== null && false === self::supportsProgress(get_class($client))) {
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
 
                     if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
                         $span->setStatus(StatusCode::STATUS_ERROR);

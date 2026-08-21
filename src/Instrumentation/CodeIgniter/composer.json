@@ -13,7 +13,7 @@
       "ext-opentelemetry": "*",
       "codeigniter4/framework": "^4.3",
       "open-telemetry/api": "^1.6",
-      "open-telemetry/sem-conv": "^1.32"
+      "open-telemetry/sem-conv": "^1.38"
     },
     "suggest": {
       "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",

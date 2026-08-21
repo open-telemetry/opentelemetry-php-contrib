@@ -19,8 +19,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use Throwable;
 
 class Worker implements LaravelHook
@@ -57,8 +56,8 @@ class Worker implements LaravelHook
                 $spanBuilder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_PROCESS,
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
+                        $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes);
@@ -107,8 +106,8 @@ class Worker implements LaravelHook
                 $span = $this->instrumentation
                     ->tracer()
                     ->spanBuilder(vsprintf('%s %s', [
-                        TraceAttributeValues::MESSAGING_OPERATION_TYPE_RECEIVE,
-                        $attributes[TraceAttributes::MESSAGING_DESTINATION_NAME],
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_RECEIVE,
+                        $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes)

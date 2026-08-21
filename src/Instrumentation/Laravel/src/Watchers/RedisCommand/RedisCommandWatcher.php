@@ -12,8 +12,9 @@ use Illuminate\Redis\Events\CommandExecuted;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
-use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
 use Throwable;
 
 /**
@@ -54,11 +55,11 @@ class RedisCommandWatcher extends Watcher
 
         // See https://opentelemetry.io/docs/specs/semconv/database/redis/
         $attributes = [
-            TraceAttributes::DB_SYSTEM_NAME => TraceAttributeValues::DB_SYSTEM_REDIS,
-            TraceAttributes::DB_NAMESPACE => $this->fetchDbIndex($event->connection),
-            TraceAttributes::DB_OPERATION_NAME => $operationName,
-            TraceAttributes::DB_QUERY_TEXT => Serializer::serializeCommand($event->command, $event->parameters),
-            TraceAttributes::SERVER_ADDRESS => $this->fetchDbHost($event->connection),
+            DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
+            DbAttributes::DB_NAMESPACE => $this->fetchDbIndex($event->connection),
+            DbAttributes::DB_OPERATION_NAME => $operationName,
+            DbAttributes::DB_QUERY_TEXT => Serializer::serializeCommand($event->command, $event->parameters),
+            ServerAttributes::SERVER_ADDRESS => $this->fetchDbHost($event->connection),
         ];
 
         /** @psalm-suppress PossiblyInvalidArgument */

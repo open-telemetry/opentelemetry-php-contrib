@@ -12,7 +12,13 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +35,7 @@ final class SymfonyInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.symfony',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_38_0->url(),
         );
 
         /** @psalm-suppress UnusedFunctionCall */
@@ -61,23 +67,23 @@ final class SymfonyInstrumentation
                     ->tracer()
                     ->spanBuilder($name)
                     ->setSpanKind(($type === HttpKernelInterface::SUB_REQUEST) ? SpanKind::KIND_INTERNAL : SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
                 if ($request) {
                     $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
                     $span = $builder
                         ->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, $request->getUri())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
-                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getScheme())
-                        ->setAttribute(TraceAttributes::URL_PATH, $request->getPathInfo())
-                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->headers->get('User-Agent'))
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getHost())
-                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getPort())
+                        ->setAttribute(UrlAttributes::URL_FULL, $request->getUri())
+                        ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                        ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->headers->get('Content-Length'))
+                        ->setAttribute(UrlAttributes::URL_SCHEME, $request->getScheme())
+                        ->setAttribute(UrlAttributes::URL_PATH, $request->getPathInfo())
+                        ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->headers->get('User-Agent'))
+                        ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getHost())
+                        ->setAttribute(ServerAttributes::SERVER_PORT, $request->getPort())
                         ->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {
@@ -130,7 +136,7 @@ final class SymfonyInstrumentation
                         /** @psalm-suppress ArgumentTypeCoercion */
                         $span
                             ->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
-                            ->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $routeName);
                     }
                 }
 
@@ -150,15 +156,15 @@ final class SymfonyInstrumentation
                 if ($response->getStatusCode() >= Response::HTTP_INTERNAL_SERVER_ERROR) {
                     $span->setStatus(StatusCode::STATUS_ERROR);
                 }
-                $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
-                $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                 $contentLength = $response->headers->get('Content-Length');
                 /** @psalm-suppress PossiblyFalseArgument */
                 if (null === $contentLength && is_string($response->getContent())) {
                     $contentLength = \strlen($response->getContent());
                 }
 
-                $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
+                $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $contentLength);
 
                 $prop = Globals::responsePropagator();
                 $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());

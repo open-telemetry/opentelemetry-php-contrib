@@ -13,7 +13,8 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use PgSql\Connection;
 use PgSql\Lob;
 use PgSql\Result;
@@ -60,9 +61,9 @@ class PostgreSqlInstrumentationTest extends TestCase
     private function assertDatabaseAttributes(int $offset)
     {
         $span = $this->storage->offsetGet($offset);
-        $this->assertEquals($this->pgsqlHost, $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertEquals($this->database, $span->getAttributes()->get(TraceAttributes::DB_NAMESPACE));
-        $this->assertEquals('postgresql', $span->getAttributes()->get(TraceAttributes::DB_SYSTEM_NAME));
+        $this->assertEquals($this->pgsqlHost, $span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertEquals($this->database, $span->getAttributes()->get(DbAttributes::DB_NAMESPACE));
+        $this->assertEquals('postgresql', $span->getAttributes()->get(DbAttributes::DB_SYSTEM_NAME));
     }
 
     private function assertDatabaseAttributesForAllSpans(int $offsets)
@@ -110,8 +111,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users',
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_QUERY_TEXT => 'SELECT * FROM users',
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
 
         while ($row = pg_fetch_assoc($res)) {
@@ -152,7 +153,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_convert', actual: $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_COLLECTION_NAME => 'users',
+            DbAttributes::DB_COLLECTION_NAME => 'users',
         ]);
         $this->assertSame(StatusCode::STATUS_ERROR, $this->storage->offsetGet($offset)->getStatus()->getCode());
 
@@ -183,7 +184,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_copy_from', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_COLLECTION_NAME => 'users',
+            DbAttributes::DB_COLLECTION_NAME => 'users',
         ]);
         $offset++;
 
@@ -192,8 +193,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'DELETE FROM users WHERE id IN (2000, 2001)',
-            TraceAttributes::DB_OPERATION_NAME => 'DELETE',
+            DbAttributes::DB_QUERY_TEXT => 'DELETE FROM users WHERE id IN (2000, 2001)',
+            DbAttributes::DB_OPERATION_NAME => 'DELETE',
         ]);
         $offset++;
 
@@ -218,7 +219,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_copy_to', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_COLLECTION_NAME => 'users',
+            DbAttributes::DB_COLLECTION_NAME => 'users',
         ]);
         $offset++;
 
@@ -243,7 +244,7 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'INSERT',
+            DbAttributes::DB_OPERATION_NAME => 'INSERT',
         ]);
         $offset++;
 
@@ -253,8 +254,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_delete', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'DELETE',
-            TraceAttributes::DB_COLLECTION_NAME => 'users',
+            DbAttributes::DB_OPERATION_NAME => 'DELETE',
+            DbAttributes::DB_COLLECTION_NAME => 'users',
         ]);
         $offset++;
 
@@ -278,8 +279,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_prepare', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
-            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
         ]);
         $offset++;
 
@@ -288,8 +289,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
-            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
         ]);
         $offset++;
 
@@ -323,9 +324,9 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_select', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
-            TraceAttributes::DB_COLLECTION_NAME => 'users',
-            TraceAttributes::DB_QUERY_TEXT => "SELECT * FROM users WHERE name = 'Jane Smith' AND email = 'jane.smith@example.com'",
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_COLLECTION_NAME => 'users',
+            DbAttributes::DB_QUERY_TEXT => "SELECT * FROM users WHERE name = 'Jane Smith' AND email = 'jane.smith@example.com'",
         ]);
         $offset++;
 
@@ -349,8 +350,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_send_prepare', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
-            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
         ]);
         $offset++;
 
@@ -366,8 +367,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_send_execute', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
-            TraceAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_QUERY_TEXT => 'SELECT * FROM users WHERE email = $1',
         ]);
         $offset++;
 
@@ -401,8 +402,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_send_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'SELECT name FROM users WHERE email = \'john.doe@example.com\'',
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_QUERY_TEXT => 'SELECT name FROM users WHERE email = \'john.doe@example.com\'',
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
         $offset++;
 
@@ -440,8 +441,8 @@ class PostgreSqlInstrumentationTest extends TestCase
 
         $this->assertSame('pg_send_query_params', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'SELECT name FROM users WHERE email = $1',
-            TraceAttributes::DB_OPERATION_NAME => 'SELECT',
+            DbAttributes::DB_QUERY_TEXT => 'SELECT name FROM users WHERE email = $1',
+            DbAttributes::DB_OPERATION_NAME => 'SELECT',
         ]);
         $offset++;
 
@@ -474,8 +475,8 @@ class PostgreSqlInstrumentationTest extends TestCase
         pg_query($conn, 'BEGIN');
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'BEGIN',
-            TraceAttributes::DB_OPERATION_NAME => 'BEGIN',
+            DbAttributes::DB_QUERY_TEXT => 'BEGIN',
+            DbAttributes::DB_OPERATION_NAME => 'BEGIN',
         ]);
         $offset++;
 
@@ -487,7 +488,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertInstanceOf(Lob::class, $fd);
         $this->assertSame('pg_lo_open', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'OPEN',
+            DbAttributes::DB_OPERATION_NAME => 'OPEN',
         ]);
         $offset++;
 
@@ -495,7 +496,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertGreaterThan(0, $written);
         $this->assertSame('pg_lo_write', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'WRITE',
+            DbAttributes::DB_OPERATION_NAME => 'WRITE',
             'db.postgres.bytes_written' => 19,
         ]);
         $offset++;
@@ -506,7 +507,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertSame("Hello Postgres LOB\n", $data);
         $this->assertSame('pg_lo_read', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'READ',
+            DbAttributes::DB_OPERATION_NAME => 'READ',
         ]);
         $offset++;
 
@@ -517,7 +518,7 @@ class PostgreSqlInstrumentationTest extends TestCase
         $this->assertSame("Hello Postgres LOB\n", $output);
         $this->assertSame('pg_lo_read_all', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_OPERATION_NAME => 'READ',
+            DbAttributes::DB_OPERATION_NAME => 'READ',
             'db.postgres.bytes_read' => 19,
         ]);
         $offset++;
@@ -531,8 +532,8 @@ class PostgreSqlInstrumentationTest extends TestCase
         pg_query($conn, 'COMMIT');
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'COMMIT',
-            TraceAttributes::DB_OPERATION_NAME => 'COMMIT',
+            DbAttributes::DB_QUERY_TEXT => 'COMMIT',
+            DbAttributes::DB_OPERATION_NAME => 'COMMIT',
         ]);
         $offset++;
 
@@ -554,8 +555,8 @@ class PostgreSqlInstrumentationTest extends TestCase
         pg_query($conn, 'BEGIN');
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'BEGIN',
-            TraceAttributes::DB_OPERATION_NAME => 'BEGIN',
+            DbAttributes::DB_QUERY_TEXT => 'BEGIN',
+            DbAttributes::DB_OPERATION_NAME => 'BEGIN',
         ]);
         $offset++;
 
@@ -585,8 +586,8 @@ class PostgreSqlInstrumentationTest extends TestCase
         pg_query($conn, 'COMMIT');
         $this->assertSame('pg_query', $this->storage->offsetGet($offset)->getName());
         $this->assertAttributes($offset, [
-            TraceAttributes::DB_QUERY_TEXT => 'COMMIT',
-            TraceAttributes::DB_OPERATION_NAME => 'COMMIT',
+            DbAttributes::DB_QUERY_TEXT => 'COMMIT',
+            DbAttributes::DB_OPERATION_NAME => 'COMMIT',
         ]);
         $offset++;
 

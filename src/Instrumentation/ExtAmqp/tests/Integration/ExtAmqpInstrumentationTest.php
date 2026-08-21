@@ -14,7 +14,7 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use PHPUnit\Framework\TestCase;
 
 class ExtAmqpInstrumentationTest extends TestCase
@@ -56,10 +56,10 @@ class ExtAmqpInstrumentationTest extends TestCase
 
             $this->assertNotEmpty($span->getInstrumentationScope()->getVersion());
             $this->assertEquals('test_exchange ' . $routing_key . ' publish', $span->getName());
-            $this->assertEquals('amqp', $span->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+            $this->assertEquals(MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ, $span->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $span->getKind());
-            $this->assertEquals('test_exchange ' . $routing_key, $span->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
-            $this->assertEquals('topic', $span->getAttributes()->get('messaging.destination.kind'));
+            $this->assertEquals($routing_key, $span->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME));
+            $this->assertEquals($routing_key, $span->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY));
 
             /**
              * Our message should be the first one in the queue
@@ -90,10 +90,10 @@ class ExtAmqpInstrumentationTest extends TestCase
 
             $this->assertNotEmpty($publishSpan->getInstrumentationScope()->getVersion());
             $this->assertEquals('test_exchange ' . $routing_key . ' publish', $publishSpan->getName());
-            $this->assertEquals('amqp', $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+            $this->assertEquals(MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ, $publishSpan->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
             $this->assertEquals(SpanKind::KIND_PRODUCER, $publishSpan->getKind());
-            $this->assertEquals('test_exchange ' . $routing_key, $publishSpan->getAttributes()->get(TraceAttributes::MESSAGING_DESTINATION_PUBLISH_NAME));
-            $this->assertEquals('topic', $publishSpan->getAttributes()->get('messaging.destination.kind'));
+            $this->assertEquals($routing_key, $publishSpan->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME));
+            $this->assertEquals($routing_key, $publishSpan->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY));
 
             /**
              * Our message should be the first one in the queue

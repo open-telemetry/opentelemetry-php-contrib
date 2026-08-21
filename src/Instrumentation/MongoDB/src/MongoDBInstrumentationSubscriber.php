@@ -28,6 +28,7 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
 use Throwable;
 
 /**
@@ -88,12 +89,12 @@ final class MongoDBInstrumentationSubscriber implements CommandSubscriber, SDAMS
 
         $builder = self::startSpan($this->instrumentation, 'MongoDB ' . $scopedCommand)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(DbAttributes::DB_SYSTEM_NAME, 'mongodb')
+            ->setAttribute(DbAttributes::DB_SYSTEM_NAME, DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_MONGODB)
             ->setAttribute(DbAttributes::DB_NAMESPACE, $databaseName)
             ->setAttribute(DbAttributes::DB_OPERATION_NAME, $commandName)
             ->setAttribute(ServerAttributes::SERVER_ADDRESS, $isSocket ? null : $host)
             ->setAttribute(ServerAttributes::SERVER_PORT, $isSocket ? null : $port)
-            ->setAttribute(NetworkAttributes::NETWORK_TRANSPORT, $isSocket ? 'unix' : 'tcp')
+            ->setAttribute(NetworkAttributes::NETWORK_TRANSPORT, $isSocket ? NetworkAttributes::NETWORK_TRANSPORT_VALUE_UNIX : NetworkAttributes::NETWORK_TRANSPORT_VALUE_TCP)
             ->setAttribute(DbAttributes::DB_QUERY_TEXT, ($this->commandSerializer)($command))
             ->setAttribute(DbAttributes::DB_COLLECTION_NAME, $collectionName)
             ->setAttribute(MongoDBTraceAttributes::DB_MONGODB_REQUEST_ID, $event->getRequestId())
