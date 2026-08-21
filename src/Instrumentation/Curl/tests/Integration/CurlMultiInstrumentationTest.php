@@ -130,10 +130,13 @@ class CurlMultiInstrumentationTest extends TestCase
         $this->assertEquals('other://scheme.com/', actual: $span->getAttributes()->get(TraceAttributes::URL_FULL));
     }
 
-    public function test_curl_multi_exec_calls_user_defined_headerfunc(): void
+    /**
+     * @dataProvider \OpenTelemetry\Tests\Instrumentation\Curl\Integration\CurlInstrumentationTest::capture_headers_config_options_names_data_provider
+     */
+    public function test_curl_multi_exec_calls_user_defined_headerfunc(string $captureRequestHeadersCfgName, string $captureResponseHeadersCfgName): void
     {
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type');
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
+        putenv($captureResponseHeadersCfgName . '=content-type');
+        putenv($captureRequestHeadersCfgName . '=host');
 
         $mh = curl_multi_init();
         $ch1 = curl_init('http://example.com/');
@@ -182,10 +185,13 @@ class CurlMultiInstrumentationTest extends TestCase
         }
     }
 
-    public function test_curl_multi_exec_headers_capturing(): void
+    /**
+     * @dataProvider \OpenTelemetry\Tests\Instrumentation\Curl\Integration\CurlInstrumentationTest::capture_headers_config_options_names_data_provider
+     */
+    public function test_curl_multi_exec_headers_capturing(string $captureRequestHeadersCfgName, string $captureResponseHeadersCfgName): void
     {
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type');
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
+        putenv($captureResponseHeadersCfgName . '=content-type');
+        putenv($captureRequestHeadersCfgName . '=host');
 
         $mh = curl_multi_init();
         $ch1 = curl_init('http://example.com/');
@@ -222,9 +228,12 @@ class CurlMultiInstrumentationTest extends TestCase
         }
     }
 
-    public function test_curl_multi_exec_sets_traceparent(): void
+    /**
+     * @dataProvider \OpenTelemetry\Tests\Instrumentation\Curl\Integration\CurlInstrumentationTest::capture_headers_config_options_names_data_provider
+     */
+    public function test_curl_multi_exec_sets_traceparent(string $captureRequestHeadersCfgName, /** @noinspection PhpUnusedParameterInspection */ string $captureResponseHeadersCfgName): void
     {
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
+        putenv($captureRequestHeadersCfgName . '=traceparent');
 
         $mh = curl_multi_init();
         $ch1 = curl_init('http://example.com/');

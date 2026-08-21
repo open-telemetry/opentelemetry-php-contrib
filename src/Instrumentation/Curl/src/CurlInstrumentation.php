@@ -26,6 +26,11 @@ class CurlInstrumentation
 
     public const NAME = 'curl';
 
+    private const CAPTURE_REQUEST_HEADERS_LEGACY_CFG_OPT_NAME = 'OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS';
+    private const CAPTURE_REQUEST_HEADERS_CFG_OPT_NAME = 'OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS';
+    private const CAPTURE_RESPONSE_HEADERS_LEGACY_CFG_OPT_NAME = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
+    private const CAPTURE_RESPONSE_HEADERS_CFG_OPT_NAME = 'OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS';
+
     public static function register(): void
     {
         // @var WeakMap<CurlHandle, CurlHandleMetadata>
@@ -493,16 +498,20 @@ class CurlInstrumentation
 
     private static function isRequestHeadersCapturingEnabled(): bool
     {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count(Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS', [])) > 0) {
-            return true;
-        }
-
-        return get_cfg_var('otel.instrumentation.http.request_headers') !== false;
+        return !empty(self::getRequestHeadersToCapture());
     }
 
     private static function getRequestHeadersToCapture(): array
     {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS', [])) > 0) {
+        if (
+            class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')
+            &&
+            (
+                (count($values = Configuration::getList(self::CAPTURE_REQUEST_HEADERS_LEGACY_CFG_OPT_NAME, [])) > 0)
+                ||
+                (count($values = Configuration::getList(self::CAPTURE_REQUEST_HEADERS_CFG_OPT_NAME, [])) > 0)
+            )
+        ) {
             return $values;
         }
 
@@ -511,16 +520,20 @@ class CurlInstrumentation
 
     private static function isResponseHeadersCapturingEnabled(): bool
     {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count(Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS', [])) > 0) {
-            return true;
-        }
-
-        return get_cfg_var('otel.instrumentation.http.response_headers') !== false;
+        return !empty(self::getResponseHeadersToCapture());
     }
 
     private static function getResponseHeadersToCapture(): array
     {
-        if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration') && count($values = Configuration::getList('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS', [])) > 0) {
+        if (
+            class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')
+            &&
+            (
+                (count($values = Configuration::getList(self::CAPTURE_RESPONSE_HEADERS_LEGACY_CFG_OPT_NAME, [])) > 0)
+                ||
+                (count($values = Configuration::getList(self::CAPTURE_RESPONSE_HEADERS_CFG_OPT_NAME, [])) > 0)
+            )
+        ) {
             return $values;
         }
 

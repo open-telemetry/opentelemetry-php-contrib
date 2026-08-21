@@ -165,12 +165,21 @@ class CurlInstrumentationTest extends TestCase
         $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
     }
 
-    public function test_curl_exec_calls_user_defined_headerfunc(): void
+    public function capture_headers_config_options_names_data_provider(): iterable
+    {
+        yield ['OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS', 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS'];
+        yield ['OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS', 'OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS'];
+    }
+
+    /**
+     * @dataProvider capture_headers_config_options_names_data_provider
+     */
+    public function test_curl_exec_calls_user_defined_headerfunc(string $captureRequestHeadersCfgName, string $captureResponseHeadersCfgName): void
     {
         // test if response header capturing is not breaking user header func invocation
 
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=server');
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
+        putenv($captureResponseHeadersCfgName . '=server');
+        putenv($captureRequestHeadersCfgName . '=host');
 
         $ch = curl_init('http://example.com/');
         $this->assertInstanceOf(CurlHandle::class, $ch);
@@ -199,10 +208,13 @@ class CurlInstrumentationTest extends TestCase
         $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
     }
 
-    public function test_curl_exec_headers_capturing(): void
+    /**
+     * @dataProvider capture_headers_config_options_names_data_provider
+     */
+    public function test_curl_exec_headers_capturing(string $captureRequestHeadersCfgName, string $captureResponseHeadersCfgName): void
     {
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS=content-type');
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=host');
+        putenv($captureResponseHeadersCfgName . '=content-type');
+        putenv($captureRequestHeadersCfgName . '=host');
 
         $ch = curl_init('http://example.com/');
         $this->assertInstanceOf(CurlHandle::class, $ch);
@@ -219,9 +231,12 @@ class CurlInstrumentationTest extends TestCase
         $this->assertEquals('example.com', $span->getAttributes()->get('http.request.header.host'));
     }
 
-    public function test_curl_exec_sets_traceparent(): void
+    /**
+     * @dataProvider capture_headers_config_options_names_data_provider
+     */
+    public function test_curl_exec_sets_traceparent(string $captureRequestHeadersCfgName, /** @noinspection PhpUnusedParameterInspection */ string $captureResponseHeadersCfgName): void
     {
-        putenv('OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS=traceparent');
+        putenv($captureRequestHeadersCfgName . '=traceparent');
 
         $ch = curl_init('http://example.com/');
         $this->assertInstanceOf(CurlHandle::class, $ch);

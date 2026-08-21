@@ -37,7 +37,7 @@ docker run -d --name jaeger \
   -p 16686:16686 \
   -p 4318:4318 \
   -p 4317:4317 \
-  jaegertracing/all-in-one
+  jaegertracing/jaeger
 ```
 
 注册 `TracerProvider` 并启动 Swoole http server:

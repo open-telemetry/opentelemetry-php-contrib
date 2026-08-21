@@ -30,9 +30,7 @@ and create a `docker-compose.yaml` file in the root of your project with the con
 version: '3.7'
 services:
     jaeger:
-        image: jaegertracing/all-in-one
-        environment:
-            COLLECTOR_ZIPKIN_HTTP_PORT: 9412
+        image: jaegertracing/jaeger
         ports:
             - "9412:9412"
             - "16686:16686"

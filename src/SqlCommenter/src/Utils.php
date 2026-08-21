@@ -15,22 +15,10 @@ class Utils
         return '/*' . implode(
             ',',
             array_map(
-                static fn (string $value, string $key) => Utils::customUrlEncode($key) . "='" . Utils::customUrlEncode($value) . "'",
+                static fn (string $value, string $key) => urlencode($key) . "='" . urlencode($value) . "'",
                 $comments,
                 array_keys($comments)
             ),
         ) . '*/';
-    }
-
-    private static function customUrlEncode(string $input): string
-    {
-        $encodedString = urlencode($input);
-
-        // Since SQL uses '%' as a keyword, '%' is a by-product of url quoting
-        // e.g. foo,bar --> foo%2Cbar
-        // thus in our quoting, we need to escape it too to finally give
-        //      foo,bar --> foo%%2Cbar
-
-        return str_replace('%', '%%', $encodedString);
     }
 }
