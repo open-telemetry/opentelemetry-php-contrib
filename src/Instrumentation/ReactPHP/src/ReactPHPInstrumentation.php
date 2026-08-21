@@ -21,7 +21,6 @@ use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
 use OpenTelemetry\SemConv\Version;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -134,7 +133,7 @@ class ReactPHPInstrumentation
                     ->spanBuilder($requestMeta['http.request.method'] ?? self::HTTP_REQUEST_METHOD_HTTP)
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $requestMeta['http.request.method'] ?? TraceAttributeValues::HTTP_REQUEST_METHOD_OTHER)
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $requestMeta['http.request.method'] ?? HttpAttributes::HTTP_REQUEST_METHOD_VALUE_OTHER)
                     ->setAttribute(ServerAttributes::SERVER_ADDRESS, $requestMeta['server.address'])
                     ->setAttribute(ServerAttributes::SERVER_PORT, $requestMeta['server.port'])
                     ->setAttribute(UrlAttributes::URL_FULL, self::sanitizeUrl($request->getUri()))
@@ -295,15 +294,15 @@ class ReactPHPInstrumentation
     {
         // RFC9110, RFC5789
         $knownMethods = [
-            TraceAttributeValues::HTTP_REQUEST_METHOD_GET,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_HEAD,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_POST,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_PUT,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_DELETE,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_CONNECT,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_OPTIONS,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_TRACE,
-            TraceAttributeValues::HTTP_REQUEST_METHOD_PATCH,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_GET,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_HEAD,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_POST,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_PUT,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_DELETE,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_CONNECT,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_OPTIONS,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_TRACE,
+            HttpAttributes::HTTP_REQUEST_METHOD_VALUE_PATCH,
         ];
 
         $overrideMethods = $_ENV[self::ENV_HTTP_KNOWN_METHODS] ?? '';

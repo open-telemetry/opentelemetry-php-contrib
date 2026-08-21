@@ -61,7 +61,7 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, 'amqp')
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND)
 
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
@@ -165,8 +165,9 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, 'amqp')
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, $method)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SETTLE)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_NAME, $method)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME, $queueName)
 
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $queueName)
