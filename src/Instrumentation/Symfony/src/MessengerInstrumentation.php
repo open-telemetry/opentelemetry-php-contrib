@@ -40,7 +40,7 @@ final class MessengerInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.symfony_messenger',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         /**

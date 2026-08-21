@@ -39,7 +39,7 @@ class WordpressInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.wordpress',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         self::_hook($instrumentation, 'WP', 'main', 'WP.main');

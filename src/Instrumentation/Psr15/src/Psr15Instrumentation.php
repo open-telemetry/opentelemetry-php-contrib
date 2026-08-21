@@ -39,7 +39,7 @@ class Psr15Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr15',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         /**

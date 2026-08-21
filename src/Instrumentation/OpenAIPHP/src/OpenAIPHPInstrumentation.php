@@ -40,7 +40,7 @@ final class OpenAIPHPInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.openaiphp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-openai-php'),
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         self::$totalTokensCounter = $instrumentation->meter()->createCounter(

@@ -28,7 +28,7 @@ final class AwsSdkInstrumentation
         $inst = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.aws-sdk',
             null,
-            'https://opentelemetry.io/schemas/1.32.0',
+            'https://opentelemetry.io/schemas/1.36.0',
         );
 
         /**

@@ -45,7 +45,7 @@ final class HttpClientInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.symfony_http',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         /** @psalm-suppress UnusedFunctionCall */

@@ -38,7 +38,7 @@ class PostgreSqlInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.postgresql',
             null,
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         $tracker = new PgSqlTracker();

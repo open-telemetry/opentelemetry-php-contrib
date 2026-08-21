@@ -32,7 +32,7 @@ class ExtRdKafkaInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.ext_rdkafka',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-rdkafka'),
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         // Start root span and propagate parent if it exists in headers, for each message consumed

@@ -13,7 +13,7 @@
     "ext-opentelemetry": "*",
     "guzzlehttp/psr7": "^2.7",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.32",
+    "open-telemetry/sem-conv": "^1.36",
     "react/http": "^1.11.0"
   },
   "require-dev": {

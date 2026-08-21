@@ -58,7 +58,7 @@ class CurlInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.curl',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         hook(

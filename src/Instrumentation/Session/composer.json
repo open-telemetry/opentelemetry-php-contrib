@@ -11,7 +11,7 @@
 	"ext-opentelemetry": "*",
         "ext-session": "*",
         "open-telemetry/api": "^1.0",
-        "open-telemetry/sem-conv": "^1.0"
+        "open-telemetry/sem-conv": "^1.36"
     },
     "autoload": {
         "psr-4": {
