@@ -80,6 +80,8 @@ splits:
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/opentelemetry-meta.git"
   - prefix: "src/Metrics/Runtime"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-metrics-runtime.git"
+  - prefix: "src/OperatorPackages/autoinstrumentation-php"
+    target: "https://${GH_TOKEN}@github.com/opentelemetry-php/autoinstrumentation-php.git"
   - prefix: "src/Propagation/CloudTrace"
     target: "https://${GH_TOKEN}@github.com/opentelemetry-php/contrib-propagator-cloudtrace.git"
   - prefix: "src/Propagation/Instana"
