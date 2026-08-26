@@ -24,6 +24,7 @@ jobs:
         # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
         project: [
           'Aws',
+          'Context/Revolt',
           'Context/Swoole',
           'Exporter/Instana',
           'Instrumentation/AwsSdk',
