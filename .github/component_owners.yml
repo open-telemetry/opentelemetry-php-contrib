@@ -10,6 +10,8 @@ components:
     - ChrisLightfootWild
   src/Instrumentation/Magento2:
     - jerrytfleung
+  src/OperatorPackages/autoinstrumentation-php:
+    - jerrytfleung
   src/SqlCommenter:
     - jerrytfleung
 
