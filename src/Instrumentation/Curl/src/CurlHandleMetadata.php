@@ -54,10 +54,22 @@ class CurlHandleMetadata
         if (count($this->headersToPropagate) == 0) {
             return null;
         }
-        $headers = array_merge($this->headersToPropagate, $this->headers);
+
+        // Replace only headers which are being propagated. Repeated unrelated headers may be
+        // intentional, and CURLOPT_HTTPHEADER permits them.
+        $headersToPropagate = [];
+        foreach ($this->headersToPropagate as $header) {
+            $name = strtolower(trim(explode(':', $header, 2)[0]));
+            $headersToPropagate[$name] = $header;
+        }
+
+        $headers = array_values(array_filter(
+            $this->headers,
+            static fn (string $header): bool => !isset($headersToPropagate[strtolower(trim(explode(':', $header, 2)[0]))]),
+        ));
         $this->headersToPropagate = [];
 
-        return $headers;
+        return [...$headers, ...array_values($headersToPropagate)];
     }
 
     public function getCapturedResponseHeaders(): array
