@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Doctrine\Integration;
 
 use ArrayObject;
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
@@ -13,6 +14,7 @@ use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\Tests\Instrumentation\Doctrine\Integration\Fixtures\WrappingMiddleware;
 use PHPUnit\Framework\TestCase;
 
 class DoctrineInstrumentationTest extends TestCase
@@ -236,5 +238,54 @@ class DoctrineInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $this->assertSame('Error', $span->getStatus()->getCode());
         $this->assertStringContainsString('Unable to execute', $span->getStatus()->getDescription());
+    }
+
+    /**
+     * A middleware chain makes every hooked method fire once per layer. Only the
+     * outermost invocation may create a span.
+     *
+     * @see https://github.com/open-telemetry/opentelemetry-php/issues/1931
+     */
+    public function test_wrapper_chain_does_not_duplicate_spans(): void
+    {
+        $configuration = new Configuration();
+        $configuration->setMiddlewares([new WrappingMiddleware()]);
+
+        $connection = DriverManager::getConnection([
+            'driver' => 'sqlite3',
+            'memory' => true,
+        ], $configuration);
+
+        // Trigger internal connect
+        $connection->getServerVersion();
+        $this->assertCount(1, $this->storage, 'connect must emit exactly one span');
+        $this->assertSame('Doctrine\DBAL\Driver::connect', $this->storage->offsetGet(0)->getName());
+
+        $this->storage->exchangeArray([]);
+        $connection->executeStatement(self::fillDB());
+        $this->assertCount(1, $this->storage, 'exec must emit exactly one span');
+
+        $this->storage->exchangeArray([]);
+        $statement = $connection->prepare('SELECT * FROM `technology`');
+        $this->assertCount(1, $this->storage, 'prepare must emit exactly one span');
+
+        $this->storage->exchangeArray([]);
+        $statement->executeQuery();
+        $this->assertCount(1, $this->storage, 'execute must emit exactly one span');
+        $this->assertSame('Doctrine::execute', $this->storage->offsetGet(0)->getName());
+
+        $this->storage->exchangeArray([]);
+        $connection->beginTransaction();
+        $this->assertCount(1, $this->storage, 'beginTransaction must emit exactly one span');
+
+        $this->storage->exchangeArray([]);
+        $connection->commit();
+        $this->assertCount(1, $this->storage, 'commit must emit exactly one span');
+
+        $this->storage->exchangeArray([]);
+        $connection->beginTransaction();
+        $this->storage->exchangeArray([]);
+        $connection->rollBack();
+        $this->assertCount(1, $this->storage, 'rollBack must emit exactly one span');
     }
 }

@@ -20,6 +20,14 @@ class DoctrineInstrumentation
 {
     public const NAME = 'doctrine';
 
+    /**
+     * Re-entrancy guard: Doctrine's connection wrapper chain fires hooks at
+     * every layer. Only the outermost call creates and ends a span.
+     *
+     * @var array<string, int>
+     */
+    private static array $depth = [];
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation('io.opentelemetry.contrib.php.doctrine');
@@ -28,7 +36,11 @@ class DoctrineInstrumentation
         hook(
             \Doctrine\DBAL\Driver::class,
             'connect',
-            pre: static function (\Doctrine\DBAL\Driver $driver, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (\Doctrine\DBAL\Driver $driver, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): void {
+                self::$depth['connect'] = (self::$depth['connect'] ?? 0) + 1;
+                if (self::$depth['connect'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine\DBAL\Driver::connect', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -41,14 +53,21 @@ class DoctrineInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\Doctrine\DBAL\Driver $driver, array $params, ?\Doctrine\DBAL\Driver\Connection $connection, ?Throwable $exception) {
-                self::end($exception);
+                self::$depth['connect'] = max(0, (self::$depth['connect'] ?? 1) - 1);
+                if (self::$depth['connect'] === 0) {
+                    self::end($exception);
+                }
             }
         );
 
         hook(
             \Doctrine\DBAL\Driver\Connection::class,
             'query',
-            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): void {
+                self::$depth['query'] = (self::$depth['query'] ?? 0) + 1;
+                if (self::$depth['query'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, AttributesResolver::getDbQuerySummary($params), $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
@@ -60,14 +79,21 @@ class DoctrineInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);
+                self::$depth['query'] = max(0, (self::$depth['query'] ?? 1) - 1);
+                if (self::$depth['query'] === 0) {
+                    self::end($exception);
+                }
             }
         );
 
         hook(
             \Doctrine\DBAL\Driver\Connection::class,
             'exec',
-            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): void {
+                self::$depth['exec'] = (self::$depth['exec'] ?? 0) + 1;
+                if (self::$depth['exec'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, AttributesResolver::getDbQuerySummary($params), $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -80,14 +106,21 @@ class DoctrineInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);
+                self::$depth['exec'] = max(0, (self::$depth['exec'] ?? 1) - 1);
+                if (self::$depth['exec'] === 0) {
+                    self::end($exception);
+                }
             }
         );
 
         hook(
             \Doctrine\DBAL\Driver\Connection::class,
             'prepare',
-            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): void {
+                self::$depth['prepare'] = (self::$depth['prepare'] ?? 0) + 1;
+                if (self::$depth['prepare'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, AttributesResolver::getDbQuerySummary($params), $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -107,14 +140,21 @@ class DoctrineInstrumentation
                         $tracker->trackStatement($statement, $span->getContext());
                     }
                 }
-                self::end($exception);
+                self::$depth['prepare'] = max(0, (self::$depth['prepare'] ?? 1) - 1);
+                if (self::$depth['prepare'] === 0) {
+                    self::end($exception);
+                }
             }
         );
 
         hook(
             \Doctrine\DBAL\Driver\Connection::class,
             'beginTransaction',
-            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): void {
+                self::$depth['beginTransaction'] = (self::$depth['beginTransaction'] ?? 0) + 1;
+                if (self::$depth['beginTransaction'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::beginTransaction', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -125,14 +165,21 @@ class DoctrineInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);
+                self::$depth['beginTransaction'] = max(0, (self::$depth['beginTransaction'] ?? 1) - 1);
+                if (self::$depth['beginTransaction'] === 0) {
+                    self::end($exception);
+                }
             }
         );
 
         hook(
             \Doctrine\DBAL\Driver\Connection::class,
             'commit',
-            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): void {
+                self::$depth['commit'] = (self::$depth['commit'] ?? 0) + 1;
+                if (self::$depth['commit'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::commit', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -143,14 +190,21 @@ class DoctrineInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);
+                self::$depth['commit'] = max(0, (self::$depth['commit'] ?? 1) - 1);
+                if (self::$depth['commit'] === 0) {
+                    self::end($exception);
+                }
             }
         );
 
         hook(
             \Doctrine\DBAL\Driver\Connection::class,
             'rollBack',
-            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
+            pre: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): void {
+                self::$depth['rollBack'] = (self::$depth['rollBack'] ?? 0) + 1;
+                if (self::$depth['rollBack'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::rollBack', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -160,14 +214,21 @@ class DoctrineInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\Doctrine\DBAL\Driver\Connection $connection, array $params, mixed $statement, ?Throwable $exception) {
-                self::end($exception);
+                self::$depth['rollBack'] = max(0, (self::$depth['rollBack'] ?? 1) - 1);
+                if (self::$depth['rollBack'] === 0) {
+                    self::end($exception);
+                }
             }
         );
 
         hook(
             \Doctrine\DBAL\Driver\Statement::class,
             'execute',
-            pre: static function (\Doctrine\DBAL\Driver\Statement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $tracker) {
+            pre: static function (\Doctrine\DBAL\Driver\Statement $statement, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $tracker): void {
+                self::$depth['execute'] = (self::$depth['execute'] ?? 0) + 1;
+                if (self::$depth['execute'] > 1) {
+                    return;
+                }
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::execute', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -181,7 +242,10 @@ class DoctrineInstrumentation
                 Context::storage()->attach($span->storeInContext($parent));
             },
             post: static function (\Doctrine\DBAL\Driver\Statement $statement, array $params, ?ResultInterface $result, ?Throwable $exception) {
-                self::end($exception);
+                self::$depth['execute'] = max(0, (self::$depth['execute'] ?? 1) - 1);
+                if (self::$depth['execute'] === 0) {
+                    self::end($exception);
+                }
             }
         );
     }
