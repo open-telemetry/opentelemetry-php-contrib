@@ -133,7 +133,7 @@ class WordpressInstrumentation
      * Simple generic hook function which starts and ends a minimal span
      * @psalm-param SpanKind::KIND_* $spanKind
      */
-    private static function _hook(CachedInstrumentation $instrumentation, ?string $class, string $function, string $name, int $spanKind = SpanKind::KIND_SERVER): void
+    private static function _hook(CachedInstrumentation $instrumentation, ?string $class, string $function, string $name, int $spanKind = SpanKind::KIND_INTERNAL): void
     {
         hook(
             class: $class,
