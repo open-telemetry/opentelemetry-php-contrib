@@ -90,6 +90,7 @@ class WordpressInstrumentation
                 $factory = new Psr17Factory();
                 $request = (new ServerRequestCreator($factory, $factory, $factory, $factory))->fromGlobals();
                 $parent = Globals::propagator()->extract($request->getHeaders());
+                $contentLength = $request->getHeaderLine('Content-Length');
 
                 $span = $instrumentation
                     ->tracer()
@@ -102,7 +103,7 @@ class WordpressInstrumentation
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, is_numeric($contentLength) ? (int) $contentLength : null)
                     ->setAttribute(TraceAttributes::CLIENT_ADDRESS, $request->getUri()->getHost())
                     ->setAttribute(TraceAttributes::CLIENT_PORT, $request->getUri()->getPort())
                     ->startSpan();
