@@ -37,7 +37,7 @@
         "guzzlehttp/psr7": "^2.0",
         "jangregor/phpstan-prophecy": "^1.0",
         "kriswallsmith/buzz": "^1.2",
-        "matthiasnoback/symfony-dependency-injection-test": "^4.3",
+        "matthiasnoback/symfony-dependency-injection-test": "^6.0",
         "mikey179/vfsstream": "^1.6",
         "nyholm/psr7": "^1.4",
         "open-telemetry/dev-tools": "dev-main",
