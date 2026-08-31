@@ -17,7 +17,7 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "guzzlehttp/promises": "^2",
+    "guzzlehttp/promises": "^3",
     "nyholm/psr7": "*",
     "phan/phan": "^6.0",
     "phpstan/phpstan-mockery": "^1.1.0",
