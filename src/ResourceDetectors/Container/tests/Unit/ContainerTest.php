@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use OpenTelemetry\Contrib\Resource\Detector\Container\Container;
 use OpenTelemetry\SemConv\ResourceAttributes;
+use OpenTelemetry\SemConv\Version;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamFile;
 use PHPUnit\Framework\TestCase;
@@ -67,7 +68,7 @@ class ContainerTest extends TestCase
         $this->cgroup->setContent($data);
         $resource = $this->detector->getResource();
 
-        $this->assertSame(ResourceAttributes::SCHEMA_URL, $resource->getSchemaUrl());
+        $this->assertSame(Version::VERSION_1_38_0->url(), $resource->getSchemaUrl());
         $this->assertIsString($resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
         $this->assertSame($expected, $resource->getAttributes()->get(ResourceAttributes::CONTAINER_ID));
     }

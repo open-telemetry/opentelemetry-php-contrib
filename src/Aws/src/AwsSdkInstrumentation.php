@@ -9,12 +9,12 @@ use Aws\Middleware;
 use Aws\ResultInterface;
 use Closure;
 use GuzzleHttp\Promise;
-use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
-use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
+use OpenTelemetry\API\Trace\NoopTracerProvider;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
+use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use Psr\Http\Message\RequestInterface;
 use Stringable;
@@ -23,19 +23,30 @@ use Throwable;
 /**
  * @experimental
  */
-class AwsSdkInstrumentation implements InstrumentationInterface
+class AwsSdkInstrumentation
 {
-    use InstrumentationTrait;
-
     public const NAME = 'AWS SDK Instrumentation';
     public const VERSION = '0.0.1';
     public const SPAN_KIND = SpanKind::KIND_CLIENT;
 
+    private TextMapPropagatorInterface $propagator;
+    private TracerProviderInterface $tracerProvider;
     private array $clients = [];
 
     private array $instrumentedClients = [];
 
     private array $spanStorage = [];
+
+    /**
+     * Defaults match those previously supplied by the removed
+     * InstrumentationTrait constructor, so an instance is usable before
+     * setPropagator()/setTracerProvider() are called.
+     */
+    public function __construct()
+    {
+        $this->propagator = new NoopTextMapPropagator();
+        $this->tracerProvider = new NoopTracerProvider();
+    }
 
     public function getName(): string
     {

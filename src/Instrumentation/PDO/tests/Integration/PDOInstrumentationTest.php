@@ -102,11 +102,12 @@ class PDOInstrumentationTest extends TestCase
         $this->assertCount(0, $this->storage);
 
         /**
-         * Need to suppress because of different casing of the class name
+         * Fully qualified so the `use PDO;` import above does not resolve
+         * `Pdo\Sqlite` to `PDO\Sqlite` (class aliases are case-insensitive).
          *
          * @psalm-suppress UndefinedClass
          * @psalm-suppress InvalidClass
-         * @var Pdo\Sqlite $db
+         * @var \Pdo\Sqlite $db
          */
         $db = self::createDBWithNewSubclass();
         $this->assertCount(1, $this->storage);
