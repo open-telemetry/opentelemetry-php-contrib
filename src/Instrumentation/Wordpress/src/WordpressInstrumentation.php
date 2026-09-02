@@ -104,8 +104,8 @@ class WordpressInstrumentation
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, is_numeric($contentLength) ? (int) $contentLength : null)
-                    ->setAttribute(TraceAttributes::CLIENT_ADDRESS, $request->getUri()->getHost())
-                    ->setAttribute(TraceAttributes::CLIENT_PORT, $request->getUri()->getPort())
+                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
@@ -134,7 +134,7 @@ class WordpressInstrumentation
      * Simple generic hook function which starts and ends a minimal span
      * @psalm-param SpanKind::KIND_* $spanKind
      */
-    private static function _hook(CachedInstrumentation $instrumentation, ?string $class, string $function, string $name, int $spanKind = SpanKind::KIND_SERVER): void
+    private static function _hook(CachedInstrumentation $instrumentation, ?string $class, string $function, string $name, int $spanKind = SpanKind::KIND_INTERNAL): void
     {
         hook(
             class: $class,
