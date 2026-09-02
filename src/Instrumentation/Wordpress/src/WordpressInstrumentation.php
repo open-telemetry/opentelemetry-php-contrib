@@ -103,8 +103,8 @@ class WordpressInstrumentation
                     ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                     ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
                     ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::CLIENT_ADDRESS, $request->getUri()->getHost())
-                    ->setAttribute(TraceAttributes::CLIENT_PORT, $request->getUri()->getPort())
+                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
                     ->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
 
