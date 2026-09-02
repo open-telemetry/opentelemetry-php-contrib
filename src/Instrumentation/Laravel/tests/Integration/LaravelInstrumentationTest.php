@@ -15,7 +15,6 @@ use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
-use OpenTelemetry\SemConv\TraceAttributes;
 
 /** @psalm-suppress UnusedClass */
 class LaravelInstrumentationTest extends TestCase
@@ -130,7 +129,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/', fn () => null);
         $this->call('GET', '/');
         $span = $this->storage[0];
-        $this->assertSame('/', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+        $this->assertSame('/', $span->getAttributes()->get(UrlAttributes::URL_PATH));
     }
 
     public function test_url_path_non_root(): void
@@ -138,7 +137,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello');
         $span = $this->storage[0];
-        $this->assertSame('/hello', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+        $this->assertSame('/hello', $span->getAttributes()->get(UrlAttributes::URL_PATH));
     }
 
     public function test_url_path_root_with_query_string(): void
@@ -146,7 +145,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/', fn () => null);
         $this->call('GET', '/?foo=bar');
         $span = $this->storage[0];
-        $this->assertSame('/?foo=bar', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+        $this->assertSame('/?foo=bar', $span->getAttributes()->get(UrlAttributes::URL_PATH));
     }
 
     public function test_url_path_with_query_string(): void
@@ -154,7 +153,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello?foo=bar');
         $span = $this->storage[0];
-        $this->assertSame('/hello?foo=bar', $span->getAttributes()->get(TraceAttributes::URL_PATH));
+        $this->assertSame('/hello?foo=bar', $span->getAttributes()->get(UrlAttributes::URL_PATH));
     }
 
     public function test_malformed_method_override_header_does_not_break_instrumentation(): void

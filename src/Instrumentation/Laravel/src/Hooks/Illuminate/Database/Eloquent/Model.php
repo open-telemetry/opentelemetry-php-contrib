@@ -11,7 +11,8 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use Throwable;
 
 class Model implements LaravelHook
@@ -42,9 +43,9 @@ class Model implements LaravelHook
                     ->tracer()
                     ->spanBuilder($model::class . '::find')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'find');
@@ -72,9 +73,9 @@ class Model implements LaravelHook
                     ->tracer()
                     ->spanBuilder($model::class . '::update')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'update');
@@ -102,9 +103,9 @@ class Model implements LaravelHook
                     ->tracer()
                     ->spanBuilder($model::class . '::create')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'create');
@@ -132,9 +133,9 @@ class Model implements LaravelHook
                     ->tracer()
                     ->spanBuilder($model::class . '::delete')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'delete');
@@ -163,13 +164,13 @@ class Model implements LaravelHook
                     ->tracer()
                     ->spanBuilder($model::class . '::get')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'get')
-                    ->setAttribute('db.statement', $builder->getQuery()->toSql());
+                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, $builder->getQuery()->toSql());
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -198,9 +199,9 @@ class Model implements LaravelHook
                     ->tracer()
                     ->spanBuilder($model::class . '::destroy')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'destroy');
@@ -228,9 +229,9 @@ class Model implements LaravelHook
                     ->tracer()
                     ->spanBuilder($model::class . '::refresh')
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'refresh');

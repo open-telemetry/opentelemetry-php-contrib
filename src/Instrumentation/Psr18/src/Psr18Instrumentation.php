@@ -13,7 +13,13 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
@@ -37,7 +43,7 @@ class Psr18Instrumentation
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr18',
-            schemaUrl: Version::VERSION_1_32_0->url(),
+            schemaUrl: Version::VERSION_1_38_0->url(),
         );
 
         /** @psalm-suppress UnusedFunctionCall */
@@ -61,16 +67,16 @@ class Psr18Instrumentation
                     ->spanBuilder(sprintf('%s', $request->getMethod()))
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                    ->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
-                    ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                    ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(UrlAttributes::URL_FULL, (string) $request->getUri())
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                    ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
+                    ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                    ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                    ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                    ->setAttribute(ServerAttributes::SERVER_PORT, $request->getUri()->getPort())
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                 ;
 
                 foreach ($propagator->fields() as $field) {
@@ -105,9 +111,9 @@ class Psr18Instrumentation
                 $span = Span::fromContext($scope->context());
 
                 if ($response) {
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
 
                     foreach (self::getResponseHeadersToCapture() as $header) {
                         if ($response->hasHeader($header)) {

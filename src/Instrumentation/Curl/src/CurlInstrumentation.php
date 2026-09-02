@@ -16,7 +16,12 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
 use WeakMap;
 
@@ -53,7 +58,7 @@ class CurlInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.curl',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         hook(
@@ -65,7 +70,7 @@ class CurlInstrumentation
                     $curlHandleToAttributes[$retVal] = new CurlHandleMetadata();
                     if (($fullUrl = $params[0] ?? null) !== null) {
                         /** @psalm-suppress PossiblyNullReference */
-                        $curlHandleToAttributes[$retVal]->setAttribute(TraceAttributes::URL_FULL, CurlHandleMetadata::redactUrlString($fullUrl));
+                        $curlHandleToAttributes[$retVal]->setAttribute(UrlAttributes::URL_FULL, CurlHandleMetadata::redactUrlString($fullUrl));
                     }
                 }
             }
@@ -163,7 +168,7 @@ class CurlInstrumentation
 
                 if (isset($curlHandleToAttributes[$params[0]])) {
                     $attributes = $curlHandleToAttributes[$params[0]]->getAttributes();
-                    $spanName = $attributes[TraceAttributes::HTTP_REQUEST_METHOD] ?? $spanName;
+                    $spanName = $attributes[HttpAttributes::HTTP_REQUEST_METHOD] ?? $spanName;
                 } else {
                     self::logDebug('Curl handle is not tracked', ['params' => $params]);
                 }
@@ -175,9 +180,9 @@ class CurlInstrumentation
                     ->spanBuilder($spanName)
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $function)
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, $function)
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttributes($attributes);
 
                 $span = $builder->startSpan();
@@ -232,7 +237,7 @@ class CurlInstrumentation
                         $errorDescription = curl_strerror($errno) . ' (' . $errno . ')';
                         $span->setStatus(StatusCode::STATUS_ERROR, $errorDescription);
                     }
-                    $span->setAttribute(TraceAttributes::ERROR_TYPE, 'cURL error (' . $errno . ')');
+                    $span->setAttribute(ErrorAttributes::ERROR_TYPE, 'cURL error (' . $errno . ')');
                 }
 
                 if (isset($curlHandleToAttributes[$params[0]])) {
@@ -321,13 +326,13 @@ class CurlInstrumentation
                         /** @psalm-suppress PossiblyNullIterator */
                         foreach ($handles as $cHandle => &$metadata) {
                             /** @psalm-suppress PossiblyNullReference */
-                            $spanName = $curlHandleToAttributes[$cHandle]->getAttributes()[TraceAttributes::HTTP_REQUEST_METHOD] ?? 'curl_multi_exec';
+                            $spanName = $curlHandleToAttributes[$cHandle]->getAttributes()[HttpAttributes::HTTP_REQUEST_METHOD] ?? 'curl_multi_exec';
                             /** @psalm-suppress PossiblyNullReference */
                             $builder = $instrumentation->tracer()
                                 ->spanBuilder($spanName)
                                 ->setParent($parent)
                                 ->setSpanKind(SpanKind::KIND_CLIENT)
-                                ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, 'curl_multi_exec')
+                                ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, 'curl_multi_exec')
                                 ->setAttributes($curlHandleToAttributes[$cHandle]->getAttributes());
 
                             $span = $builder->startSpan();
@@ -428,7 +433,7 @@ class CurlInstrumentation
         } else {
             $errorDescription = curl_strerror($curlResult) . ' (' . $curlResult . ')';
             $span->setStatus(StatusCode::STATUS_ERROR, $errorDescription);
-            $span->setAttribute(TraceAttributes::ERROR_TYPE, 'cURL error (' . $curlResult . ')');
+            $span->setAttribute(ErrorAttributes::ERROR_TYPE, 'cURL error (' . $curlResult . ')');
         }
 
         $capturedHeaders = $curlHandleToAttributes[$curlHandle]->getCapturedResponseHeaders();
@@ -467,22 +472,22 @@ class CurlInstrumentation
     {
         $info = curl_getinfo($handle);
         if (($value = $info['http_code']) != 0) {
-            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $value);
+            $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $value);
         }
         if (($value = $info['download_content_length']) > -1) {
-            $span->setAttribute(TraceAttributes::HTTP_RESPONSE_HEADER . '.content_length', $value);
+            $span->setAttribute(HttpAttributes::HTTP_RESPONSE_HEADER . '.content_length', $value);
         }
         if (($value = $info['upload_content_length']) > -1) {
-            $span->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $value);
+            $span->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $value);
         }
         if (!empty($value = $info['scheme'])) {
-            $span->setAttribute(TraceAttributes::URL_SCHEME, $value);
+            $span->setAttribute(UrlAttributes::URL_SCHEME, $value);
         }
         if (!empty($value = $info['primary_ip'])) {
-            $span->setAttribute(TraceAttributes::SERVER_ADDRESS, $value);
+            $span->setAttribute(ServerAttributes::SERVER_ADDRESS, $value);
         }
         if (($value = $info['primary_port']) != 0) {
-            $span->setAttribute(TraceAttributes::SERVER_PORT, $value);
+            $span->setAttribute(ServerAttributes::SERVER_PORT, $value);
         }
 
         /** @phpstan-ignore-next-line */

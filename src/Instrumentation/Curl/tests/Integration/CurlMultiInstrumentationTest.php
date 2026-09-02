@@ -13,7 +13,10 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use PHPUnit\Framework\TestCase;
 
 class CurlMultiInstrumentationTest extends TestCase
@@ -71,9 +74,9 @@ class CurlMultiInstrumentationTest extends TestCase
         foreach ([0, 1] as $offset) {
             $span = $this->storage->offsetGet($offset);
             $this->assertSame('GET', $span->getName());
-            $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
-            $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+            $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
+            $this->assertEquals(80, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
         }
     }
 
@@ -97,8 +100,8 @@ class CurlMultiInstrumentationTest extends TestCase
 
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
-        $this->assertEquals('curl_multi_exec', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION_NAME));
-        $this->assertEquals('unknown://scheme.com/', actual: $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('curl_multi_exec', $span->getAttributes()->get(CodeAttributes::CODE_FUNCTION_NAME));
+        $this->assertEquals('unknown://scheme.com/', actual: $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertSame('GET', $span->getName());
     }
 
@@ -127,7 +130,7 @@ class CurlMultiInstrumentationTest extends TestCase
 
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
-        $this->assertEquals('other://scheme.com/', actual: $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('other://scheme.com/', actual: $span->getAttributes()->get(UrlAttributes::URL_FULL));
     }
 
     /**
@@ -179,9 +182,9 @@ class CurlMultiInstrumentationTest extends TestCase
         foreach ([0, 1] as $offset) {
             $span = $this->storage->offsetGet($offset);
             $this->assertSame('GET', $span->getName());
-            $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
-            $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+            $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
+            $this->assertEquals(80, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
         }
     }
 
@@ -220,9 +223,9 @@ class CurlMultiInstrumentationTest extends TestCase
         foreach ([0, 1] as $offset) {
             $span = $this->storage->offsetGet($offset);
             $this->assertSame('GET', $span->getName());
-            $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
-            $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+            $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
+            $this->assertEquals(80, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
             $this->assertStringContainsStringIgnoringCase('text/html', $span->getAttributes()->get('http.response.header.content-type'));
             $this->assertEquals('example.com', $span->getAttributes()->get('http.request.header.host'));
         }
@@ -262,9 +265,9 @@ class CurlMultiInstrumentationTest extends TestCase
         foreach ([0, 1] as $offset) {
             $span = $this->storage->offsetGet($offset);
             $this->assertSame('GET', $span->getName());
-            $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
-            $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+            $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+            $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
+            $this->assertEquals(80, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
             $this->assertNotEmpty($span->getAttributes()->get('http.request.header.traceparent'));
         }
     }

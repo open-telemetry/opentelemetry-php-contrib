@@ -11,7 +11,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use Throwable;
 
 class SyncQueue implements LaravelHook
@@ -41,9 +41,9 @@ class SyncQueue implements LaravelHook
                     ]))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttributes([
-                        TraceAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
-                        TraceAttributes::CODE_FILE_PATH => $filename,
-                        TraceAttributes::CODE_LINE_NUMBER => $lineno,
+                        CodeAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
+                        CodeAttributes::CODE_FILE_PATH => $filename,
+                        CodeAttributes::CODE_LINE_NUMBER => $lineno,
                     ])
                     ->startSpan();
 

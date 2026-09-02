@@ -9,7 +9,12 @@ use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use Psr\Http\Message\ServerRequestInterface;
 
 trait CakeHookTrait
@@ -57,9 +62,9 @@ trait CakeHookTrait
                 : sprintf('%s', $request?->getMethod() ?? 'unknown')
         )
             ->setSpanKind(SpanKind::KIND_SERVER)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+            ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+            ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+            ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
         $parent = Context::getCurrent();
         if (!$root && $request) {
             $this->isRoot = true;
@@ -67,14 +72,14 @@ trait CakeHookTrait
             $parent = Globals::propagator()->extract($request->getHeaders());
             $span = $builder
                 ->setParent($parent)
-                ->setAttribute(TraceAttributes::URL_FULL, $request->getUri()->__toString())
-                ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme())
-                ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
-                ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
+                ->setAttribute(UrlAttributes::URL_FULL, $request->getUri()->__toString())
+                ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                ->setAttribute(UrlAttributes::URL_SCHEME, $request->getUri()->getScheme())
+                ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
+                ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                ->setAttribute(ServerAttributes::SERVER_PORT, $request->getUri()->getPort())
                 ->startSpan();
             $request = $request->withAttribute(SpanInterface::class, $span);
         } else {

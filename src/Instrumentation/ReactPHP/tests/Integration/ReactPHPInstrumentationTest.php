@@ -14,7 +14,13 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
+use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -99,16 +105,16 @@ class ReactPHPInstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         assert($span instanceof ImmutableSpan);
         $this->assertSame('GET', $span->getName());
-        $this->assertSame('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame('example.com', $span->getAttributes()->get(TraceAttributes::SERVER_ADDRESS));
-        $this->assertSame('http://example.com/success?query#fragment', $span->getAttributes()->get(TraceAttributes::URL_FULL));
-        $this->assertSame('React\Http\Io\Transaction::send', $span->getAttributes()->get(TraceAttributes::CODE_FUNCTION_NAME));
-        $this->assertSame(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
-        $this->assertNotEmpty($span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_REQUEST_HEADER, 'traceparent')));
-        $this->assertStringEndsWith('vendor/react/http/src/Io/Transaction.php', $span->getAttributes()->get(TraceAttributes::CODE_FILE_PATH));
-        $this->assertSame(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertSame('1.1', $span->getAttributes()->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
-        $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
+        $this->assertSame('GET', $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame('example.com', $span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertSame('http://example.com/success?query#fragment', $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame('React\Http\Io\Transaction::send', $span->getAttributes()->get(CodeAttributes::CODE_FUNCTION_NAME));
+        $this->assertSame(80, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
+        $this->assertNotEmpty($span->getAttributes()->get(sprintf('%s.%s', HttpAttributes::HTTP_REQUEST_HEADER, 'traceparent')));
+        $this->assertStringEndsWith('vendor/react/http/src/Io/Transaction.php', $span->getAttributes()->get(CodeAttributes::CODE_FILE_PATH));
+        $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame('1.1', $span->getAttributes()->get(NetworkAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', HttpAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
     public function test_fulfilled_promise_with_required_redactions(): void
@@ -116,12 +122,12 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->browser->request('GET', 'http://username@example.com/success')->then();
 
         $span = $this->storage->offsetGet(0);
-        $this->assertSame('http://REDACTED@example.com/success', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertSame('http://REDACTED@example.com/success', $span->getAttributes()->get(UrlAttributes::URL_FULL));
 
         $this->browser->request('GET', 'http://username:password@example.com/success?sig=private')->then();
 
         $span = $this->storage->offsetGet(1);
-        $this->assertSame('http://REDACTED:REDACTED@example.com/success?sig=REDACTED', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertSame('http://REDACTED:REDACTED@example.com/success?sig=REDACTED', $span->getAttributes()->get(UrlAttributes::URL_FULL));
     }
 
     public function test_fulfilled_promise_with_custom_redactions(): void
@@ -129,7 +135,7 @@ class ReactPHPInstrumentationTest extends TestCase
         $this->browser->request('GET', 'http://example.com/success?password=private')->then();
 
         $span = $this->storage->offsetGet(0);
-        $this->assertSame('http://example.com/success?password=REDACTED', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertSame('http://example.com/success?password=REDACTED', $span->getAttributes()->get(UrlAttributes::URL_FULL));
     }
 
     public function test_fulfilled_promise_with_overridden_methods(): void
@@ -138,9 +144,9 @@ class ReactPHPInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(0);
         $this->assertSame('CUSTOM', $span->getName());
-        $this->assertSame('CUSTOM', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame(8888, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
-        $this->assertNull($span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
+        $this->assertSame('CUSTOM', $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame(8888, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
+        $this->assertNull($span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
     }
 
     public function test_fulfilled_promise_with_unknown_method(): void
@@ -149,8 +155,8 @@ class ReactPHPInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(0);
         $this->assertSame('HTTP', $span->getName());
-        $this->assertSame('_OTHER', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame('UNKNOWN', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
+        $this->assertSame('_OTHER', $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame('UNKNOWN', $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD_ORIGINAL));
     }
 
     public function test_fulfilled_promise_with_error(): void
@@ -160,8 +166,8 @@ class ReactPHPInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(0);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
-        $this->assertSame('400', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
-        $this->assertSame(400, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame('400', $span->getAttributes()->get(ErrorAttributes::ERROR_TYPE));
+        $this->assertSame(400, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     public function test_rejected_promise_with_response_exception(): void
@@ -171,13 +177,13 @@ class ReactPHPInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(0);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
-        $this->assertSame('400', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
-        $this->assertSame(400, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame('400', $span->getAttributes()->get(ErrorAttributes::ERROR_TYPE));
+        $this->assertSame(400, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
         $event = $span->getEvents()[0];
         $this->assertSame('exception', $event->getName());
-        $this->assertSame(ResponseException::class, $event->getAttributes()->get(TraceAttributes::EXCEPTION_TYPE));
-        $this->assertSame('HTTP status code 400 (Bad Request)', $event->getAttributes()->get(TraceAttributes::EXCEPTION_MESSAGE));
-        $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', TraceAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
+        $this->assertSame(ResponseException::class, $event->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
+        $this->assertSame('HTTP status code 400 (Bad Request)', $event->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
+        $this->assertSame(['text/plain; charset=utf-8'], $span->getAttributes()->get(sprintf('%s.%s', HttpAttributes::HTTP_RESPONSE_HEADER, 'content-type')));
     }
 
     public function test_rejected_promise_with_unknown_exception(): void
@@ -187,11 +193,11 @@ class ReactPHPInstrumentationTest extends TestCase
 
         $span = $this->storage->offsetGet(0);
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
-        $this->assertSame('Exception', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
+        $this->assertSame('Exception', $span->getAttributes()->get(ErrorAttributes::ERROR_TYPE));
         $event = $span->getEvents()[0];
         $this->assertSame('exception', $event->getName());
-        $this->assertSame('Exception', $event->getAttributes()->get(TraceAttributes::EXCEPTION_TYPE));
-        $this->assertSame('Unknown', $event->getAttributes()->get(TraceAttributes::EXCEPTION_MESSAGE));
+        $this->assertSame('Exception', $event->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
+        $this->assertSame('Unknown', $event->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
     }
 
     public function test_can_register(): void
