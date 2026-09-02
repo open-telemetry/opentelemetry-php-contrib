@@ -17,11 +17,11 @@ all-lowest: update-lowest all-checks ## Everything, with lowest supported versio
 build: ## Build image
 	$(DOCKER_COMPOSE) build --build-arg PHP_VERSION=${PHP_VERSION} php
 install: ## Install dependencies
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer install
+	$(DC_RUN_PHP) env XDEBUG_MODE=off sh -c 'composer config --no-interaction --global policy.advisories.block false && composer install'
 update: ## Update dependencies
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-interaction
+	$(DC_RUN_PHP) env XDEBUG_MODE=off sh -c 'composer config --no-interaction --global policy.advisories.block false && composer update --no-interaction'
 update-lowest: ## Update dependencies to lowest supported versions
-	$(DC_RUN_PHP) env XDEBUG_MODE=off composer update --no-interaction --prefer-lowest
+	$(DC_RUN_PHP) env XDEBUG_MODE=off sh -c 'composer config --no-interaction --global policy.advisories.block false && composer update --no-interaction --prefer-lowest'
 test: ## Run all tests
 	$(DC_RUN_PHP) env XDEBUG_MODE=off vendor/bin/phpunit --testdox --colors=always
 test-unit: ## Run unit tests

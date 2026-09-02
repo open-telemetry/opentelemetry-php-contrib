@@ -64,8 +64,9 @@ jobs:
         if: steps.composer-cache.outputs.cache-hit != 'true' && inputs.composer-requires == ''
         working-directory: ${{ inputs.package-root }}
         run: |
+          composer config --no-interaction --global policy.advisories.block false
           composer config --no-plugins allow-plugins.php-http/discovery false
-          composer install --prefer-dist --no-progress
+          composer install --prefer-dist --no-progress --no-interaction
 
       - name: Install specific composer dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true' && inputs.composer-requires != ''
@@ -73,8 +74,9 @@ jobs:
         env:
           COMPOSER_REQUIRES: ${{ inputs.composer-requires }}
         run: |
+          composer config --no-interaction --global policy.advisories.block false
           composer config --no-plugins allow-plugins.php-http/discovery false
-          composer require $COMPOSER_REQUIRES --prefer-dist --no-progress
+          composer require $COMPOSER_REQUIRES --prefer-dist --no-progress --no-interaction
 
       - name: Validate Packages composer.json
         working-directory: ${{ inputs.package-root }}

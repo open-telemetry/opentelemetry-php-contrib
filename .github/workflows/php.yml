@@ -24,6 +24,7 @@ jobs:
         # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
         project: [
           'Aws',
+          'Context/Revolt',
           'Context/Swoole',
           'Exporter/Instana',
           'Instrumentation/AwsSdk',
@@ -122,8 +123,9 @@ jobs:
       if: steps.composer-cache.outputs.cache-hit != 'true'
       working-directory: src/${{ matrix.project }}
       run: |
+        composer config --no-interaction --global policy.advisories.block false
         composer config --no-plugins allow-plugins.php-http/discovery false
-        composer install --prefer-dist --no-progress
+        composer install --prefer-dist --no-progress --no-interaction
 
     - name: Validate Packages composer.json
       working-directory: src/${{ matrix.project }}
