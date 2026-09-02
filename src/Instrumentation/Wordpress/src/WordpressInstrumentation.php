@@ -113,10 +113,14 @@ class WordpressInstrumentation
                     //@todo there could be other interesting settings from wordpress...
                     function_exists('is_admin') && $span->setAttribute('wp.is_admin', is_admin());
 
-                    if (function_exists('is_404') && is_404()) {
-                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, 404);
+                    $statusCode = http_response_code();
+                    if (is_int($statusCode)) {
+                        $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                        if ($statusCode >= 500) {
+                            $span->setAttribute(TraceAttributes::ERROR_TYPE, (string) $statusCode);
+                            $span->setStatus(StatusCode::STATUS_ERROR);
+                        }
                     }
-                    //@todo check for other errors?
 
                     $span->end();
                     $scope = Context::storage()->scope();
