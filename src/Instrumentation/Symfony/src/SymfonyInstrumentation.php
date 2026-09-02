@@ -112,6 +112,7 @@ final class SymfonyInstrumentation
             }
         );
 
+        /** @psalm-suppress UnusedFunctionCall */
         hook(
             HttpKernel::class,
             'terminate',
