@@ -9,12 +9,12 @@ use Aws\Middleware;
 use Aws\ResultInterface;
 use Closure;
 use GuzzleHttp\Promise;
-use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
-use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
+use OpenTelemetry\API\Trace\NoopTracerProvider;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\TracerProviderInterface;
+use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use Psr\Http\Message\RequestInterface;
 use Stringable;
@@ -23,15 +23,22 @@ use Throwable;
 /**
  * @experimental
  */
-class AwsSdkInstrumentation implements InstrumentationInterface
+class AwsSdkInstrumentation
 {
-    use InstrumentationTrait;
-
     public const NAME = 'AWS SDK Instrumentation';
     public const VERSION = '0.0.1';
     public const SPAN_KIND = SpanKind::KIND_CLIENT;
 
+    private TracerProviderInterface $tracerProvider;
+    private TextMapPropagatorInterface $propagator;
+
     private array $clients = [];
+
+    public function __construct()
+    {
+        $this->tracerProvider = new NoopTracerProvider();
+        $this->propagator = new NoopTextMapPropagator();
+    }
 
     private array $instrumentedClients = [];
 
@@ -163,6 +170,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
 
         $onRejected =  function ($reason) use ($hash) {
             if (empty($this->spanStorage[$hash])) {
+                /** @phan-suppress-next-line PhanTemplateTypeConstraintViolation */
                 return Promise\Create::rejectionFor($reason);
             }
             [$span, $scope] = $this->spanStorage[$hash];
@@ -177,6 +185,7 @@ class AwsSdkInstrumentation implements InstrumentationInterface
             $span->end();
             $scope->detach();
 
+            /** @phan-suppress-next-line PhanTemplateTypeConstraintViolation */
             return Promise\Create::rejectionFor($reason);
         };
 
