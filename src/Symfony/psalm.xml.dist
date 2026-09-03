@@ -18,4 +18,33 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <MissingOverrideAttribute errorLevel="suppress"/>
+        <UndefinedMagicMethod errorLevel="suppress"/>
+        <InternalProperty>
+            <errorLevel type="suppress">
+                <directory name="vendor"/>
+            </errorLevel>
+        </InternalProperty>
+        <InternalMethod>
+            <errorLevel type="suppress">
+                <directory name="vendor"/>
+            </errorLevel>
+        </InternalMethod>
+        <InternalClass>
+            <errorLevel type="suppress">
+                <directory name="vendor"/>
+            </errorLevel>
+        </InternalClass>
+        <UndefinedAttributeClass>
+            <errorLevel type="suppress">
+                <directory name="vendor"/>
+            </errorLevel>
+        </UndefinedAttributeClass>
+        <UndefinedMethod>
+            <errorLevel type="suppress">
+                <directory name="vendor"/>
+            </errorLevel>
+        </UndefinedMethod>
+    </issueHandlers>
 </psalm>
