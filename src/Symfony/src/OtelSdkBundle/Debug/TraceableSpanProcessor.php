@@ -28,7 +28,6 @@ class TraceableSpanProcessor implements SpanProcessorInterface
         $reflectedSpanProcessor = new \ReflectionClass($this->spanProcessor);
         if (true === $reflectedSpanProcessor->hasProperty('exporter')) {
             $exporter = $reflectedSpanProcessor->getProperty('exporter');
-            $exporter->setAccessible(true);
             $this->dataCollector->setExporterData($exporter->getValue($this->spanProcessor));
         }
     }
