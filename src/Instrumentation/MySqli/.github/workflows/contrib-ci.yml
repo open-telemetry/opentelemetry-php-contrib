@@ -7,6 +7,6 @@ permissions:
 
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-mysqli.yml@4f68ecb9760605760d991360df23c6cdeee7dab4 # main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-mysqli.yml@main
     with:
       package-root: '.'
