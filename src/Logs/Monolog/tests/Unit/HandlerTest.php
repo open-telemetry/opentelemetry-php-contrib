@@ -6,6 +6,7 @@ use OpenTelemetry\API\Logs\LoggerInterface;
 use OpenTelemetry\API\Logs\LoggerProviderInterface;
 use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler;
+use OpenTelemetry\Contrib\Logs\Monolog\HandlerConfiguration;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeInterface;
 use OpenTelemetry\SDK\Logs\LoggerSharedState;
@@ -103,8 +104,6 @@ class HandlerTest extends TestCase
 
     public function test_handle_record_attrib_mode(): void
     {
-        putenv(sprintf('%s=%s', Handler::OTEL_PHP_MONOLOG_ATTRIB_MODE, Handler::MODE_OTEL));
-
         $channelName = 'test';
         $scope = $this->createMock(InstrumentationScopeInterface::class);
         $sharedState = $this->createMock(LoggerSharedState::class);
@@ -114,7 +113,7 @@ class HandlerTest extends TestCase
         $limits->method('getAttributeFactory')->willReturn($attributeFactory);
         $sharedState->method('getResource')->willReturn($resource);
         $sharedState->method('getLogRecordLimits')->willReturn($limits);
-        $handler = new Handler($this->provider, 100, true);
+        $handler = new Handler($this->provider, 100, true, null, new HandlerConfiguration(mode: Handler::MODE_OTEL));
         $processor = function ($record) {
             $record['extra'] = ['foo' => 'qux', 'bar' => 'quux'];
 
