@@ -7,12 +7,22 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Consol
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Console\Kernel;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Console\LongRunningCommands;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Console\FailingCommand;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Console\LongRunningFixtureCommand;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Console\NoopCommand;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 
 /** @psalm-suppress UnusedClass */
 class CommandTest extends TestCase
 {
+    public function tearDown(): void
+    {
+        putenv(LongRunningCommands::OTEL_PHP_INSTRUMENTATION_LARAVEL_LONG_RUNNING_COMMANDS);
+
+        parent::tearDown();
+    }
+
     public function test_command_tracing(): void
     {
         $this->assertCount(0, $this->storage);
@@ -61,6 +71,51 @@ class CommandTest extends TestCase
         $this->assertCount(1, $this->storage);
         $this->assertSame('Command test:failing-command', $this->storage[0]->getName());
         $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
+    }
+
+    public function test_long_running_command_is_not_traced_when_marked_with_attribute(): void
+    {
+        $kernel = $this->kernel();
+        $kernel->registerCommand(new LongRunningFixtureCommand());
+
+        $exitCode = $kernel->handle(
+            new \Symfony\Component\Console\Input\ArrayInput(['test:long-running-fixture']),
+            new \Symfony\Component\Console\Output\NullOutput(),
+        );
+
+        $this->assertEquals(Command::SUCCESS, $exitCode);
+        $this->assertCount(0, $this->storage);
+    }
+
+    public function test_long_running_command_is_not_traced_when_listed_in_env(): void
+    {
+        putenv(LongRunningCommands::OTEL_PHP_INSTRUMENTATION_LARAVEL_LONG_RUNNING_COMMANDS . '=test:noop');
+
+        $kernel = $this->kernel();
+        $kernel->registerCommand(new NoopCommand());
+
+        $exitCode = $kernel->handle(
+            new \Symfony\Component\Console\Input\ArrayInput(['test:noop']),
+            new \Symfony\Component\Console\Output\NullOutput(),
+        );
+
+        $this->assertEquals(Command::SUCCESS, $exitCode);
+        $this->assertCount(0, $this->storage);
+    }
+
+    public function test_ordinary_command_is_still_traced(): void
+    {
+        $kernel = $this->kernel();
+        $kernel->registerCommand(new NoopCommand());
+
+        $exitCode = $kernel->handle(
+            new \Symfony\Component\Console\Input\ArrayInput(['test:noop']),
+            new \Symfony\Component\Console\Output\NullOutput(),
+        );
+
+        $this->assertEquals(Command::SUCCESS, $exitCode);
+        $this->assertCount(1, $this->storage);
+        $this->assertSame('Command test:noop', $this->storage[0]->getName());
     }
 
     private function kernel(): Kernel
