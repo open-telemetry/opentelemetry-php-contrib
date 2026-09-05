@@ -9,6 +9,6 @@ permissions:
 
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-curl.yml@4f68ecb9760605760d991360df23c6cdeee7dab4 # main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-curl.yml@302f221b8909a540ac467152a0e21b9e428adf29 # main
     with:
       package-root: '.'
