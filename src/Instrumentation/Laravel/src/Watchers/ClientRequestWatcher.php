@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 class ClientRequestWatcher extends Watcher
 {
     /**
-     * @var array<string, SpanInterface>
+     * @var array<string, list<SpanInterface>>
      */
     protected array $spans = [];
 
@@ -67,31 +67,25 @@ class ClientRequestWatcher extends Watcher
                 ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? '',
             ])
             ->startSpan();
-        $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
+        $this->spans[$this->createRequestComparisonHash($request->request)][] = $span;
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordConnectionFailed(ConnectionFailed $request): void
     {
-        $requestHash = $this->createRequestComparisonHash($request->request);
-
-        $span = $this->spans[$requestHash] ?? null;
+        $span = $this->shiftSpan($this->createRequestComparisonHash($request->request));
         if (null === $span) {
             return;
         }
 
         $span->setStatus(StatusCode::STATUS_ERROR, 'Connection failed');
         $span->end();
-
-        unset($this->spans[$requestHash]);
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordResponse(ResponseReceived $request): void
     {
-        $requestHash = $this->createRequestComparisonHash($request->request);
-
-        $span = $this->spans[$requestHash] ?? null;
+        $span = $this->shiftSpan($this->createRequestComparisonHash($request->request));
         if (null === $span) {
             return;
         }
@@ -103,13 +97,26 @@ class ClientRequestWatcher extends Watcher
 
         $this->maybeRecordError($span, $request->response);
         $span->end();
-
-        unset($this->spans[$requestHash]);
     }
 
     private function createRequestComparisonHash(Request $request): string
     {
         return sha1($request->method() . '|' . $request->url() . '|' . $request->body());
+    }
+
+    private function shiftSpan(string $requestHash): ?SpanInterface
+    {
+        if (empty($this->spans[$requestHash])) {
+            return null;
+        }
+
+        $span = array_shift($this->spans[$requestHash]);
+
+        if (empty($this->spans[$requestHash])) {
+            unset($this->spans[$requestHash]);
+        }
+
+        return $span;
     }
 
     private function maybeRecordError(SpanInterface $span, Response $response): void
