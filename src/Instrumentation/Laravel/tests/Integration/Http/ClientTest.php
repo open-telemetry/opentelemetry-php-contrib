@@ -6,8 +6,14 @@ namespace Integration\Http;
 
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Promise\RejectedPromise;
+use GuzzleHttp\Psr7\Request as Psr7Request;
+use GuzzleHttp\Psr7\Response as Psr7Response;
+use Illuminate\Http\Client\Events\ConnectionFailed;
+use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SDK\Trace\StatusData;
@@ -89,5 +95,24 @@ class ClientTest extends TestCase
 
         self::assertEquals(500, $secondSpan->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
         self::assertEquals(StatusCode::STATUS_ERROR, $secondSpan->getStatus()->getCode());
+    }
+
+    public function test_it_ignores_response_with_no_matching_request(): void
+    {
+        $request = new Request(new Psr7Request('GET', 'http://untracked.opentelemetry.io'));
+        $response = new Response(new Psr7Response(200));
+
+        Event::dispatch(new ResponseReceived($request, $response));
+
+        self::assertCount(0, $this->storage);
+    }
+
+    public function test_it_ignores_connection_failure_with_no_matching_request(): void
+    {
+        $request = new Request(new Psr7Request('GET', 'http://untracked.opentelemetry.io'));
+
+        Event::dispatch(new ConnectionFailed($request));
+
+        self::assertCount(0, $this->storage);
     }
 }
