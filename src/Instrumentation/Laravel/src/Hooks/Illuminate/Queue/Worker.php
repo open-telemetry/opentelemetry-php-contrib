@@ -51,6 +51,7 @@ class Worker implements LaravelHook
 
                 $queue = $worker->getManager()->connection($connectionName);
                 $attributes = $this->buildMessageAttributes($queue, $job->getRawBody(), $job->getQueue());
+                $attributes[MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE] = MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS;
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $spanBuilder = $this->instrumentation
@@ -101,6 +102,7 @@ class Worker implements LaravelHook
                 $queue = $params[1];
 
                 $attributes = $this->buildMessageAttributes($connection, '', $queue);
+                $attributes[MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE] = MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_RECEIVE;
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $span = $this->instrumentation
