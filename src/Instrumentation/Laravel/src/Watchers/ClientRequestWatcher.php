@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 class ClientRequestWatcher extends Watcher
 {
     /**
-     * @var array<string, list<SpanInterface>>
+     * @var array<int, SpanInterface>
      */
     protected array $spans = [];
 
@@ -67,13 +67,13 @@ class ClientRequestWatcher extends Watcher
                 ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? '',
             ])
             ->startSpan();
-        $this->spans[$this->createRequestComparisonHash($request->request)][] = $span;
+        $this->spans[$this->requestObjectId($request->request)] = $span;
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordConnectionFailed(ConnectionFailed $request): void
     {
-        $span = $this->shiftSpan($this->createRequestComparisonHash($request->request));
+        $span = $this->takeSpan($this->requestObjectId($request->request));
         if (null === $span) {
             return;
         }
@@ -85,7 +85,7 @@ class ClientRequestWatcher extends Watcher
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordResponse(ResponseReceived $request): void
     {
-        $span = $this->shiftSpan($this->createRequestComparisonHash($request->request));
+        $span = $this->takeSpan($this->requestObjectId($request->request));
         if (null === $span) {
             return;
         }
@@ -99,22 +99,15 @@ class ClientRequestWatcher extends Watcher
         $span->end();
     }
 
-    private function createRequestComparisonHash(Request $request): string
+    private function requestObjectId(Request $request): int
     {
-        return sha1($request->method() . '|' . $request->url() . '|' . $request->body());
+        return spl_object_id($request->toPsrRequest());
     }
 
-    private function shiftSpan(string $requestHash): ?SpanInterface
+    private function takeSpan(int $requestId): ?SpanInterface
     {
-        if (empty($this->spans[$requestHash])) {
-            return null;
-        }
-
-        $span = array_shift($this->spans[$requestHash]);
-
-        if (empty($this->spans[$requestHash])) {
-            unset($this->spans[$requestHash]);
-        }
+        $span = $this->spans[$requestId] ?? null;
+        unset($this->spans[$requestId]);
 
         return $span;
     }
