@@ -21,6 +21,7 @@ use Psr\Http\Message\ResponseInterface;
 * Class InstanaTransport - implements the transport interface for data transfer with Instana agent
 * @psalm-suppress MissingTemplateParam
 * @psalm-suppress UnusedProperty
+* @implements TransportInterface<string>
 */
 class InstanaTransport implements TransportInterface
 {
@@ -40,7 +41,6 @@ class InstanaTransport implements TransportInterface
 
     public function __construct(
         private readonly string $endpoint,
-        // @phpstan-ignore property.onlyWritten
         private readonly float $timeout = 0.0,
         private readonly int $attempts = 1
     ) {
