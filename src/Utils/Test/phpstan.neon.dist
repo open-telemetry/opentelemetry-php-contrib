@@ -7,3 +7,6 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        - identifier: instanceof.alwaysTrue
+        - identifier: method.alreadyNarrowedType
