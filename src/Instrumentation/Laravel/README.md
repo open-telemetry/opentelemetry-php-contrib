@@ -22,3 +22,37 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=laravel
 ```
+
+### Long-running commands
+
+No `Command` span is created for worker / daemon commands, because such a command only returns when
+the process is stopped: the span would never end and would become the ambient parent for every job,
+request and query handled during the process lifetime, collapsing everything into a single unbounded
+trace. The work done inside each iteration (e.g. a queued job) is still traced on its own.
+
+Laravel's own long-running commands are recognised out of the box: `queue:work`, `queue:listen`,
+`horizon`, `horizon:work`, `horizon:supervisor`, `schedule:work`, `reverb:start`, `reverb:restart`,
+`pail`, `octane:start`, `octane:frankenphp`, `octane:swoole`.
+
+Add your own with a comma-separated list of names (`*` wildcards allowed), merged with the built-in
+list:
+
+```shell
+OTEL_PHP_INSTRUMENTATION_LARAVEL_LONG_RUNNING_COMMANDS="app:kafka-consume,app:relay-*"
+```
+
+Or mark the command class with an attribute:
+
+```php
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Console\LongRunningCommand;
+
+#[LongRunningCommand]
+class KafkaConsumeCommand extends Command
+{
+    // ...
+}
+```
+
+The `Artisan handler` span (only created when `OTEL_PHP_TRACE_CLI_ENABLED=true`) is skipped for the
+same commands. That span sees the command name only, so a custom command marked purely with
+`#[LongRunningCommand]` must also be listed in the environment variable to be skipped there.

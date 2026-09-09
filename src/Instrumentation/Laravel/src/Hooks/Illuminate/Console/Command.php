@@ -32,6 +32,13 @@ class Command implements LaravelHook
             IlluminateCommand::class,
             'execute',
             pre: function (IlluminateCommand $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                // A worker / daemon command (queue:work, horizon, a custom consumer loop) only
+                // returns when the process stops, so its span would never end and would become
+                // the ambient parent for every job the process handles. Skip it entirely.
+                if (LongRunningCommands::matches($command)) {
+                    return;
+                }
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $this->instrumentation
                     ->tracer()
@@ -47,6 +54,12 @@ class Command implements LaravelHook
                 return $params;
             },
             post: function (IlluminateCommand $command, array $params, ?int $exitCode, ?Throwable $exception) {
+                // Re-check rather than track state: pre skipped this command, so there is no
+                // span of ours to end and the current scope belongs to something else.
+                if (LongRunningCommands::matches($command)) {
+                    return;
+                }
+
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
