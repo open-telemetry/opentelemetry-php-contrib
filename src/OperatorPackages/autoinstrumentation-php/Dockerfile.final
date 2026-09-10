@@ -1,0 +1,30 @@
+FROM busybox@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
+
+# glibc (Debian) builds
+COPY --from=build-non-zts-81    /build /autoinstrumentation/20210902
+COPY --from=build-zts-81        /build /autoinstrumentation/20210902
+COPY --from=build-non-zts-82    /build /autoinstrumentation/20220829
+COPY --from=build-zts-82        /build /autoinstrumentation/20220829
+COPY --from=build-non-zts-83    /build /autoinstrumentation/20230831
+COPY --from=build-zts-83        /build /autoinstrumentation/20230831
+COPY --from=build-non-zts-84    /build /autoinstrumentation/20240924
+COPY --from=build-zts-84        /build /autoinstrumentation/20240924
+COPY --from=build-non-zts-85    /build /autoinstrumentation/20250925
+COPY --from=build-zts-85        /build /autoinstrumentation/20250925
+
+# musl (Alpine) builds
+COPY --from=build-non-zts-musl-81   /build /autoinstrumentation/20210902
+COPY --from=build-zts-musl-81       /build /autoinstrumentation/20210902
+COPY --from=build-non-zts-musl-82   /build /autoinstrumentation/20220829
+COPY --from=build-zts-musl-82       /build /autoinstrumentation/20220829
+COPY --from=build-non-zts-musl-83   /build /autoinstrumentation/20230831
+COPY --from=build-zts-musl-83       /build /autoinstrumentation/20230831
+COPY --from=build-non-zts-musl-84   /build /autoinstrumentation/20240924
+COPY --from=build-zts-musl-84       /build /autoinstrumentation/20240924
+COPY --from=build-non-zts-musl-85   /build /autoinstrumentation/20250925
+COPY --from=build-zts-musl-85       /build /autoinstrumentation/20250925
+
+COPY opentelemetry.ini /autoinstrumentation/opentelemetry.ini
+COPY version.txt /autoinstrumentation/version.txt
+
+RUN chmod -R go+r /autoinstrumentation
