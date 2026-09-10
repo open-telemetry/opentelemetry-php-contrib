@@ -145,7 +145,8 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/', fn () => null);
         $this->call('GET', '/?foo=bar');
         $span = $this->storage[0];
-        $this->assertSame('/?foo=bar', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('/', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('foo=bar', $span->getAttributes()->get(UrlAttributes::URL_QUERY));
     }
 
     public function test_url_path_with_query_string(): void
@@ -153,7 +154,16 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello?foo=bar');
         $span = $this->storage[0];
-        $this->assertSame('/hello?foo=bar', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('/hello', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('foo=bar', $span->getAttributes()->get(UrlAttributes::URL_QUERY));
+    }
+
+    public function test_url_query_absent_without_query_string(): void
+    {
+        $this->router()->get('/hello', fn () => null);
+        $this->call('GET', '/hello');
+        $span = $this->storage[0];
+        $this->assertNull($span->getAttributes()->get(UrlAttributes::URL_QUERY));
     }
 
     public function test_malformed_method_override_header_does_not_break_instrumentation(): void
