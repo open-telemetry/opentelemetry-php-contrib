@@ -69,7 +69,8 @@ class Kernel implements LaravelHook
                         ->setAttribute(UrlAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                         ->setAttribute(NetworkAttributes::NETWORK_PEER_ADDRESS, $request->server('REMOTE_ADDR'))
-                        ->setAttribute(UrlAttributes::URL_PATH, $this->httpTarget($request))
+                        ->setAttribute(UrlAttributes::URL_PATH, $this->httpPath($request))
+                        ->setAttribute(UrlAttributes::URL_QUERY, $request->getQueryString())
                         ->setAttribute(ServerAttributes::SERVER_ADDRESS, $this->httpHostName($request))
                         ->setAttribute(ServerAttributes::SERVER_PORT, $request->getPort())
                         ->setAttribute(ClientAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
@@ -117,12 +118,9 @@ class Kernel implements LaravelHook
         );
     }
 
-    private function httpTarget(Request $request): string
+    private function httpPath(Request $request): string
     {
-        $query = $request->getQueryString();
-        $path = $request->getBaseUrl() . $request->getPathInfo();
-
-        return $query ? $path . '?' . $query : $path;
+        return $request->getBaseUrl() . $request->getPathInfo();
     }
 
     private function httpMethod(Request $request): string
