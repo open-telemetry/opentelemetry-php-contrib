@@ -163,7 +163,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello');
         $span = $this->storage[0];
-        $this->assertNull($span->getAttributes()->get(UrlAttributes::URL_QUERY));
+        $this->assertFalse($span->getAttributes()->has(UrlAttributes::URL_QUERY));
     }
 
     public function test_malformed_method_override_header_does_not_break_instrumentation(): void
