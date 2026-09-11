@@ -55,12 +55,16 @@ $ composer require open-telemetry/opentelemetry-auto-phalcon
 
 ## Installing dependencies and executing tests
 
-From the Phalcon subdirectory:
+From the repository root, using the Makefile (runs inside this repo's Docker image, so you don't
+need PHP or Phalcon installed locally):
 
 ```bash
-$ composer install
-$ ./vendor/bin/phpunit tests
+$ PROJECT=Instrumentation/Phalcon PHP_VERSION=8.2 make install
+$ PROJECT=Instrumentation/Phalcon PHP_VERSION=8.2 make test
 ```
+
+`make all` runs style, static analysis, and tests together. See `make help` for the full list of
+targets.
 
 ## Configuration
 
