@@ -27,6 +27,10 @@ on:
         description: 'Additional service dependencies as JSON encoded list'
         type: string
         default: '[]'
+      extensions:
+        description: 'PHP extensions to install (shivammathur/setup-php format)'
+        type: string
+        default: 'ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql'
 
 permissions:
   contents: read
@@ -49,7 +53,7 @@ jobs:
         with:
           php-version: ${{ inputs.php-version }}
           coverage: xdebug
-          extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+          extensions: ${{ inputs.extensions }}
 
       - name: Cache Composer packages
         id: composer-cache
@@ -96,7 +100,7 @@ jobs:
         with:
           php-version: ${{ inputs.php-version }}
           coverage: xdebug
-          extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+          extensions: ${{ inputs.extensions }}
 
       - name: Cache Composer packages
         id: composer-cache
@@ -143,7 +147,7 @@ jobs:
         with:
           php-version: ${{ inputs.php-version }}
           coverage: xdebug
-          extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+          extensions: ${{ inputs.extensions }}
 
       - name: Cache Composer packages
         id: composer-cache

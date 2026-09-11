@@ -44,6 +44,7 @@ jobs:
           # 'Instrumentation/MySqli', # # Experiment: moved to instrumentation-mysqli.yml
           'Instrumentation/OpenAIPHP',
           'Instrumentation/PDO',
+          # 'Instrumentation/Phalcon', # Needs the phalcon5 extension: moved to instrumentation-phalcon.yml
           'Instrumentation/PostgreSql',
           # Sort PSRs numerically.
           # 'Instrumentation/Psr3', # Experiment: moved to instrumentation-psr3.yml
