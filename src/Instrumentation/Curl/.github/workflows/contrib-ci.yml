@@ -9,6 +9,6 @@ permissions:
 
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-curl.yml@main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-curl.yml@main # zizmor: ignore[unpinned-uses]
     with:
       package-root: '.'
