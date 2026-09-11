@@ -31,11 +31,18 @@
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "6.4.0"
+    "vimeo/psalm": "^6.4"
   },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false
+    }
+  },
+  "extra": {
+    "spi": {
+      "OpenTelemetry\\API\\Configuration\\ConfigEnv\\EnvComponentLoader": [
+        "OpenTelemetry\\Contrib\\Logs\\Monolog\\ConfigEnv\\HandlerEnvLoader"
+      ]
     }
   }
 }

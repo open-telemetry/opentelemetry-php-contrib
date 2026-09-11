@@ -15,4 +15,17 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <MissingOverrideAttribute errorLevel="suppress"/>
+        <InternalClass>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+            </errorLevel>
+        </InternalClass>
+        <InternalMethod>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+            </errorLevel>
+        </InternalMethod>
+    </issueHandlers>
 </psalm>
