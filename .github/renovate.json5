@@ -29,5 +29,8 @@
   ],
   "labels": [
     "dependencies"
+  ],
+  "ignorePaths": [
+    "src/**/.github/workflows/contrib-ci.yml"
   ]
 }
