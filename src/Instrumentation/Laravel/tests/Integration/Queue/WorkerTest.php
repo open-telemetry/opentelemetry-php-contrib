@@ -7,6 +7,7 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Queue;
 use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\IsolatedJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\LinkedJob;
@@ -49,6 +50,10 @@ class WorkerTest extends TestCase
         $this->assertSame('Task: job-with-parent-trace', $this->storage[0]->getBody());
         $this->assertSame('process (anonymous)', $this->storage[1]->getName());
         $this->assertSame(DummyJob::class, $span->getAttributes()->get('messaging.message.job_name'));
+        $this->assertSame(
+            MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
+            $span->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE),
+        );
     }
 
     public function test_linked_job_has_new_trace_with_link_to_parent(): void
