@@ -8,7 +8,6 @@ use ArrayObject;
 use Exception;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\LogWatcher;
@@ -16,6 +15,7 @@ use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
 use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
+use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Logs\Processor\SimpleLogRecordProcessor;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use PHPUnit\Framework\TestCase;
@@ -25,6 +25,7 @@ use Stringable;
 
 class LogWatcherTest extends TestCase
 {
+    private LoggerProviderInterface $loggerProvider;
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
@@ -33,7 +34,7 @@ class LogWatcherTest extends TestCase
         putenv(LogWatcher::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
 
         $this->storage = new ArrayObject();
-        $loggerProvider = new LoggerProvider(
+        $this->loggerProvider = new LoggerProvider(
             new SimpleLogRecordProcessor(
                 new InMemoryExporter($this->storage),
             ),
@@ -41,7 +42,7 @@ class LogWatcherTest extends TestCase
         );
 
         $this->scope = Configurator::create()
-            ->withLoggerProvider($loggerProvider)
+            ->withLoggerProvider($this->loggerProvider)
             ->activate();
     }
 
@@ -53,7 +54,7 @@ class LogWatcherTest extends TestCase
 
     private function createWatcher(): LogWatcher
     {
-        $watcher = new LogWatcher(new CachedInstrumentation('io.opentelemetry.contrib.php.laravel'));
+        $watcher = new LogWatcher($this->loggerProvider->getLogger('io.opentelemetry.contrib.php.laravel'));
 
         // Inject a mock LogManager that passes all log levels through.
         // getLogger() is forwarded via __call on the real class, so addMethods() is required.
@@ -63,7 +64,7 @@ class LogWatcherTest extends TestCase
             ->getMock();
         $mockLogManager->method('getLogger')->willReturn(new stdClass());
 
-        $prop = new ReflectionProperty(LogWatcher::class, 'logger');
+        $prop = new ReflectionProperty(LogWatcher::class, 'logManager');
         $prop->setAccessible(true);
         $prop->setValue($watcher, $mockLogManager);
 

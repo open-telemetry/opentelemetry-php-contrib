@@ -7,15 +7,15 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 
 class QueryWatcher extends Watcher
 {
     public function __construct(
-        private CachedInstrumentation $instrumentation,
+        private readonly TracerInterface $tracer,
     ) {
     }
 
@@ -42,7 +42,8 @@ class QueryWatcher extends Watcher
         $spanName = $operationName !== null ? 'sql ' . $operationName : 'sql';
 
         /** @psalm-suppress ArgumentTypeCoercion */
-        $span = $this->instrumentation->tracer()->spanBuilder($spanName)
+        $span = $this->tracer
+            ->spanBuilder($spanName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setStartTimestamp($this->calculateQueryStartTime($nowInNs, $query->time))
             ->startSpan();

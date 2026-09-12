@@ -10,10 +10,10 @@ use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\Response;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
@@ -28,7 +28,7 @@ class ClientRequestWatcher extends Watcher
     protected array $spans = [];
 
     public function __construct(
-        private CachedInstrumentation $instrumentation,
+        private readonly TracerInterface $tracer,
     ) {
     }
 
@@ -56,15 +56,16 @@ class ClientRequestWatcher extends Watcher
         if ($parsedUrl->has('query')) {
             $processedUrl .= '?' . $parsedUrl->get('query');
         }
-        $span = $this->instrumentation->tracer()->spanBuilder($request->request->method())
+        $span = $this->tracer
+            ->spanBuilder($request->request->method())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
                 HttpAttributes::HTTP_REQUEST_METHOD => $request->request->method(),
                 UrlAttributes::URL_FULL => $processedUrl,
-                UrlAttributes::URL_PATH => $parsedUrl['path'] ?? '',
-                UrlAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? '',
-                ServerAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? '',
-                ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? '',
+                UrlAttributes::URL_PATH => $parsedUrl['path'] ?? null,
+                UrlAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? null,
+                ServerAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? null,
+                ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? null,
             ])
             ->startSpan();
         $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
