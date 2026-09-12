@@ -61,7 +61,7 @@ class Kernel implements LaravelHook
                 if ($request) {
                     /** @phan-suppress-next-line PhanAccessMethodInternal */
                     $parent = Globals::propagator()->extract($request, HeadersPropagator::instance());
-                    $span = $builder
+                    $builder = $builder
                         ->setParent($parent)
                         ->setAttribute(UrlAttributes::URL_FULL, $this->httpFullUrl($request))
                         ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $method)
@@ -69,13 +69,18 @@ class Kernel implements LaravelHook
                         ->setAttribute(UrlAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                         ->setAttribute(NetworkAttributes::NETWORK_PEER_ADDRESS, $request->server('REMOTE_ADDR'))
-                        ->setAttribute(UrlAttributes::URL_PATH, $this->httpTarget($request))
+                        ->setAttribute(UrlAttributes::URL_PATH, $this->httpPath($request))
                         ->setAttribute(ServerAttributes::SERVER_ADDRESS, $this->httpHostName($request))
                         ->setAttribute(ServerAttributes::SERVER_PORT, $request->getPort())
                         ->setAttribute(ClientAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
                         ->setAttribute(ClientAttributes::CLIENT_ADDRESS, $request->ip())
-                        ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->userAgent())
-                        ->startSpan();
+                        ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->userAgent());
+
+                    if (null !== $query = $request->getQueryString()) {
+                        $builder = $builder->setAttribute(UrlAttributes::URL_QUERY, $query);
+                    }
+
+                    $span = $builder->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {
                     $span = $builder->startSpan();
@@ -117,12 +122,9 @@ class Kernel implements LaravelHook
         );
     }
 
-    private function httpTarget(Request $request): string
+    private function httpPath(Request $request): string
     {
-        $query = $request->getQueryString();
-        $path = $request->getBaseUrl() . $request->getPathInfo();
-
-        return $query ? $path . '?' . $query : $path;
+        return $request->getBaseUrl() . $request->getPathInfo();
     }
 
     private function httpMethod(Request $request): string
