@@ -22,7 +22,7 @@
     "phan/phan": "^5.0|^6.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
-    "psalm/plugin-phpunit": "^0.19",
+    "psalm/plugin-phpunit": "^0.20",
     "phpunit/phpunit": "^10.0",
     "vimeo/psalm": "^6"
   },
