@@ -36,4 +36,4 @@ jobs:
       codecov-flags: 'Instrumentation/Phalcon'
       package-root: ${{ inputs.package-root || 'src/Instrumentation/Phalcon' }}
       php-version: ${{ matrix.php-version }}
-      extensions: 'ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql, phalcon5'
+      extensions: 'ast, opentelemetry, phalcon5'
