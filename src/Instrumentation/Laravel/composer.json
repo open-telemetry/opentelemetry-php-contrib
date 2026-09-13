@@ -59,7 +59,7 @@
     },
     "spi": {
       "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\ComponentProvider\\LaravelComponentProvider"
+        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Configuration\\Config\\LaravelComponentProvider"
       ]
     }
   },

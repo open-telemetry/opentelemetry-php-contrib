@@ -16,6 +16,10 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Configuration\ConfigEnv\Larave
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 
+if (!class_exists(ServiceLoader::class)) {
+    return;
+}
+
 ServiceLoader::register(Instrumentation::class, LaravelInstrumentation::class);
 ServiceLoader::register(ComponentProvider::class, LaravelComponentProvider::class);
 ServiceLoader::register(EnvComponentLoader::class, LaravelComponentLoader::class);
