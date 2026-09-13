@@ -1,60 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
     backupGlobals="false"
-    backupStaticAttributes="false"
+    backupStaticProperties="false"
     bootstrap="tests/bootstrap.php"
+    cacheDirectory=".phpunit.cache"
     cacheResult="false"
     colors="false"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
-    forceCoversAnnotation="false"
     processIsolation="false"
+    requireCoverageMetadata="false"
     stopOnError="false"
     stopOnFailure="false"
     stopOnIncomplete="false"
-    stopOnSkipped="false"
     stopOnRisky="false"
-    timeoutForSmallTests="1"
-    timeoutForMediumTests="10"
+    stopOnSkipped="false"
     timeoutForLargeTests="60"
-    verbose="true">
-
-    <coverage processUncoveredFiles="true" disableCodeCoverageIgnore="false">
-        <include>
-            <directory>src</directory>
-        </include>
-    </coverage>
-
-    <php>
-        <ini name="date.timezone" value="UTC" />
-        <ini name="display_errors" value="On" />
-        <ini name="display_startup_errors" value="On" />
-        <ini name="error_reporting" value="E_ALL" />
-        <env name="APP_ENV" value="testing"/>
-        <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="CACHE_DRIVER" value="file"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
-        <env name="MAIL_MAILER" value="array"/>
-        <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
-        <env name="TELESCOPE_ENABLED" value="false"/>
-
-        <server name="OTEL_PHP_AUTOLOAD_ENABLED" value="true"/>
-        <server name="OTEL_CONFIG_FILE" value="tests/Fixtures/otel-instrumentation.yaml"/>
-    </php>
-
-    <testsuites>
-        <testsuite name="unit">
-            <directory>tests/Unit</directory>
-        </testsuite>
-        <testsuite name="integration">
-            <directory>tests/Integration</directory>
-        </testsuite>
-    </testsuites>
-
+    timeoutForMediumTests="10"
+    timeoutForSmallTests="1"
+>
+  <php>
+    <ini name="date.timezone" value="UTC"/>
+    <ini name="display_errors" value="On"/>
+    <ini name="display_startup_errors" value="On"/>
+    <ini name="error_reporting" value="E_ALL"/>
+    <env name="APP_ENV" value="testing"/>
+    <env name="BCRYPT_ROUNDS" value="4"/>
+    <env name="CACHE_DRIVER" value="file"/>
+    <env name="DB_CONNECTION" value="sqlite"/>
+    <env name="DB_DATABASE" value=":memory:"/>
+    <env name="MAIL_MAILER" value="array"/>
+    <env name="QUEUE_CONNECTION" value="sync"/>
+    <env name="SESSION_DRIVER" value="array"/>
+    <env name="TELESCOPE_ENABLED" value="false"/>
+    <server name="OTEL_PHP_AUTOLOAD_ENABLED" value="true"/>
+    <server name="OTEL_CONFIG_FILE" value="tests/Fixtures/otel-instrumentation.yaml"/>
+  </php>
+  <testsuites>
+    <testsuite name="unit">
+      <directory>tests/Unit</directory>
+    </testsuite>
+    <testsuite name="integration">
+      <directory>tests/Integration</directory>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory>src</directory>
+    </include>
+  </source>
 </phpunit>
