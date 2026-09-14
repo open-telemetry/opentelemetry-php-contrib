@@ -9,7 +9,7 @@ use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as Instrumenta
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
@@ -29,24 +29,21 @@ class Command implements Hook
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
-        $tracer = $context->tracerProvider->getTracer(
-            LaravelInstrumentation::buildProviderName('console', 'command'),
-            schemaUrl: Version::VERSION_1_24_0->url(),
-        );
-
-        $this->hookExecute($hookManager, $tracer);
+        $this->hookExecute($hookManager, $context->tracerProvider);
     }
 
     /** @psalm-suppress PossiblyUnusedReturnValue  */
-    protected function hookExecute(HookManagerInterface $hookManager, TracerInterface $tracer): void
+    protected function hookExecute(HookManagerInterface $hookManager, TracerProviderInterface $tracerProvider): void
     {
         $hookManager->hook(
             IlluminateCommand::class,
             'execute',
-            preHook: function (IlluminateCommand $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+            preHook: function (IlluminateCommand $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracerProvider) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $tracer
-                    ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
+                $builder = $tracerProvider->getTracer(
+                    LaravelInstrumentation::buildProviderName('console', 'command'),
+                    schemaUrl: Version::VERSION_1_24_0->url(),
+                )->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
