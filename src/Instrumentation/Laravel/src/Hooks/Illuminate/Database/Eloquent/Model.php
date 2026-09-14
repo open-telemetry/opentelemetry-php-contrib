@@ -160,6 +160,12 @@ class Model implements LaravelHook
             'getModels',
             pre: function ($builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
                 $model = $builder->getModel();
+                $query = $builder->getQuery();
+                // laravel-mongodb overrides toSql() to throw; use toMql() instead.
+                $queryText = method_exists($query, 'toMql')
+                    ? json_encode($query->toMql())
+                    : $query->toSql();
+
                 $builder = $this->instrumentation
                     ->tracer()
                     ->spanBuilder($model::class . '::get')
@@ -170,7 +176,7 @@ class Model implements LaravelHook
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
                     ->setAttribute('laravel.eloquent.operation', 'get')
-                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, $builder->getQuery()->toSql());
+                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, $queryText);
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
