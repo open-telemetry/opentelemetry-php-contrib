@@ -22,3 +22,21 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=laravel
 ```
+
+### Outbound HTTP client trace propagation
+
+By default, outbound requests made via Laravel's HTTP client (`Illuminate\Http\Client`)
+do not have trace context (`traceparent`/`tracestate`) injected into their headers.
+This is opt-in for security reasons: the instrumentation cannot distinguish between
+requests to trusted internal services and external third-party endpoints. Injecting
+trace context and baggage into the latter could leak sensitive information.
+
+To enable trace context propagation on outbound HTTP client requests:
+
+```shell
+OTEL_PHP_INSTRUMENTATION_LARAVEL_HTTP_CLIENT_PROPAGATION_ENABLED=true
+```
+
+**Only enable this if all outbound HTTP client requests are sent to trusted internal services.**
+
+Defaults to `false`.
