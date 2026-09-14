@@ -10,6 +10,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Console\LongRunningCommands;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue\AttributesBuilder;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
@@ -17,6 +18,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use Symfony\Component\Console\Input\InputInterface;
 use Throwable;
 
 class Kernel implements LaravelHook
@@ -39,6 +41,14 @@ class Kernel implements LaravelHook
             KernelContract::class,
             'handle',
             pre: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+                // Don't wrap a worker / daemon invocation (queue:work, horizon, ...) in a span
+                // that only ends when the process stops. Only the command name is available
+                // here, so a custom command marked solely with #[LongRunningCommand] still needs
+                // to be listed in OTEL_PHP_INSTRUMENTATION_LARAVEL_LONG_RUNNING_COMMANDS.
+                if (LongRunningCommands::matchesName($this->resolveCommandName($params[0] ?? null))) {
+                    return $params;
+                }
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $this->instrumentation
                     ->tracer()
@@ -55,6 +65,11 @@ class Kernel implements LaravelHook
                 return $params;
             },
             post: function (KernelContract $kernel, array $params, ?int $exitCode, ?Throwable $exception) {
+                // Re-check: pre skipped long-running commands, so the current scope is not ours.
+                if (LongRunningCommands::matchesName($this->resolveCommandName($params[0] ?? null))) {
+                    return;
+                }
+
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -69,5 +84,18 @@ class Kernel implements LaravelHook
                 $this->endSpan($exception);
             }
         );
+    }
+
+    private function resolveCommandName(mixed $input): ?string
+    {
+        if (!$input instanceof InputInterface) {
+            return null;
+        }
+
+        try {
+            return $input->getFirstArgument();
+        } catch (Throwable) {
+            return null;
+        }
     }
 }
