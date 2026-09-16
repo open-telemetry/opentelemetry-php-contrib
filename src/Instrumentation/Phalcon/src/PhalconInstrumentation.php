@@ -153,7 +153,7 @@ final class PhalconInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): void {
-                if (!self::beginRoot()) {
+                if (!self::claimRoot()) {
                     return;
                 }
 
@@ -179,7 +179,7 @@ final class PhalconInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): void {
-                if (!self::beginRoot()) {
+                if (!self::claimRoot()) {
                     return;
                 }
 
@@ -205,7 +205,7 @@ final class PhalconInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): void {
-                if (!self::beginRoot()) {
+                if (!self::claimRoot()) {
                     return;
                 }
 
@@ -220,7 +220,7 @@ final class PhalconInstrumentation
     /**
      * Fallback root: only takes effect when an app dispatches directly,
      * without Application/Micro/Console already having started a root span
-     * (beginRoot() returns false otherwise). Covers HTTP (Mvc\Dispatcher)
+     * (claimRoot() returns false otherwise). Covers HTTP (Mvc\Dispatcher)
      * and non-HTTP (e.g. a hand-built Cli\Dispatcher) cases distinctly.
      */
     private static function hookDispatch(CachedInstrumentation $instrumentation): void
@@ -237,7 +237,7 @@ final class PhalconInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): void {
-                if (!self::beginRoot()) {
+                if (!self::claimRoot()) {
                     return;
                 }
 
@@ -316,7 +316,12 @@ final class PhalconInstrumentation
         );
     }
 
-    private static function beginRoot(): bool
+    /**
+     * Claims ownership of the root span for this call, i.e. whether it is the
+     * outermost of the (possibly nested) hooked calls. Does not create a span
+     * itself — the caller only starts one if this returns true.
+     */
+    private static function claimRoot(): bool
     {
         if (self::$rootDepth++ > 0) {
             return false;
@@ -329,7 +334,12 @@ final class PhalconInstrumentation
         return true;
     }
 
-    private static function endRoot(): bool
+    /**
+     * Releases a previous claimRoot() call. Returns true once the depth
+     * counter unwinds back to 0, i.e. only for the call that owns the root
+     * span — the caller only ends the span if this returns true.
+     */
+    private static function releaseRoot(): bool
     {
         return --self::$rootDepth === 0;
     }
@@ -430,14 +440,14 @@ final class PhalconInstrumentation
 
     /**
      * @param object|null $target the Application/Micro/Console/Dispatcher instance that just
-     *     finished handling, used to resolve DI/response lazily — only once endRoot() confirms
+     *     finished handling, used to resolve DI/response lazily — only once releaseRoot() confirms
      *     this call actually owns the root span, not eagerly on every nested/non-owning call.
      * @param ResponseInterface|null $preferredResponse use this instead of resolving one from
      *     $target's DI, when the caller already has the real return value in hand.
      */
     private static function finishRootSpan(bool $isHttp, ?object $target, ?ResponseInterface $preferredResponse, ?Throwable $exception): void
     {
-        if (!self::endRoot()) {
+        if (!self::releaseRoot()) {
             return;
         }
 
