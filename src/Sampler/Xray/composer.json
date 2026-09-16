@@ -16,8 +16,8 @@
         "symfony/yaml": "^6 || ^7",
         "friendsofphp/php-cs-fixer": "^3",
         "phan/phan": "^6.0",
-        "phpstan/phpstan": "^1.1",
-        "phpstan/phpstan-phpunit": "^1.0",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
         "psalm/plugin-phpunit": "^0.19.2",
         "phpunit/phpunit": "^10 || ^11",
         "vimeo/psalm": "6.4.0"
