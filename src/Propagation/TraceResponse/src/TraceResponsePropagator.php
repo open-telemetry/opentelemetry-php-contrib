@@ -41,6 +41,7 @@ final class TraceResponsePropagator implements ResponsePropagatorInterface
         return self::$instance;
     }
 
+    #[\Override]
     public function inject(&$carrier, ?PropagationSetterInterface $setter = null, ?ContextInterface $context = null): void
     {
         $setter = $setter ?? ArrayAccessGetterSetter::getInstance();

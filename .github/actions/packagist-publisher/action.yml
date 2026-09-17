@@ -1,0 +1,25 @@
+name: 'Packagist.org Publish'
+description: 'Ensure that packagist.org is aware of the gitsplit repository'
+inputs:
+  api_key:
+    description: 'Packagist.org API key'
+    required: true
+  username:
+    description: 'Packagist.org username'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      name: "Publish"
+      env:
+        API_TOKEN: "${{ inputs.username }}:${{ inputs.api_key }}"
+      run: |
+        yq -r '.splits[] | select(.target != null) | [.prefix, (.target | sub("^.*github\\.com/|\\.git$"; ""))] | @tsv' .gitsplit.yml | while IFS=$'\t' read -r prefix repo; do
+          echo "Publishing $prefix to Packagist.org as $repo"
+          curl -X POST \
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $API_TOKEN" \
+            --data "{\"repository\":{\"url\":\"https://github.com/$repo\"}}" \
+            "https://packagist.org/api/create-package" 1>/dev/null 2>&1
+        done
