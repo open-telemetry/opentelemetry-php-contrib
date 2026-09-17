@@ -12,7 +12,6 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
-use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use Throwable;
 
 class Model implements LaravelHook
@@ -169,8 +168,7 @@ class Model implements LaravelHook
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->setAttribute('laravel.eloquent.model', $model::class)
                     ->setAttribute('laravel.eloquent.table', $model->getTable())
-                    ->setAttribute('laravel.eloquent.operation', 'get')
-                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, $builder->getQuery()->toSql());
+                    ->setAttribute('laravel.eloquent.operation', 'get');
 
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
