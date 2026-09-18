@@ -31,7 +31,7 @@ jobs:
           - 8.4
           - 8.5
 
-    uses: ./.github/workflows/php-contrib.yml
+    uses: $/.github/workflows/php-contrib.yml
     with:
       job-name: "PHP ${{ matrix.php-version }}"
       codecov-flags: 'Instrumentation/HttpConfig'
