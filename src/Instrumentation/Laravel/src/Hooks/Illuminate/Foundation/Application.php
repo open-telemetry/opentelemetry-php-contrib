@@ -10,7 +10,6 @@ use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as Instrumenta
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\CacheWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ClientRequestWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\ExceptionWatcher;
@@ -18,7 +17,6 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\LogWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\QueryWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\RedisCommand\RedisCommandWatcher;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
-use OpenTelemetry\SemConv\Version;
 use Throwable;
 
 /** @psalm-suppress UnusedClass */
@@ -29,26 +27,16 @@ class Application implements Hook
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
-        $logger = $context->loggerProvider->getLogger(
-            LaravelInstrumentation::buildProviderName('foundation', 'application'),
-            schemaUrl: Version::VERSION_1_24_0->url(),
-        );
-
-        $tracer = $context->tracerProvider->getTracer(
-            LaravelInstrumentation::buildProviderName('foundation', 'application'),
-            schemaUrl: Version::VERSION_1_24_0->url(),
-        );
-
         $hookManager->hook(
             FoundationalApplication::class,
             '__construct',
-            postHook: function (FoundationalApplication $application, array $_params, mixed $_returnValue, ?Throwable $_exception) use ($logger, $tracer) {
+            postHook: function (FoundationalApplication $application, array $_params, mixed $_returnValue, ?Throwable $_exception) use ($context) {
                 $this->registerWatchers($application, new CacheWatcher());
-                $this->registerWatchers($application, new ClientRequestWatcher($tracer));
+                $this->registerWatchers($application, new ClientRequestWatcher($context));
                 $this->registerWatchers($application, new ExceptionWatcher());
-                $this->registerWatchers($application, new LogWatcher($logger));
-                $this->registerWatchers($application, new QueryWatcher($tracer));
-                $this->registerWatchers($application, new RedisCommandWatcher($tracer));
+                $this->registerWatchers($application, new LogWatcher($context));
+                $this->registerWatchers($application, new QueryWatcher($context));
+                $this->registerWatchers($application, new RedisCommandWatcher($context));
             },
         );
     }

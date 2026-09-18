@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 
 class QueryWatcher extends Watcher
 {
     public function __construct(
-        private readonly TracerInterface $tracer,
+        private readonly InstrumentationContext $context,
     ) {
     }
 
-    /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
     {
-        /** @phan-suppress-next-line PhanTypeArraySuspicious */
-        $app['events']->listen(QueryExecuted::class, [$this, 'recordQuery']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(QueryExecuted::class, [$this, 'recordQuery']);
+        });
     }
 
     /**
@@ -42,7 +44,9 @@ class QueryWatcher extends Watcher
         $spanName = $operationName !== null ? 'sql ' . $operationName : 'sql';
 
         /** @psalm-suppress ArgumentTypeCoercion */
-        $span = $this->tracer
+        $span = $this->context
+            ->tracerProvider
+            ->getTracer(LaravelInstrumentation::buildProviderName('query'))
             ->spanBuilder($spanName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setStartTimestamp($this->calculateQueryStartTime($nowInNs, $query->time))

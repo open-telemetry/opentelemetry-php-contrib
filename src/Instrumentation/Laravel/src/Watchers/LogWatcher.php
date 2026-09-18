@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
-use Illuminate\Log\LogManager;
 use Illuminate\Support\Arr;
-use OpenTelemetry\API\Logs\LoggerInterface;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs\Severity;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
+use OpenTelemetry\SemConv\Version;
 use Stringable;
 use Throwable;
 use TypeError;
@@ -19,11 +21,11 @@ class LogWatcher extends Watcher
 {
     public const OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN = 'OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN';
 
-    private LogManager $logManager;
+    private Application $app;
     private bool $flattenAttributes;
 
     public function __construct(
-        private readonly LoggerInterface $logger,
+        private readonly InstrumentationContext $context,
     ) {
         $resolver = new ConfigurationResolver();
         $this->flattenAttributes = $resolver->has(self::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN)
@@ -33,11 +35,12 @@ class LogWatcher extends Watcher
     /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
     {
-        /** @phan-suppress-next-line PhanTypeArraySuspicious */
-        $app['events']->listen(MessageLogged::class, [$this, 'recordLog']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(MessageLogged::class, [$this, 'recordLog']);
+        });
 
-        /** @phan-suppress-next-line PhanTypeArraySuspicious */
-        $this->logManager = $app['log'];
+        // Used to resolve the log manager later.
+        $this->app = $app;
     }
 
     /**
@@ -47,7 +50,7 @@ class LogWatcher extends Watcher
      */
     public function recordLog(MessageLogged $log): void
     {
-        $underlyingLogger = $this->logManager->getLogger();
+        $underlyingLogger = $this->app->get('log')?->getLogger();
 
         /**
          * This assumes that the underlying logger (expected to be monolog) would accept `$log->level` as a string.
@@ -62,7 +65,10 @@ class LogWatcher extends Watcher
             // Should this fail, we should continue to emit the LogRecord.
         }
 
-        $logBuilder = $this->logger->logRecordBuilder();
+        $logBuilder = $this->context->loggerProvider->getLogger(
+            LaravelInstrumentation::buildProviderName('logger'),
+            schemaUrl: Version::VERSION_1_24_0->url(),
+        )->logRecordBuilder();
 
         $context = array_filter($log->context, static fn ($value) => $value !== null);
         $exception = $this->getExceptionFromContext($log->context);

@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Events\ConnectionFailed;
 use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\Response;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\API\Trace\TracerInterface;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
@@ -28,7 +30,7 @@ class ClientRequestWatcher extends Watcher
     protected array $spans = [];
 
     public function __construct(
-        private readonly TracerInterface $tracer,
+        private readonly InstrumentationContext $context,
     ) {
     }
 
@@ -38,9 +40,11 @@ class ClientRequestWatcher extends Watcher
      */
     public function register(Application $app): void
     {
-        $app['events']->listen(RequestSending::class, [$this, 'recordRequest']);
-        $app['events']->listen(ConnectionFailed::class, [$this, 'recordConnectionFailed']);
-        $app['events']->listen(ResponseReceived::class, [$this, 'recordResponse']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(RequestSending::class, [$this, 'recordRequest']);
+            $dispatcher->listen(ConnectionFailed::class, [$this, 'recordConnectionFailed']);
+            $dispatcher->listen(ResponseReceived::class, [$this, 'recordResponse']);
+        });
     }
 
     /**
@@ -56,7 +60,9 @@ class ClientRequestWatcher extends Watcher
         if ($parsedUrl->has('query')) {
             $processedUrl .= '?' . $parsedUrl->get('query');
         }
-        $span = $this->tracer
+        $span = $this->context
+            ->tracerProvider
+            ->getTracer(LaravelInstrumentation::buildProviderName('http', 'client'))
             ->spanBuilder($request->request->method())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
