@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\RedisCommand;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Redis\Events\CommandExecuted;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\Watcher;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
@@ -25,15 +27,16 @@ use Throwable;
 class RedisCommandWatcher extends Watcher
 {
     public function __construct(
-        private CachedInstrumentation $instrumentation,
+        private readonly InstrumentationContext $context,
     ) {
     }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
     public function register(Application $app): void
     {
-        /** @phan-suppress-next-line PhanTypeArraySuspicious */
-        $app['events']->listen(CommandExecuted::class, [$this, 'recordRedisCommand']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(CommandExecuted::class, [$this, 'recordRedisCommand']);
+        });
     }
 
     /**
@@ -47,7 +50,9 @@ class RedisCommandWatcher extends Watcher
         $operationName = strtoupper($event->command);
 
         /** @psalm-suppress ArgumentTypeCoercion */
-        $span = $this->instrumentation->tracer()
+        $span = $this->context
+            ->tracerProvider
+            ->getTracer(LaravelInstrumentation::buildProviderName('redis'))
             ->spanBuilder($operationName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setStartTimestamp($this->calculateQueryStartTime($nowInNs, $event->time))
@@ -83,7 +88,7 @@ class RedisCommandWatcher extends Watcher
             }
 
             return null;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -99,7 +104,7 @@ class RedisCommandWatcher extends Watcher
             }
 
             return null;
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return null;
         }
     }

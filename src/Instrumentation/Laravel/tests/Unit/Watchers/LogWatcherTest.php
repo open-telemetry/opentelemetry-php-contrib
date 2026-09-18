@@ -6,9 +6,10 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Unit\Watchers;
 
 use ArrayObject;
 use Exception;
+use Illuminate\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\LogWatcher;
@@ -16,15 +17,15 @@ use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
 use OpenTelemetry\SDK\Logs\Exporter\InMemoryExporter;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
+use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Logs\Processor\SimpleLogRecordProcessor;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use PHPUnit\Framework\TestCase;
-use ReflectionProperty;
-use stdClass;
 use Stringable;
 
 class LogWatcherTest extends TestCase
 {
+    private LoggerProviderInterface $loggerProvider;
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
@@ -33,7 +34,7 @@ class LogWatcherTest extends TestCase
         putenv(LogWatcher::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
 
         $this->storage = new ArrayObject();
-        $loggerProvider = new LoggerProvider(
+        $this->loggerProvider = new LoggerProvider(
             new SimpleLogRecordProcessor(
                 new InMemoryExporter($this->storage),
             ),
@@ -41,7 +42,7 @@ class LogWatcherTest extends TestCase
         );
 
         $this->scope = Configurator::create()
-            ->withLoggerProvider($loggerProvider)
+            ->withLoggerProvider($this->loggerProvider)
             ->activate();
     }
 
@@ -53,19 +54,16 @@ class LogWatcherTest extends TestCase
 
     private function createWatcher(): LogWatcher
     {
-        $watcher = new LogWatcher(new CachedInstrumentation('io.opentelemetry.contrib.php.laravel'));
+        $mockApplication = $this->createMock(Application::class);
+        $mockApplication
+            ->method('offsetGet')
+            ->with('log')
+            ->willReturn(
+                $this->createMock(LogManager::class),
+            );
 
-        // Inject a mock LogManager that passes all log levels through.
-        // getLogger() is forwarded via __call on the real class, so addMethods() is required.
-        $mockLogManager = $this->getMockBuilder(LogManager::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getLogger'])
-            ->getMock();
-        $mockLogManager->method('getLogger')->willReturn(new stdClass());
-
-        $prop = new ReflectionProperty(LogWatcher::class, 'logger');
-        $prop->setAccessible(true);
-        $prop->setValue($watcher, $mockLogManager);
+        $watcher = new LogWatcher(new InstrumentationContext(loggerProvider: $this->loggerProvider));
+        $watcher->register($mockApplication);
 
         return $watcher;
     }
