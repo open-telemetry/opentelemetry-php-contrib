@@ -162,18 +162,10 @@ class Kernel implements Hook
 
     private function httpHostName(Request $request): string
     {
-        if (method_exists($request, 'host')) {
-            try {
-                return $request->host();
-            } catch (Throwable) {
-                return '';
-            }
+        try {
+            return $request->host();
+        } catch (Throwable) {
+            return '';
         }
-
-        if (method_exists($request, 'getHost')) {
-            return $request->getHost();
-        }
-
-        return '';
     }
 }

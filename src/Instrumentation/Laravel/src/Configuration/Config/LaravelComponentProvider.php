@@ -39,7 +39,7 @@ class LaravelComponentProvider implements ComponentProvider
             ->canBeDisabled()
             ->children()
                 ->booleanNode('trace_cli_enabled')->defaultFalse()->end()
-            ->end()
+            ->end() // @phpstan-ignore method.notFound
         ;
     }
 }
