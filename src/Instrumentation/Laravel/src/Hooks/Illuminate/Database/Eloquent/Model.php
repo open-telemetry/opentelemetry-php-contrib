@@ -48,7 +48,7 @@ class Model implements Hook
         $hookManager->hook(
             \Illuminate\Database\Eloquent\Builder::class,
             'find',
-            preHook: function ($builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+            preHook: function (\Illuminate\Database\Eloquent\Builder $builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 $model = $builder->getModel();
                 $builder = $tracer
                     ->spanBuilder($model::class . '::find')
@@ -165,7 +165,7 @@ class Model implements Hook
         $hookManager->hook(
             \Illuminate\Database\Eloquent\Builder::class,
             'getModels',
-            preHook: function ($builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+            preHook: function (\Illuminate\Database\Eloquent\Builder $builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
                 $model = $builder->getModel();
                 $builder = $tracer
                     ->spanBuilder($model::class . '::get')

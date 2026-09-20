@@ -55,9 +55,14 @@ class ClientRequestWatcher extends Watcher
     public function recordRequest(RequestSending $request): void
     {
         $parsedUrl = collect(parse_url($request->request->url()) ?: []);
-        $processedUrl = $parsedUrl->get('scheme', 'http') . '://' . $parsedUrl->get('host') . $parsedUrl->get('path', '');
+        $processedUrl = vsprintf('%s://%s%s', [
+            $parsedUrl->get('scheme', 'http'),
+            $parsedUrl->get('host'),
+            $parsedUrl->get('path', ''),
+        ]);
 
         if ($parsedUrl->has('query')) {
+            /** @phan-suppress-next-line PhanTypeSuspiciousStringExpression */
             $processedUrl .= '?' . $parsedUrl->get('query');
         }
         $span = $this->context

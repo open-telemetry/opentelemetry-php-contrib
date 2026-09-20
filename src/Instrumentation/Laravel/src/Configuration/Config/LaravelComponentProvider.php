@@ -12,6 +12,9 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
+/**
+ * @implements ComponentProvider<LaravelConfiguration>
+ */
 class LaravelComponentProvider implements ComponentProvider
 {
     /**

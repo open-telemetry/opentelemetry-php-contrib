@@ -27,6 +27,7 @@ class LogWatcher extends Watcher
     public function __construct(
         private readonly InstrumentationContext $context,
     ) {
+        /** @phan-suppress-next-line PhanDeprecatedClass */
         $resolver = new ConfigurationResolver();
         $this->flattenAttributes = $resolver->has(self::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN)
             && $resolver->getBoolean(self::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
