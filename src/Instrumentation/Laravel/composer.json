@@ -29,8 +29,8 @@
     "orchestra/testbench": ">=7.41.3",
     "phan/phan": "^6.0",
     "php-http/mock-client": "*",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan": "^2.2",
+    "phpstan/phpstan-phpunit": "^2.0",
     "phpunit/phpunit": "^10.5 || ^11 || ^12 || ^13",
     "psalm/plugin-phpunit": "^0.19.2",
     "vimeo/psalm": "^6.4"
