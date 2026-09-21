@@ -23,6 +23,7 @@ class Model implements Hook
 {
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
@@ -44,7 +45,7 @@ class Model implements Hook
 
     private function hookFind(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
         $hookManager->hook(
             \Illuminate\Database\Eloquent\Builder::class,
             'find',
@@ -74,7 +75,7 @@ class Model implements Hook
 
     private function hookPerformUpdate(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
         $hookManager->hook(
             EloquentModel::class,
             'performUpdate',
@@ -103,7 +104,7 @@ class Model implements Hook
 
     private function hookPerformInsert(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
         $hookManager->hook(
             EloquentModel::class,
             'performInsert',
@@ -132,7 +133,7 @@ class Model implements Hook
 
     private function hookDelete(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
         $hookManager->hook(
             EloquentModel::class,
             'delete',
@@ -161,7 +162,7 @@ class Model implements Hook
 
     private function hookGetModels(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
         $hookManager->hook(
             \Illuminate\Database\Eloquent\Builder::class,
             'getModels',
@@ -191,7 +192,7 @@ class Model implements Hook
 
     private function hookDestroy(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,InvalidArgument,UnusedFunctionCall */
         $hookManager->hook(
             EloquentModel::class,
             'destroy',
@@ -224,7 +225,7 @@ class Model implements Hook
 
     private function hookRefresh(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
         $hookManager->hook(
             EloquentModel::class,
             'refresh',

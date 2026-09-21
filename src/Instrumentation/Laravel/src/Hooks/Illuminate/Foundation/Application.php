@@ -22,11 +22,13 @@ use Throwable;
 /** @psalm-suppress UnusedClass */
 class Application implements Hook
 {
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
+        /** @psalm-suppress ArgumentTypeCoercion */
         $hookManager->hook(
             FoundationalApplication::class,
             '__construct',

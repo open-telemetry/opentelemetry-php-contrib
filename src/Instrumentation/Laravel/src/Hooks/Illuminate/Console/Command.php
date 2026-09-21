@@ -24,6 +24,7 @@ class Command implements Hook
 {
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
@@ -32,7 +33,7 @@ class Command implements Hook
         $this->hookExecute($hookManager, $context->tracerProvider);
     }
 
-    /** @psalm-suppress PossiblyUnusedReturnValue  */
+    /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue  */
     protected function hookExecute(HookManagerInterface $hookManager, TracerProviderInterface $tracerProvider): void
     {
         $hookManager->hook(

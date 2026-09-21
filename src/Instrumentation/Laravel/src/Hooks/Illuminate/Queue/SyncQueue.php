@@ -24,6 +24,7 @@ class SyncQueue implements Hook
     use AttributesBuilder;
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
@@ -37,7 +38,7 @@ class SyncQueue implements Hook
         $this->hookPush($hookManager, $tracer);
     }
 
-    /** @psalm-suppress PossiblyUnusedReturnValue */
+    /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue */
     protected function hookPush(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(

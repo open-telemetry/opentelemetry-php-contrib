@@ -18,11 +18,13 @@ class Queue implements Hook
     use AttributesBuilder;
 
     /** @psalm-suppress PossiblyUnusedReturnValue */
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
+        /** @psalm-suppress ArgumentTypeCoercion */
         $hookManager->hook(
             AbstractQueue::class,
             'createPayloadArray',

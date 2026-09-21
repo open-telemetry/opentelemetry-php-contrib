@@ -34,6 +34,7 @@ class LogWatcher extends Watcher
     }
 
     /** @psalm-suppress UndefinedInterfaceMethod */
+    #[\Override]
     public function register(Application $app): void
     {
         $app->afterResolving('events', function (Dispatcher $dispatcher) {

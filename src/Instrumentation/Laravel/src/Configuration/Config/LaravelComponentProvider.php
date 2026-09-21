@@ -22,8 +22,9 @@ class LaravelComponentProvider implements ComponentProvider
      *     enabled: bool,
      *     trace_cli_enabled: bool,
      * } $properties
-     * @phan-suppress PhanTypeMismatchReturn
+     * @psalm-suppress LessSpecificImplementedReturnType,MoreSpecificImplementedParamType
      */
+    #[\Override]
     public function createPlugin(array $properties, Context $context): InstrumentationConfiguration
     {
         return new LaravelConfiguration(
@@ -32,6 +33,7 @@ class LaravelComponentProvider implements ComponentProvider
         );
     }
 
+    #[\Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
         return $builder

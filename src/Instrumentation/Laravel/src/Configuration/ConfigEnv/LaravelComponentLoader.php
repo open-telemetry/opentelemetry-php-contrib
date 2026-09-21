@@ -14,9 +14,11 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 
 /**
  * @implements EnvComponentLoader<InstrumentationConfiguration>
+ * @psalm-suppress UnusedClass
  */
 final class LaravelComponentLoader implements EnvComponentLoader
 {
+    #[\Override]
     public function load(EnvResolver $env, EnvComponentLoaderRegistry $registry, Context $context): InstrumentationConfiguration
     {
         $disabledInstrumentations = $env->list('OTEL_PHP_DISABLED_INSTRUMENTATIONS');
@@ -27,6 +29,7 @@ final class LaravelComponentLoader implements EnvComponentLoader
         );
     }
 
+    #[\Override]
     public function name(): string
     {
         return LaravelConfiguration::class;

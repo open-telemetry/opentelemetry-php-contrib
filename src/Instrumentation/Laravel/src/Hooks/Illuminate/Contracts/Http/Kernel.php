@@ -40,6 +40,7 @@ class Kernel implements Hook
 {
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
@@ -53,7 +54,7 @@ class Kernel implements Hook
         $this->hookHandle($hookManager, $tracer, $context->propagator);
     }
 
-    /** @psalm-suppress PossiblyUnusedReturnValue  */
+    /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue */
     protected function hookHandle(
         HookManagerInterface $hookManager,
         TracerInterface $tracer,

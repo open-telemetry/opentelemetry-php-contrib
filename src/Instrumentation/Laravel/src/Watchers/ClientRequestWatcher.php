@@ -38,6 +38,7 @@ class ClientRequestWatcher extends Watcher
      * @psalm-suppress UndefinedInterfaceMethod
      * @suppress PhanTypeArraySuspicious
      */
+    #[\Override]
     public function register(Application $app): void
     {
         $app->afterResolving('events', function (Dispatcher $dispatcher) {
@@ -57,14 +58,14 @@ class ClientRequestWatcher extends Watcher
         $parsedUrl = collect(parse_url($request->request->url()) ?: []);
         $processedUrl = vsprintf('%s://%s%s', [
             $parsedUrl->get('scheme', 'http'),
-            $parsedUrl->get('host'),
+            $parsedUrl->get('host', ''),
             $parsedUrl->get('path', ''),
         ]);
 
         if ($parsedUrl->has('query')) {
-            /** @phan-suppress-next-line PhanTypeSuspiciousStringExpression */
-            $processedUrl .= '?' . $parsedUrl->get('query');
+            $processedUrl .= '?' . $parsedUrl->get('query', '');
         }
+
         $span = $this->context
             ->tracerProvider
             ->getTracer(LaravelInstrumentation::buildProviderName('http', 'client'))

@@ -32,6 +32,7 @@ class Worker implements Hook
     use AttributesBuilder;
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
@@ -46,7 +47,7 @@ class Worker implements Hook
         $this->hookWorkerGetNextJob($hookManager, $tracer);
     }
 
-    /** @psalm-suppress UnusedReturnValue */
+    /** @psalm-suppress ArgumentTypeCoercion,UnusedReturnValue */
     private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -100,7 +101,7 @@ class Worker implements Hook
         );
     }
 
-    /** @psalm-suppress UnusedReturnValue */
+    /** @psalm-suppress ArgumentTypeCoercion,UnusedReturnValue */
     private function hookWorkerGetNextJob(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -160,7 +161,7 @@ class Worker implements Hook
     /**
      * Set parent context for the span builder, and return the context to be stored.
      */
-    private function setParentContext($job, SpanBuilderInterface $spanBuilder, ContextInterface|null $parentContext): ContextInterface
+    private function setParentContext(Job $job, SpanBuilderInterface $spanBuilder, ContextInterface|null $parentContext): ContextInterface
     {
         /**
          * No parent context, isolated trace

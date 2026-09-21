@@ -16,6 +16,7 @@ class KernelTest extends TestCase
     public function test_http_method_swallows_suspicious_operation_exception(): void
     {
         $request = new class() extends Request {
+            #[\Override]
             public function method(): string
             {
                 throw new SuspiciousOperationException('Invalid method override.');
@@ -28,6 +29,7 @@ class KernelTest extends TestCase
     public function test_http_full_url_swallows_suspicious_operation_exception(): void
     {
         $request = new class() extends Request {
+            #[\Override]
             public function fullUrl(): string
             {
                 throw new SuspiciousOperationException('Invalid Host.');
@@ -40,6 +42,7 @@ class KernelTest extends TestCase
     public function test_http_host_name_swallows_suspicious_operation_exception(): void
     {
         $request = new class() extends Request {
+            #[\Override]
             public function host(): string
             {
                 throw new SuspiciousOperationException('Invalid Host.');

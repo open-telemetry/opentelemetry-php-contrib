@@ -19,6 +19,7 @@ class CacheWatcher extends Watcher
      * @psalm-suppress UndefinedInterfaceMethod
      * @suppress PhanTypeArraySuspicious
      */
+    #[\Override]
     public function register(Application $app): void
     {
         $app->afterResolving('events', function (Dispatcher $dispatcher) {

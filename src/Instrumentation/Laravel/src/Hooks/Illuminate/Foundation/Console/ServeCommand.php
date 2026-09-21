@@ -17,11 +17,13 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
  */
 class ServeCommand implements Hook
 {
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
         InstrumentationContext $context,
     ): void {
+        /** @psalm-suppress ArgumentTypeCoercion */
         $hookManager->hook(
             FoundationServeCommand::class,
             'handle',

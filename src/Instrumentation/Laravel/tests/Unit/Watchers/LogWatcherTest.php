@@ -29,6 +29,7 @@ class LogWatcherTest extends TestCase
     private ScopeInterface $scope;
     private ArrayObject $storage;
 
+    #[\Override]
     protected function setUp(): void
     {
         putenv(LogWatcher::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
@@ -46,6 +47,7 @@ class LogWatcherTest extends TestCase
             ->activate();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         $this->scope->detach();
@@ -143,6 +145,7 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
 
         $stringable = new class() implements Stringable {
+            #[\Override]
             public function __toString(): string
             {
                 return 'stringable-value';

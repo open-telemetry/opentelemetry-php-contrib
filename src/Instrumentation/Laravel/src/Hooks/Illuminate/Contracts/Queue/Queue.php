@@ -28,6 +28,7 @@ class Queue implements Hook
     use AttributesBuilder;
     use PostHookTrait;
 
+    #[\Override]
     public function instrument(
         LaravelConfiguration $configuration,
         HookManagerInterface $hookManager,
@@ -43,7 +44,7 @@ class Queue implements Hook
         $this->hookPushRaw($hookManager, $tracer);
     }
 
-    /** @psalm-suppress PossiblyUnusedReturnValue  */
+    /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue  */
     protected function hookBulk(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -78,7 +79,7 @@ class Queue implements Hook
         );
     }
 
-    /** @psalm-suppress PossiblyUnusedReturnValue  */
+    /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue  */
     protected function hookLater(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
@@ -120,7 +121,7 @@ class Queue implements Hook
         );
     }
 
-    /** @psalm-suppress PossiblyUnusedReturnValue  */
+    /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue  */
     protected function hookPushRaw(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         $hookManager->hook(
