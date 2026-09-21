@@ -33,6 +33,9 @@ class LaravelComponentProvider implements ComponentProvider
         );
     }
 
+    /**
+     * @psalm-suppress PossiblyNullReference,UndefinedInterfaceMethod
+     */
     #[\Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {

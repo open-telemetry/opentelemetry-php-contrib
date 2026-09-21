@@ -60,7 +60,7 @@ class LogWatcher extends Watcher
          */
         try {
             /** @phan-suppress-next-line PhanUndeclaredMethod */
-            if (method_exists($underlyingLogger, 'isHandling') && !$underlyingLogger->isHandling($log->level)) {
+            if ($underlyingLogger && method_exists($underlyingLogger, 'isHandling') && !$underlyingLogger->isHandling($log->level)) {
                 return;
             }
         } catch (TypeError) {

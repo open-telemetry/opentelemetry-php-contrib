@@ -70,7 +70,7 @@ class QueryWatcher extends Watcher
 
     private function calculateQueryStartTime(int $nowInNs, float $queryTimeMs): int
     {
-        return (int) ($nowInNs - ($queryTimeMs * 1E6));
+        return (int) ((float) $nowInNs - ($queryTimeMs * 1E6));
     }
 
     /**

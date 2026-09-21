@@ -55,10 +55,8 @@ class KernelTest extends TestCase
     private function invokeGuard(string $method, Request $request): string
     {
         $kernel = (new ReflectionClass(Kernel::class))->newInstanceWithoutConstructor();
-
         $reflectionMethod = new ReflectionMethod(Kernel::class, $method);
-        $reflectionMethod->setAccessible(true);
 
-        return $reflectionMethod->invoke($kernel, $request);
+        return (string) $reflectionMethod->invoke($kernel, $request);
     }
 }

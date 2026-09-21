@@ -45,7 +45,7 @@ class Model implements Hook
 
     private function hookFind(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UndefinedMagicMethod,UnusedFunctionCall */
         $hookManager->hook(
             \Illuminate\Database\Eloquent\Builder::class,
             'find',
@@ -162,7 +162,7 @@ class Model implements Hook
 
     private function hookGetModels(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
+        /** @psalm-suppress ArgumentTypeCoercion,UndefinedMagicMethod,UnusedFunctionCall */
         $hookManager->hook(
             \Illuminate\Database\Eloquent\Builder::class,
             'getModels',
