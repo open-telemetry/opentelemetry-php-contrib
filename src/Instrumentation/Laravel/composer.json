@@ -56,11 +56,6 @@
   "extra": {
     "spi-config": {
       "autoload-files": true
-    },
-    "spi": {
-      "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\Configuration\\Config\\LaravelComponentProvider"
-      ]
     }
   },
   "config": {
