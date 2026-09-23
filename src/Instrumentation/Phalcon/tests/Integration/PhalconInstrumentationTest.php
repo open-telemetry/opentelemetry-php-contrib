@@ -13,6 +13,7 @@ use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\Tests\Instrumentation\Phalcon\Integration\Fixtures\OverridingDispatcher;
 use Phalcon\Cli\Console;
+use Phalcon\Cli\Dispatcher as CliDispatcher;
 use Phalcon\Di\Di;
 use Phalcon\Di\FactoryDefault;
 use Phalcon\Di\FactoryDefault\Cli as CliFactoryDefault;
@@ -175,7 +176,7 @@ final class PhalconInstrumentationTest extends TestCase
         $di = new FactoryDefault();
 
         $app = new Micro($di);
-        $app->get('/', static fn () => 'ok');
+        $app->get('/', fn () => 'ok');
         $app->handle('/');
 
         $this->assertCount(1, $this->storage);
@@ -194,6 +195,9 @@ final class PhalconInstrumentationTest extends TestCase
     public function test_console_handle_produces_internal_root_span(): void
     {
         $di = new CliFactoryDefault();
+        /** @var CliDispatcher $dispatcher */
+        $dispatcher = $di->getShared('dispatcher');
+        $dispatcher->setDefaultNamespace(self::NAMESPACE);
 
         $console = new Console($di);
         $console->handle(['task' => 'main', 'action' => 'main']);

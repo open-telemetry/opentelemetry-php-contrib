@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Instrumentation\Phalcon\Integration\Fixtures;
 
 use Phalcon\Mvc\Controller;
+use Phalcon\Mvc\Dispatcher;
 
+/** @property Dispatcher $dispatcher */
 final class IndexController extends Controller
 {
     public function indexAction(): string

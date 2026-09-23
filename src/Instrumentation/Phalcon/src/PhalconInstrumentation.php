@@ -381,7 +381,7 @@ final class PhalconInstrumentation
      * from their framework's own request object) over raw `$_SERVER`, which
      * is used only when the service isn't resolvable.
      *
-     * @return array{0: string, 1: string, 2: string, 3: ?string, 4: ?int, 5: ?string} method, path, scheme, host, port, user agent
+     * @return array{0: non-empty-string, 1: string, 2: string, 3: ?string, 4: ?int, 5: ?string} method, path, scheme, host, port, user agent
      */
     private static function requestAttributes(object $target): array
     {
@@ -390,13 +390,15 @@ final class PhalconInstrumentation
             try {
                 $request = $di->getShared('request');
                 if ($request instanceof RequestInterface) {
+                    $method = (string) $request->getMethod();
+
                     return [
-                        $request->getMethod(),
-                        $request->getURI(true),
-                        $request->getScheme(),
-                        $request->getHttpHost(),
-                        $request->getPort(),
-                        $request->getUserAgent(),
+                        $method !== '' ? $method : 'GET',
+                        (string) $request->getURI(true),
+                        (string) $request->getScheme(),
+                        (string) $request->getHttpHost(),
+                        (int) $request->getPort(),
+                        (string) $request->getUserAgent(),
                     ];
                 }
             } catch (Throwable) {
@@ -404,9 +406,12 @@ final class PhalconInstrumentation
             }
         }
 
-        $method = is_string($_SERVER['REQUEST_METHOD'] ?? null) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-        $requestUri = is_string($_SERVER['REQUEST_URI'] ?? null) ? $_SERVER['REQUEST_URI'] : '/';
-        $scheme = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $method = $_SERVER['REQUEST_METHOD'] ?? null;
+        $method = is_string($method) && $method !== '' ? $method : 'GET';
+        $requestUri = $_SERVER['REQUEST_URI'] ?? null;
+        $requestUri = is_string($requestUri) ? $requestUri : '/';
+        $https = $_SERVER['HTTPS'] ?? null;
+        $scheme = is_string($https) && $https !== '' && $https !== 'off' ? 'https' : 'http';
         $port = isset($_SERVER['SERVER_PORT']) ? (int) $_SERVER['SERVER_PORT'] : null;
 
         return [
@@ -419,6 +424,7 @@ final class PhalconInstrumentation
         ];
     }
 
+    /** @param non-empty-string $name */
     private static function startInternalRootSpan(
         CachedInstrumentation $instrumentation,
         string $name,
@@ -543,7 +549,8 @@ final class PhalconInstrumentation
         try {
             if ($isHttp) {
                 $routeLabel = $di !== null ? self::matchedRouteLabel($di) : null;
-                $method = is_string($_SERVER['REQUEST_METHOD'] ?? null) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+                $method = $_SERVER['REQUEST_METHOD'] ?? null;
+                $method = is_string($method) && $method !== '' ? $method : 'GET';
 
                 if ($routeLabel !== null) {
                     $span->setAttribute(HttpAttributes::HTTP_ROUTE, $routeLabel);
@@ -684,8 +691,10 @@ final class PhalconInstrumentation
 
         try {
             if (method_exists($target, 'getControllerName')) {
+                // @phan-suppress-next-line PhanUndeclaredMethod method_exists() guards this; not declared on AbstractDispatcher itself.
                 $name = $target->getControllerName();
             } elseif (method_exists($target, 'getTaskName')) {
+                // @phan-suppress-next-line PhanUndeclaredMethod method_exists() guards this; not declared on AbstractDispatcher itself.
                 $name = $target->getTaskName();
             }
             $action = $target->getActionName();
@@ -712,12 +721,15 @@ final class PhalconInstrumentation
 
         if (!isset(self::$declaringClassCache[$targetClass])) {
             try {
-                self::$declaringClassCache[$targetClass] = (new ReflectionMethod($target, 'callActionMethod'))
+                $declaringClass = (new ReflectionMethod($target, 'callActionMethod'))
                     ->getDeclaringClass()
                     ->getName();
             } catch (Throwable) {
-                self::$declaringClassCache[$targetClass] = $class;
+                $declaringClass = $class;
             }
+
+            /** @var class-string $declaringClass */
+            self::$declaringClassCache[$targetClass] = $declaringClass;
         }
 
         return self::$declaringClassCache[$targetClass] === $class;
@@ -735,12 +747,13 @@ final class PhalconInstrumentation
     {
         $carrier = [];
         foreach ($_SERVER as $key => $value) {
+            /** @psalm-suppress TypeDoesNotContainType $key is always string at runtime, but not guaranteed by $_SERVER's declared array shape */
             if (!is_string($key) || !is_string($value) || !str_starts_with($key, 'HTTP_')) {
                 continue;
             }
 
             $header = strtolower(str_replace('_', '-', substr($key, 5)));
-            $carrier[$header] = $value;
+            $carrier[$header] = (string) $value;
         }
 
         return $carrier;
