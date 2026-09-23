@@ -22,3 +22,9 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=laravel
 ```
+
+## Component owners
+
+* [Chris Lightfoot-Wild](https://github.com/ChrisLightfootWild)
+
+Learn more about component owners in [component_owners.yml](https://github.com/open-telemetry/opentelemetry-php-contrib/blob/main/.github/component_owners.yml).
