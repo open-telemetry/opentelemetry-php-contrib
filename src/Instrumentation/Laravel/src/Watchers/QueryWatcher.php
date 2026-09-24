@@ -4,26 +4,29 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 
 class QueryWatcher extends Watcher
 {
     public function __construct(
-        private CachedInstrumentation $instrumentation,
+        private readonly InstrumentationContext $context,
     ) {
     }
 
-    /** @psalm-suppress UndefinedInterfaceMethod */
+    #[\Override]
     public function register(Application $app): void
     {
-        /** @phan-suppress-next-line PhanTypeArraySuspicious */
-        $app['events']->listen(QueryExecuted::class, [$this, 'recordQuery']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(QueryExecuted::class, [$this, 'recordQuery']);
+        });
     }
 
     /**
@@ -42,7 +45,10 @@ class QueryWatcher extends Watcher
         $spanName = $operationName !== null ? 'sql ' . $operationName : 'sql';
 
         /** @psalm-suppress ArgumentTypeCoercion */
-        $span = $this->instrumentation->tracer()->spanBuilder($spanName)
+        $span = $this->context
+            ->tracerProvider
+            ->getTracer(LaravelInstrumentation::buildProviderName('query'))
+            ->spanBuilder($spanName)
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setStartTimestamp($this->calculateQueryStartTime($nowInNs, $query->time))
             ->startSpan();
@@ -64,7 +70,7 @@ class QueryWatcher extends Watcher
 
     private function calculateQueryStartTime(int $nowInNs, float $queryTimeMs): int
     {
-        return (int) ($nowInNs - ($queryTimeMs * 1E6));
+        return (int) ((float) $nowInNs - ($queryTimeMs * 1E6));
     }
 
     /**

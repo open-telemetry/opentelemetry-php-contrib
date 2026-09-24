@@ -9,7 +9,7 @@ This is a read-only subtree split of https://github.com/open-telemetry/opentelem
 
 # OpenTelemetry Laravel auto-instrumentation
 
-Please read https://opentelemetry.io/docs/instrumentation/php/automatic/ for instructions on how to
+Please read https://opentelemetry.io/docs/zero-code/php/auto/ for instructions on how to
 install and configure the extension and SDK.
 
 ## Overview
@@ -22,3 +22,9 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=laravel
 ```
+
+## Component owners
+
+* [Chris Lightfoot-Wild](https://github.com/ChrisLightfootWild)
+
+Learn more about component owners in [component_owners.yml](https://github.com/open-telemetry/opentelemetry-php-contrib/blob/main/.github/component_owners.yml).
