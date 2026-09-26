@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 class ClientRequestWatcher extends Watcher
 {
     /**
-     * @var array<string, SpanInterface>
+     * @var array<int, SpanInterface>
      */
     protected array $spans = [];
 
@@ -80,31 +80,25 @@ class ClientRequestWatcher extends Watcher
                 ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? null,
             ])
             ->startSpan();
-        $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
+        $this->spans[$this->requestObjectId($request->request)] = $span;
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordConnectionFailed(ConnectionFailed $request): void
     {
-        $requestHash = $this->createRequestComparisonHash($request->request);
-
-        $span = $this->spans[$requestHash] ?? null;
+        $span = $this->takeSpan($this->requestObjectId($request->request));
         if (null === $span) {
             return;
         }
 
         $span->setStatus(StatusCode::STATUS_ERROR, 'Connection failed');
         $span->end();
-
-        unset($this->spans[$requestHash]);
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordResponse(ResponseReceived $request): void
     {
-        $requestHash = $this->createRequestComparisonHash($request->request);
-
-        $span = $this->spans[$requestHash] ?? null;
+        $span = $this->takeSpan($this->requestObjectId($request->request));
         if (null === $span) {
             return;
         }
@@ -116,13 +110,19 @@ class ClientRequestWatcher extends Watcher
 
         $this->maybeRecordError($span, $request->response);
         $span->end();
-
-        unset($this->spans[$requestHash]);
     }
 
-    private function createRequestComparisonHash(Request $request): string
+    private function requestObjectId(Request $request): int
     {
-        return sha1($request->method() . '|' . $request->url() . '|' . $request->body());
+        return spl_object_id($request->toPsrRequest());
+    }
+
+    private function takeSpan(int $requestId): ?SpanInterface
+    {
+        $span = $this->spans[$requestId] ?? null;
+        unset($this->spans[$requestId]);
+
+        return $span;
     }
 
     private function maybeRecordError(SpanInterface $span, Response $response): void
