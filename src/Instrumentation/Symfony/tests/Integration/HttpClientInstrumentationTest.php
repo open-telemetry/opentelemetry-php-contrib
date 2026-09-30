@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
+use ApiPlatform\Symfony\Bundle\Test\Client as ApiPlatformTestClient;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
@@ -14,6 +15,8 @@ use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Test\TestHttpServer;
+
+require_once __DIR__ . '/Fixtures/ApiPlatform/Symfony/Bundle/Test/Client.php';
 
 final class HttpClientInstrumentationTest extends AbstractTest
 {
@@ -88,7 +91,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $client = new ForwardingHttpClient(new ForwardingHttpClient($this->getHttpClient(__FUNCTION__)));
         $this->assertCount(0, $this->storage);
 
-        $response = $client->request('GET', 'http://localhost:8057', ['bindto' => '127.0.0.1:9876']);
+        $response = $client->request('GET', 'http://localhost:8057');
         $requestHeaders = $response->toArray(false);
         $this->assertCount(1, $this->storage);
 
@@ -104,10 +107,7 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $this->assertCount(0, $this->storage);
 
         try {
-            $client->request('GET', 'http://localhost:8057', [
-                'bindto' => '127.0.0.1:9876',
-                'auth_ntlm' => [],
-            ]);
+            $client->request('GET', 'http://localhost:8057', ['auth_ntlm' => []]);
         } catch (InvalidArgumentException) {
         }
 
@@ -121,17 +121,26 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $client = new ForwardingHttpClient(
             $this->getHttpClient(__FUNCTION__),
             static function (HttpClientInterface $inner): void {
-                $inner->request('POST', 'http://localhost:8057/json', ['bindto' => '127.0.0.1:9876'])->getStatusCode();
+                $inner->request('POST', 'http://localhost:8057/json')->getStatusCode();
             },
         );
         $this->assertCount(0, $this->storage);
 
-        $client->request('GET', 'http://localhost:8057', ['bindto' => '127.0.0.1:9876'])->getStatusCode();
+        $client->request('GET', 'http://localhost:8057')->getStatusCode();
         $this->assertCount(2, $this->storage);
 
         $this->assertSame('http://localhost:8057/json', $this->storage[0]->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertSame('http://localhost:8057', $this->storage[1]->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertSame($this->storage[1]->getSpanId(), $this->storage[0]->getParentSpanId());
+    }
+
+    public function test_synchronous_client_does_not_receive_on_progress_option(): void
+    {
+        $client = new ApiPlatformTestClient();
+
+        $client->request('GET', 'http://localhost:8057');
+
+        $this->assertArrayNotHasKey('on_progress', $client->options);
     }
 
     public function requestProvider(): array

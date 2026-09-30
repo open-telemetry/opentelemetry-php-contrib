@@ -37,9 +37,6 @@ final class HttpClientInstrumentation
         'ApiPlatform\Symfony\Bundle\Test\Client',
     ];
 
-    private static ?ContextKeyInterface $requestKey = null;
-    private static ?ContextKeyInterface $forwardedKey = null;
-
     public static function supportsProgress(string $class): bool
     {
         return false === in_array($class, self::SYNCHRONOUS_CLIENTS);
@@ -47,12 +44,16 @@ final class HttpClientInstrumentation
 
     private static function requestKey(): ContextKeyInterface
     {
-        return self::$requestKey ??= Context::createKey('symfony-http-client.request');
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-http-client.request');
     }
 
     private static function forwardedKey(): ContextKeyInterface
     {
-        return self::$forwardedKey ??= Context::createKey('symfony-http-client.forwarded');
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-http-client.forwarded');
     }
 
     public static function register(): void
