@@ -27,8 +27,8 @@
     "open-telemetry/sdk": ">=1.0",
     "phan/phan": "^6.0",
     "phpbench/phpbench": "^1.2",
-    "phpstan/phpstan": "^1.1",
-    "phpstan/phpstan-phpunit": "^1.0",
+    "phpstan/phpstan": "^2.0",
+    "phpstan/phpstan-phpunit": "^2.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "6.4.0"
