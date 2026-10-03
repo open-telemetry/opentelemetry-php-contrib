@@ -7,6 +7,6 @@ permissions:
 
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-phalcon.yml@4f68ecb9760605760d991360df23c6cdeee7dab4 # main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-phalcon.yml@2d403c4763b91b268b5b259f56ea29dc9a178e12 # main
     with:
       package-root: '.'
