@@ -32,4 +32,4 @@ $span->end();
 ?>
 
 --EXPECTF--
-%s info: hello world traceId=%s spanId=%s
+%s info: hello world trace_id=%s span_id=%s

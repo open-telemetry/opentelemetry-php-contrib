@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Yii\tests\Integration;
 
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use yii\web\Application;
 use yii\web\Controller;
 
@@ -21,13 +24,13 @@ class YiiInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('GET SiteController.actionIndex', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/site/index', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
-        $this->assertEquals('SiteController.actionIndex', $attributes->get(TraceAttributes::HTTP_ROUTE));
-        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEquals('1.1', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
-        $this->assertGreaterThan(0, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+        $this->assertEquals('http://example.com/site/index', $attributes->get(UrlAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(UrlAttributes::URL_SCHEME));
+        $this->assertEquals('SiteController.actionIndex', $attributes->get(HttpAttributes::HTTP_ROUTE));
+        $this->assertEquals(200, $attributes->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEquals('1.1', $attributes->get(NetworkAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertGreaterThan(0, $attributes->get(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE));
     }
 
     public function test_non_inline_action()
@@ -41,10 +44,10 @@ class YiiInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('GET SiteController.error', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/site/error', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
-        $this->assertEquals('SiteController.error', $attributes->get(TraceAttributes::HTTP_ROUTE));
+        $this->assertEquals('http://example.com/site/error', $attributes->get(UrlAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(UrlAttributes::URL_SCHEME));
+        $this->assertEquals('SiteController.error', $attributes->get(HttpAttributes::HTTP_ROUTE));
     }
 
     public function test_exception()
@@ -57,10 +60,10 @@ class YiiInstrumentationTest extends AbstractTest
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('GET SiteController.actionThrow', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/site/throw', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
-        $this->assertEquals('SiteController.actionThrow', $attributes->get(TraceAttributes::HTTP_ROUTE));
+        $this->assertEquals('http://example.com/site/throw', $attributes->get(UrlAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(UrlAttributes::URL_SCHEME));
+        $this->assertEquals('SiteController.actionThrow', $attributes->get(HttpAttributes::HTTP_ROUTE));
     }
 
     public function test_parent()
@@ -83,13 +86,13 @@ class YiiInstrumentationTest extends AbstractTest
         $attributes = $span->getAttributes();
         $this->assertCount(1, $this->storage);
         $this->assertEquals('GET SiteController.actionIndex', $this->storage[0]->getName());
-        $this->assertEquals('http://example.com/site/index', $attributes->get(TraceAttributes::URL_FULL));
-        $this->assertEquals('GET', $attributes->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertEquals('http', $attributes->get(TraceAttributes::URL_SCHEME));
-        $this->assertEquals('SiteController.actionIndex', $attributes->get(TraceAttributes::HTTP_ROUTE));
-        $this->assertEquals(200, $attributes->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEquals('1.1', $attributes->get(TraceAttributes::NETWORK_PROTOCOL_VERSION));
-        $this->assertGreaterThan(0, $attributes->get(TraceAttributes::HTTP_RESPONSE_BODY_SIZE));
+        $this->assertEquals('http://example.com/site/index', $attributes->get(UrlAttributes::URL_FULL));
+        $this->assertEquals('GET', $attributes->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http', $attributes->get(UrlAttributes::URL_SCHEME));
+        $this->assertEquals('SiteController.actionIndex', $attributes->get(HttpAttributes::HTTP_ROUTE));
+        $this->assertEquals(200, $attributes->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEquals('1.1', $attributes->get(NetworkAttributes::NETWORK_PROTOCOL_VERSION));
+        $this->assertGreaterThan(0, $attributes->get(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE));
     }
 
     private function runRequest($path)
@@ -163,6 +166,7 @@ class YiiInstrumentationTest extends AbstractTest
     }
 }
 
+/** @psalm-suppress MissingTemplateParam */
 class SiteController extends Controller
 {
     /**

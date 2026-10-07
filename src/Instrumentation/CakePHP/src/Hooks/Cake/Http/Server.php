@@ -11,7 +11,9 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHook;
 use OpenTelemetry\Contrib\Instrumentation\CakePHP\Hooks\CakeHookTrait;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
@@ -46,20 +48,20 @@ class Server implements CakeHook
                 $span = \OpenTelemetry\API\Trace\Span::fromContext($scope->context());
 
                 if ($route && $this->isRoot()) {
-                    $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
+                    $span->setAttribute(HttpAttributes::HTTP_ROUTE, $route);
                 }
                 if ($exception) {
                     $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
                 }
                 if ($response) {
-                    if ($response->getStatusCode() >= 400) {
+                    if ($response->getStatusCode() >= 500) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
 
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                    $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
                 }
 
                 $span->end();

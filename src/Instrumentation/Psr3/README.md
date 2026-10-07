@@ -23,7 +23,7 @@ Auto-instrumentation hooks are registered via composer, and depending on the mod
 The package can operate in two modes, controlled by the environment variable `OTEL_PHP_PSR3_MODE`:
 
 ### `inject`
-Inject `traceId` and `spanId` of the active trace span into the context of each logged message. Depending on the PSR-3 implementation,
+Inject `trace_id` and `span_id` of the active trace span into the context of each logged message. Depending on the PSR-3 implementation,
 the values may be written to the log output, or may be available for interpolation into the log message.
 
 For example:
@@ -33,7 +33,7 @@ putenv('OTEL_PHP_PSR3_MODE=inject');
 require 'vendor/autoload.php';
 
 $logger = /* create logger */
-$logger->info('traceId={traceId} spanId={spanId}');
+$logger->info('trace_id={trace_id} span_id={span_id}');
 ```
 
 ### `export`

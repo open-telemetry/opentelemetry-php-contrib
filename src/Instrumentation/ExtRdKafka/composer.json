@@ -13,12 +13,12 @@
     "ext-rdkafka": "*",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.32",
+    "open-telemetry/sem-conv": "^1.36",
     "composer-runtime-api": "^2.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "phan/phan": "^5.0",
+    "phan/phan": "^6.0",
     "phpstan/phpstan-mockery": "^1.1.0",
     "mockery/mockery": "^1.5",
     "phpstan/phpstan": "^1.1",

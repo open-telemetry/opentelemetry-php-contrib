@@ -8,6 +8,7 @@ use Cake\Http\BaseApplication;
 use Cake\Http\MiddlewareQueue;
 use Cake\Routing\Middleware\RoutingMiddleware;
 
+/** @extends BaseApplication<mixed> */
 class Application extends BaseApplication
 {
 

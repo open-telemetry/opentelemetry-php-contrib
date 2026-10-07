@@ -10,10 +10,11 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 /**
@@ -39,7 +40,7 @@ final class MessengerInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.symfony_messenger',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_38_0->url(),
         );
 
         /**
@@ -60,16 +61,26 @@ final class MessengerInstrumentation
             ) use ($instrumentation): array {
                 /** @var object|Envelope $message */
                 $message = $params[0];
+
+                // A message dispatched by a worker after being pulled from a transport
+                // carries a ReceivedStamp. That is the consumer side of messaging, so it
+                // must be a CONSUMER span; a plain dispatch is the producer side. For an
+                // Envelope, report the wrapped message class rather than Envelope. See #1314.
+                $isReceiving = false;
                 $messageClass = \get_class($message);
+                if ($message instanceof Envelope) {
+                    $messageClass = \get_class($message->getMessage());
+                    $isReceiving = $message->last(ReceivedStamp::class) !== null;
+                }
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('DISPATCH %s', $messageClass))
-                    ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->spanBuilder(\sprintf('%s %s', $isReceiving ? 'CONSUME' : 'DISPATCH', $messageClass))
+                    ->setSpanKind($isReceiving ? SpanKind::KIND_CONSUMER : SpanKind::KIND_PRODUCER)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_BUS, $class)
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
@@ -133,9 +144,9 @@ final class MessengerInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('SEND %s', $messageClass))
                     ->setSpanKind(SpanKind::KIND_PRODUCER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
 
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_TRANSPORT, $class)
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)

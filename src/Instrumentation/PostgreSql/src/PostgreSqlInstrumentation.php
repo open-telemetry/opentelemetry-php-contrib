@@ -13,6 +13,9 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
 use PgSql\Connection;
@@ -35,7 +38,7 @@ class PostgreSqlInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.postgresql',
             null,
-            Version::VERSION_1_30_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         $tracker = new PgSqlTracker();
@@ -311,8 +314,8 @@ class PostgreSqlInstrumentation
         }
 
         $span->setAttributes([
-            TraceAttributes::DB_QUERY_TEXT => $query,
-            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
+            DbAttributes::DB_QUERY_TEXT => $query,
+            DbAttributes::DB_OPERATION_NAME => self::extractQueryCommand($query),
         ]);
 
         if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
@@ -323,7 +326,7 @@ class PostgreSqlInstrumentation
             $query = $commenter->inject($query);
             if ($commenter->isAttributeEnabled()) {
                 $span->setAttributes([
-                    TraceAttributes::DB_QUERY_TEXT => (string) $query,
+                    DbAttributes::DB_QUERY_TEXT => (string) $query,
                 ]);
             }
 
@@ -341,9 +344,9 @@ class PostgreSqlInstrumentation
         $attributes = null;
         if ($connection instanceof Connection) {
             $attributes = $tracker->getConnectionAttributes($connection);
-            $attributes[TraceAttributes::DB_COLLECTION_NAME] = mb_convert_encoding($params[1], 'UTF-8');
+            $attributes[DbAttributes::DB_COLLECTION_NAME] = mb_convert_encoding($params[1], 'UTF-8');
             if ($operationName) {
-                $attributes[TraceAttributes::DB_OPERATION_NAME] = $operationName;
+                $attributes[DbAttributes::DB_OPERATION_NAME] = $operationName;
             }
         }
 
@@ -360,8 +363,8 @@ class PostgreSqlInstrumentation
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
 
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[2], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[2]);
+        $attributes[DbAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[2], 'UTF-8');
+        $attributes[DbAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[2]);
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
 
@@ -381,8 +384,8 @@ class PostgreSqlInstrumentation
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
 
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
+        $attributes[DbAttributes::DB_QUERY_TEXT] = mb_convert_encoding($params[1], 'UTF-8');
+        $attributes[DbAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($params[1]);
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
 
@@ -418,8 +421,8 @@ class PostgreSqlInstrumentation
 
         $query = $tracker->getStatementQuery($params[0], $params[1]);
         if ($query !== null) {
-            $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
-            $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($query);
+            $attributes[DbAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
+            $attributes[DbAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($query);
         }
 
         if ($retVal != false) {
@@ -479,10 +482,10 @@ class PostgreSqlInstrumentation
             }
 
             if ($query) {
-                $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
+                $attributes[DbAttributes::DB_QUERY_TEXT] = mb_convert_encoding($query, 'UTF-8');
             }
-            $attributes[TraceAttributes::DB_COLLECTION_NAME] = mb_convert_encoding($table, 'UTF-8');
-            $attributes[TraceAttributes::DB_OPERATION_NAME] = 'SELECT';
+            $attributes[DbAttributes::DB_COLLECTION_NAME] = mb_convert_encoding($table, 'UTF-8');
+            $attributes[DbAttributes::DB_OPERATION_NAME] = 'SELECT';
         }
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
@@ -492,7 +495,7 @@ class PostgreSqlInstrumentation
     private static function loOpenPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'OPEN';
+        $attributes[DbAttributes::DB_OPERATION_NAME] = 'OPEN';
 
         if ($retVal instanceof Lob) {
             $tracker->trackConnectionFromLob($params[0], $retVal);
@@ -515,7 +518,7 @@ class PostgreSqlInstrumentation
             }
         }
 
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'WRITE';
+        $attributes[DbAttributes::DB_OPERATION_NAME] = 'WRITE';
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
@@ -530,7 +533,7 @@ class PostgreSqlInstrumentation
                 $attributes = $tracker->getConnectionAttributes($connection);
             }
         }
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'READ';
+        $attributes[DbAttributes::DB_OPERATION_NAME] = 'READ';
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
     }
@@ -548,7 +551,7 @@ class PostgreSqlInstrumentation
                 $attributes['db.postgres.bytes_read'] = $retVal;
             }
         }
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'READ';
+        $attributes[DbAttributes::DB_OPERATION_NAME] = 'READ';
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
@@ -557,7 +560,7 @@ class PostgreSqlInstrumentation
     private static function loUnlinkPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = 'DELETE';
+        $attributes[DbAttributes::DB_OPERATION_NAME] = 'DELETE';
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
@@ -566,7 +569,7 @@ class PostgreSqlInstrumentation
     private static function loImportExportPostHook(CachedInstrumentation $instrumentation, PgSqlTracker $tracker, string $operation, $obj, array $params, mixed $retVal, ?\Throwable $exception)
     {
         $attributes = $tracker->getConnectionAttributes($params[0]);
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = $operation;
+        $attributes[DbAttributes::DB_OPERATION_NAME] = $operation;
 
         $errorStatus = $retVal == false ? pg_last_error($params[0]) : null;
         self::endSpan($attributes, $exception, $errorStatus);
@@ -580,12 +583,12 @@ class PostgreSqlInstrumentation
             ->spanBuilder($spanName)
             ->setParent($parent)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, ($class ? $class . '::' : '') . $function)
-            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-            ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, 'postgresql')
+            ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, ($class ? $class . '::' : '') . $function)
+            ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+            ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
+            ->setAttribute(DbAttributes::DB_SYSTEM_NAME, DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL)
             // @phan-suppress-next-line PhanDeprecatedClassConstant
-            ->setAttribute(TraceAttributes::DB_SYSTEM, 'postgresql')
+            ->setAttribute(TraceAttributes::DB_SYSTEM, DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL)
             ->setAttributes($attributes);
 
         $span = $builder->startSpan();
@@ -610,13 +613,13 @@ class PostgreSqlInstrumentation
         }
 
         if ($errorStatus !== null) {
-            $span->setAttribute(TraceAttributes::EXCEPTION_MESSAGE, $errorStatus);
+            $span->setAttribute(ExceptionAttributes::EXCEPTION_MESSAGE, $errorStatus);
             $span->setStatus(StatusCode::STATUS_ERROR, $errorStatus);
         }
 
         if ($exception) {
             $span->recordException($exception);
-            $span->setAttribute(TraceAttributes::EXCEPTION_TYPE, $exception::class);
+            $span->setAttribute(ExceptionAttributes::EXCEPTION_TYPE, $exception::class);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

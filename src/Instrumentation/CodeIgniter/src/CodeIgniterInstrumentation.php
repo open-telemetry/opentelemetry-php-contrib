@@ -15,22 +15,28 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 
 class CodeIgniterInstrumentation
 {
     public const NAME = 'codeigniter';
-    
+
     // Store the HTTP method for use in the post hook
     private static $httpMethod = 'unknown';
-    
+
     /** @psalm-api */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.codeigniter',
             null,
-            'https://opentelemetry.io/schemas/1.32.0',
+            'https://opentelemetry.io/schemas/1.38.0',
         );
 
         // The method that creates request/response/controller objects is in the same class as the method
@@ -61,7 +67,7 @@ class CodeIgniterInstrumentation
             ) use ($instrumentation, $requestProperty): void {
                 $extractedRequest = $requestProperty->getValue($igniter);
                 $request = ($extractedRequest instanceof RequestInterface) ? $extractedRequest : null;
-                 
+
                 // Get the HTTP method from the request and store it for later use
                 self::$httpMethod = $request?->getMethod() ?? $_SERVER['REQUEST_METHOD'] ?? 'unknown';
                 /** @psalm-suppress ArgumentTypeCoercion,DeprecatedMethod */
@@ -70,9 +76,9 @@ class CodeIgniterInstrumentation
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
                     ->spanBuilder(\sprintf('%s', self::$httpMethod))
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $parent = Context::getCurrent();
 
@@ -80,15 +86,15 @@ class CodeIgniterInstrumentation
                     $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
 
                     $spanBuilder = $spanBuilder->setParent($parent)
-                        ->setAttribute(TraceAttributes::URL_FULL, (string) $request->getUri())
-                        ->setAttribute(TraceAttributes::URL_PATH, $request->getUri()->getPath())
+                        ->setAttribute(UrlAttributes::URL_FULL, (string) $request->getUri())
+                        ->setAttribute(UrlAttributes::URL_PATH, $request->getUri()->getPath())
                         /** @phan-suppress-next-line PhanDeprecatedFunction */
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                        ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
-                        ->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
-                        ->setAttribute(TraceAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
-                        ->setAttribute(TraceAttributes::SERVER_PORT, $request->getUri()->getPort())
-                        ->setAttribute(TraceAttributes::URL_SCHEME, $request->getUri()->getScheme());
+                        ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                        ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaderLine('Content-Length'))
+                        ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->getHeaderLine('User-Agent'))
+                        ->setAttribute(ServerAttributes::SERVER_ADDRESS, $request->getUri()->getHost())
+                        ->setAttribute(ServerAttributes::SERVER_PORT, $request->getUri()->getPort())
+                        ->setAttribute(UrlAttributes::URL_SCHEME, $request->getUri()->getScheme());
                 }
 
                 $span = $spanBuilder->startSpan();
@@ -113,9 +119,9 @@ class CodeIgniterInstrumentation
                     /** @psalm-suppress DeprecatedMethod */
                     /** @phan-suppress-next-line PhanDeprecatedFunction */
                     $statusCode = $response->getStatusCode();
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
-                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, CodeIgniterInstrumentation::getResponseLength($response));
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                    $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
+                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, CodeIgniterInstrumentation::getResponseLength($response));
 
                     foreach ((array) (get_cfg_var('otel.instrumentation.http.response_headers') ?: []) as $header) {
                         if ($response->hasHeader($header)) {
@@ -138,7 +144,7 @@ class CodeIgniterInstrumentation
 
                 if ($controllerClassName !== null && is_string($controllerMethod)) {
                     $routeName = CodeIgniterInstrumentation::normalizeRouteName($controllerClassName, $controllerMethod);
-                    $span->setAttribute(TraceAttributes::HTTP_ROUTE, $routeName);
+                    $span->setAttribute(HttpAttributes::HTTP_ROUTE, $routeName);
                     $span->updateName(sprintf('%s %s', self::$httpMethod, $routeName));
                 }
 

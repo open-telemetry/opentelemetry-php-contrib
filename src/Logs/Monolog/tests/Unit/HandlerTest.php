@@ -9,6 +9,7 @@ use OpenTelemetry\Contrib\Logs\Monolog\Handler;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeInterface;
 use OpenTelemetry\SDK\Logs\LoggerSharedState;
+use OpenTelemetry\SDK\Logs\LogRecordBuilder;
 use OpenTelemetry\SDK\Logs\LogRecordLimits;
 use OpenTelemetry\SDK\Logs\ReadableLogRecord;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
@@ -29,6 +30,7 @@ class HandlerTest extends TestCase
     public function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
+        $this->logger->method('logRecordBuilder')->willReturn(new LogRecordBuilder($this->logger));
         $this->provider = $this->createMock(LoggerProviderInterface::class);
         $this->provider->method('getLogger')->willReturn($this->logger);
     }

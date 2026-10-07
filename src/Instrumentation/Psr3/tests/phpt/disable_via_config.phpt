@@ -26,7 +26,7 @@ $logger = new \Apix\Log\Logger\Stream(STDOUT);
 $span = Globals::tracerProvider()->getTracer('demo')->spanBuilder('root')->startSpan();
 $scope = $span->activate();
 
-$logger->info('Goodbye, otel: traceId={traceId} spanId={spanId}');
+$logger->info('Goodbye, otel: trace_id={trace_id} span_id={span_id}');
 
 $scope->detach();
 $span->end();
@@ -34,4 +34,4 @@ $span->end();
 
 --EXPECTF--
 bool(true)
-[%s] INFO Goodbye, otel: traceId={traceId} spanId={spanId}
+[%s] INFO Goodbye, otel: trace_id={trace_id} span_id={span_id}

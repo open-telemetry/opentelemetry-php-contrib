@@ -14,7 +14,7 @@ use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 use Psr\Log\LoggerInterface;
@@ -72,6 +72,19 @@ class QueueTest extends TestCase
         );
     }
 
+    public function test_it_uses_correct_queue_name_when_later_is_called_with_explicit_queue(): void
+    {
+        /** @var SqsQueue|MockInterface $mockQueue */
+        $mockQueue = $this->createMock(SqsQueue::class);
+        /** @psalm-suppress UndefinedMethod */
+        $mockQueue->method('getQueue')->with('custom-queue')->willReturn('custom-queue');
+
+        /** @psalm-suppress PossiblyUndefinedMethod */
+        $mockQueue->later(15, new DummyJob('test'), '', 'custom-queue');
+
+        $this->assertEquals('create custom-queue', $this->storage[0]->getName());
+    }
+
     public function test_it_can_publish_in_bulk(): void
     {
         $jobs = [];
@@ -88,7 +101,7 @@ class QueueTest extends TestCase
         $mockQueue->bulk($jobs);
 
         $this->assertEquals('send dummy-queue', $this->storage[0]->getName());
-        $this->assertEquals(10, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals(10, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
     }
 
     public function test_it_can_create_with_redis(): void
@@ -109,8 +122,8 @@ class QueueTest extends TestCase
         ]);
 
         $this->assertEquals('send queues:default', $this->storage[0]->getName());
-        $this->assertEquals(2, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
-        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+        $this->assertEquals(2, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
     }
 
     public function test_it_drops_empty_receives(): void
@@ -146,14 +159,14 @@ class QueueTest extends TestCase
         }
 
         /** @psalm-suppress PossiblyInvalidMethodCall */
-        $this->assertEquals(204, $this->storage->count());
+        $this->assertEquals(1206, $this->storage->count());
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord100 */
-        $logRecord100 = $this->storage[100];
-        $this->assertEquals('Task: 500', $logRecord100->getBody());
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord600 */
+        $logRecord600 = $this->storage[600];
+        $this->assertEquals('Task: 500', $logRecord600->getBody());
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord200 */
-        $logRecord200 = $this->storage[200];
-        $this->assertEquals('Task: More work', $logRecord200->getBody());
+        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord1200 */
+        $logRecord1200 = $this->storage[1200];
+        $this->assertEquals('Task: More work', $logRecord1200->getBody());
     }
 }

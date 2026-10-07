@@ -13,7 +13,9 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use Throwable;
 
 class DoctrineInstrumentation
@@ -32,10 +34,10 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine\DBAL\Driver::connect', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::SERVER_ADDRESS, AttributesResolver::get(TraceAttributes::SERVER_ADDRESS, func_get_args()))
-                    ->setAttribute(TraceAttributes::SERVER_PORT, AttributesResolver::get(TraceAttributes::SERVER_PORT, func_get_args()))
-                    ->setAttribute(TraceAttributes::DB_SYSTEM_NAME, AttributesResolver::get(TraceAttributes::DB_SYSTEM_NAME, func_get_args()))
-                    ->setAttribute(TraceAttributes::DB_NAMESPACE, AttributesResolver::get(TraceAttributes::DB_NAMESPACE, func_get_args()));
+                    ->setAttribute(ServerAttributes::SERVER_ADDRESS, AttributesResolver::get(ServerAttributes::SERVER_ADDRESS, func_get_args()))
+                    ->setAttribute(ServerAttributes::SERVER_PORT, AttributesResolver::get(ServerAttributes::SERVER_PORT, func_get_args()))
+                    ->setAttribute(DbAttributes::DB_SYSTEM_NAME, AttributesResolver::get(DbAttributes::DB_SYSTEM_NAME, func_get_args()))
+                    ->setAttribute(DbAttributes::DB_NAMESPACE, AttributesResolver::get(DbAttributes::DB_NAMESPACE, func_get_args()));
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -52,9 +54,9 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, AttributesResolver::getDbQuerySummary($params), $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, AttributesResolver::get(TraceAttributes::DB_QUERY_TEXT, func_get_args()));
-                $builder->setAttribute(TraceAttributes::DB_OPERATION_NAME, AttributesResolver::getDbOperationName($params));
-                $builder->setAttribute(TraceAttributes::DB_COLLECTION_NAME, AttributesResolver::getTarget($params));
+                $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, AttributesResolver::get(DbAttributes::DB_QUERY_TEXT, func_get_args()));
+                $builder->setAttribute(DbAttributes::DB_OPERATION_NAME, AttributesResolver::getDbOperationName($params));
+                $builder->setAttribute(DbAttributes::DB_COLLECTION_NAME, AttributesResolver::getTarget($params));
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -71,9 +73,9 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, AttributesResolver::getDbQuerySummary($params), $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_QUERY_TEXT, AttributesResolver::get(TraceAttributes::DB_QUERY_TEXT, func_get_args()))
-                    ->setAttribute(TraceAttributes::DB_OPERATION_NAME, AttributesResolver::getDbOperationName($params))
-                    ->setAttribute(TraceAttributes::DB_COLLECTION_NAME, AttributesResolver::getTarget($params));
+                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, AttributesResolver::get(DbAttributes::DB_QUERY_TEXT, func_get_args()))
+                    ->setAttribute(DbAttributes::DB_OPERATION_NAME, AttributesResolver::getDbOperationName($params))
+                    ->setAttribute(DbAttributes::DB_COLLECTION_NAME, AttributesResolver::getTarget($params));
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
@@ -91,8 +93,8 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, AttributesResolver::getDbQuerySummary($params), $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_QUERY_TEXT, AttributesResolver::get(TraceAttributes::DB_QUERY_TEXT, func_get_args()))
-                    ->setAttribute(TraceAttributes::DB_OPERATION_NAME, 'prepare');
+                    ->setAttribute(DbAttributes::DB_QUERY_TEXT, AttributesResolver::get(DbAttributes::DB_QUERY_TEXT, func_get_args()))
+                    ->setAttribute(DbAttributes::DB_OPERATION_NAME, 'prepare');
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
@@ -118,7 +120,7 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::beginTransaction', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_OPERATION_NAME, 'begin');
+                    ->setAttribute(DbAttributes::DB_OPERATION_NAME, 'begin');
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
@@ -136,7 +138,7 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::commit', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_OPERATION_NAME, 'commit');
+                    ->setAttribute(DbAttributes::DB_OPERATION_NAME, 'commit');
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
 
@@ -154,7 +156,7 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::rollBack', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_OPERATION_NAME, 'rollback');
+                    ->setAttribute(DbAttributes::DB_OPERATION_NAME, 'rollback');
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext($parent));
@@ -171,7 +173,7 @@ class DoctrineInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'Doctrine::execute', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::DB_OPERATION_NAME, 'execute');
+                    ->setAttribute(DbAttributes::DB_OPERATION_NAME, 'execute');
                 if ($ctx = $tracker->getSpanContextForStatement($statement)) {
                     $builder->addLink($ctx);
                 }
@@ -197,9 +199,9 @@ class DoctrineInstrumentation
         /** @psalm-suppress ArgumentTypeCoercion */
         return $instrumentation->tracer()
                     ->spanBuilder($name)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
     }
     private static function end(?Throwable $exception): void
     {

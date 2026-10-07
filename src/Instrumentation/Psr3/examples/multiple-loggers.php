@@ -17,7 +17,7 @@ require __DIR__ . '/../vendor/autoload.php';
 /**
  * Example of using the opentelemetry extension with symfony to:
  * - export logs in OTLP format (if mode=`export`)
- * - inject traceId/spanId into context (if mode=`inject`)
+ * - inject trace_id/span_id into context (if mode=`inject`)
  */
 
 $symfony = new \Symfony\Component\Console\Logger\ConsoleLogger(new Symfony\Component\Console\Output\StreamOutput(STDOUT));

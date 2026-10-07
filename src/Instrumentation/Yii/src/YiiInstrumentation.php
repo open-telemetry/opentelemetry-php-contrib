@@ -11,7 +11,11 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use yii\base\InlineAction;
 use yii\web\Application;
 use yii\web\Controller;
@@ -26,7 +30,7 @@ class YiiInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.yii',
             null,
-            'https://opentelemetry.io/schemas/1.32.0'
+            'https://opentelemetry.io/schemas/1.38.0'
         );
 
         hook(
@@ -49,13 +53,13 @@ class YiiInstrumentation
                     ->spanBuilder(sprintf('%s', $request->getMethod()))
                     ->setParent($parent)
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute(TraceAttributes::URL_FULL, $request->getAbsoluteUrl())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
-                    ->setAttribute(TraceAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaders()->get('Content-Length', null, true))
-                    ->setAttribute(TraceAttributes::URL_SCHEME, $request->getIsSecureConnection() ? 'https' : 'http');
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
+                    ->setAttribute(UrlAttributes::URL_FULL, $request->getAbsoluteUrl())
+                    ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $request->getMethod())
+                    ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->getHeaders()->get('Content-Length', null, true))
+                    ->setAttribute(UrlAttributes::URL_SCHEME, $request->getIsSecureConnection() ? 'https' : 'http');
 
                 $span = $spanBuilder->startSpan();
 
@@ -77,9 +81,9 @@ class YiiInstrumentation
 
                 if ($response) {
                     $statusCode = $response->getStatusCode();
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
-                    $span->setAttribute(TraceAttributes::NETWORK_PROTOCOL_VERSION, $response->version);
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_BODY_SIZE, YiiInstrumentation::getResponseLength($response));
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
+                    $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->version);
+                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, YiiInstrumentation::getResponseLength($response));
 
                     $headers = $response->getHeaders();
 
@@ -135,7 +139,7 @@ class YiiInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 // Update span name to follow OpenTelemetry HTTP naming convention: {http.method} {http.route}
                 $span->updateName(sprintf('%s %s', $method, $route));
-                $span->setAttribute(TraceAttributes::HTTP_ROUTE, $route);
+                $span->setAttribute(HttpAttributes::HTTP_ROUTE, $route);
             },
             post: null
         );

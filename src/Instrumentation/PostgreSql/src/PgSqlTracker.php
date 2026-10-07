@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\PostgreSql;
 
 use OpenTelemetry\API\Trace\SpanContextInterface;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use PgSql\Connection;
 use PgSql\Lob;
 use SplQueue;
@@ -258,10 +259,10 @@ final class PgSqlTracker
 
         $addr = $connectionData['host'] ?? $connectionData['hostaddr'] ?? null;
         $attributes = [];
-        $attributes[TraceAttributes::SERVER_ADDRESS] = $addr;
-        $attributes[TraceAttributes::SERVER_PORT] = $addr !== null ? ($connectionData['port'] ?? null) : null;
-        $attributes[TraceAttributes::DB_NAMESPACE] = $connectionData['dbname'] ?? $connectionData['user'] ?? null;
-        $attributes[TraceAttributes::DB_SYSTEM_NAME] =  'postgresql';
+        $attributes[ServerAttributes::SERVER_ADDRESS] = $addr;
+        $attributes[ServerAttributes::SERVER_PORT] = $addr !== null ? ($connectionData['port'] ?? null) : null;
+        $attributes[DbAttributes::DB_NAMESPACE] = $connectionData['dbname'] ?? $connectionData['user'] ?? null;
+        $attributes[DbAttributes::DB_SYSTEM_NAME] = DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL;
 
         return $attributes;
     }

@@ -6,7 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\PhpSession\tests\Integration;
 
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Contrib\Instrumentation\PhpSession\PhpSessionInstrumentation;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 
 class PhpSessionInstrumentationTest extends AbstractTest
 {
@@ -56,7 +56,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         // Check attributes
         $attributes = $span->getAttributes();
 
-        $this->assertEquals('session_start', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+        $this->assertEquals('session_start', $attributes->get(CodeAttributes::CODE_FUNCTION_NAME));
         
         // Check session options were recorded
         $this->assertTrue($attributes->get('php.session.options.read_and_close'));
@@ -106,7 +106,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         // Check attributes
         $attributes = $span->getAttributes();
 
-        $this->assertEquals('session_destroy', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+        $this->assertEquals('session_destroy', $attributes->get(CodeAttributes::CODE_FUNCTION_NAME));
 
         // Check session information
         $this->assertNotNull($attributes->get('php.session.id'));
@@ -138,7 +138,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         
         // Check attributes
         $attributes = $span->getAttributes();
-        $this->assertEquals('session_write_close', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+        $this->assertEquals('session_write_close', $attributes->get(CodeAttributes::CODE_FUNCTION_NAME));
 
         // Check session information
         $this->assertEquals(session_id(), $attributes->get('php.session.id'));
@@ -174,7 +174,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         
         // Check attributes
         $attributes = $span->getAttributes();
-        $this->assertEquals('session_unset', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+        $this->assertEquals('session_unset', $attributes->get(CodeAttributes::CODE_FUNCTION_NAME));
         
         // Check session information
         $this->assertNotNull($attributes->get('php.session.id'));
@@ -213,7 +213,7 @@ class PhpSessionInstrumentationTest extends AbstractTest
         
         // Check attributes
         $attributes = $span->getAttributes();
-        $this->assertEquals('session_abort', $attributes->get(TraceAttributes::CODE_FUNCTION_NAME));
+        $this->assertEquals('session_abort', $attributes->get(CodeAttributes::CODE_FUNCTION_NAME));
         
         // Check session information
         $this->assertNotNull($attributes->get('php.session.id'));

@@ -80,9 +80,9 @@ final class AttributesResolver
     {
         $dbSystem = $params[1][0]['driver'] ?? null;
 
-        if ($dbSystem && strpos($dbSystem, 'pdo_') !== false) {
+        if ($dbSystem && str_starts_with($dbSystem, 'pdo_')) {
             // Remove pdo_ word to ignore it while searching well-known db.system
-            $dbSystem = ltrim($dbSystem, 'pdo_');
+            $dbSystem = substr($dbSystem, 4);
         }
 
         if (in_array($dbSystem, self::DB_SYSTEMS_KNOWN)) {

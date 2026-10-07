@@ -54,8 +54,8 @@ class Psr3Instrumentation
 
                     $ctxIdx = $function === 'log' ? 2 : 1;
                     $params[$ctxIdx] ??= [];
-                    $params[$ctxIdx]['traceId'] = $span->getTraceId();
-                    $params[$ctxIdx]['spanId'] = $span->getSpanId();
+                    $params[$ctxIdx]['trace_id'] = $span->getTraceId();
+                    $params[$ctxIdx]['span_id'] = $span->getSpanId();
 
                     break;
                 case self::MODE_EXPORT:

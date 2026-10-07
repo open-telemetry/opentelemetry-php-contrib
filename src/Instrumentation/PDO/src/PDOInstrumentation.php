@@ -114,12 +114,14 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $query = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
-                if (!is_string($query)) {
-                    $query = self::UNDEFINED;
-                }
+                $query = $params[0] ?? null;
+                // The UTF-8 conversion is only for the (protobuf-safe) span attribute. It must
+                // not be assigned back to $query, which may be returned as the executed statement
+                // when sqlcommenter is present: converting would replace non-UTF-8 bytes with `?`
+                // and corrupt binary literals (BINARY/VARBINARY/BLOB) on the wire. See #1960.
+                $displayQuery = is_string($query) ? mb_convert_encoding($query, 'UTF-8') : self::UNDEFINED;
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $query);
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $displayQuery);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -129,7 +131,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
 
-                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && is_string($query)) {
                     if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
                         /** @psalm-suppress PossiblyInvalidCast */
                         switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
@@ -142,7 +144,7 @@ class PDOInstrumentation
                                 $query = $commenter->inject($query);
                                 if ($commenter->isAttributeEnabled()) {
                                     $span->setAttributes([
-                                        DbAttributes::DB_QUERY_TEXT => (string) $query,
+                                        DbAttributes::DB_QUERY_TEXT => mb_convert_encoding($query, 'UTF-8'),
                                     ]);
                                 }
 
@@ -170,12 +172,14 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $query = mb_convert_encoding($params[0] ?? self::UNDEFINED, 'UTF-8');
-                if (!is_string($query)) {
-                    $query = self::UNDEFINED;
-                }
+                $query = $params[0] ?? null;
+                // The UTF-8 conversion is only for the (protobuf-safe) span attribute. It must
+                // not be assigned back to $query, which may be returned as the executed statement
+                // when sqlcommenter is present: converting would replace non-UTF-8 bytes with `?`
+                // and corrupt binary literals (BINARY/VARBINARY/BLOB) on the wire. See #1960.
+                $displayQuery = is_string($query) ? mb_convert_encoding($query, 'UTF-8') : self::UNDEFINED;
                 if ($class === PDO::class) {
-                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $query);
+                    $builder->setAttribute(DbAttributes::DB_QUERY_TEXT, $displayQuery);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -185,7 +189,7 @@ class PDOInstrumentation
 
                 Context::storage()->attach($span->storeInContext($parent));
 
-                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && $query !== self::UNDEFINED) {
+                if (class_exists('OpenTelemetry\Contrib\SqlCommenter\SqlCommenter') && is_string($query)) {
                     if (array_key_exists(DbAttributes::DB_SYSTEM_NAME, $attributes)) {
                         /** @psalm-suppress PossiblyInvalidCast */
                         switch ((string) $attributes[DbAttributes::DB_SYSTEM_NAME]) {
@@ -198,7 +202,7 @@ class PDOInstrumentation
                                 $query = $commenter->inject($query);
                                 if ($commenter->isAttributeEnabled()) {
                                     $span->setAttributes([
-                                        DbAttributes::DB_QUERY_TEXT => (string) $query,
+                                        DbAttributes::DB_QUERY_TEXT => mb_convert_encoding($query, 'UTF-8'),
                                     ]);
                                 }
 

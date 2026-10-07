@@ -1,5 +1,6 @@
 includes:
     - vendor/phpstan/phpstan-phpunit/extension.neon
+    - ignore-by-php-version.neon.php
 
 parameters:
     tmpDir: var/cache/phpstan
@@ -7,8 +8,8 @@ parameters:
     paths:
         - src
         - tests
-    ignoreErrors:
-        -
-            message: "#Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeParentInterface::.*#"
-            paths:
-                - src/
+    bootstrapFiles:
+        - vendor/open-telemetry/api/Configuration/Config/ComponentProvider.php
+        - vendor/open-telemetry/api/Configuration/Config/ComponentProviderRegistry.php
+        - vendor/open-telemetry/api/Configuration/Config/ComponentPlugin.php
+        - vendor/open-telemetry/api/Configuration/Context.php
