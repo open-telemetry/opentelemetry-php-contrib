@@ -8,9 +8,7 @@ use function count;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
-use OpenTelemetry\API\Instrumentation\ConfigurationResolver;
 use OpenTelemetry\API\Logs as API;
-
 use Throwable;
 
 class Handler extends AbstractProcessingHandler
@@ -18,12 +16,12 @@ class Handler extends AbstractProcessingHandler
     public const OTEL_PHP_MONOLOG_ATTRIB_MODE = 'OTEL_PHP_MONOLOG_ATTRIB_MODE';
     public const MODE_PSR3 = 'psr3';
     public const MODE_OTEL = 'otel';
-    private const MODES = [
+    public const MODES = [
         self::MODE_PSR3,
         self::MODE_OTEL,
     ];
     public const DEFAULT_MODE = self::MODE_PSR3;
-    private static string $mode;
+    private string $mode;
 
     /** @var API\LoggerInterface[] */
     private array $loggers = [];
@@ -33,12 +31,12 @@ class Handler extends AbstractProcessingHandler
     /**
      * @psalm-suppress InvalidArgument
      */
-    public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true, ?FormatterInterface $formatterInterface = null)
+    public function __construct(API\LoggerProviderInterface $loggerProvider, $level, bool $bubble = true, ?FormatterInterface $formatterInterface = null, HandlerConfiguration $config = new HandlerConfiguration())
     {
         parent::__construct($level, $bubble);
         $this->loggerProvider = $loggerProvider;
         $this->formatterInterface = $formatterInterface;
-        self::$mode = self::getMode();
+        $this->mode = $config->mode;
     }
 
     protected function getLogger(string $channel): API\LoggerInterface
@@ -66,7 +64,7 @@ class Handler extends AbstractProcessingHandler
         ;
 
         foreach (['context', 'extra'] as $key) {
-            if (self::$mode === self::MODE_PSR3 && isset($formatted[$key]) && count($formatted[$key]) > 0) {
+            if ($this->mode === self::MODE_PSR3 && isset($formatted[$key]) && count($formatted[$key]) > 0) {
                 $recordBuilder->setAttribute($key, $formatted[$key]);
             }
             if (isset($record[$key]) && $record[$key] !== []) {
@@ -80,7 +78,7 @@ class Handler extends AbstractProcessingHandler
 
                         continue;
                     }
-                    switch (self::$mode) {
+                    switch ($this->mode) {
                         case self::MODE_PSR3:
                             $recordBuilder->setAttribute(sprintf('%s.%s', $key, $attributeName), $attribute);
 
@@ -96,16 +94,4 @@ class Handler extends AbstractProcessingHandler
         $recordBuilder->emit();
     }
 
-    private static function getMode(): string
-    {
-        $resolver = new ConfigurationResolver();
-        if ($resolver->has(self::OTEL_PHP_MONOLOG_ATTRIB_MODE)) {
-            $val = $resolver->getString(self::OTEL_PHP_MONOLOG_ATTRIB_MODE);
-            if ($val && in_array($val, self::MODES)) {
-                return $val;
-            }
-        }
-
-        return self::DEFAULT_MODE;
-    }
 }
