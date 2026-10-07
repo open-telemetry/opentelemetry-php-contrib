@@ -10,6 +10,7 @@ use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Redis\Connections\PredisConnection;
 use Illuminate\Redis\Events\CommandExecuted;
+use OpenTelemetry\API\Common\Time\Clock;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
@@ -46,7 +47,7 @@ class RedisCommandWatcher extends Watcher
      */
     public function recordRedisCommand(CommandExecuted $event): void
     {
-        $nowInNs = (int) (microtime(true) * 1E9);
+        $nowInNs = Clock::getDefault()->now();
 
         $operationName = strtoupper($event->command);
 
