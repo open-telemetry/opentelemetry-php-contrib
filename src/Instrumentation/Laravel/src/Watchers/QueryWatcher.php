@@ -8,6 +8,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Str;
+use OpenTelemetry\API\Common\Time\Clock;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
@@ -35,7 +36,7 @@ class QueryWatcher extends Watcher
      */
     public function recordQuery(QueryExecuted $query): void
     {
-        $nowInNs = (int) (microtime(true) * 1E9);
+        $nowInNs = Clock::getDefault()->now();
 
         $operationName = Str::upper(Str::before($query->sql, ' '));
         if (! in_array($operationName, ['SELECT', 'INSERT', 'UPDATE', 'DELETE'])) {
