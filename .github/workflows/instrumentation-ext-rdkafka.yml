@@ -30,7 +30,7 @@ jobs:
           - 8.3
           - 8.4
 
-    uses: ./.github/workflows/php-contrib.yml
+    uses: $/.github/workflows/php-contrib.yml
     with:
       job-name: "PHP ${{ matrix.php-version }}"
       codecov-flags: 'Instrumentation/ExtRdKafka'

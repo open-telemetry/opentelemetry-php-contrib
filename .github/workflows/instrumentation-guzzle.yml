@@ -34,7 +34,7 @@ jobs:
           - ^7
           - ^8
 
-    uses: ./.github/workflows/php-contrib.yml
+    uses: $/.github/workflows/php-contrib.yml
     with:
       job-name: "PHP ${{ matrix.php-version }}: Guzzle ${{ matrix.guzzle-version }}"
       codecov-flags: 'Instrumentation/Guzzle'
