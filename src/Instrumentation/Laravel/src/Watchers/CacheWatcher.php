@@ -8,6 +8,7 @@ use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Cache\Events\KeyForgotten;
 use Illuminate\Cache\Events\KeyWritten;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
@@ -18,13 +19,16 @@ class CacheWatcher extends Watcher
      * @psalm-suppress UndefinedInterfaceMethod
      * @suppress PhanTypeArraySuspicious
      */
+    #[\Override]
     public function register(Application $app): void
     {
-        $app['events']->listen(CacheHit::class, [$this, 'recordCacheHit']);
-        $app['events']->listen(CacheMissed::class, [$this, 'recordCacheMiss']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(CacheHit::class, [$this, 'recordCacheHit']);
+            $dispatcher->listen(CacheMissed::class, [$this, 'recordCacheMiss']);
 
-        $app['events']->listen(KeyWritten::class, [$this, 'recordCacheSet']);
-        $app['events']->listen(KeyForgotten::class, [$this, 'recordCacheForget']);
+            $dispatcher->listen(KeyWritten::class, [$this, 'recordCacheSet']);
+            $dispatcher->listen(KeyForgotten::class, [$this, 'recordCacheForget']);
+        });
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */

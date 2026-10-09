@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Client\Events\ConnectionFailed;
 use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\Response;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
@@ -28,7 +30,7 @@ class ClientRequestWatcher extends Watcher
     protected array $spans = [];
 
     public function __construct(
-        private CachedInstrumentation $instrumentation,
+        private readonly InstrumentationContext $context,
     ) {
     }
 
@@ -36,11 +38,14 @@ class ClientRequestWatcher extends Watcher
      * @psalm-suppress UndefinedInterfaceMethod
      * @suppress PhanTypeArraySuspicious
      */
+    #[\Override]
     public function register(Application $app): void
     {
-        $app['events']->listen(RequestSending::class, [$this, 'recordRequest']);
-        $app['events']->listen(ConnectionFailed::class, [$this, 'recordConnectionFailed']);
-        $app['events']->listen(ResponseReceived::class, [$this, 'recordResponse']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(RequestSending::class, [$this, 'recordRequest']);
+            $dispatcher->listen(ConnectionFailed::class, [$this, 'recordConnectionFailed']);
+            $dispatcher->listen(ResponseReceived::class, [$this, 'recordResponse']);
+        });
     }
 
     /**
@@ -51,20 +56,28 @@ class ClientRequestWatcher extends Watcher
     public function recordRequest(RequestSending $request): void
     {
         $parsedUrl = collect(parse_url($request->request->url()) ?: []);
-        $processedUrl = $parsedUrl->get('scheme', 'http') . '://' . $parsedUrl->get('host') . $parsedUrl->get('path', '');
+        $processedUrl = vsprintf('%s://%s%s', [
+            $parsedUrl->get('scheme', 'http'),
+            $parsedUrl->get('host', ''),
+            $parsedUrl->get('path', ''),
+        ]);
 
         if ($parsedUrl->has('query')) {
-            $processedUrl .= '?' . $parsedUrl->get('query');
+            $processedUrl .= '?' . $parsedUrl->get('query', '');
         }
-        $span = $this->instrumentation->tracer()->spanBuilder($request->request->method())
+
+        $span = $this->context
+            ->tracerProvider
+            ->getTracer(LaravelInstrumentation::buildProviderName('http', 'client'))
+            ->spanBuilder($request->request->method())
             ->setSpanKind(SpanKind::KIND_CLIENT)
             ->setAttributes([
                 HttpAttributes::HTTP_REQUEST_METHOD => $request->request->method(),
                 UrlAttributes::URL_FULL => $processedUrl,
-                UrlAttributes::URL_PATH => $parsedUrl['path'] ?? '',
-                UrlAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? '',
-                ServerAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? '',
-                ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? '',
+                UrlAttributes::URL_PATH => $parsedUrl['path'] ?? null,
+                UrlAttributes::URL_SCHEME => $parsedUrl['scheme'] ?? null,
+                ServerAttributes::SERVER_ADDRESS => $parsedUrl['host'] ?? null,
+                ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? null,
             ])
             ->startSpan();
         $this->spans[$this->createRequestComparisonHash($request->request)] = $span;

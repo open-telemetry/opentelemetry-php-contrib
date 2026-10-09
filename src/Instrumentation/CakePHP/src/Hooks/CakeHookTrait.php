@@ -39,6 +39,7 @@ trait CakeHookTrait
             self::$instance->instrument();
         }
 
+        /** @phan-suppress-next-line PhanTypeMismatchReturn */
         return self::$instance;
     }
 

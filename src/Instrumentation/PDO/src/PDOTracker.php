@@ -30,7 +30,7 @@ final class PDOTracker
     public function __construct()
     {
         /** @psalm-suppress PropertyTypeCoercion */
-        $this->pdoToAttributesMap = new WeakMap();
+        $this->pdoToAttributesMap = new WeakMap(); // @phpstan-ignore assign.propertyType
         /** @psalm-suppress PropertyTypeCoercion */
         $this->statementMapToPdoMap = new WeakMap();
         $this->preparedStatementToSpanMap = new WeakMap();
@@ -82,7 +82,7 @@ final class PDOTracker
             $attributes[DbAttributes::DB_SYSTEM_NAME] = 'other_sql';
         }
 
-        $this->pdoToAttributesMap[$pdo] = $attributes;
+        $this->pdoToAttributesMap[$pdo] = $attributes; // @phpstan-ignore assign.propertyType
 
         return $attributes;
     }
@@ -156,11 +156,11 @@ final class PDOTracker
         if (str_starts_with($dsn, 'sqlsrv:')) {
             if (preg_match('/Server=([^,;]+)(?:,([0-9]+))?/', $dsn, $serverMatches)) {
                 $server = $serverMatches[1];
-                if ($server !== '') {
+                if ($server !== '') { // @phpstan-ignore notIdentical.alwaysTrue
                     $attributes[ServerAttributes::SERVER_ADDRESS] = $server;
                 }
 
-                if (isset($serverMatches[2]) && $serverMatches[2] !== '') {
+                if (isset($serverMatches[2]) && $serverMatches[2] !== '') { // @phpstan-ignore notIdentical.alwaysTrue
                     $attributes[ServerAttributes::SERVER_PORT] = (int) $serverMatches[2];
                 }
             }
@@ -191,7 +191,7 @@ final class PDOTracker
             }
         } elseif (preg_match('/mysql:([^;:]+)/', $dsn, $hostMatches)) {
             $host = $hostMatches[1];
-            if ($host !== '' && $host !== 'dbname') {
+            if ($host !== '' && $host !== 'dbname') { // @phpstan-ignore notIdentical.alwaysTrue
                 $attributes[ServerAttributes::SERVER_ADDRESS] = $host;
             }
         }

@@ -11,6 +11,8 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use OpenTelemetry\API\Common\Time\Clock;
+use OpenTelemetry\API\Common\Time\TestClock;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
@@ -41,7 +43,7 @@ class LaravelInstrumentationTest extends TestCase
         $span = $this->storage[0];
         $this->assertSame('GET /', $span->getName());
 
-        $response = Http::get('https://opentelemetry.io');
+        $response = Http::fake()->get('https://opentelemetry.io');
         $this->assertEquals(200, $response->status());
         $span = $this->storage[1];
         $this->assertSame('GET', $span->getName());
@@ -145,7 +147,8 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/', fn () => null);
         $this->call('GET', '/?foo=bar');
         $span = $this->storage[0];
-        $this->assertSame('/?foo=bar', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('/', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('foo=bar', $span->getAttributes()->get(UrlAttributes::URL_QUERY));
     }
 
     public function test_url_path_with_query_string(): void
@@ -153,7 +156,16 @@ class LaravelInstrumentationTest extends TestCase
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello?foo=bar');
         $span = $this->storage[0];
-        $this->assertSame('/hello?foo=bar', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('/hello', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+        $this->assertSame('foo=bar', $span->getAttributes()->get(UrlAttributes::URL_QUERY));
+    }
+
+    public function test_url_query_absent_without_query_string(): void
+    {
+        $this->router()->get('/hello', fn () => null);
+        $this->call('GET', '/hello');
+        $span = $this->storage[0];
+        $this->assertFalse($span->getAttributes()->has(UrlAttributes::URL_QUERY));
     }
 
     public function test_malformed_method_override_header_does_not_break_instrumentation(): void
@@ -199,6 +211,29 @@ class LaravelInstrumentationTest extends TestCase
         $span = $this->storage[0];
         $this->assertSame('sql', $span->getName());
         $this->assertNull($span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
+    }
+
+    public function test_sql_span_uses_api_clock(): void
+    {
+        $now = TestClock::DEFAULT_START_EPOCH;
+        Clock::setDefault(new TestClock($now));
+
+        try {
+            $this->router()->get('/clock', function () {
+                DB::select('select 1');
+
+                return response('ok');
+            });
+
+            $this->call('GET', '/clock');
+        } finally {
+            Clock::reset();
+        }
+
+        $span = $this->storage[0];
+        $this->assertSame('sql SELECT', $span->getName());
+        $this->assertSame($now, $span->getEndEpochNanos());
+        $this->assertLessThanOrEqual($now, $span->getStartEpochNanos());
     }
 
     private function router(): Router

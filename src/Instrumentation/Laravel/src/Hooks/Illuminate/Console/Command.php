@@ -5,37 +5,46 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Console;
 
 use Illuminate\Console\Command as IlluminateCommand;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHook;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\LaravelHookTrait;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
-use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
+use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
-class Command implements LaravelHook
+/** @psalm-suppress UnusedClass */
+class Command implements Hook
 {
-    use LaravelHookTrait;
     use PostHookTrait;
 
-    public function instrument(): void
-    {
-        $this->hookExecute();
+    #[\Override]
+    public function instrument(
+        LaravelConfiguration $configuration,
+        HookManagerInterface $hookManager,
+        InstrumentationContext $context,
+    ): void {
+        $this->hookExecute($hookManager, $context->tracerProvider);
     }
 
-    /** @psalm-suppress PossiblyUnusedReturnValue  */
-    protected function hookExecute(): bool
+    /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue  */
+    protected function hookExecute(HookManagerInterface $hookManager, TracerProviderInterface $tracerProvider): void
     {
-        return hook(
+        $hookManager->hook(
             IlluminateCommand::class,
             'execute',
-            pre: function (IlluminateCommand $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) {
+            preHook: function (IlluminateCommand $command, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracerProvider) {
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $this->instrumentation
-                    ->tracer()
-                    ->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
+                $builder = $tracerProvider->getTracer(
+                    LaravelInstrumentation::buildProviderName('console', 'command'),
+                    schemaUrl: Version::VERSION_1_24_0->url(),
+                )->spanBuilder(sprintf('Command %s', $command->getName() ?: 'unknown'))
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
@@ -46,7 +55,7 @@ class Command implements LaravelHook
 
                 return $params;
             },
-            post: function (IlluminateCommand $command, array $params, ?int $exitCode, ?Throwable $exception) {
+            postHook: function (IlluminateCommand $command, array $params, ?int $exitCode, ?Throwable $exception) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
