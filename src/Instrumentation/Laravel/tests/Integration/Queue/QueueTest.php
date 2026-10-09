@@ -43,11 +43,19 @@ class QueueTest extends TestCase
         $logRecord0 = $this->storage[0];
         $this->assertEquals('Task: A', $logRecord0->getBody());
         $this->assertEquals('sync process', $this->storage[1]->getName());
+        $this->assertEquals(
+            MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
+            $this->storage[1]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE),
+        );
 
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord2 */
         $logRecord2 = $this->storage[2];
         $this->assertEquals('Logged from closure', $logRecord2->getBody());
         $this->assertEquals('sync process', $this->storage[3]->getName());
+        $this->assertEquals(
+            MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
+            $this->storage[3]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE),
+        );
     }
 
     public function test_it_can_push_a_message_with_a_delay(): void
@@ -59,6 +67,10 @@ class QueueTest extends TestCase
         $this->assertEquals('create sync', $this->storage[2]->getName());
         $this->assertIsInt(
             $this->storage[2]->getAttributes()->get('messaging.message.delivery_timestamp'),
+        );
+        $this->assertEquals(
+            MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_CREATE,
+            $this->storage[2]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE),
         );
 
         $this->assertEquals('create sync', $this->storage[5]->getName());
@@ -102,6 +114,10 @@ class QueueTest extends TestCase
 
         $this->assertEquals('send dummy-queue', $this->storage[0]->getName());
         $this->assertEquals(10, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals(
+            MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND,
+            $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE),
+        );
     }
 
     public function test_it_can_create_with_redis(): void
@@ -124,6 +140,35 @@ class QueueTest extends TestCase
         $this->assertEquals('send queues:default', $this->storage[0]->getName());
         $this->assertEquals(2, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
         $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
+        $this->assertEquals(
+            MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND,
+            $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE),
+        );
+    }
+
+    public function test_it_records_operation_type_on_receive_span(): void
+    {
+        $mockQueueManager = $this->createMock(QueueManager::class);
+
+        $mockQueueManager->method('connection')
+            ->with('sqs')
+            ->willReturn($this->createMock(SqsQueue::class));
+
+        /**
+         * @psalm-suppress PossiblyNullReference
+         * @var Worker $worker
+         */
+        $worker = $this->app->make(Worker::class, [
+            'manager' => $mockQueueManager,
+            'isDownForMaintenance' => fn () => false,
+        ]);
+
+        $worker->runNextJob('sqs', 'default', new WorkerOptions(sleep: 0));
+
+        $this->assertEquals(
+            MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_RECEIVE,
+            $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE),
+        );
     }
 
     public function test_it_drops_empty_receives(): void

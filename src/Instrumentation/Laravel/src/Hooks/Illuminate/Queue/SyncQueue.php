@@ -15,6 +15,7 @@ use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelInstrumentation;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
 use Throwable;
 
@@ -49,13 +50,14 @@ class SyncQueue implements Hook
                 $span = $tracer
                     ->spanBuilder(vsprintf('%s %s', [
                         $queue->getConnectionName(),
-                        'process',
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
                     ]))
                     ->setSpanKind(SpanKind::KIND_INTERNAL)
                     ->setAttributes([
                         CodeAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
                         CodeAttributes::CODE_FILE_PATH => $filename,
                         CodeAttributes::CODE_LINE_NUMBER => $lineno,
+                        MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE => MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
                     ])
                     ->startSpan();
 
