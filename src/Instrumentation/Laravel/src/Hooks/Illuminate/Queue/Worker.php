@@ -8,13 +8,13 @@ use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Worker as QueueWorker;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Queue\TracingIsolated;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Queue\TracingLinked;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Queue\TracingParent;
@@ -43,22 +43,22 @@ class Worker implements Hook
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 
-        $this->hookWorkerProcess($hookManager, $tracer);
+        $this->hookWorkerProcess($hookManager, $tracer, $context->propagator);
         $this->hookWorkerGetNextJob($hookManager, $tracer);
     }
 
     /** @psalm-suppress ArgumentTypeCoercion,UnusedReturnValue */
-    private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer): void
+    private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer, TextMapPropagatorInterface $textMapPropagator): void
     {
         $hookManager->hook(
             QueueWorker::class,
             'process',
-            preHook: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
+            preHook: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($textMapPropagator, $tracer) {
                 $connectionName = $params[0];
                 /** @var Job $job */
                 $job = $params[1];
 
-                $parentContext = TraceContextPropagator::getInstance()->extract(
+                $parentContext = $textMapPropagator->extract(
                     $job->payload(),
                 );
 
