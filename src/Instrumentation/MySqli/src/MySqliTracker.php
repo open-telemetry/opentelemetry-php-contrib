@@ -7,7 +7,8 @@ namespace OpenTelemetry\Contrib\Instrumentation\MySqli;
 use mysqli;
 use mysqli_stmt;
 use OpenTelemetry\API\Trace\SpanContextInterface;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use WeakMap;
 use WeakReference;
 
@@ -54,12 +55,12 @@ final class MySqliTracker
     public function storeMySqliAttributes(mysqli $mysqli, ?string $hostname = null, ?string $username = null, ?string $database = null, ?int $port = null, ?string $socket = null)
     {
         $attributes = [];
-        $attributes[TraceAttributes::DB_SYSTEM_NAME] = 'mysql';
-        $attributes[TraceAttributes::SERVER_ADDRESS] = $hostname ?? get_cfg_var('mysqli.default_host');
-        $attributes[TraceAttributes::SERVER_PORT] = $port ?? get_cfg_var('mysqli.default_port');
+        $attributes[DbAttributes::DB_SYSTEM_NAME] = DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL;
+        $attributes[ServerAttributes::SERVER_ADDRESS] = $hostname ?? get_cfg_var('mysqli.default_host');
+        $attributes[ServerAttributes::SERVER_PORT] = $port ?? get_cfg_var('mysqli.default_port');
         //$attributes[TraceAttributes::DB_USER] = $username ?? get_cfg_var('mysqli.default_user'); //deprecated, no replacment at this time
         if ($database) {
-            $attributes[TraceAttributes::DB_NAMESPACE] = $database;
+            $attributes[DbAttributes::DB_NAMESPACE] = $database;
         }
         $this->mySqliToAttributes[$mysqli] = $attributes;
     }

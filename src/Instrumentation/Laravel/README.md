@@ -9,7 +9,7 @@ This is a read-only subtree split of https://github.com/open-telemetry/opentelem
 
 # OpenTelemetry Laravel auto-instrumentation
 
-Please read https://opentelemetry.io/docs/instrumentation/php/automatic/ for instructions on how to
+Please read https://opentelemetry.io/docs/zero-code/php/auto/ for instructions on how to
 install and configure the extension and SDK.
 
 ## Overview
@@ -40,3 +40,8 @@ OTEL_PHP_INSTRUMENTATION_LARAVEL_HTTP_CLIENT_PROPAGATION_ENABLED=true
 **Only enable this if all outbound HTTP client requests are sent to trusted internal services.**
 
 Defaults to `false`.
+## Component owners
+
+* [Chris Lightfoot-Wild](https://github.com/ChrisLightfootWild)
+
+Learn more about component owners in [component_owners.yml](https://github.com/open-telemetry/opentelemetry-php-contrib/blob/main/.github/component_owners.yml).

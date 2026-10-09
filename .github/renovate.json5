@@ -1,5 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "dependencyDashboard": false,
   "extends": [
     "config:best-practices",
     "helpers:pinGitHubActionDigestsToSemver"
@@ -13,6 +14,18 @@
     {
       "matchUpdateTypes": ["minor", "major"],
       "schedule": ["before 8am on Monday"]
+    },
+    {
+      groupName: "infra [minor]",
+      matchCategories: ["ci", "docker"],
+      matchManagers: ['!dockerfile'],
+      matchUpdateTypes: ["minor"],
+      schedule: ["before 7am on Monday"],
+    },
+    {
+      matchUpdateTypes: ['major'],
+      matchManagers: ['docker-compose'],
+      dependencyDashboardApproval: true,
     }
   ],
   "labels": [

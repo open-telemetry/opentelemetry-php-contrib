@@ -22,7 +22,7 @@ class IsolatedJob implements ShouldQueue, TracingIsolated
     /**
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function fire()
+    public function fire(): void
     {
         $this->handle();
     }

@@ -8,8 +8,7 @@ use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\BeanstalkdQueue;
 use Illuminate\Queue\RedisQueue;
 use Illuminate\Queue\SqsQueue;
-use OpenTelemetry\SemConv\TraceAttributes;
-use OpenTelemetry\SemConv\TraceAttributeValues;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 
 trait AttributesBuilder
 {
@@ -23,9 +22,9 @@ trait AttributesBuilder
         $payload = json_decode($rawPayload, true) ?? [];
 
         return array_merge([
-            TraceAttributes::MESSAGING_DESTINATION_NAME => '(anonymous)',
-            TraceAttributes::MESSAGING_MESSAGE_ID => $payload['uuid'] ?? $payload['id'] ?? null,
-            TraceAttributes::MESSAGING_MESSAGE_ENVELOPE_SIZE => strlen($rawPayload),
+            MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME => '(anonymous)',
+            MessagingIncubatingAttributes::MESSAGING_MESSAGE_ID => $payload['uuid'] ?? $payload['id'] ?? null,
+            MessagingIncubatingAttributes::MESSAGING_MESSAGE_ENVELOPE_SIZE => strlen($rawPayload),
             'messaging.message.job_name' => $payload['displayName'] ?? $payload['job'] ?? null,
             'messaging.message.attempts' => $payload['attempts'] ?? 0,
             'messaging.message.max_exceptions' => $payload['maxExceptions'] ?? null,
@@ -53,24 +52,24 @@ trait AttributesBuilder
     private function beanstalkContextualAttributes(BeanstalkdQueue $queue, array $_payload, ?string $queueName = null, array $_options = [], mixed ...$_params): array
     {
         return [
-            TraceAttributes::MESSAGING_SYSTEM => 'beanstalk',
-            TraceAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
+            MessagingIncubatingAttributes::MESSAGING_SYSTEM => 'beanstalk',
+            MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
         ];
     }
 
     private function redisContextualAttributes(RedisQueue $queue, array $_payload, ?string $queueName = null, array $_options = [], mixed ...$_params): array
     {
         return [
-            TraceAttributes::MESSAGING_SYSTEM => 'redis',
-            TraceAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
+            MessagingIncubatingAttributes::MESSAGING_SYSTEM => 'redis',
+            MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
         ];
     }
 
     private function awsSqsContextualAttributes(SqsQueue $queue, array $_payload, ?string $queueName = null, array $_options = [], mixed ...$_params): array
     {
         return [
-            TraceAttributes::MESSAGING_SYSTEM => TraceAttributeValues::MESSAGING_SYSTEM_AWS_SQS,
-            TraceAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
+            MessagingIncubatingAttributes::MESSAGING_SYSTEM => MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_AWS_SQS,
+            MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
         ];
     }
 }

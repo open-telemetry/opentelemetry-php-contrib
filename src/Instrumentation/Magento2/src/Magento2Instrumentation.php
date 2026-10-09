@@ -56,7 +56,7 @@ final class Magento2Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.magento2',
             null,
-            'https://opentelemetry.io/schemas/1.32.0',
+            'https://opentelemetry.io/schemas/1.38.0',
         );
 
         hook(

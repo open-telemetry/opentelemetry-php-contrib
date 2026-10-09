@@ -4,8 +4,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   CI:
-    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-psr3.yml@main
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-psr3.yml@4f68ecb9760605760d991360df23c6cdeee7dab4 # main
     with:
       package-root: '.'

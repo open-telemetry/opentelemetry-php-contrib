@@ -12,21 +12,21 @@
     "php": "^8.1",
     "ext-opentelemetry": "*",
     "open-telemetry/api": "^1.0",
-    "open-telemetry/sem-conv": "^1.32",
-    "guzzlehttp/guzzle": "^7"
+    "open-telemetry/sem-conv": "^1.38",
+    "guzzlehttp/guzzle": "^7 || ^8"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3",
-    "guzzlehttp/promises": "^2",
+    "guzzlehttp/promises": "^2 || ^3",
     "nyholm/psr7": "*",
-    "phan/phan": "^5.0",
+    "phan/phan": "^6.0",
     "phpstan/phpstan-mockery": "^1.1.0",
     "phpstan/phpstan": "^1.1",
     "phpstan/phpstan-phpunit": "^1.0",
     "psalm/plugin-phpunit": "^0.19.2",
     "open-telemetry/sdk": "^1.0",
     "phpunit/phpunit": "^9.5",
-    "vimeo/psalm": "6.4.0"
+    "vimeo/psalm": "^6.10.0"
   },
   "autoload": {
     "psr-4": {

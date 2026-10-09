@@ -27,8 +27,7 @@ class ConfigHelper
     }
 
     /**
-     * @param string $class
-     * @psalm-param class-string $class
+     * @param class-string $class
      * @return Reference
      */
     public static function createReferenceFromClass(string $class): Reference

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Curl;
 
 use CurlHandle;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
+use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
 
 class CurlHandleMetadata
 {
@@ -22,7 +24,7 @@ class CurlHandleMetadata
 
     public function __construct()
     {
-        $this->attributes = [TraceAttributes::HTTP_REQUEST_METHOD => 'GET'];
+        $this->attributes = [HttpAttributes::HTTP_REQUEST_METHOD => 'GET'];
         $this->headers = [];
         $headersToPropagate = [];
     }
@@ -54,10 +56,22 @@ class CurlHandleMetadata
         if (count($this->headersToPropagate) == 0) {
             return null;
         }
-        $headers = array_merge($this->headersToPropagate, $this->headers);
+
+        // Replace only headers which are being propagated. Repeated unrelated headers may be
+        // intentional, and CURLOPT_HTTPHEADER permits them.
+        $headersToPropagate = [];
+        foreach ($this->headersToPropagate as $header) {
+            $name = strtolower(trim(explode(':', $header, 2)[0]));
+            $headersToPropagate[$name] = $header;
+        }
+
+        $headers = array_values(array_filter(
+            $this->headers,
+            static fn (string $header): bool => !isset($headersToPropagate[strtolower(trim(explode(':', $header, 2)[0]))]),
+        ));
         $this->headersToPropagate = [];
 
-        return $headers;
+        return [...$headers, ...array_values($headersToPropagate)];
     }
 
     public function getCapturedResponseHeaders(): array
@@ -93,38 +107,38 @@ class CurlHandleMetadata
     {
         switch ($option) {
             case CURLOPT_CUSTOMREQUEST:
-                $this->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, $value);
+                $this->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $value);
 
                 break;
             case CURLOPT_HTTPGET:
                 // Based on https://github.com/curl/curl/blob/curl-7_73_0/lib/setopt.c#L841
-                $this->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, 'GET');
+                $this->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, 'GET');
 
                 break;
             case CURLOPT_POST:
-                $this->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'POST' : 'GET'));
+                $this->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'POST' : 'GET'));
 
                 break;
             case CURLOPT_POSTFIELDS:
                 // Based on https://github.com/curl/curl/blob/curl-7_73_0/lib/setopt.c#L269
-                $this->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, 'POST');
+                $this->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, 'POST');
 
                 break;
             case CURLOPT_PUT:
-                $this->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'PUT' : 'GET'));
+                $this->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'PUT' : 'GET'));
 
                 break;
             case CURLOPT_NOBODY:
                 // Based on https://github.com/curl/curl/blob/curl-7_73_0/lib/setopt.c#L269
-                $this->setAttribute(TraceAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'HEAD' : 'GET'));
+                $this->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, ($value == 1 ? 'HEAD' : 'GET'));
 
                 break;
             case CURLOPT_URL:
-                $this->setAttribute(TraceAttributes::URL_FULL, self::redactUrlString($value));
+                $this->setAttribute(UrlAttributes::URL_FULL, self::redactUrlString($value));
 
                 break;
             case CURLOPT_USERAGENT:
-                $this->setAttribute(TraceAttributes::USER_AGENT_ORIGINAL, $value);
+                $this->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $value);
 
                 break;
             case CURLOPT_HTTPHEADER:

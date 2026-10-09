@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Symfony\OtelSdkBundle\DataCollector;
 
-use OpenTelemetry\API\Instrumentation\InstrumentationInterface;
-use OpenTelemetry\API\Instrumentation\InstrumentationTrait;
+use OpenTelemetry\API\Trace\TracerProviderInterface;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,11 +13,16 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Throwable;
 
-class OtelDataCollector extends DataCollector implements LateDataCollectorInterface, InstrumentationInterface
+class OtelDataCollector extends DataCollector implements LateDataCollectorInterface
 {
-    use InstrumentationTrait;
+    private ?TracerProviderInterface $tracerProvider = null;
 
     public array $collectedSpans = [];
+
+    public function setTracerProvider(TracerProviderInterface $tracerProvider): void
+    {
+        $this->tracerProvider = $tracerProvider;
+    }
 
     public function reset(): void
     {
@@ -83,14 +87,16 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
 
     private function loadDataFromTracerSharedState(): void
     {
-        $objectWithSharedState = $this->getTracerProvider();
+        $objectWithSharedState = $this->tracerProvider;
+        if (null === $objectWithSharedState) {
+            return;
+        }
         $reflectedTracer = new \ReflectionClass($objectWithSharedState);
         if (false === $reflectedTracer->hasProperty('tracerSharedState')) {
             return;
         }
 
         $tss = $reflectedTracer->getProperty('tracerSharedState');
-        $tss->setAccessible(true);
         $this->data['id_generator'] = $this->getClassLocation(get_class($tss->getValue($objectWithSharedState)->getIdGenerator()));
         $this->data['sampler'] = $this->getClassLocation(get_class($tss->getValue($objectWithSharedState)->getSampler()));
         $this->data['span_processor'] = $this->getClassLocation(get_class($tss->getValue($objectWithSharedState)->getSpanProcessor()));
@@ -118,7 +124,7 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
 
         return $spanData;
     }
-    
+
     /**
      * @phan-suppress PhanUndeclaredTypeParameter
      * @phan-suppress PhanUndeclaredClassMethod
@@ -136,20 +142,5 @@ class OtelDataCollector extends DataCollector implements LateDataCollectorInterf
             'links' => $spanData->getLinks(),
             'events' => $spanData->getEvents(),
         ];
-    }
-
-    public function getVersion() : ?string
-    {
-        return null;
-    }
-
-    public function getSchemaUrl() : ?string
-    {
-        return null;
-    }
-
-    public function init() : bool
-    {
-        return true;
     }
 }

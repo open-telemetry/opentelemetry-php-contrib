@@ -13,7 +13,10 @@ use OpenTelemetry\SDK\Trace\ImmutableSpan;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use PHPUnit\Framework\TestCase;
 
 class CurlInstrumentationTest extends TestCase
@@ -68,7 +71,7 @@ class CurlInstrumentationTest extends TestCase
 
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
-        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertSame('POST', $span->getName());
         $this->assertSame('Error', $span->getStatus()->getCode());
         $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
@@ -84,7 +87,7 @@ class CurlInstrumentationTest extends TestCase
 
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
-        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(UrlAttributes::URL_FULL));
     }
 
     public function test_curl_setopt_array(): void
@@ -145,9 +148,9 @@ class CurlInstrumentationTest extends TestCase
         $this->assertSame('GET', $span->getName());
         $this->assertSame('Error', $span->getStatus()->getCode());
         $this->assertStringContainsString('resolve host', $span->getStatus()->getDescription());
-        $this->assertEquals('cURL error (6)', $span->getAttributes()->get(TraceAttributes::ERROR_TYPE));
-        $this->assertEquals('GET', $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(TraceAttributes::URL_FULL));
+        $this->assertEquals('cURL error (6)', $span->getAttributes()->get(ErrorAttributes::ERROR_TYPE));
+        $this->assertEquals('GET', $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertEquals('http://gugugaga.gugugaga/', $span->getAttributes()->get(UrlAttributes::URL_FULL));
     }
 
     public function test_curl_exec(): void
@@ -160,9 +163,9 @@ class CurlInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('GET', $span->getName());
-        $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
-        $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+        $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
+        $this->assertEquals(80, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
     }
 
     public function capture_headers_config_options_names_data_provider(): iterable
@@ -203,9 +206,9 @@ class CurlInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('GET', $span->getName());
-        $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
-        $this->assertEquals(80, $span->getAttributes()->get(TraceAttributes::SERVER_PORT));
+        $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
+        $this->assertEquals(80, $span->getAttributes()->get(ServerAttributes::SERVER_PORT));
     }
 
     /**
@@ -225,8 +228,8 @@ class CurlInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('GET', $span->getName());
-        $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
+        $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
         $this->assertStringContainsStringIgnoringCase('text/html', $span->getAttributes()->get('http.response.header.content-type'));
         $this->assertEquals('example.com', $span->getAttributes()->get('http.request.header.host'));
     }
@@ -247,8 +250,8 @@ class CurlInstrumentationTest extends TestCase
         $this->assertCount(1, $this->storage);
         $span = $this->storage->offsetGet(0);
         $this->assertSame('GET', $span->getName());
-        $this->assertEquals(200, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
-        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(TraceAttributes::URL_SCHEME));
+        $this->assertEquals(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertEqualsIgnoringCase('http', $span->getAttributes()->get(UrlAttributes::URL_SCHEME));
         $this->assertNotEmpty($span->getAttributes()->get('http.request.header.traceparent'));
     }
 }

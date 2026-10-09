@@ -12,7 +12,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Throwable;
@@ -29,7 +29,7 @@ class Psr6Instrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.psr6',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-psr6'),
-            'https://opentelemetry.io/schemas/1.32.0',
+            'https://opentelemetry.io/schemas/1.36.0',
         );
 
         $pre = static function (CacheItemPoolInterface $pool, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
@@ -74,9 +74,9 @@ class Psr6Instrumentation
         return $instrumentation->tracer()
             ->spanBuilder($function)
             ->setSpanKind(SpanKind::KIND_INTERNAL)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+            ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+            ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+            ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttribute('cache.operation', $name);
     }
 

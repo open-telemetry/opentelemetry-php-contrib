@@ -13,6 +13,8 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 
 /** @psalm-suppress UnusedClass */
@@ -26,7 +28,7 @@ final class AwsSdkInstrumentation
         $inst = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.aws-sdk',
             null,
-            'https://opentelemetry.io/schemas/1.32.0',
+            'https://opentelemetry.io/schemas/1.36.0',
         );
 
         /**
@@ -53,9 +55,9 @@ final class AwsSdkInstrumentation
                     ->setAttribute(TraceAttributes::RPC_METHOD, $cmd->getName())
                     ->setAttribute(TraceAttributes::RPC_SERVICE, $c->getApi()->getServiceName())
                     ->setAttribute(TraceAttributes::CLOUD_REGION, $c->getRegion())
-                    ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno);
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $span   = $builder->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
@@ -74,7 +76,7 @@ final class AwsSdkInstrumentation
                 $scope->detach();
 
                 if ($result instanceof ResultInterface && isset($result['@metadata'])) {
-                    $span->setAttribute(TraceAttributes::HTTP_RESPONSE_STATUS_CODE, $result['@metadata']['statusCode']); // @phan-suppress-current-line PhanTypeMismatchDimFetch
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $result['@metadata']['statusCode']); // @phan-suppress-current-line PhanTypeMismatchDimFetch
 
                     $headers = $result['@metadata']['headers'] ?? []; // @phan-suppress-current-line PhanTypeMismatchDimFetch
 

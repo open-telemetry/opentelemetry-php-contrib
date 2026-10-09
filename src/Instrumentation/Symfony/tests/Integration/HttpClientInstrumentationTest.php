@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
+use ApiPlatform\Symfony\Bundle\Test\Client as ApiPlatformTestClient;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\SemConv\Attributes\HttpAttributes;
+use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\Fixtures\ForwardingHttpClient;
 use Symfony\Component\HttpClient\CurlHttpClient;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Test\TestHttpServer;
+
+require_once __DIR__ . '/Fixtures/ApiPlatform/Symfony/Bundle/Test/Client.php';
 
 final class HttpClientInstrumentationTest extends AbstractTest
 {
@@ -47,13 +53,13 @@ final class HttpClientInstrumentationTest extends AbstractTest
 
         $this->assertTrue($span->getAttributes()->has(TraceAttributes::PEER_SERVICE));
         $this->assertSame(parse_url($uri)['host'] ?? null, $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
-        $this->assertSame($uri, $span->getAttributes()->get(TraceAttributes::URL_FULL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertSame($method, $span->getAttributes()->get(TraceAttributes::HTTP_REQUEST_METHOD));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertTrue($span->getAttributes()->has(UrlAttributes::URL_FULL));
+        $this->assertSame($uri, $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertSame($method, $span->getAttributes()->get(HttpAttributes::HTTP_REQUEST_METHOD));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
         $this->assertSame($spanStatus, $span->getStatus()->getCode());
-        $this->assertSame($statusCode, $span->getAttributes()->get(TraceAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame($statusCode, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
     }
 
     public function test_throw_exception(): void
@@ -74,10 +80,67 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $span = $this->storage[0];
         $event = $span->getEvents()[0];
 
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::URL_FULL));
-        $this->assertTrue($span->getAttributes()->has(TraceAttributes::HTTP_REQUEST_METHOD));
+        $this->assertTrue($span->getAttributes()->has(UrlAttributes::URL_FULL));
+        $this->assertTrue($span->getAttributes()->has(HttpAttributes::HTTP_REQUEST_METHOD));
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame(InvalidArgumentException::class, $event->getAttributes()->get('exception.type'));
+    }
+
+    public function test_decorated_client_creates_a_single_span(): void
+    {
+        $client = new ForwardingHttpClient(new ForwardingHttpClient($this->getHttpClient(__FUNCTION__)));
+        $this->assertCount(0, $this->storage);
+
+        $response = $client->request('GET', 'http://localhost:8057');
+        $requestHeaders = $response->toArray(false);
+        $this->assertCount(1, $this->storage);
+
+        $span = $this->storage[0];
+        $this->assertSame('http://localhost:8057', $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertStringContainsString($span->getSpanId(), $requestHeaders['HTTP_TRACEPARENT']);
+    }
+
+    public function test_decorated_client_exception_is_recorded_once(): void
+    {
+        $client = new ForwardingHttpClient($this->getHttpClient(__FUNCTION__));
+        $this->assertCount(0, $this->storage);
+
+        try {
+            $client->request('GET', 'http://localhost:8057', ['auth_ntlm' => []]);
+        } catch (InvalidArgumentException) {
+        }
+
+        $this->assertCount(1, $this->storage);
+        $this->assertCount(1, $this->storage[0]->getEvents());
+        $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
+    }
+
+    public function test_decorator_issuing_another_request_creates_its_own_span(): void
+    {
+        $client = new ForwardingHttpClient(
+            $this->getHttpClient(__FUNCTION__),
+            static function (HttpClientInterface $inner): void {
+                $inner->request('POST', 'http://localhost:8057/json')->getStatusCode();
+            },
+        );
+        $this->assertCount(0, $this->storage);
+
+        $client->request('GET', 'http://localhost:8057')->getStatusCode();
+        $this->assertCount(2, $this->storage);
+
+        $this->assertSame('http://localhost:8057/json', $this->storage[0]->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame('http://localhost:8057', $this->storage[1]->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame($this->storage[1]->getSpanId(), $this->storage[0]->getParentSpanId());
+    }
+
+    public function test_synchronous_client_does_not_receive_on_progress_option(): void
+    {
+        $client = new ApiPlatformTestClient();
+
+        $client->request('GET', 'http://localhost:8057');
+
+        $this->assertArrayNotHasKey('on_progress', $client->options);
     }
 
     public function requestProvider(): array

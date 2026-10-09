@@ -15,7 +15,10 @@ use OpenTelemetry\API\Trace\StatusCode;
 
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Attributes\DbAttributes;
+use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
+use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Version;
 
 /**
@@ -39,7 +42,7 @@ class MySqliInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.mysqli',
             null,
-            Version::VERSION_1_32_0->url(),
+            Version::VERSION_1_36_0->url(),
         );
 
         $tracker = new MySqliTracker();
@@ -413,11 +416,11 @@ class MySqliInstrumentation
     private static function constructPreHook(string $spanName, int $paramsOffset, CachedInstrumentation $instrumentation, MySqliTracker $tracker, $obj, array $params, ?string $class, string $function, ?string $filename, ?int $lineno): void
     {
         $attributes = [];
-        $attributes[TraceAttributes::SERVER_ADDRESS] = $params[$paramsOffset + 0] ?? get_cfg_var('mysqli.default_host');
-        $attributes[TraceAttributes::SERVER_PORT] = $params[$paramsOffset + 4] ?? get_cfg_var('mysqli.default_port');
+        $attributes[ServerAttributes::SERVER_ADDRESS] = $params[$paramsOffset + 0] ?? get_cfg_var('mysqli.default_host');
+        $attributes[ServerAttributes::SERVER_PORT] = $params[$paramsOffset + 4] ?? get_cfg_var('mysqli.default_port');
         //$attributes[TraceAttributes::DB_USER] = $params[$paramsOffset + 1] ?? get_cfg_var('mysqli.default_user');
-        $attributes[TraceAttributes::DB_NAMESPACE] = $params[$paramsOffset + 3] ?? null;
-        $attributes[TraceAttributes::DB_SYSTEM_NAME] =  'mysql';
+        $attributes[DbAttributes::DB_NAMESPACE] = $params[$paramsOffset + 3] ?? null;
+        $attributes[DbAttributes::DB_SYSTEM_NAME] = DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL;
 
         self::startSpan($spanName, $instrumentation, $class, $function, $filename, $lineno, $attributes);
     }
@@ -457,8 +460,8 @@ class MySqliInstrumentation
             $displayQuery = self::UNDEFINED;
         }
         $span->setAttributes([
-            TraceAttributes::DB_QUERY_TEXT => $displayQuery,
-            TraceAttributes::DB_OPERATION_NAME => self::extractQueryCommand($displayQuery),
+            DbAttributes::DB_QUERY_TEXT => $displayQuery,
+            DbAttributes::DB_OPERATION_NAME => self::extractQueryCommand($displayQuery),
         ]);
 
         self::addTransactionLink($tracker, $span, $mysqli);
@@ -472,7 +475,7 @@ class MySqliInstrumentation
             $query = $commenter->inject($query);
             if ($commenter->isAttributeEnabled()) {
                 $span->setAttributes([
-                    TraceAttributes::DB_QUERY_TEXT => mb_convert_encoding($query, 'UTF-8'),
+                    DbAttributes::DB_QUERY_TEXT => mb_convert_encoding($query, 'UTF-8'),
                 ]);
             }
             if ($obj) {
@@ -498,7 +501,7 @@ class MySqliInstrumentation
         $attributes = $tracker->getMySqliAttributes($mysqli);
 
         if ($retVal === false || $exception) {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         }
 
         $errorStatus = ($retVal === false && !$exception) ? $mysqli->error : null;
@@ -529,12 +532,12 @@ class MySqliInstrumentation
 
         $tracker->storeMySqliMultiQuery($mysqli, $query);
         if ($currentQuery = $tracker->getNextMySqliMultiQuery($mysqli)) {
-            $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($currentQuery, 'UTF-8');
-            $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($currentQuery);
+            $attributes[DbAttributes::DB_QUERY_TEXT] = mb_convert_encoding($currentQuery, 'UTF-8');
+            $attributes[DbAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($currentQuery);
         }
 
         if ($retVal === false || $exception) {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         } else {
             $tracker->trackMySqliSpan($mysqli, Span::getCurrent()->getContext());
         }
@@ -576,12 +579,12 @@ class MySqliInstrumentation
         }
 
         if ($currentQuery) {
-            $attributes[TraceAttributes::DB_QUERY_TEXT] = mb_convert_encoding($currentQuery, 'UTF-8');
-            $attributes[TraceAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($currentQuery);
+            $attributes[DbAttributes::DB_QUERY_TEXT] = mb_convert_encoding($currentQuery, 'UTF-8');
+            $attributes[DbAttributes::DB_OPERATION_NAME] = self::extractQueryCommand($currentQuery);
         }
 
         if ($retVal === false || $exception) {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         }
 
         self::endSpan($attributes, $exception, $errorStatus);
@@ -597,7 +600,7 @@ class MySqliInstrumentation
 
         //$tracker->addMySqliAttribute($mysqli, TraceAttributes::DB_USER, $params[$obj ? 0 : 1]); //deprecated, no replacment at this time
         if (($database = $params[$obj ? 2 : 3] ?? null) !== null) {
-            $tracker->addMySqliAttribute($mysqli, TraceAttributes::DB_NAMESPACE, $database);
+            $tracker->addMySqliAttribute($mysqli, DbAttributes::DB_NAMESPACE, $database);
         }
 
     }
@@ -607,7 +610,7 @@ class MySqliInstrumentation
         if ($retVal != true) {
             return;
         }
-        $tracker->addMySqliAttribute($obj ? $obj : $params[0], TraceAttributes::DB_NAMESPACE, $params[$obj ? 0 : 1]);
+        $tracker->addMySqliAttribute($obj ? $obj : $params[0], DbAttributes::DB_NAMESPACE, $params[$obj ? 0 : 1]);
     }
 
     /** @param non-empty-string $spanName */
@@ -629,16 +632,16 @@ class MySqliInstrumentation
         $operation = self::extractQueryCommand($query);
 
         $attributes = $tracker->getMySqliAttributes($mysqli);
-        $attributes[TraceAttributes::DB_QUERY_TEXT] = $query;
-        $attributes[TraceAttributes::DB_OPERATION_NAME] = $operation;
+        $attributes[DbAttributes::DB_QUERY_TEXT] = $query;
+        $attributes[DbAttributes::DB_OPERATION_NAME] = $operation;
 
         if (!$exception && $stmtRetVal instanceof mysqli_stmt) {
             $tracker->trackMySqliFromStatement($mysqli, $stmtRetVal);
-            $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_QUERY_TEXT, $query);
-            $tracker->addStatementAttribute($stmtRetVal, TraceAttributes::DB_OPERATION_NAME, $operation);
+            $tracker->addStatementAttribute($stmtRetVal, DbAttributes::DB_QUERY_TEXT, $query);
+            $tracker->addStatementAttribute($stmtRetVal, DbAttributes::DB_OPERATION_NAME, $operation);
 
         } else {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
             $errorStatus = !$exception ? $mysqli->error : null;
         }
 
@@ -663,7 +666,7 @@ class MySqliInstrumentation
         }
 
         if ($retVal === false || $exception) {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         } else {
             $tracker->trackMySqliTransaction($mysqli, Span::getCurrent()->getContext());
         }
@@ -692,7 +695,7 @@ class MySqliInstrumentation
         }
 
         if ($retVal === false || $exception) {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $mysqli->errno;
         }
 
         $tracker->untrackMySqliTransaction($mysqli);
@@ -718,8 +721,8 @@ class MySqliInstrumentation
         }
 
         $query = $obj ? $params[0] : $params[1];
-        $tracker->addStatementAttribute($obj ? $obj : $params[0], TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($query, 'UTF-8'));
-        $tracker->addStatementAttribute($obj ? $obj : $params[0], TraceAttributes::DB_OPERATION_NAME, self::extractQueryCommand($query));
+        $tracker->addStatementAttribute($obj ? $obj : $params[0], DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($query, 'UTF-8'));
+        $tracker->addStatementAttribute($obj ? $obj : $params[0], DbAttributes::DB_OPERATION_NAME, self::extractQueryCommand($query));
     }
 
     private static function stmtConstructPostHook(CachedInstrumentation $instrumentation, MySqliTracker $tracker, $stmt, array $params, mixed $retVal, ?\Throwable $exception)
@@ -734,8 +737,8 @@ class MySqliInstrumentation
         $tracker->trackMySqliFromStatement($params[0], $stmt);
 
         if ($params[1] ?? null) {
-            $tracker->addStatementAttribute($stmt, TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[1], 'UTF-8'));
-            $tracker->addStatementAttribute($stmt, TraceAttributes::DB_OPERATION_NAME, self::extractQueryCommand($params[1]));
+            $tracker->addStatementAttribute($stmt, DbAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[1], 'UTF-8'));
+            $tracker->addStatementAttribute($stmt, DbAttributes::DB_OPERATION_NAME, self::extractQueryCommand($params[1]));
         }
     }
 
@@ -752,7 +755,7 @@ class MySqliInstrumentation
         $attributes = array_merge($tracker->getMySqliAttributesFromStatement($stmt), $tracker->getStatementAttributes($stmt));
 
         if ($retVal === false || $exception) {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $stmt->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $stmt->errno;
         }
 
         $errorStatus = ($retVal === false && !$exception) ? $stmt->error : null;
@@ -790,7 +793,7 @@ class MySqliInstrumentation
         }
 
         if ($retVal === false || $exception) {
-            $attributes[TraceAttributes::DB_RESPONSE_STATUS_CODE] =  $stmt->errno;
+            $attributes[DbAttributes::DB_RESPONSE_STATUS_CODE] =  $stmt->errno;
         }
 
         $errorStatus = ($retVal === false && !$exception) ? $stmt->error : null;
@@ -807,9 +810,9 @@ class MySqliInstrumentation
             ->spanBuilder($spanName)
             ->setParent($parent)
             ->setSpanKind(SpanKind::KIND_CLIENT)
-            ->setAttribute(TraceAttributes::CODE_FUNCTION_NAME, $fqn)
-            ->setAttribute(TraceAttributes::CODE_FILE_PATH, $filename)
-            ->setAttribute(TraceAttributes::CODE_LINE_NUMBER, $lineno)
+            ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, $fqn)
+            ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+            ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
             ->setAttributes($attributes);
 
         $span = $builder->startSpan();
@@ -832,13 +835,13 @@ class MySqliInstrumentation
         $span->setAttributes($attributes);
 
         if ($errorStatus !== null) {
-            $span->setAttribute(TraceAttributes::EXCEPTION_MESSAGE, $errorStatus);
+            $span->setAttribute(ExceptionAttributes::EXCEPTION_MESSAGE, $errorStatus);
             $span->setStatus(StatusCode::STATUS_ERROR, $errorStatus);
         }
 
         if ($exception) {
             $span->recordException($exception);
-            $span->setAttribute(TraceAttributes::EXCEPTION_TYPE, $exception::class);
+            $span->setAttribute(ExceptionAttributes::EXCEPTION_TYPE, $exception::class);
             $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
         }
 

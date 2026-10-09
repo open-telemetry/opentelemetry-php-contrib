@@ -14,7 +14,7 @@ use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
-use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
 use Psr\Log\LoggerInterface;
@@ -101,7 +101,7 @@ class QueueTest extends TestCase
         $mockQueue->bulk($jobs);
 
         $this->assertEquals('send dummy-queue', $this->storage[0]->getName());
-        $this->assertEquals(10, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals(10, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
     }
 
     public function test_it_can_create_with_redis(): void
@@ -122,8 +122,8 @@ class QueueTest extends TestCase
         ]);
 
         $this->assertEquals('send queues:default', $this->storage[0]->getName());
-        $this->assertEquals(2, $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
-        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(TraceAttributes::MESSAGING_SYSTEM));
+        $this->assertEquals(2, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
     }
 
     public function test_it_drops_empty_receives(): void
