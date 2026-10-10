@@ -10,5 +10,6 @@ class ContextObserved
 {
     public function __construct(
         public readonly ContextInterface $context,
-    ) {}
+    ) {
+    }
 }
