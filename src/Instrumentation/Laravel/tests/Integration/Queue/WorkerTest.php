@@ -7,6 +7,10 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Queue;
 use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
+use OpenTelemetry\API\Baggage\Baggage;
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Events\ContextObserved;
+use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\ContextCaptureJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\IsolatedJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\LinkedJob;
@@ -107,24 +111,61 @@ class WorkerTest extends TestCase
         $this->assertNotSame(self::PARENT_TRACE_ID, $span->getTraceId());
     }
 
-    private function dispatchJob(object|string $job, string $traceParent = self::PARENT_TRACEPARENT): SyncJob
+    public function test_job_with_baggage(): void
     {
-        $payload = is_string($job)
-            ? [
-                'uuid' => 'simple-test-job',
-                'job' => $job,
-                'displayName' => $job,
-                'data' => [],
-            ]
-            : [
-                'uuid' => 'command-test-job',
-                'job' => 'Illuminate\Queue\CallQueuedHandler@call',
-                'displayName' => get_class($job),
-                'data' => [
-                    'commandName' => get_class($job),
-                    'command' => serialize($job),
-                ],
-            ];
+        /** @var ContextInterface $capturedContext */
+        $capturedContext = null;
+        $this->app['events']->listen(ContextObserved::class, function (ContextObserved $event) use (&$capturedContext) {
+            $capturedContext = $event->context;
+        });
+
+        $this->dispatchJob(new DummyJob('Job with no baggage'));
+        self::assertNull(Baggage::getCurrent()->getEntry('foo'));
+
+        $this->dispatchJob(new ContextCaptureJob(), additionalPayload: ['baggage' => 'foo=bar']);
+
+        self::assertEquals('bar', Baggage::fromContext($capturedContext)->getEntry('foo')->getValue());
+    }
+
+    public function test_linked_job_has_new_trace_but_carries_baggage(): void
+    {
+        /** @var ContextInterface $capturedContext */
+        $capturedContext = null;
+        $this->app['events']->listen(ContextObserved::class, function (ContextObserved $event) use (&$capturedContext) {
+            $capturedContext = $event->context;
+        });
+
+        $this->dispatchJob(new LinkedJob(), additionalPayload: ['baggage' => 'hi=bob']);
+
+        $span = $this->findProcessSpan();
+
+        $this->assertFalse($span->getParentContext()->isValid());
+        $this->assertNotSame(self::PARENT_TRACE_ID, $span->getTraceId());
+
+        $this->assertCount(1, $span->getLinks());
+        $link = $span->getLinks()[0];
+        $this->assertSame(self::PARENT_TRACE_ID, $link->getSpanContext()->getTraceId());
+        $this->assertSame(self::PARENT_SPAN_ID, $link->getSpanContext()->getSpanId());
+
+        self::assertEquals('bob', Baggage::fromContext($capturedContext)->getEntry('hi')->getValue());
+    }
+
+    private function dispatchJob(object|string $job, string $traceParent = self::PARENT_TRACEPARENT, array $additionalPayload = []): SyncJob
+    {
+        $payload = array_merge(is_string($job) ? [
+            'uuid' => 'simple-test-job',
+            'job' => $job,
+            'displayName' => $job,
+            'data' => [],
+        ] : [
+            'uuid' => 'command-test-job',
+            'job' => 'Illuminate\Queue\CallQueuedHandler@call',
+            'displayName' => get_class($job),
+            'data' => [
+                'commandName' => get_class($job),
+                'command' => serialize($job),
+            ],
+        ], $additionalPayload);
 
         // To keep backward compatibility, every job must have a `traceparent`
         $payload['traceparent'] = $traceParent;

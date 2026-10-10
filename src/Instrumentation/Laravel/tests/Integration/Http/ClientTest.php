@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Integration\Http;
+namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Http;
 
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Promise\RejectedPromise;

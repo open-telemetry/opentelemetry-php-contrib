@@ -7,6 +7,8 @@ namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\Queue;
 use DateInterval;
 use DateTimeImmutable;
 use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Queue\DatabaseQueue;
+use Illuminate\Queue\Events\JobQueueing;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\RedisQueue;
 use Illuminate\Queue\SqsQueue;
@@ -14,9 +16,12 @@ use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Redis\Connections\Connection;
 use Mockery\MockInterface;
+use OpenTelemetry\API\Baggage\Baggage;
+use OpenTelemetry\API\Globals;
 use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Jobs\DummyJob;
 use OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Integration\TestCase;
+use Orchestra\Testbench\Attributes\WithMigration;
 use Psr\Log\LoggerInterface;
 
 /** @psalm-suppress UnusedClass */
@@ -168,5 +173,42 @@ class QueueTest extends TestCase
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord1200 */
         $logRecord1200 = $this->storage[1200];
         $this->assertEquals('Task: More work', $logRecord1200->getBody());
+    }
+
+    #[WithMigration('queue')]
+    public function test_queue_job_propagation(): void
+    {
+        $this->artisan('migrate');
+
+        $capturedPayload = null;
+        $this->app['events']->listen(JobQueueing::class, function (JobQueueing $job) use (&$capturedPayload) {
+            $capturedPayload = json_decode($job->payload, true, JSON_THROW_ON_ERROR);
+        });
+
+        $parentSpan = Globals::tracerProvider()
+            ->getTracer('testing')
+            ->spanBuilder('init')
+            ->startSpan();
+        $parentScope = $parentSpan->activate();
+        $baggage = Baggage::getBuilder()
+            ->set('user.id', '12345')
+            ->set('session.key', 'abc-xyz')
+            ->build();
+        $baggageScope = $baggage->activate();
+
+        $queue = tap($this->app->make(DatabaseQueue::class, [
+            'table' => 'jobs',
+        ]), fn (DatabaseQueue $queue) => $queue->setContainer($this->app));
+
+        try {
+            $queue->push(new DummyJob('foo'));
+
+            self::assertEquals('user.id=12345,session.key=abc-xyz', $capturedPayload['baggage']);
+            self::assertNotEmpty($capturedPayload['traceparent']);
+        } finally {
+            $baggageScope->detach();
+            $parentSpan->end();
+            $parentScope->detach();
+        }
     }
 }
