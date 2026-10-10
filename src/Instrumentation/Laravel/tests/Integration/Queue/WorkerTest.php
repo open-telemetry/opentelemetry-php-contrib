@@ -127,6 +127,29 @@ class WorkerTest extends TestCase
         self::assertEquals('bar', Baggage::fromContext($capturedContext)->getEntry('foo')->getValue());
     }
 
+    public function test_linked_job_has_new_trace_but_carries_baggage(): void
+    {
+        /** @var ContextInterface $capturedContext */
+        $capturedContext = null;
+        $this->app['events']->listen(ContextObserved::class, function (ContextObserved $event) use (&$capturedContext) {
+            $capturedContext = $event->context;
+        });
+
+        $this->dispatchJob(new LinkedJob(), additionalPayload: ['baggage' => 'hi=bob']);
+
+        $span = $this->findProcessSpan();
+
+        $this->assertFalse($span->getParentContext()->isValid());
+        $this->assertNotSame(self::PARENT_TRACE_ID, $span->getTraceId());
+
+        $this->assertCount(1, $span->getLinks());
+        $link = $span->getLinks()[0];
+        $this->assertSame(self::PARENT_TRACE_ID, $link->getSpanContext()->getTraceId());
+        $this->assertSame(self::PARENT_SPAN_ID, $link->getSpanContext()->getSpanId());
+
+        self::assertEquals('bob', Baggage::fromContext($capturedContext)->getEntry('hi')->getValue());
+    }
+
     private function dispatchJob(object|string $job, string $traceParent = self::PARENT_TRACEPARENT, array $additionalPayload = []): SyncJob
     {
         $payload = array_merge(is_string($job) ? [
