@@ -30,7 +30,7 @@ final class PDOTracker
     public function __construct()
     {
         /** @psalm-suppress PropertyTypeCoercion */
-        $this->pdoToAttributesMap = new WeakMap(); // @phpstan-ignore assign.propertyType
+        $this->pdoToAttributesMap = new WeakMap();
         /** @psalm-suppress PropertyTypeCoercion */
         $this->statementMapToPdoMap = new WeakMap();
         $this->preparedStatementToSpanMap = new WeakMap();
@@ -82,7 +82,7 @@ final class PDOTracker
             $attributes[DbAttributes::DB_SYSTEM_NAME] = 'other_sql';
         }
 
-        $this->pdoToAttributesMap[$pdo] = $attributes; // @phpstan-ignore assign.propertyType
+        $this->pdoToAttributesMap[$pdo] = $attributes;
 
         return $attributes;
     }
