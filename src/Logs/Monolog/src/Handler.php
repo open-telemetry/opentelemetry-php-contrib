@@ -98,6 +98,7 @@ class Handler extends AbstractProcessingHandler
 
     private static function getMode(): string
     {
+        /** @phan-suppress-next-line PhanDeprecatedClass */
         $resolver = new ConfigurationResolver();
         if ($resolver->has(self::OTEL_PHP_MONOLOG_ATTRIB_MODE)) {
             $val = $resolver->getString(self::OTEL_PHP_MONOLOG_ATTRIB_MODE);
