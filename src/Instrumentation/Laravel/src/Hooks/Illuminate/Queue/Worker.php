@@ -55,10 +55,7 @@ class Worker implements Hook
                 /** @var Job $job */
                 $job = $params[1];
 
-                $initialContext = Context::getCurrent();
-                // Context from propagation, eg: tracecontext, baggage, etc
                 $context = $textMapPropagator->extract($job->payload());
-
                 $queue = $worker->getManager()->connection($connectionName);
                 $attributes = $this->buildMessageAttributes($queue, $job->getRawBody(), $job->getQueue());
 
@@ -68,6 +65,7 @@ class Worker implements Hook
                         MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
                         $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
+                    ->setParent($context)
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes);
 
@@ -76,13 +74,9 @@ class Worker implements Hook
                     $spanBuilder->addLink(Span::fromContext($context)->getContext());
                     // Strip the propagated trace context.
                     $spanBuilder->setParent(false);
-                    $context = $context->withContextValue(Span::fromContext($initialContext));
                 } elseif ($this->inheritsTracingInterface($job, TracingIsolated::class)) {
                     // Strip the propagated trace context.
                     $spanBuilder->setParent(false);
-                    $context = $context->withContextValue(Span::fromContext($initialContext));
-                } else {
-                    $spanBuilder->setParent($context);
                 }
 
                 // Keep the contextual baggage etc.

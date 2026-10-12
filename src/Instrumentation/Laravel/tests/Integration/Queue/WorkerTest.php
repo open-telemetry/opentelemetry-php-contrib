@@ -57,7 +57,13 @@ class WorkerTest extends TestCase
 
     public function test_linked_job_has_new_trace_with_link_to_parent(): void
     {
-        $this->dispatchJob(new LinkedJob());
+        /** @var ContextInterface $capturedContext */
+        $capturedContext = null;
+        $this->app['events']->listen(ContextObserved::class, function (ContextObserved $event) use (&$capturedContext) {
+            $capturedContext = $event->context;
+        });
+
+        $this->dispatchJob(new LinkedJob(), additionalPayload: ['baggage' => 'trace.type=link']);
 
         $span = $this->findProcessSpan();
 
@@ -73,6 +79,8 @@ class WorkerTest extends TestCase
         $this->assertSame('Linked job handled', $this->storage[0]->getBody());
         $this->assertSame('process (anonymous)', $this->storage[1]->getName());
         $this->assertSame(LinkedJob::class, $span->getAttributes()->get('messaging.message.job_name'));
+
+        self::assertEquals('link', Baggage::fromContext($capturedContext)->getEntry('trace.type')->getValue());
     }
 
     public function test_isolated_job_starts_completely_new_trace(): void
