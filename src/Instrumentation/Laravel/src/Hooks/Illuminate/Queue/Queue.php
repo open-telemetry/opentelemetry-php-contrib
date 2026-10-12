@@ -7,7 +7,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Queue;
 use Illuminate\Queue\Queue as AbstractQueue;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
 use Throwable;
@@ -28,8 +27,8 @@ class Queue implements Hook
         $hookManager->hook(
             AbstractQueue::class,
             'createPayloadArray',
-            postHook: function (AbstractQueue $_queue, array $_params, array $payload, ?Throwable $_exception): array {
-                TraceContextPropagator::getInstance()->inject($payload);
+            postHook: function (AbstractQueue $_queue, array $_params, array $payload, ?Throwable $_exception) use ($context): array {
+                $context->propagator->inject($payload);
 
                 return $payload;
             },

@@ -8,16 +8,13 @@ use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Worker as QueueWorker;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
-use OpenTelemetry\API\Trace\SpanBuilderInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Queue\TracingIsolated;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Queue\TracingLinked;
-use OpenTelemetry\Contrib\Instrumentation\Laravel\Contracts\Queue\TracingParent;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
@@ -43,25 +40,22 @@ class Worker implements Hook
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 
-        $this->hookWorkerProcess($hookManager, $tracer);
+        $this->hookWorkerProcess($hookManager, $tracer, $context->propagator);
         $this->hookWorkerGetNextJob($hookManager, $tracer);
     }
 
     /** @psalm-suppress ArgumentTypeCoercion,UnusedReturnValue */
-    private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer): void
+    private function hookWorkerProcess(HookManagerInterface $hookManager, TracerInterface $tracer, TextMapPropagatorInterface $textMapPropagator): void
     {
         $hookManager->hook(
             QueueWorker::class,
             'process',
-            preHook: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
+            preHook: function (QueueWorker $worker, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($textMapPropagator, $tracer) {
                 $connectionName = $params[0];
                 /** @var Job $job */
                 $job = $params[1];
 
-                $parentContext = TraceContextPropagator::getInstance()->extract(
-                    $job->payload(),
-                );
-
+                $context = $textMapPropagator->extract($job->payload());
                 $queue = $worker->getManager()->connection($connectionName);
                 $attributes = $this->buildMessageAttributes($queue, $job->getRawBody(), $job->getQueue());
 
@@ -71,14 +65,24 @@ class Worker implements Hook
                         MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS,
                         $attributes[MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME],
                     ]))
+                    ->setParent($context)
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
                     ->setAttributes($attributes);
 
-                $context = $this->setParentContext($job, $spanBuilder, $parentContext);
+                if ($this->inheritsTracingInterface($job, TracingLinked::class)) {
+                    // Use the propagated trace context to link this new trace.
+                    $spanBuilder->addLink(Span::fromContext($context)->getContext());
+                    // Strip the propagated trace context.
+                    $spanBuilder->setParent(false);
+                } elseif ($this->inheritsTracingInterface($job, TracingIsolated::class)) {
+                    // Strip the propagated trace context.
+                    $spanBuilder->setParent(false);
+                }
 
-                $span = $spanBuilder->startSpan();
-
-                Context::storage()->attach($span->storeInContext($context));
+                // Keep the contextual baggage etc.
+                Context::storage()->attach(
+                    $spanBuilder->startSpan()->storeInContext($context),
+                );
 
                 return $params;
             },
@@ -156,46 +160,6 @@ class Worker implements Hook
                 $this->endSpan($exception);
             },
         );
-    }
-
-    /**
-     * Set parent context for the span builder, and return the context to be stored.
-     */
-    private function setParentContext(Job $job, SpanBuilderInterface $spanBuilder, ContextInterface|null $parentContext): ContextInterface
-    {
-        /**
-         * No parent context, isolated trace
-         */
-        if ($this->inheritsTracingInterface($job, TracingIsolated::class)) {
-
-            $spanBuilder->setParent(false);
-
-            return Context::getCurrent();
-        }
-
-        /**
-         * No parent, but has link to parent trace
-         */
-        if ($this->inheritsTracingInterface($job, TracingLinked::class) && $parentContext instanceof ContextInterface) {
-
-            $spanBuilder
-                ->setParent(false)
-                ->addLink(Span::fromContext($parentContext)->getContext());
-
-            return Context::getCurrent();
-        }
-
-        /**
-         * Parent context, normal trace, default behavior
-         */
-        if ($this->inheritsTracingInterface($job, TracingParent::class) || $parentContext instanceof ContextInterface) {
-
-            $spanBuilder->setParent($parentContext);
-
-            return $parentContext ?? Context::getCurrent();
-        }
-
-        return Context::getCurrent();
     }
 
     /**

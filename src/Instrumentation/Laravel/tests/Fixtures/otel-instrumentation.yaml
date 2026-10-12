@@ -1,5 +1,10 @@
 file_format: '1.0-rc.2'
 
+propagator:
+  composite:
+    - tracecontext:
+    - baggage:
+
 logger_provider:
   processors:
     - simple:
