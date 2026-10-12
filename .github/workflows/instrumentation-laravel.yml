@@ -26,25 +26,18 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
-          - 8.1
           - 8.2
           - 8.3
           - 8.4
+          - 8.5
         laravel-version:
-          - 10.x
-          - 11.x
           - 12.x
-          - 13.x
+          # See: https://github.com/vimeo/psalm/issues/11958
+          - '"13.x <13.32"'
 
         exclude:
-          - php-version: 8.1
-            laravel-version: 11.x
-          - php-version: 8.1
-            laravel-version: 12.x
-          - php-version: 8.1
-            laravel-version: 13.x
           - php-version: 8.2
-            laravel-version: 13.x
+            laravel-version: '"13.x <13.32"'
 
     uses: ./.github/workflows/php-contrib.yml
     with:
