@@ -195,7 +195,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertCount(1, $this->storage);
         $span = $this->storage[0];
-        $this->assertSame('', $span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertNull($span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
     }
 
     public function test_unknown_sql_operation_span_name(): void
