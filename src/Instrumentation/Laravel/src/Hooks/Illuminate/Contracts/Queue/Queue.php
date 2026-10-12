@@ -55,6 +55,7 @@ class Queue implements Hook
                     CodeAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
                     CodeAttributes::CODE_FILE_PATH => $filename,
                     CodeAttributes::CODE_LINE_NUMBER => $lineno,
+                    MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE => MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND,
                     MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT => count($params[0] ?? []),
                 ], $this->contextualMessageSystemAttributes($queue, []));
 
@@ -97,6 +98,7 @@ class Queue implements Hook
                     CodeAttributes::CODE_FUNCTION_NAME => sprintf('%s::%s', $class, $function),
                     CodeAttributes::CODE_FILE_PATH => $filename,
                     CodeAttributes::CODE_LINE_NUMBER => $lineno,
+                    MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE => MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_CREATE,
                     'messaging.message.delivery_timestamp' => $estimateDeliveryTimestamp,
                 ];
 
@@ -130,6 +132,7 @@ class Queue implements Hook
             preHook: function (QueueContract $queue, array $params, string $_class, string $_function, ?string $_filename, ?int $_lineno) use ($tracer) {
                 /** @phan-suppress-next-line PhanParamTooFewUnpack */
                 $attributes = $this->buildMessageAttributes($queue, ...$params);
+                $attributes[MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE] = MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_CREATE;
 
                 $parent = Context::getCurrent();
                 /** @psalm-suppress ArgumentTypeCoercion */
