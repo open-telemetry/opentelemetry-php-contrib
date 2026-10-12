@@ -58,16 +58,16 @@ trait CakeHookTrait
             ? $request->getAttribute(SpanInterface::class)
             : \OpenTelemetry\API\Trace\Span::getCurrent();
         $builder = $this->instrumentation->tracer()->spanBuilder(
-            $root
-                ? sprintf('%s::%s', $class, $function)
-                : sprintf('%s', $request?->getMethod() ?? 'unknown')
+            $request !== null && !$root
+                ? $request->getMethod()
+                : sprintf('%s::%s', $class, $function)
         )
             ->setSpanKind(SpanKind::KIND_SERVER)
             ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
             ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
             ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
         $parent = Context::getCurrent();
-        if (!$root && $request) {
+        if ($request !== null && !$root) {
             $this->isRoot = true;
             //create http root span
             $parent = Globals::propagator()->extract($request->getHeaders());
