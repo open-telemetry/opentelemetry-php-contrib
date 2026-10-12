@@ -20,7 +20,7 @@ final class LaravelConfiguration implements InstrumentationConfiguration
 
     public function shouldTraceCli(): bool
     {
-        return PHP_SAPI !== 'cli' || $this->traceCliEnabled;
+        return $this->traceCliEnabled && in_array(PHP_SAPI, ['cli', 'phpdbg'], true);
     }
 
     public function getHttpConfig(): HttpConfig
