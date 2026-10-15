@@ -12,8 +12,6 @@ use Nevay\SPI\ServiceLoader;
 use OpenTelemetry\API\Configuration\Config\ComponentProvider;
 use OpenTelemetry\SDK\SdkAutoloader;
 
-ServiceLoader::register(ComponentProvider::class, \OpenTelemetry\Contrib\Instrumentation\Laravel\Configuration\Config\LaravelComponentProvider::class);
-
 ServiceLoader::register(ComponentProvider::class, \OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\ComponentProvider\LogRecordExporterInMemory::class);
 ServiceLoader::register(ComponentProvider::class, \OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\ComponentProvider\SpanExporterInMemory::class);
 
