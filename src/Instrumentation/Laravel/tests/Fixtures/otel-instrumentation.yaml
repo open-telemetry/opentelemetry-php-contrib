@@ -21,3 +21,9 @@ instrumentation/development:
   php:
     laravel:
       enabled: true
+
+    http:
+      uri_sanitizers:
+        - default:
+        - redact_query_string_values:
+            query_keys: [ passwd, secret ]

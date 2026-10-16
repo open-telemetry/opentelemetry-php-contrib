@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Contracts\Http;
 
+use Http\Discovery\Psr17FactoryDiscovery;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
-use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\Span;
@@ -16,7 +16,6 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\PostHookTrait;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\LaravelConfiguration;
@@ -51,61 +50,82 @@ class Kernel implements Hook
             schemaUrl: Version::VERSION_1_24_0->url(),
         );
 
-        $this->hookHandle($hookManager, $tracer, $context->propagator);
+        $this->hookHandle($hookManager, $configuration, $context, $tracer);
     }
 
     /** @psalm-suppress ArgumentTypeCoercion,PossiblyUnusedReturnValue */
     protected function hookHandle(
         HookManagerInterface $hookManager,
+        LaravelConfiguration $configuration,
+        InstrumentationContext $context,
         TracerInterface $tracer,
-        TextMapPropagatorInterface $propagator,
     ): void {
         $hookManager->hook(
             KernelContract::class,
             'handle',
-            preHook: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer, $propagator) {
+            preHook: function (KernelContract $kernel, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($configuration, $context, $tracer) {
+                $parent = Context::getCurrent();
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $method = $request ? $this->httpMethod($request) : 'unknown';
                 /** @psalm-suppress ArgumentTypeCoercion */
-                $builder = $tracer
+                $spanBuilder = $tracer
                     ->spanBuilder($method)
                     ->setSpanKind(SpanKind::KIND_SERVER)
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
-                $parent = Context::getCurrent();
+
                 if ($request) {
                     /** @phan-suppress-next-line PhanAccessMethodInternal */
-                    $parent = $propagator->extract($request, HeadersPropagator::instance());
-                    $builder = $builder
+                    $parent = $context->propagator->extract($request, HeadersPropagator::instance());
+
+                    $spanBuilder
                         ->setParent($parent)
-                        ->setAttribute(UrlAttributes::URL_FULL, $this->httpFullUrl($request))
+                        ->setAttribute(ClientAttributes::CLIENT_ADDRESS, $request->ip())
+                        ->setAttribute(ClientAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
                         ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $method)
                         ->setAttribute(HttpIncubatingAttributes::HTTP_REQUEST_BODY_SIZE, $request->header('Content-Length'))
-                        ->setAttribute(UrlAttributes::URL_SCHEME, $request->getScheme())
-                        ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
                         ->setAttribute(NetworkAttributes::NETWORK_PEER_ADDRESS, $request->server('REMOTE_ADDR'))
-                        ->setAttribute(UrlAttributes::URL_PATH, $this->httpPath($request))
-                        ->setAttribute(ServerAttributes::SERVER_ADDRESS, $this->httpHostName($request))
+                        ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $request->getProtocolVersion())
+                        ->setAttribute(ServerAttributes::SERVER_ADDRESS, $this->httpHostName($request) ?: null)
                         ->setAttribute(ServerAttributes::SERVER_PORT, $request->getPort())
-                        ->setAttribute(ClientAttributes::CLIENT_PORT, $request->server('REMOTE_PORT'))
-                        ->setAttribute(ClientAttributes::CLIENT_ADDRESS, $request->ip())
+                        ->setAttribute(UrlAttributes::URL_PATH, $this->httpPath($request))
+                        ->setAttribute(UrlAttributes::URL_QUERY, $request->getQueryString())
+                        ->setAttribute(UrlAttributes::URL_SCHEME, $request->getScheme())
                         ->setAttribute(UserAgentAttributes::USER_AGENT_ORIGINAL, $request->userAgent());
 
-                    if (null !== $query = $request->getQueryString()) {
-                        $builder = $builder->setAttribute(UrlAttributes::URL_QUERY, $query);
+                    try {
+                        $uri = Psr17FactoryDiscovery::findUriFactory()->createUri($request->getUri());
+                        $sanitizedUri = $configuration->getHttpConfig()?->sanitizer->sanitize($uri);
+
+                        if ($sanitizedUri) {
+                            $spanBuilder->setAttributes([
+                                UrlAttributes::URL_FULL => vsprintf('%s://%s%s%s', [
+                                    $sanitizedUri->getScheme(),
+                                    $sanitizedUri->getHost(),
+                                    $sanitizedUri->getPath(),
+                                    !empty($sanitizedUri->getQuery()) ? '?' . $sanitizedUri->getQuery() : null,
+                                ]),
+                                UrlAttributes::URL_PATH => $sanitizedUri->getPath(),
+                                UrlAttributes::URL_QUERY => $sanitizedUri->getQuery() ?: null,
+                                UrlAttributes::URL_SCHEME => $sanitizedUri->getScheme(),
+                            ]);
+                        }
+                    } catch (Throwable) {
+                        // Uri parsing has failed.
                     }
 
-                    $span = $builder->startSpan();
+                    $span = $spanBuilder->startSpan();
                     $request->attributes->set(SpanInterface::class, $span);
                 } else {
-                    $span = $builder->startSpan();
+                    $span = $spanBuilder->startSpan();
                 }
+
                 Context::storage()->attach($span->storeInContext($parent));
 
                 return [$request];
             },
-            postHook: function (KernelContract $kernel, array $params, ?Response $response, ?Throwable $exception) {
+            postHook: function (KernelContract $kernel, array $params, ?Response $response, ?Throwable $exception) use ($context) {
                 $scope = Context::storage()->scope();
                 if (!$scope) {
                     return;
@@ -124,13 +144,15 @@ class Kernel implements Hook
                     if ($response->getStatusCode() >= 500) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
-                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
-                    $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
-                    $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $response->headers->get('Content-Length'));
+                    $span->setAttributes([
+                        HttpAttributes::HTTP_RESPONSE_STATUS_CODE => $response->getStatusCode(),
+                        NetworkAttributes::NETWORK_PROTOCOL_VERSION => $response->getProtocolVersion(),
+                        HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE => $response->headers->has('Content-Length')
+                            ? (int) $response->headers->get('Content-Length')
+                            : null,
+                    ]);
 
-                    $prop = Globals::responsePropagator();
-                    /** @phan-suppress-next-line PhanAccessMethodInternal */
-                    $prop->inject($response, ResponsePropagationSetter::instance(), $scope->context());
+                    $context->responsePropagator->inject($response, ResponsePropagationSetter::instance(), $scope->context());
                 }
 
                 $this->endSpan($exception);
@@ -149,15 +171,6 @@ class Kernel implements Hook
             return $request->method();
         } catch (Throwable) {
             return 'unknown';
-        }
-    }
-
-    private function httpFullUrl(Request $request): string
-    {
-        try {
-            return $request->fullUrl();
-        } catch (Throwable) {
-            return '';
         }
     }
 

@@ -23,6 +23,11 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=laravel
 ```
 
+## Supported Versions
+
+We aim to support major Laravel versions, up to at least the close of the security fixes window:
+https://laravel.com/framework/docs/releases#support-policy
+
 ## Component owners
 
 * [Chris Lightfoot-Wild](https://github.com/ChrisLightfootWild)
