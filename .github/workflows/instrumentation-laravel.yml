@@ -46,7 +46,7 @@ jobs:
           - php-version: 8.2
             laravel-version: 13.x
 
-    uses: ./.github/workflows/php-contrib.yml
+    uses: $/.github/workflows/php-contrib.yml
     with:
       job-name: "PHP ${{ matrix.php-version }}: Laravel ${{ matrix.laravel-version }}"
       codecov-flags: 'Instrumentation/Laravel'
