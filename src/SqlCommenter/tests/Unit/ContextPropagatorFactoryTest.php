@@ -47,6 +47,7 @@ class ContextPropagatorFactoryTest extends TestCase
             [sprintf('%s,%s', KnownValues::VALUE_TRACECONTEXT, KnownValues::VALUE_BAGGAGE), MultiTextMapPropagator::class],
             ['', null],
             ['invalid', null],
+            ['invalid1,invalid2', null],
         ];
     }
 }
