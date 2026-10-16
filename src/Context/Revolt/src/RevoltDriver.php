@@ -152,6 +152,7 @@ final class RevoltDriver implements Driver
 
     public function queue(Closure $closure, mixed ...$args): void
     {
+        /** @phan-suppress-next-line PhanTypeMismatchArgumentSuperType */
         $this->driver->queue($this->invokeCallback, $this, $closure, $args, Context::getCurrent());
     }
 
