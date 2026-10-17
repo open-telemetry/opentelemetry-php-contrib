@@ -37,6 +37,18 @@ class ModelTest extends TestCase
                 updated_at DATETIME
             )
         ');
+        DB::statement('CREATE TABLE IF NOT EXISTS test_related_models(
+                id BIGINT,
+                test_model_id BIGINT,
+                created_at DATETIME,
+                updated_at DATETIME
+            )
+        ');
+        DB::statement('CREATE TABLE IF NOT EXISTS test_model_test_related_model(
+                test_model_id BIGINT,
+                test_related_model_id BIGINT
+            )
+        ');
     }
 
     /**
@@ -155,6 +167,37 @@ class ModelTest extends TestCase
         $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel', $span->getAttributes()->get('laravel.eloquent.model'));
         $this->assertSame('test_models', $span->getAttributes()->get('laravel.eloquent.table'));
         $this->assertSame('get', $span->getAttributes()->get('laravel.eloquent.operation'));
+    }
+
+    public function test_get_nests_eager_loaded_relation_span(): void
+    {
+        DB::table('test_models')->insert(['id' => 1, 'name' => 'test']);
+
+        TestModel::with('relatedModels')->get();
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(2, $spans);
+
+        [$relatedSpan, $parentSpan] = $spans;
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get', $parentSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestRelatedModel::get', $relatedSpan->getName());
+        $this->assertSame($parentSpan->getSpanId(), $relatedSpan->getParentSpanId());
+    }
+
+    public function test_get_nests_eager_loaded_relation_span_calling_get_models_directly(): void
+    {
+        DB::table('test_models')->insert(['id' => 1, 'name' => 'test']);
+
+        // BelongsToMany::get() calls Builder::getModels() directly instead of going through Builder::get().
+        TestModel::with('pivotRelatedModels')->get();
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(2, $spans);
+
+        [$relatedSpan, $parentSpan] = $spans;
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get', $parentSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestRelatedModel::get', $relatedSpan->getName());
+        $this->assertSame($parentSpan->getSpanId(), $relatedSpan->getParentSpanId());
     }
 
     public function test_destory(): void
