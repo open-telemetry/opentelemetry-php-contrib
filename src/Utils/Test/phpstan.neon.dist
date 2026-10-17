@@ -10,3 +10,4 @@ parameters:
     ignoreErrors:
         - identifier: instanceof.alwaysTrue
         - identifier: method.alreadyNarrowedType
+        - identifier: trait.unused
