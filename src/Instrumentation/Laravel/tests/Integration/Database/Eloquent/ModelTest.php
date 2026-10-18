@@ -200,6 +200,27 @@ class ModelTest extends TestCase
         $this->assertSame($parentSpan->getSpanId(), $relatedSpan->getParentSpanId());
     }
 
+    public function test_get_nests_relation_span_queried_from_global_scope(): void
+    {
+        // Builder::get() applies global scopes before running its own query, so a relation queried
+        // from a scope must get its own span without affecting the outer query's span.
+        TestModel::query()
+            ->withGlobalScope('queries-relation', function (): void {
+                $model = new TestModel();
+                $model->setAttribute('id', 1);
+                $model->pivotRelatedModels()->get();
+            })
+            ->get();
+
+        $spans = $this->filterOnlyEloquentSpans();
+        $this->assertCount(2, $spans);
+
+        [$relatedSpan, $parentSpan] = $spans;
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestModel::get', $parentSpan->getName());
+        $this->assertSame('OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Fixtures\Models\TestRelatedModel::get', $relatedSpan->getName());
+        $this->assertSame($parentSpan->getSpanId(), $relatedSpan->getParentSpanId());
+    }
+
     public function test_destory(): void
     {
         TestModel::destroy([1]);
