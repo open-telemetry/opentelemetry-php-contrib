@@ -48,7 +48,7 @@ class ModelTest extends TestCase
         // So, filtering only spans has attribute named 'laravel.eloquent.operation'.
         return array_values(
             array_filter(
-                iterator_to_array($this->storage),
+                iterator_to_array($this->spanStorage),
                 fn ($span) =>
                     $span instanceof \OpenTelemetry\SDK\Trace\ImmutableSpan &&
                     $span->getAttributes()->has('laravel.eloquent.operation')

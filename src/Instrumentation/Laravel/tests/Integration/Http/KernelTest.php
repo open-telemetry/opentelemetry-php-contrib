@@ -16,8 +16,7 @@ class KernelTest extends TestCase
 
         $this->call('GET', '/redact?secret=password&plain=sight');
 
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
+        $span = $this->spanStorage[0];
         self::assertSame('GET /redact', $span->getName());
         self::assertSame('http://localhost/redact?plain=sight&secret=REDACTED', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         self::assertSame('plain=sight&secret=REDACTED', $span->getAttributes()->get(UrlAttributes::URL_QUERY));
