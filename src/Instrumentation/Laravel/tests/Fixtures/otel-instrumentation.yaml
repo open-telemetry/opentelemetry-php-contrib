@@ -9,13 +9,13 @@ logger_provider:
   processors:
     - simple:
         exporter:
-          test/in_memory_exporter: {}
+          memory/test_utils: {}
 
 tracer_provider:
   processors:
     - simple:
         exporter:
-         test/in_memory_exporter: {}
+         memory/test_utils: {}
 
 instrumentation/development:
   php:

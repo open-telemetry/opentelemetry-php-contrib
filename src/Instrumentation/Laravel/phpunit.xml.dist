@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
     backupGlobals="false"
     backupStaticProperties="false"
-    bootstrap="tests/bootstrap.php"
+    bootstrap="vendor/open-telemetry/test-utils/bootstrap-phpunit.php"
     cacheDirectory=".phpunit.cache"
     cacheResult="false"
     colors="false"
