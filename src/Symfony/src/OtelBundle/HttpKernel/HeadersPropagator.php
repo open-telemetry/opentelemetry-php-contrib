@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Symfony\OtelBundle\HttpKernel;
 
+use function count;
+use function implode;
 use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -24,21 +26,14 @@ final class HeadersPropagator implements PropagationGetterInterface
 
     /**
      * @param Request $carrier
+     *
+     * @phan-suppress PhanTypeMismatchArgumentInternal
      */
     public function get($carrier, string $key): ?string
     {
-        $result = null;
-        foreach ($carrier->headers->all($key) as $value) {
-            if ($value === null) {
-                continue;
-            }
-            if ($result === null) {
-                $result = $value;
-            } else {
-                $result .= ',' . $value;
-            }
-        }
-
-        return $result;
+        /** @psalm-suppress InvalidArgument */
+        return count($carrier->headers->all($key)) > 1
+            ? implode(',', $carrier->headers->all($key))
+            : $carrier->headers->get($key);
     }
 }
