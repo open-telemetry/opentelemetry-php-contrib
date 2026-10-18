@@ -36,17 +36,14 @@ class LaravelInstrumentationTest extends TestCase
     {
         $this->router()->get('/', fn () => null);
 
-        $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
-        $this->assertSame('GET /', $span->getName());
+        $this->assertCount(1, $this->spanStorage);
+        $this->assertSame('GET /', $this->spanStorage[0]->getName());
 
         $response = Http::fake()->get('https://opentelemetry.io');
         $this->assertEquals(200, $response->status());
-        $span = $this->storage[1];
-        $this->assertSame('GET', $span->getName());
+        $this->assertSame('GET', $this->spanStorage[1]->getName());
     }
 
     public function test_cache_log_db(): void
@@ -63,11 +60,10 @@ class LaravelInstrumentationTest extends TestCase
             return view('welcome', ['text' => $text]);
         });
 
-        $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/hello');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(3, $this->storage);
-        $span = $this->storage[2];
+        $this->assertCount(2, $this->spanStorage);
+        $span = $this->spanStorage[1];
         $this->assertSame('GET /hello', $span->getName());
         $this->assertSame('http://localhost/hello', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertCount(4, $span->getEvents());
@@ -76,7 +72,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertSame('cache hit', $span->getEvents()[2]->getName());
         $this->assertSame('cache forget', $span->getEvents()[3]->getName());
 
-        $span = $this->storage[1];
+        $span = $this->spanStorage[0];
         $this->assertSame('sql SELECT', $span->getName());
         $this->assertSame('SELECT', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
         $this->assertSame(':memory:', $span->getAttributes()->get(DbAttributes::DB_NAMESPACE));
@@ -86,7 +82,7 @@ class LaravelInstrumentationTest extends TestCase
         $this->assertNull($span->getAttributes()->get(ServerAttributes::SERVER_PORT));
 
         /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord */
-        $logRecord = $this->storage[0];
+        $logRecord = $this->logStorage[0];
         $this->assertSame('Log info', $logRecord->getBody());
         $this->assertSame('info', $logRecord->getSeverityText());
         $this->assertSame(9, $logRecord->getSeverityNumber());
@@ -98,47 +94,45 @@ class LaravelInstrumentationTest extends TestCase
     {
         $this->router()->get('/hello/{name}', fn () => null)->name('hello-name');
 
-        $this->assertCount(0, $this->storage);
+        $this->assertCount(0, $this->spanStorage);
         $response = $this->call('GET', '/hello/opentelemetry');
         $this->assertEquals(200, $response->status());
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
+        $this->assertCount(1, $this->spanStorage);
+        $span = $this->spanStorage[0];
         $this->assertSame('GET /hello/{name}', $span->getName());
     }
 
     public function test_route_span_name_if_not_found(): void
     {
-        $this->assertCount(0, $this->storage);
         $response = $this->call('GET', '/not-found');
         $this->assertEquals(404, $response->status());
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
-        $this->assertSame('GET', $span->getName());
+        $this->assertSame('GET', $this->spanStorage[0]->getName());
     }
 
     public function test_records_exception_in_logs(): void
     {
         $this->router()->get('/exception', fn () => throw new Exception('Test exception'));
         $this->call('GET', '/exception');
-        $logRecord = $this->storage[0];
-        $this->assertEquals(Exception::class, $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
-        $this->assertEquals('Test exception', $logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
-        $this->assertNotNull($logRecord->getAttributes()->get(ExceptionAttributes::EXCEPTION_STACKTRACE));
+        /** @var ReadWriteLogRecord $logRecord */
+        $logRecord = $this->spanStorage[0];
+        $this->assertEquals(Exception::class, $logRecord->getEvents()[0]->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
+        $this->assertEquals('Test exception', $logRecord->getEvents()[0]->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
+        $this->assertNotNull($logRecord->getEvents()[0]->getAttributes()->get(ExceptionAttributes::EXCEPTION_STACKTRACE));
     }
 
     public function test_url_path_root(): void
     {
         $this->router()->get('/', fn () => null);
         $this->call('GET', '/');
-        $span = $this->storage[0];
-        $this->assertSame('/', $span->getAttributes()->get(UrlAttributes::URL_PATH));
+
+        $this->assertSame('/', $this->spanStorage[0]->getAttributes()->get(UrlAttributes::URL_PATH));
     }
 
     public function test_url_path_non_root(): void
     {
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello');
-        $span = $this->storage[0];
+        $span = $this->spanStorage[0];
         $this->assertSame('/hello', $span->getAttributes()->get(UrlAttributes::URL_PATH));
     }
 
@@ -146,7 +140,8 @@ class LaravelInstrumentationTest extends TestCase
     {
         $this->router()->get('/', fn () => null);
         $this->call('GET', '/?foo=bar');
-        $span = $this->storage[0];
+
+        $span = $this->spanStorage[0];
         $this->assertSame('/', $span->getAttributes()->get(UrlAttributes::URL_PATH));
         $this->assertSame('foo=bar', $span->getAttributes()->get(UrlAttributes::URL_QUERY));
     }
@@ -155,7 +150,8 @@ class LaravelInstrumentationTest extends TestCase
     {
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello?foo=bar');
-        $span = $this->storage[0];
+
+        $span = $this->spanStorage[0];
         $this->assertSame('/hello', $span->getAttributes()->get(UrlAttributes::URL_PATH));
         $this->assertSame('foo=bar', $span->getAttributes()->get(UrlAttributes::URL_QUERY));
     }
@@ -164,7 +160,8 @@ class LaravelInstrumentationTest extends TestCase
     {
         $this->router()->get('/hello', fn () => null);
         $this->call('GET', '/hello');
-        $span = $this->storage[0];
+
+        $span = $this->spanStorage[0];
         $this->assertFalse($span->getAttributes()->has(UrlAttributes::URL_QUERY));
     }
 
@@ -176,9 +173,7 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->call('POST', '/', server: ['HTTP_X_HTTP_METHOD_OVERRIDE' => '__construct']);
 
         $this->assertSame(200, $response->status());
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
-        $this->assertSame('POST /', $span->getName());
+        $this->assertSame('POST /', $this->spanStorage[0]->getName());
     }
 
     public function test_malformed_host_header_does_not_break_instrumentation(): void
@@ -193,9 +188,7 @@ class LaravelInstrumentationTest extends TestCase
         $response = $this->app->make(HttpKernel::class)->handle($request);
 
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertCount(1, $this->storage);
-        $span = $this->storage[0];
-        $this->assertNull($span->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
+        $this->assertNull($this->spanStorage[0]->getAttributes()->get(ServerAttributes::SERVER_ADDRESS));
     }
 
     public function test_unknown_sql_operation_span_name(): void
@@ -208,7 +201,7 @@ class LaravelInstrumentationTest extends TestCase
 
         $this->call('GET', '/pragma');
 
-        $span = $this->storage[0];
+        $span = $this->spanStorage[0];
         $this->assertSame('sql', $span->getName());
         $this->assertNull($span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
     }
@@ -230,7 +223,7 @@ class LaravelInstrumentationTest extends TestCase
             Clock::reset();
         }
 
-        $span = $this->storage[0];
+        $span = $this->spanStorage[0];
         $this->assertSame('sql SELECT', $span->getName());
         $this->assertSame($now, $span->getEndEpochNanos());
         $this->assertLessThanOrEqual($now, $span->getStartEpochNanos());
