@@ -26,6 +26,8 @@ final class HeadersPropagator implements PropagationGetterInterface
 
     /**
      * @param Request $carrier
+     *
+     * @phan-suppress PhanTypeMismatchArgumentInternal
      */
     public function get($carrier, string $key): ?string
     {
