@@ -101,14 +101,31 @@ final class SymfonyInstrumentation
                 ?\Throwable $exception
             ): void {
                 $scope = Context::storage()->scope();
-                if (null === $scope || null === $exception) {
+                if (null === $scope) {
+                    return;
+                }
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
+                $isSubRequest = ($type === HttpKernelInterface::SUB_REQUEST);
+
+                // MAIN_REQUEST without exception: let terminate() handle everything
+                if (!$isSubRequest && null === $exception) {
                     return;
                 }
 
                 $span = Span::fromContext($scope->context());
                 $scope->detach();
-                $span->recordException($exception);
-                $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+
+                // Record exception if present
+                if (null !== $exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
+                // Remaining cases are sub-requests and main requests with an
+                // exception, which terminate() will not handle: end the span here.
+                if ($isSubRequest && null !== $response) {
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                }
                 $span->end();
             }
         );
@@ -126,8 +143,12 @@ final class SymfonyInstrumentation
                 if (null === $scope) {
                     return;
                 }
-                $scope->detach();
                 $span = Span::fromContext($scope->context());
+                if (!$span->isRecording()) {
+                    // Sub-request/exception span was already ended by the handle() hook
+                    return;
+                }
+                $scope->detach();
 
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $response = ($params[1] instanceof Response) ? $params[1] : null;
