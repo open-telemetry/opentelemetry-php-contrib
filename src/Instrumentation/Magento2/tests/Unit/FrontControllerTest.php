@@ -158,10 +158,8 @@ final class FrontControllerTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Front controller reached 100 router match iterations');
         $validCounter = 0;
-        $callbackValid = /**
-         * @psalm-capabilities read-props|write-this-props|write-refs
-         */
-        static function () use (&$validCounter): bool {
+        /** @psalm-capabilities read-props|write-this-props|write-refs */
+        $callbackValid = static function () use (&$validCounter): bool {
             $validCounter++;
 
             return $validCounter % 10 ? false : true;
