@@ -14,8 +14,7 @@
     "open-telemetry/api": "^1.6",
     "open-telemetry/sem-conv": "^1.38",
     "symfony/http-kernel": "*",
-    "symfony/http-client-contracts": "*",
-    "symfony/routing": "*"
+    "symfony/http-client-contracts": "*"
   },
   "suggest": {
     "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
@@ -31,7 +30,6 @@
     "open-telemetry/sdk": "^1.8",
     "phpunit/phpunit": "^9.5",
     "vimeo/psalm": "^6.4",
-    "symfony/config": "^5.4||^6.0||^7.0",
     "symfony/http-client": "^5.4||^6.0",
     "symfony/messenger": "^5.4||^6.0",
     "open-telemetry/opentelemetry-propagation-traceresponse": "*"

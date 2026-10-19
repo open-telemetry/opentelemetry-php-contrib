@@ -11,7 +11,6 @@ use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
-use Symfony\Component\Config\Loader\Loader;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -24,10 +23,6 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\Router;
 
 class SymfonyInstrumentationTest extends AbstractTest
 {
@@ -71,83 +66,22 @@ class SymfonyInstrumentationTest extends AbstractTest
         $kernel = $this->getHttpKernel(new EventDispatcher());
         $this->assertCount(0, $this->storage);
         $request = new Request();
-        // When _route_path is available, it should be used for http.route (per OpenTelemetry semantic conventions)
         $request->attributes->set('_route', 'test_route');
-        $request->attributes->set('_route_path', '/test/{id}');
 
         $response = $kernel->handle($request);
         $kernel->terminate($request, $response);
 
         $attributes = $this->storage[0]->getAttributes();
         $this->assertCount(1, $this->storage);
-        $this->assertEquals('GET /test/{id}', $this->storage[0]->getName());
+        $this->assertEquals('GET test_route', $this->storage[0]->getName());
         $this->assertEquals('http://:/', $attributes->get(UrlAttributes::URL_FULL));
         $this->assertEquals('GET', $attributes->get(HttpAttributes::HTTP_REQUEST_METHOD));
         $this->assertEquals('http', $attributes->get(UrlAttributes::URL_SCHEME));
-        $this->assertEquals('/test/{id}', $attributes->get(HttpAttributes::HTTP_ROUTE));
+        $this->assertEquals('test_route', $attributes->get(HttpAttributes::HTTP_ROUTE));
         $this->assertEquals(200, $attributes->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
         $this->assertEquals('1.0', $attributes->get(NetworkAttributes::NETWORK_PROTOCOL_VERSION));
         $this->assertEquals(5, $attributes->get(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE));
-    }
 
-    public function test_http_kernel_handle_fallback_to_route_name(): void
-    {
-        $kernel = $this->getHttpKernel(new EventDispatcher());
-        $this->assertCount(0, $this->storage);
-        $request = new Request();
-        // When _route_path is not available, fall back to _route (route name)
-        $request->attributes->set('_route', 'test_route');
-
-        $response = $kernel->handle($request);
-        $kernel->terminate($request, $response);
-
-        $this->assertCount(1, $this->storage);
-        $attributes = $this->storage[0]->getAttributes();
-        $this->assertEquals('GET test_route', $this->storage[0]->getName());
-        $this->assertEquals('test_route', $attributes->get(HttpAttributes::HTTP_ROUTE));
-    }
-
-    public function test_router_match_request_hook_populates_route_path_on_same_request(): void
-    {
-        $routes = new RouteCollection();
-        $routes->add('test_route', new Route('/test/{id}'));
-
-        $loader = new class($routes) extends Loader {
-            public function __construct(private readonly RouteCollection $routes)
-            {
-            }
-
-            public function load(mixed $resource, ?string $type = null): mixed
-            {
-                return $this->routes;
-            }
-
-            public function supports(mixed $resource, ?string $type = null): bool
-            {
-                return true;
-            }
-        };
-
-        $router = new Router($loader, 'routes', [], new RequestContext());
-
-        $request = Request::create('http://localhost/test/42');
-        $this->assertFalse($request->attributes->has('_route_path'));
-
-        $result = $router->matchRequest($request);
-        $request->attributes->add($result); // as Symfony's RouterListener does
-
-        // The post hook ran and mutated our $request instance in place
-        $this->assertSame('test_route', $result['_route']);
-        $this->assertSame('/test/{id}', $request->attributes->get('_route_path'));
-
-        // The HttpKernel::terminate hook picks up the route path template
-        $kernel = $this->getHttpKernel(new EventDispatcher());
-        $response = $kernel->handle($request);
-        $kernel->terminate($request, $response);
-
-        $this->assertCount(1, $this->storage);
-        $this->assertSame('GET /test/{id}', $this->storage[0]->getName());
-        $this->assertSame('/test/{id}', $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_ROUTE));
     }
 
     public function test_http_kernel_handle_stream_response(): void
