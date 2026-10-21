@@ -191,7 +191,10 @@ class Model implements Hook
      */
     private function hookRelationGet(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
-        foreach ([BelongsToMany::class, HasOneOrManyThrough::class] as $relationClass) {
+        $throughRelationClass = class_exists(HasOneOrManyThrough::class)
+            ? HasOneOrManyThrough::class
+            : \Illuminate\Database\Eloquent\Relations\HasManyThrough::class;
+        foreach ([BelongsToMany::class, $throughRelationClass] as $relationClass) {
             /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
             $hookManager->hook(
                 $relationClass,
