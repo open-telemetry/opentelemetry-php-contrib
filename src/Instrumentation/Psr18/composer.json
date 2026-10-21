@@ -26,6 +26,7 @@
     "friendsofphp/php-cs-fixer": "^3",
     "nyholm/psr7": "*",
     "open-telemetry/sdk": "^1.0",
+    "open-telemetry/sdk-configuration": "^0.8",
     "open-telemetry/test-utils": "^0.3",
     "phan/phan": "^6.0",
     "php-http/mock-client": "*",

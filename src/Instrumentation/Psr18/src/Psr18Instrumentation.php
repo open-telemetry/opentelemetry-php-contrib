@@ -14,6 +14,7 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Contrib\Instrumentation\Psr18\Configuration\Psr18Configuration;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
@@ -44,6 +45,12 @@ class Psr18Instrumentation implements Instrumentation
 
     public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, InstrumentationContext $context): void
     {
+        $psr18Configuration = $configuration->get(Psr18Configuration::class) ?? new Psr18Configuration();
+
+        if (!$psr18Configuration->enabled) {
+            return;
+        }
+
         $tracer = $context->tracerProvider->getTracer(
             'io.opentelemetry.contrib.php.psr18',
             schemaUrl: Version::VERSION_1_38_0->url(),

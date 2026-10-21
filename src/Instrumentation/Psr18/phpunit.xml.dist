@@ -3,21 +3,21 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
   backupGlobals="false"
+  backupStaticProperties="false"
   bootstrap="vendor/open-telemetry/test-utils/bootstrap-phpunit.php"
+  cacheDirectory=".phpunit.cache"
   cacheResult="false"
   colors="false"
   processIsolation="false"
+  requireCoverageMetadata="false"
   stopOnError="false"
   stopOnFailure="false"
   stopOnIncomplete="false"
-  stopOnSkipped="false"
   stopOnRisky="false"
-  timeoutForSmallTests="1"
-  timeoutForMediumTests="10"
+  stopOnSkipped="false"
   timeoutForLargeTests="60"
-  cacheDirectory=".phpunit.cache"
-  backupStaticProperties="false"
-  requireCoverageMetadata="false">
+  timeoutForMediumTests="10"
+  timeoutForSmallTests="1">
   <php>
     <ini name="date.timezone" value="UTC"/>
     <ini name="display_errors" value="On"/>
