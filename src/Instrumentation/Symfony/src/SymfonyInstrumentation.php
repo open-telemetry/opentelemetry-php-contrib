@@ -163,16 +163,13 @@ final class SymfonyInstrumentation
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $response = ($params[1] instanceof Response) ? $params[1] : null;
                 if (null !== $request) {
-                    // Prefer route path template (per OpenTelemetry semantic conventions)
-                    // Fall back to route name for backwards compatibility
-                    $httpRoute = $request->attributes->get('_route_path', '')
-                        ?: $request->attributes->get('_route', '');
+                    $routeName = $request->attributes->get('_route', '');
 
-                    if ('' !== $httpRoute) {
+                    if ('' !== $routeName) {
                         /** @psalm-suppress ArgumentTypeCoercion */
                         $span
-                            ->updateName(sprintf('%s %s', $request->getMethod(), $httpRoute))
-                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $httpRoute);
+                            ->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
+                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $routeName);
                     }
                 }
 
