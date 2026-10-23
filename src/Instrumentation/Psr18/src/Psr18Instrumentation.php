@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Psr18;
 
 use function get_cfg_var;
-use OpenTelemetry\API\Globals;
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use Nevay\SPI\ServiceProviderDependency\ExtensionDependency;
+use OpenTelemetry\API\Configuration\ConfigProperties;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
-use function OpenTelemetry\Instrumentation\hook;
+use OpenTelemetry\Contrib\Instrumentation\Psr18\Configuration\Psr18Configuration;
 use OpenTelemetry\SDK\Common\Configuration\Configuration;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
@@ -29,7 +32,8 @@ use function strtolower;
 use Throwable;
 
 /** @psalm-suppress UnusedClass */
-class Psr18Instrumentation
+#[ExtensionDependency('opentelemetry', '^1.0')]
+class Psr18Instrumentation implements Instrumentation
 {
     /** @psalm-suppress ArgumentTypeCoercion */
     public const NAME = 'psr18';
@@ -39,18 +43,24 @@ class Psr18Instrumentation
     private const CAPTURE_RESPONSE_HEADERS_LEGACY_CFG_OPT_NAME = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
     private const CAPTURE_RESPONSE_HEADERS_CFG_OPT_NAME = 'OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS';
 
-    public static function register(): void
+    public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, InstrumentationContext $context): void
     {
-        $instrumentation = new CachedInstrumentation(
+        $psr18Configuration = $configuration->get(Psr18Configuration::class) ?? new Psr18Configuration();
+
+        if (!$psr18Configuration->enabled) {
+            return;
+        }
+
+        $tracer = $context->tracerProvider->getTracer(
             'io.opentelemetry.contrib.php.psr18',
             schemaUrl: Version::VERSION_1_38_0->url(),
         );
 
-        /** @psalm-suppress UnusedFunctionCall */
-        hook(
+        /** @psalm-suppress ArgumentTypeCoercion */
+        $hookManager->hook(
             ClientInterface::class,
             'sendRequest',
-            pre: static function (ClientInterface $client, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation): ?array {
+            preHook: static function (ClientInterface $client, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($context, $tracer): ?array {
                 $request = $params[0] ?? null;
                 if (!$request instanceof RequestInterface) {
                     Context::storage()->attach(Context::getCurrent());
@@ -58,12 +68,9 @@ class Psr18Instrumentation
                     return null;
                 }
 
-                $propagator = Globals::propagator();
                 $parentContext = Context::getCurrent();
 
-                /** @psalm-suppress ArgumentTypeCoercion */
-                $spanBuilder = $instrumentation
-                    ->tracer()
+                $spanBuilder = $tracer
                     ->spanBuilder(sprintf('%s', $request->getMethod()))
                     ->setParent($parentContext)
                     ->setSpanKind(SpanKind::KIND_CLIENT)
@@ -79,9 +86,10 @@ class Psr18Instrumentation
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                 ;
 
-                foreach ($propagator->fields() as $field) {
+                foreach ($context->propagator->fields() as $field) {
                     $request = $request->withoutHeader($field);
                 }
+
                 foreach (self::getRequestHeadersToCapture() as $header) {
                     if ($request->hasHeader($header)) {
                         $spanBuilder->setAttribute(
@@ -92,14 +100,14 @@ class Psr18Instrumentation
                 }
 
                 $span = $spanBuilder->startSpan();
-                $context = $span->storeInContext($parentContext);
-                $propagator->inject($request, HeadersPropagator::instance(), $context);
+                $inContext = $span->storeInContext($parentContext);
+                $context->propagator->inject($request, HeadersPropagator::instance(), $inContext);
 
-                Context::storage()->attach($context);
+                Context::storage()->attach($inContext);
 
                 return [$request];
             },
-            post: static function (ClientInterface $client, array $params, ?ResponseInterface $response, ?Throwable $exception): void {
+            postHook: static function (ClientInterface $client, array $params, ?ResponseInterface $response, ?Throwable $exception): void {
                 $scope = Context::storage()->scope();
                 $scope?->detach();
 
@@ -110,21 +118,22 @@ class Psr18Instrumentation
 
                 $span = Span::fromContext($scope->context());
 
-                if ($response) {
+                if ($response instanceof ResponseInterface) {
                     $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
                     $span->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_VERSION, $response->getProtocolVersion());
                     $span->setAttribute(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE, $response->getHeaderLine('Content-Length'));
 
                     foreach (self::getResponseHeadersToCapture() as $header) {
                         if ($response->hasHeader($header)) {
-                            /** @psalm-suppress ArgumentTypeCoercion */
                             $span->setAttribute(sprintf('http.response.header.%s', strtolower($header)), $response->getHeader($header));
                         }
                     }
+
                     if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
                         $span->setStatus(StatusCode::STATUS_ERROR);
                     }
                 }
+
                 if ($exception) {
                     $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
