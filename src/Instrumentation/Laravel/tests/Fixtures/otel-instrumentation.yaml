@@ -9,15 +9,21 @@ logger_provider:
   processors:
     - simple:
         exporter:
-          test/in_memory_exporter: {}
+          memory/test_utils: {}
 
 tracer_provider:
   processors:
     - simple:
         exporter:
-         test/in_memory_exporter: {}
+         memory/test_utils: {}
 
 instrumentation/development:
   php:
     laravel:
       enabled: true
+
+    http:
+      uri_sanitizers:
+        - default:
+        - redact_query_string_values:
+            query_keys: [ passwd, secret ]

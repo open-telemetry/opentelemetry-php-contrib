@@ -30,6 +30,7 @@ jobs:
           - 8.2
           - 8.3
           - 8.4
+          - 8.5
         laravel-version:
           - 10.x
           - 11.x
