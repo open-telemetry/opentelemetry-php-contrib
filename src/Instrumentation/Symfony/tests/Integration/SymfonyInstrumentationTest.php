@@ -6,6 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
@@ -207,6 +208,36 @@ class SymfonyInstrumentationTest extends AbstractTest
         $response = $kernel->handle($request, \Symfony\Component\HttpKernel\HttpKernelInterface::SUB_REQUEST);
         $kernel->terminate($request, $response);
         $this->assertSame('GET sub-request', $this->storage[0]->getName());
+    }
+
+    public function test_http_kernel_handle_subrequest_exception_is_recorded_and_span_ended(): void
+    {
+        $kernel = $this->getHttpKernel(new EventDispatcher(), function () {
+            throw new \RuntimeException('sub-request failed');
+        });
+        $request = new Request();
+        $request->attributes->set('_controller', 'FailingController');
+
+        try {
+            // catch=false: exception propagates directly, matching HttpKernel::handleRaw failures
+            $kernel->handle($request, HttpKernelInterface::SUB_REQUEST, false);
+            $this->fail('Expected RuntimeException to be thrown');
+        } catch (\RuntimeException) {
+            // expected
+        }
+
+        // The sub-request span is ended by the handle() hook itself,
+        // without waiting for terminate() (which only handles the main request)
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame('GET FailingController', $span->getName());
+        $this->assertSame(SpanKind::KIND_INTERNAL, $span->getKind());
+        $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
+        $this->assertSame('sub-request failed', $span->getStatus()->getDescription());
+
+        $events = $span->getEvents();
+        $this->assertCount(1, $events);
+        $this->assertSame('exception', $events[0]->getName());
     }
 
     public function test_http_kernel_handle_uncaught_exception_ends_span(): void

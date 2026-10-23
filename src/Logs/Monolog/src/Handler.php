@@ -93,5 +93,4 @@ class Handler extends AbstractProcessingHandler
         }
         $recordBuilder->emit();
     }
-
 }

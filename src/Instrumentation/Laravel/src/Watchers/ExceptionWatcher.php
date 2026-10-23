@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
 use OpenTelemetry\API\Trace\Span;
@@ -14,10 +15,12 @@ use Throwable;
 class ExceptionWatcher extends Watcher
 {
     /** @psalm-suppress UndefinedInterfaceMethod */
+    #[\Override]
     public function register(Application $app): void
     {
-        /** @phan-suppress-next-line PhanTypeArraySuspicious */
-        $app['events']->listen(MessageLogged::class, [$this, 'recordException']);
+        $app->afterResolving('events', function (Dispatcher $dispatcher) {
+            $dispatcher->listen(MessageLogged::class, [$this, 'recordException']);
+        });
     }
     /**
      * Record an exception.

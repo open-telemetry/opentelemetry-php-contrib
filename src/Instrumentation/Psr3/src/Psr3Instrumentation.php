@@ -95,6 +95,7 @@ class Psr3Instrumentation
 
     private static function getMode(): string
     {
+        /** @phan-suppress-next-line PhanDeprecatedClass */
         $resolver = new ConfigurationResolver();
         if ($resolver->has(self::OTEL_PHP_PSR3_MODE)) {
             $val = $resolver->getString(self::OTEL_PHP_PSR3_MODE);

@@ -26,7 +26,7 @@ jobs:
 
       - name: Generate App Token
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           # There is an official OpenTelemetry GitHub App already, but it is not scoped to create new repositories.
           # https://github.com/open-telemetry/community/blob/main/assets.md#otelbot
@@ -54,3 +54,8 @@ jobs:
         env:
           # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
           GH_TOKEN: "x-access-token:${{ steps.app-token.outputs.token }}"
+
+      - uses: ./.github/actions/packagist-publisher
+        with:
+          api_key: ${{ secrets.PACKAGIST_API_KEY }}
+          username: ${{ vars.PACKAGIST_USERNAME }}

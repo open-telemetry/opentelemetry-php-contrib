@@ -31,6 +31,7 @@ class HandlerTest extends TestCase
     public function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
+        /** @psalm-suppress InternalClass,InternalMethod */
         $this->logger->method('logRecordBuilder')->willReturn(new LogRecordBuilder($this->logger));
         $this->provider = $this->createMock(LoggerProviderInterface::class);
         $this->provider->method('getLogger')->willReturn($this->logger);

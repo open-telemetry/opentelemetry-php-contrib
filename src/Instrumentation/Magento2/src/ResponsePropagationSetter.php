@@ -12,7 +12,6 @@ final class ResponsePropagationSetter implements PropagationSetterInterface
 {
     private static ?self $instance = null;
 
-    /** @psalm-external-mutation-free */
     public static function getInstance(): self
     {
         if (null === self::$instance) {

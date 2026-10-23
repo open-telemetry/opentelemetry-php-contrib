@@ -10,6 +10,8 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Context\ContextKeyInterface;
 use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
@@ -40,6 +42,20 @@ final class HttpClientInstrumentation
         return false === in_array($class, self::SYNCHRONOUS_CLIENTS);
     }
 
+    private static function requestKey(): ContextKeyInterface
+    {
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-http-client.request');
+    }
+
+    private static function forwardedKey(): ContextKeyInterface
+    {
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-http-client.forwarded');
+    }
+
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
@@ -60,6 +76,15 @@ final class HttpClientInstrumentation
                 ?string $filename,
                 ?int $lineno,
             ) use ($instrumentation): array {
+                $parent = Context::getCurrent();
+                $request = sprintf('%s %s', $params[0], (string) $params[1]);
+
+                if ($parent->get(self::requestKey()) === $request) {
+                    Context::storage()->attach($parent->with(self::forwardedKey(), true));
+
+                    return $params;
+                }
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
@@ -73,7 +98,6 @@ final class HttpClientInstrumentation
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
 
                 $propagator = Globals::propagator();
-                $parent = Context::getCurrent();
 
                 $span = $builder
                     ->setParent($parent)
@@ -87,7 +111,7 @@ final class HttpClientInstrumentation
 
                 /** @psalm-suppress UndefinedClass */
                 if (false === self::supportsProgress($class)) {
-                    $context = $span->storeInContext($parent);
+                    $context = self::ownerContext($span->storeInContext($parent), $request);
                     $propagator->inject($requestOptions['headers'], ArrayAccessGetterSetter::getInstance(), $context);
 
                     Context::storage()->attach($context);
@@ -119,7 +143,7 @@ final class HttpClientInstrumentation
                     }
                 };
 
-                $context = $span->storeInContext($parent);
+                $context = self::ownerContext($span->storeInContext($parent), $request);
                 $propagator->inject($requestOptions['headers'], ArrayAccessGetterSetter::getInstance(), $context);
 
                 Context::storage()->attach($context);
@@ -138,6 +162,11 @@ final class HttpClientInstrumentation
                     return;
                 }
                 $scope->detach();
+
+                if (true === $scope->context()->get(self::forwardedKey())) {
+                    return;
+                }
+
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
@@ -160,5 +189,12 @@ final class HttpClientInstrumentation
                 // it's added in on_progress callback, see line 69
             },
         );
+    }
+
+    private static function ownerContext(ContextInterface $context, string $request): ContextInterface
+    {
+        return $context
+            ->with(self::requestKey(), $request)
+            ->with(self::forwardedKey(), false);
     }
 }
