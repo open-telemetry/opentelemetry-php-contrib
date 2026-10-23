@@ -35,6 +35,7 @@ final class HttpClientInstrumentation
     const SYNCHRONOUS_CLIENTS = [
         /** @psalm-suppress UndefinedClass */
         'ApiPlatform\Symfony\Bundle\Test\Client',
+        'ApiPlatform\Test\Client',
     ];
 
     public static function supportsProgress(string $class): bool
