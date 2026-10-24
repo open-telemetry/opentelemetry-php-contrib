@@ -22,7 +22,7 @@
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^9.5",
-        "psalm/plugin-phpunit": "^0.19.2",
+        "psalm/plugin-phpunit": "^0.21.0",
         "symfony/config": "^6.4|^7.0|^8.0",
         "vimeo/psalm": "^6.4"
     },
