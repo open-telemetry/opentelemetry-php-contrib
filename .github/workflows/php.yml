@@ -5,192 +5,72 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron: '17 4 * * 1' # weekly, runs every project against new dependency releases
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# Pull requests and pushes to main run only the projects they change, so
+# a cancelled main run would leave its projects untested until the
+# weekly run. Only pull requests share a group and cancel.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  php:
+  detect:
     runs-on: ubuntu-latest
-    continue-on-error: false
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ['8.1', '8.2', '8.3', '8.4']
-        # Sorted alphabetically to ease finding the desired run in the GitHub Workflow UI.
-        project: [
-          'Aws',
-          'Context/Revolt',
-          'Context/Swoole',
-          'Exporter/Instana',
-          'Instrumentation/AwsSdk',
-          'Instrumentation/CakePHP',
-          'Instrumentation/CodeIgniter',
-          # 'Instrumentation/Curl', Experiment: moved to instrumentation-curl.yml
-          'Instrumentation/Doctrine',
-          'Instrumentation/ExtAmqp',
-          # 'Instrumentation/ExtRdKafka', # # Experiment: moved to instrumentation-ext-rdkafka.yml
-          # 'Instrumentation/Guzzle', # Needs a guzzle version matrix: moved to instrumentation-guzzle.yml
-          'Instrumentation/HttpAsyncClient',
-          # 'Instrumentation/HttpConfig', # Experiment: moved to instrumentation-httpconfig.yml
-          'Instrumentation/IO',
-          # 'Instrumentation/Laravel', # Experiment: moved to instrumentation-laravel.yml
-          'Instrumentation/Magento2',
-          'Instrumentation/MongoDB',
-          # 'Instrumentation/MySqli', # # Experiment: moved to instrumentation-mysqli.yml
-          'Instrumentation/OpenAIPHP',
-          'Instrumentation/PDO',
-          'Instrumentation/PostgreSql',
-          # Sort PSRs numerically.
-          # 'Instrumentation/Psr3', # Experiment: moved to instrumentation-psr3.yml
-          'Instrumentation/Psr6',
-          'Instrumentation/Psr14',
-          'Instrumentation/Psr15',
-          'Instrumentation/Psr16',
-          'Instrumentation/Psr18',
-          'Instrumentation/ReactPHP',
-          'Instrumentation/Session', 
-          'Instrumentation/Slim',
-          'Instrumentation/Symfony',
-          'Instrumentation/Yii',
-          'Logs/Monolog',
-          # 'Metrics/Runtime', # Experiment: moved to metrics-runtime.yml
-          'Propagation/CloudTrace',
-          'Propagation/Instana',
-          'Propagation/ServerTiming',
-          'Propagation/TraceResponse',
-          'ResourceDetectors/Azure',
-          'ResourceDetectors/Container',
-          'ResourceDetectors/DigitalOcean',
-          'Sampler/RuleBased',
-          'Sampler/Xray',
-          'Shims/OpenTracing',
-          'SqlCommenter',
-          'Symfony',
-          'Utils/Test'
-        ]
-        exclude:
-
-          - project: 'Instrumentation/Curl'
-            php-version: 8.1
-          - project: 'Instrumentation/ExtAmqp'
-            php-version: 8.1
-          - project: 'Instrumentation/ExtRdKafka'
-            php-version: 8.1
-          - project: 'Instrumentation/IO'
-            php-version: 8.1
-          - project: 'Instrumentation/MySqli'
-            php-version: 8.1
-          - project: 'Instrumentation/PDO'
-            php-version: 8.1
-          - project: 'Instrumentation/PostgreSql'
-            php-version: 8.1
-          - project: 'Instrumentation/Session'
-            php-version: 8.1
-          - project: 'Instrumentation/Magento2'
-            php-version: 8.1
-          - project: 'Instrumentation/Magento2'
-            php-version: 8.2
+    outputs:
+      projects: ${{ steps.matrix.outputs.projects }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+        fetch-depth: 2
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
-      with:
-        php-version: ${{ matrix.php-version }}
-        coverage: xdebug
-        extensions: ast, amqp, grpc, opentelemetry, rdkafka, mysqli, pgsql
+    # Tests matrix.sh on fixture repositories, before trusting it to
+    # build this run's matrix. See .github/ci/README.md.
+    - name: Test matrix script
+      run: bash .github/ci/matrix_test.sh
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate
-
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: src/${{ matrix.project }}/vendor
-        key: ${{ runner.os }}-${{ matrix.php-version }}-php-${{ hashFiles('**/composer.json') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.php-version }}-php-
-
-    - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
-      working-directory: src/${{ matrix.project }}
-      run: |
-        composer config --no-interaction --global policy.advisories.block false
-        composer config --no-plugins allow-plugins.php-http/discovery false
-        composer install --no-progress --no-interaction
-
-    - name: Validate Packages composer.json
-      working-directory: src/${{ matrix.project }}
-      run: composer validate
-
-    - name: Check Style
-      working-directory: src/${{ matrix.project }}
-      run: PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv
-
-    - name: Run Phan
-      working-directory: src/${{ matrix.project }}
+    - name: Build matrix
+      id: matrix
       env:
-        PHAN_DISABLE_XDEBUG_WARN: 1
-      run: vendor/bin/phan
-
-    - name: Run Psalm
-      working-directory: src/${{ matrix.project }}
-      run: vendor/bin/psalm --output-format=github --php-version=${{ matrix.php-version }}
-
-    - name: Run Phpstan
-      working-directory: src/${{ matrix.project }}
-      run: vendor/bin/phpstan analyse --error-format=github
-
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@315db7fe45ac2880b7758f1933e6e5d59afd5e94 # 1.12.1
-      if: ${{ matrix.project == 'Instrumentation/MongoDB' }}
-      with:
-        mongodb-version: 6.0
-        mongodb-replica-set: otel-php
-
-    - name: Start RabbitMQ
-      if: ${{ matrix.project == 'Instrumentation/ExtAmqp' }}
+        EVENT: ${{ github.event_name }}
+        BEFORE: ${{ github.event.before }}
       run: |
-        docker compose up rabbitmq -d --wait
+        # A pull_request checkout is the merge commit, whose first parent
+        # is the base branch. A push to main is normally one squash
+        # merge, so before is HEAD^1. Anything else runs every project.
+        if [ "$EVENT" = pull_request ]; then
+          git diff --name-only HEAD^1 HEAD | bash .github/ci/matrix.sh > matrix.json
+        elif [ "$EVENT" = push ] && [ "$BEFORE" = "$(git rev-parse HEAD^1)" ]; then
+          git diff --name-only "$BEFORE" HEAD | bash .github/ci/matrix.sh > matrix.json
+        else
+          bash .github/ci/matrix.sh --all < /dev/null > matrix.json
+        fi
+        {
+          echo "$(jq length matrix.json) projects, $(jq '[.[].cells | length] | add // 0' matrix.json) cells"
+          echo
+          echo '| Project | Cells | Extensions |'
+          echo '|---|---|---|'
+          jq -r '.[] | "| \(.project) | \(.cells | map(.name + if .experimental then " (experimental)" else "" end) | join("<br>")) | \(.cells | map(.extensions) | unique | join("<br>")) |"' matrix.json
+        } >> "$GITHUB_STEP_SUMMARY"
+        echo "projects=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
 
-    - name: Start Kafka
-      if: ${{ matrix.project == 'Instrumentation/ExtRdKafka' }}
-      run: |
-        KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092 docker compose up  kafka -d --wait
-
-    - name: Start Mysql
-      if: ${{ matrix.project == 'Instrumentation/MySqli' || matrix.project == 'Instrumentation/PDO' }}
-      run: |
-        docker compose up  mysql -d --wait
-
-    - name: Start PostgreSql
-      if: ${{ matrix.project == 'Instrumentation/PostgreSql' }}
-      run: |
-        docker compose up  postgresql -d --wait
-
-    - name: Run PHPUnit
-      working-directory: src/${{ matrix.project }}
-      run: vendor/bin/phpunit
-
-    - name: Run PHPUnit (coverage)
-      working-directory: src/${{ matrix.project }}
-      run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
-
-    - name: Code Coverage
-      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-      # only generate coverage against the latest PHP version
-      if: ${{ matrix.php-version == '8.4' }}
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: src/${{ matrix.project }}
-        files: ./coverage.clover
-        flags: ${{ matrix.project }}
-        verbose: false
+  php:
+    name: ${{ matrix.project }}
+    needs: detect
+    if: needs.detect.outputs.projects != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.detect.outputs.projects) }}
+    uses: ./.github/workflows/php-project.yml
+    with:
+      project: ${{ matrix.project }}
+      cells: ${{ toJson(matrix.cells) }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -70,6 +70,11 @@
             "composer dump-autoload --optimize"
         ]
     },
+    "extra": {
+        "ci": {
+            "additional-extensions": ["grpc"]
+        }
+    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {

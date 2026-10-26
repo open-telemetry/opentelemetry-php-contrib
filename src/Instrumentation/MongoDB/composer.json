@@ -37,6 +37,11 @@
       "OpenTelemetry\\Tests\\Instrumentation\\MongoDB\\": "tests/"
     }
   },
+  "extra": {
+    "ci": {
+      "additional-extensions": ["mongodb"]
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false,
