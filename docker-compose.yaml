@@ -47,7 +47,7 @@ services:
       - "5672:5672/tcp"
 
   kafka:
-    image: apache/kafka-native:4.3.1@sha256:2885898ba17065023f1bd605f3a81efcfa986014f062b73b91ef5462485f9060
+    image: apache/kafka-native:4.4.0@sha256:11fde816adf384402de9f3e57aeaf2c3722ba0671610247817688d07441714b4
     hostname: kafka
     ports:
       - "9092:9092/tcp"
