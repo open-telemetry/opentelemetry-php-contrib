@@ -5,10 +5,13 @@ only the projects it changes. A weekly schedule runs every project.
 
 ## Pipeline
 
-Each run of `php.yml` goes through these, in order. A failure in either
-`detect` step stops the run before any project is tested. After that,
+Each run of `php.yml` goes through these, in order. A failure in the
+`detect` job stops the run before any project is tested. After that,
 projects and cells run independently, so one failure doesn't cancel
 the rest.
+
+The `detect` job first validates the root `composer.json`, once per
+run. Then:
 
 1. `detect` job, "Test matrix script": runs `matrix_test.sh`, the tests
    for `matrix.sh`. They run `matrix.sh` against small fake repositories
@@ -21,6 +24,15 @@ the rest.
 3. `php` job: one entry per project, each calling `php-project.yml`.
 4. `php-project.yml`: one job per cell, which installs and runs the
    project's checks and tests.
+
+Each cell installs fresh, with `composer update`, or `composer require`
+for a framework version. Only Composer's downloads are cached, so a
+cell always tests the newest releases its constraints allow.
+
+Xdebug is loaded only in coverage cells. They run PHPUnit a second
+time, on the `unit` and `integration` suites only, and upload the
+result to Codecov. Codecov carries each project's last upload forward,
+so a run that skips a project leaves its coverage as it was.
 
 ## How CI decides what to run
 

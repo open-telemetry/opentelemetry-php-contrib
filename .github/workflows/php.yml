@@ -30,6 +30,9 @@ jobs:
         persist-credentials: false
         fetch-depth: 2
 
+    - name: Validate root composer.json
+      run: composer validate
+
     # Tests matrix.sh on fixture repositories, before trusting it to
     # build this run's matrix. See .github/ci/README.md.
     - name: Test matrix script
