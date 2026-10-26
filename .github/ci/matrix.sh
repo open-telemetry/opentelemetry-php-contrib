@@ -22,8 +22,10 @@ job_limit=${MATRIX_JOB_LIMIT:-256}
 
 default_extensions='ast opentelemetry'
 
-# A changed path matching this runs every project.
-run_all='^(\.github/workflows/php(-project)?\.yml|\.github/ci/[^/]+\.sh|docker-compose\.yaml|docker/.*)$'
+# A changed path matching this runs every project. Changes to
+# docker-compose.yaml and docker/<service>/ run the projects using a
+# service instead.
+run_all='^(\.github/workflows/php(-project)?\.yml|\.github/ci/[^/]+\.sh)$'
 
 if [ "${1:-}" = --all ]; then
   changed=null
@@ -50,10 +52,18 @@ projects=$(
 
 composer_dirs=$(find src -name vendor -prune -o -name composer.json -print | sed 's|/composer\.json$||')
 
+# The keys of the top-level services: block, read without a YAML parser.
+# Works while services are indented two spaces, as they are now.
+compose_services=$(
+  [ -f docker-compose.yaml ] || exit 0
+  awk '/^[^ #]/ { in_services = ($0 ~ /^services:/) } in_services && /^  [A-Za-z0-9_.-]+:/ { sub(/^  /, ""); sub(/:.*/, ""); print }' docker-compose.yaml
+)
+
 result=$(jq -nc \
   --argjson projects "$projects" \
   --argjson changed "$changed" \
   --arg composer_dirs "$composer_dirs" \
+  --arg compose_services "$compose_services" \
   --arg supported "$php_versions" \
   --arg experimental "$php_versions_experimental" \
   --arg coverage "$coverage_php_version" \
@@ -69,7 +79,8 @@ result=$(jq -nc \
   | ($experimental | words) as $experimental
   | ($supported + $experimental) as $versions
   | ($defaults | words) as $defaults
-  | ["additional-extensions", "composer-requires"] as $keys
+  | ($compose_services | split("\n") | map(select(. != ""))) as $compose_services
+  | ["additional-extensions", "composer-requires", "services"] as $keys
   | ($projects | map(.project)) as $names
 
   | [
@@ -101,6 +112,13 @@ result=$(jq -nc \
                   | error($file; "extra.ci.composer-requires gives \(.key) the minimum \(.value), which is not a PHP version CI runs (\($versions | join(" ")))")
                 else error($file; "extra.ci.composer-requires must map each constraint to a minimum PHP version")
                 end
+            ),
+            ( select(has("services")) | .services
+              | if type == "array" and all(type == "string") then
+                  .[] | select(IN($compose_services[]) | not)
+                  | error($file; "extra.ci.services lists \(.), which is not a service in docker-compose.yaml")
+                else error($file; "extra.ci.services must be a list of strings")
+                end
             )
           end
       ),
@@ -125,6 +143,7 @@ result=$(jq -nc \
           "php-version": $php,
           "composer-requires": $require,
           extensions: ($defaults + ($ci."additional-extensions" // []) | join(", ")),
+          services: ($ci.services // []),
           experimental: ($php | IN($experimental[])),
           coverage: ($tested and $php == $coverage)
         }
@@ -143,8 +162,14 @@ result=$(jq -nc \
         projects: (
           if $changed == null or ($changed | any(test($run_all))) then $cells
           else
-            ([ $changed[] as $path | $names[] | select(. as $name | $path | startswith("src/\($name)/")) ] | unique) as $selected
-            | $cells | map(select(.project | IN($selected[])))
+            $cells | map(select(
+              .project as $project | .services as $services
+              | $changed | any(
+                  startswith("src/\($project)/")
+                  or (. == "docker-compose.yaml" and $services != [])
+                  or (. as $path | $services | any(. as $service | $path | startswith("docker/\($service)/")))
+                )
+            ))
           end
           | group_by(.project) | map({project: .[0].project, cells: map(del(.project))})
         )

@@ -43,7 +43,8 @@
   },
   "extra": {
     "ci": {
-      "additional-extensions": ["rdkafka"]
+      "additional-extensions": ["rdkafka"],
+      "services": ["kafka"]
     }
   },
   "config": {

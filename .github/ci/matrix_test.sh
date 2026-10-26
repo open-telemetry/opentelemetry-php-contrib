@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tests for matrix.sh. Each test runs matrix.sh inside a fixture: a
-# fake repository in a temp directory, with only the .gitsplit.yml and
-# composer.json files matrix.sh reads. Nothing here touches the real
+# fake repository in a temp directory, with only the .gitsplit.yml,
+# composer.json and docker-compose.yaml files matrix.sh reads. Nothing here touches the real
 # repository, so adding a real project never changes these tests.
 #
 # CI runs this first, in php.yml's detect job, and stops if it fails.
@@ -57,14 +57,30 @@ add_tested "$base" Instrumentation/Psr14 '^8.2'
 # Same name in two categories. The root one has no PHP constraint.
 add_tested "$base" Instrumentation/Symfony '>=8.3'
 add_tested "$base" Symfony
-# Requires with minimums below and above require.php, and extensions.
+# Requires with minimums below and above require.php, extensions and
+# services.
 add_tested "$base" Extras '^8.3'
-set_ci "$base" Extras '{"composer-requires": {"a/b:^1": "8.1", "a/b:^2": "8.4"}, "additional-extensions": ["amqp", "grpc"]}'
+set_ci "$base" Extras '{"composer-requires": {"a/b:^1": "8.1", "a/b:^2": "8.4"}, "additional-extensions": ["amqp", "grpc"], "services": ["mysql", "kafka"]}'
+set_ci "$base" Instrumentation/Psr14 '{"services": ["kafka"]}'
 # No phpunit.xml.dist, so no coverage cell and no error for lacking one.
 add_untested "$base" MetaPackage '^8.1'
 # A nested composer.json, part of Symfony and not a project of its own.
 mkdir -p "$base/src/Symfony/src/OtelBundle"
 echo '{}' > "$base/src/Symfony/src/OtelBundle/composer.json"
+# Services a project can name. The volume is not one.
+cat > "$base/docker-compose.yaml" <<'YAML'
+services:
+  php:
+    image: php
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: otel_db
+  kafka:
+    image: kafka
+volumes:
+  data:
+YAML
 
 # A copy of the base fixture, for a test that breaks it.
 new_fixture() {
@@ -153,9 +169,18 @@ expect 'runs every project when a CI script changed' \
   "$(echo .github/ci/matrix.sh | matrix "$base" | summarise)" \
   "$all"
 
-expect 'runs every project when a service changed' \
-  "$(printf 'docker-compose.yaml\ndocker/mysql/init.sql\n' | matrix "$base" | summarise)" \
-  "$all"
+expect 'runs projects with services when docker-compose.yaml changed' \
+  "$(echo docker-compose.yaml | matrix "$base" | summarise)" \
+  'Extras:8.3,8.4,8.4,8.5,8.5
+Instrumentation/Psr14:8.2,8.3,8.4,8.5'
+
+expect 'runs projects using a service when its docker files changed' \
+  "$(echo docker/mysql/init.sql | matrix "$base" | summarise)" \
+  'Extras:8.3,8.4,8.4,8.5,8.5'
+
+expect 'runs nothing for docker files no project uses' \
+  "$(echo docker/gitsplit/docker-compose.yaml | matrix "$base")" \
+  '[]'
 
 expect 'runs every project with --all' \
   "$(matrix "$base" --all < /dev/null | summarise)" \
@@ -166,7 +191,7 @@ expect 'runs every project with --all' \
 expect 'groups cells by project, without repeating the project in each cell' \
   "$(echo src/Symfony/a | matrix "$base" | jq -c '.[] | keys, (.cells[] | keys)' | sort -u)" \
   '["cells","project"]
-["composer-requires","coverage","experimental","extensions","name","php-version"]'
+["composer-requires","coverage","experimental","extensions","name","php-version","services"]'
 
 expect 'names each cell by PHP version and require' \
   "$(echo src/Extras/a | matrix "$base" | jq -r '.[].cells[].name')" \
@@ -199,6 +224,14 @@ expect 'installs ast and opentelemetry by default' \
 expect 'adds additional-extensions to the defaults' \
   "$(echo src/Extras/a | matrix "$base" | jq -r '[.[].cells[].extensions] | unique[]')" \
   'ast, opentelemetry, amqp, grpc'
+
+expect 'lists the services a project needs' \
+  "$(echo src/Extras/a | matrix "$base" | jq -c '[.[].cells[].services] | unique[]')" \
+  '["mysql","kafka"]'
+
+expect 'gives a project without services an empty list' \
+  "$(echo src/Symfony/a | matrix "$base" | jq -c '[.[].cells[].services] | unique[]')" \
+  '[]'
 
 expect 'marks experimental cells, and coverage on the coverage version' \
   "$(echo src/Instrumentation/Psr14/a | matrix "$base" | jq -r '.[].cells[] | "\(."php-version") \(.experimental) \(.coverage)"')" \
@@ -245,7 +278,7 @@ f=$(new_fixture)
 set_ci "$f" Instrumentation/Psr1 '{"extensions": ["amqp"]}'
 expect 'fails for an unknown extra.ci key' \
   "$(errors "$f" --all)" \
-  '::error file=src/Instrumentation/Psr1/composer.json::extra.ci.extensions is not a known key (additional-extensions, composer-requires)'
+  '::error file=src/Instrumentation/Psr1/composer.json::extra.ci.extensions is not a known key (additional-extensions, composer-requires, services)'
 
 f=$(new_fixture)
 set_ci "$f" Instrumentation/Psr1 '{"additional-extensions": "amqp"}'
@@ -270,6 +303,19 @@ set_ci "$f" Instrumentation/Psr1 '{"composer-requires": {"a/b:^1": "8.1", "a/b:^
 expect 'fails for a composer-requires minimum that CI does not run' \
   "$(errors "$f" --all)" \
   '::error file=src/Instrumentation/Psr1/composer.json::extra.ci.composer-requires gives a/b:^0 the minimum 7.4, which is not a PHP version CI runs (8.1 8.2 8.3 8.4 8.5)'
+
+f=$(new_fixture)
+set_ci "$f" Instrumentation/Psr1 '{"services": "mysql"}'
+expect 'fails when services is not a list' \
+  "$(errors "$f" --all)" \
+  '::error file=src/Instrumentation/Psr1/composer.json::extra.ci.services must be a list of strings'
+
+f=$(new_fixture)
+set_ci "$f" Instrumentation/Psr1 '{"services": ["mysql", "data", "redis"]}'
+expect 'fails for a service not in docker-compose.yaml' \
+  "$(errors "$f" --all)" \
+  '::error file=src/Instrumentation/Psr1/composer.json::extra.ci.services lists data, which is not a service in docker-compose.yaml
+::error file=src/Instrumentation/Psr1/composer.json::extra.ci.services lists redis, which is not a service in docker-compose.yaml'
 
 expect 'fails when the coverage version is not a supported version' \
   "$(COVERAGE_PHP_VERSION=8.5 errors "$base" --all)" \

@@ -39,7 +39,8 @@
   },
   "extra": {
     "ci": {
-      "additional-extensions": ["mongodb"]
+      "additional-extensions": ["mongodb"],
+      "services": ["mongodb"]
     }
   },
   "config": {

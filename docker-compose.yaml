@@ -1,4 +1,5 @@
-# This docker compose stack is also used by .github/workflows/php.yml
+# This docker compose stack is also used by .github/workflows/php-project.yml,
+# which starts the services a project lists in extra.ci.services.
 
 services:
   php:
