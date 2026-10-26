@@ -1,4 +1,5 @@
-PHP_VERSION ?= 7.4
+# Exported because docker-compose.yaml reads it for the image tag.
+export PHP_VERSION ?= 8.1
 include .env
 PROJECT ?= Aws
 ROOT=/usr/src/myapp/src
@@ -11,6 +12,11 @@ help: ## Show this help
 	@echo "example: PROJECT=Aws PHP_VERSION=8.1 make <command>"
 	@printf "\033[33m%s:\033[0m\n" 'Available commands'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+projects: ## List PROJECT values
+	@bash .github/ci/matrix.sh --all < /dev/null | jq -r '.[].project'
+services: ## Start the services PROJECT's tests need
+	@services=$$(jq -r '.extra.ci.services // [] | join(" ")' src/${PROJECT}/composer.json); \
+	if [ -n "$$services" ]; then $(DOCKER_COMPOSE) up -d --wait $$services; else echo "${PROJECT} needs no services"; fi
 all-checks: style validate phan psalm phpstan test ## All checks + tests
 all: update all-checks ## Everything
 all-lowest: update-lowest all-checks ## Everything, with lowest supported versions

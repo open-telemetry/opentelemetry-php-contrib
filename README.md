@@ -60,6 +60,8 @@ Please remember to run all tests as you develop, the makefile supports a `PROJEC
 $ PROJECT=Symfony PHP_VERSION=8.1 make all
 ```
 
+`make projects` lists the `PROJECT` values. [.github/ci/README.md](.github/ci/README.md#run-a-projects-checks-locally) shows how to run a project's checks the way CI does.
+
 ### CI
 
 CI runs only the projects a change touches. [.github/ci/README.md](.github/ci/README.md) explains how, and how to add a project or configure its CI.

@@ -191,6 +191,45 @@ To add a version, add it to `php_versions_experimental`. Once its cells
 pass, move it to `php_versions`. Change `coverage_php_version`
 separately, when every project passes on the new version.
 
+## Run a project's checks locally
+
+The `Makefile` runs the same checks as a CI cell, in the `php` service
+from `docker-compose.yaml`. It needs Docker with Compose v2. Copy
+`.env.dist` to `.env` first.
+
+`PROJECT` is a path under `src/`, and `make projects` lists them.
+`PHP_VERSION` picks the image, and defaults to 8.1, the lowest version
+CI runs.
+
+```bash
+make projects
+
+# Start the services in the project's extra.ci.services, if any
+PROJECT=Instrumentation/PDO make services
+
+# Install, then style, validate, Phan, Psalm, PHPStan and PHPUnit
+PROJECT=Instrumentation/PDO PHP_VERSION=8.4 make all
+
+docker compose down
+```
+
+CI skips a check when the project has no config for it, but `make all`
+runs them all. For a project without every config, such as
+`MetaPackages/opentelemetry`, run the targets one at a time, as in
+`make validate test`. `make help` lists them.
+
+A cell uses `composer require` for a framework version. To test one
+locally, run it in the container:
+
+```bash
+PROJECT=Instrumentation/Laravel make bash
+composer require laravel/framework:^11
+```
+
+Locally the tests reach services through the compose network, by
+service name. `<SERVICE>_HOST` in the `php` service's `environment`
+sets that.
+
 ## Check changes locally
 
 `matrix.sh` needs bash and `jq`. Run it from the repository root.
