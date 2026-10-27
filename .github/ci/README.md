@@ -67,7 +67,8 @@ Projects nobody touched are tested by the weekly run, against the newest
 dependency releases. The job summary of `detect` lists the cells a run
 chose.
 
-A project is a `prefix` in `.gitsplit.yml`. Each runs on every PHP
+A project is a `prefix` in `.gitsplit.yml`, unless it sets
+`extra.ci.skip`. Each runs on every PHP
 version in `supported` and `experimental` in `matrix.php` that its
 `composer.json` `require.php` allows. Style, Phan, Psalm, PHPStan and
 PHPUnit run only if the project has the config file for them.
@@ -81,7 +82,8 @@ file at fault when:
 - `extra.ci` has an unknown key or a value of the wrong shape
 - `extra.ci.services` names a service that isn't in
   `docker-compose.yaml`
-- a project with a `phpunit.xml.dist` has no cell on the coverage version
+- a project with a `phpunit.xml.dist` has no cell on the coverage version,
+  or sets `extra.ci.skip`
 - there are more projects, or a project has more cells, than the 256
   jobs GitHub allows in one matrix
 
@@ -176,6 +178,28 @@ To add a service:
    defaulting to the service name. Tests read it, falling back to
    `127.0.0.1`, so the same test works under `make` and in CI.
 5. List it in the project's `extra.ci.services`.
+
+### Skip a project that isn't PHP code
+
+`skip` leaves a project out of this workflow entirely. Changing its
+files runs nothing, and the weekly run leaves it out too. Use it for a
+prefix whose output isn't a Composer package, and which has its own CI.
+
+```json
+"extra": {
+  "ci": {
+    "skip": true
+  }
+}
+```
+
+`OperatorPackages/autoinstrumentation-php` skips. It builds a Docker
+image, and its `composer.json` only lists what goes in the image. Its
+own `.github/workflows/build.yml` builds the image, in the split
+repository.
+
+A project with a `phpunit.xml.dist` can't skip, since its tests would
+never run.
 
 ## Change PHP versions
 

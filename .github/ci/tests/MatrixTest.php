@@ -141,6 +141,23 @@ final class MatrixTest extends TestCase
         $this->assertSame(self::ALL, $this->summarise(null));
     }
 
+    public function test_never_runs_a_skipped_project(): void
+    {
+        $repository = $this->repository(extra: [self::project('Image', '{"extra": {"ci": {"skip": true, "services": ["mysql"]}}}', tested: false)]);
+
+        foreach ([null, ['src/Image/Dockerfile'], ['docker-compose.yaml'], ['docker/mysql/init.sql']] as $changed) {
+            $this->assertNotContains('Image', array_column($this->matrix->projects($repository, $changed), 'project'));
+        }
+    }
+
+    public function test_runs_a_project_whose_skip_is_false(): void
+    {
+        $this->assertSame(
+            ['Instrumentation/Psr1' => ['8.1', '8.2', '8.3', '8.4', '8.5']],
+            $this->summarise(['src/Instrumentation/Psr1/a'], $this->withPsr1Ci('{"skip": false}')),
+        );
+    }
+
     // Building cells
 
     public function test_groups_cells_by_project_without_repeating_the_project_in_each_cell(): void
@@ -248,7 +265,7 @@ final class MatrixTest extends TestCase
     public function test_fails_for_an_unknown_extra_ci_key(): void
     {
         $this->assertSame(
-            ['::error file=src/Instrumentation/Psr1/composer.json::extra.ci.extensions is not a known key (additional-extensions, composer-requires, services)'],
+            ['::error file=src/Instrumentation/Psr1/composer.json::extra.ci.extensions is not a known key (additional-extensions, composer-requires, services, skip)'],
             $this->problems($this->withPsr1Ci('{"extensions": ["amqp"]}')),
         );
     }
@@ -301,6 +318,22 @@ final class MatrixTest extends TestCase
                 '::error file=src/Instrumentation/Psr1/composer.json::extra.ci.services lists redis, which is not a service in docker-compose.yaml',
             ],
             $this->problems($this->withPsr1Ci('{"services": ["mysql", "data", "redis"]}')),
+        );
+    }
+
+    public function test_fails_when_skip_is_not_a_boolean(): void
+    {
+        $this->assertSame(
+            ['::error file=src/Instrumentation/Psr1/composer.json::extra.ci.skip must be true or false'],
+            $this->problems($this->withPsr1Ci('{"skip": "yes"}')),
+        );
+    }
+
+    public function test_fails_for_a_tested_project_that_skips_ci(): void
+    {
+        $this->assertSame(
+            ['::error file=src/Instrumentation/Psr1/composer.json::src/Instrumentation/Psr1 has a phpunit.xml.dist but extra.ci.skip is true, so CI never runs its tests'],
+            $this->problems($this->withPsr1Ci('{"skip": true}')),
         );
     }
 
@@ -401,10 +434,10 @@ final class MatrixTest extends TestCase
      * @param list<string>|null $changed
      * @return array<string, list<string>>
      */
-    private function summarise(?array $changed): array
+    private function summarise(?array $changed, ?Repository $repository = null): array
     {
         $summary = [];
-        foreach ($this->matrix->projects($this->repository(), $changed) as $project) {
+        foreach ($this->matrix->projects($repository ?? $this->repository(), $changed) as $project) {
             $summary[$project['project']] = array_column($project['cells'], 'php-version');
         }
 

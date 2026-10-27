@@ -11,7 +11,7 @@ namespace OpenTelemetry\Contrib\Ci;
 final class Matrix
 {
     private const DEFAULT_EXTENSIONS = ['ast', 'opentelemetry'];
-    private const KNOWN_KEYS = ['additional-extensions', 'composer-requires', 'services'];
+    private const KNOWN_KEYS = ['additional-extensions', 'composer-requires', 'services', 'skip'];
 
     // A changed path matching this runs every project. Changes to
     // docker-compose.yaml and docker/<service>/ run the projects using a
@@ -88,6 +88,9 @@ final class Matrix
         $runAll = $changed === null || preg_grep(self::RUN_ALL, $changed);
         $projects = [];
         foreach ($repository->projects as $project) {
+            if (self::skipped($project)) {
+                continue;
+            }
             if ($runAll || $this->touches($project, $changed)) {
                 $projects[] = ['project' => $project->name, 'cells' => $this->cells($project)];
             }
@@ -200,7 +203,21 @@ final class Matrix
             }
         }
 
+        if (property_exists($ci, 'skip')) {
+            if (!is_bool($ci->skip)) {
+                $problems[] = self::error($file, 'extra.ci.skip must be true or false');
+            } elseif ($ci->skip && $project->tested) {
+                $problems[] = self::error($file, "src/$project->name has a phpunit.xml.dist but extra.ci.skip is true, so CI never runs its tests");
+            }
+        }
+
         return $problems;
+    }
+
+    // Call only once ciProblems() has accepted the project's extra.ci.
+    private static function skipped(Project $project): bool
+    {
+        return $project->ci->skip ?? false;
     }
 
     /** @return list<string> */
