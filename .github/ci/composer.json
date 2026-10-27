@@ -1,0 +1,29 @@
+{
+    "name": "open-telemetry/contrib-ci",
+    "description": "Builds this repository's CI matrix. Not published.",
+    "type": "project",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.5",
+        "symfony/yaml": "^8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Ci\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OpenTelemetry\\Contrib\\Ci\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.5"
+        },
+        "sort-packages": true
+    }
+}

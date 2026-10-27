@@ -5,6 +5,8 @@ PROJECT ?= Aws
 ROOT=/usr/src/myapp/src
 DC_RUN = ${DOCKER_COMPOSE} run --rm
 DC_RUN_PHP = $(DC_RUN) -w ${ROOT}/${PROJECT} php
+# .github/ci runs on the PHP version its composer.json requires, whatever PHP_VERSION is.
+DC_RUN_CI = PHP_VERSION=8.5 $(DC_RUN) -T -w /usr/src/myapp php env XDEBUG_MODE=off sh -c 'composer install --quiet --working-dir=.github/ci && $$0 "$$@"'
 
 .DEFAULT_GOAL : help
 
@@ -13,7 +15,11 @@ help: ## Show this help
 	@printf "\033[33m%s:\033[0m\n" 'Available commands'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 projects: ## List PROJECT values
-	@bash .github/ci/matrix.sh --all < /dev/null | jq -r '.[].project'
+	@$(DC_RUN_CI) php .github/ci/matrix.php --all < /dev/null | jq -r '.[].project'
+ci-test: ## Test the CI matrix script
+	$(DC_RUN_CI) .github/ci/vendor/bin/phpunit -c .github/ci/phpunit.xml.dist
+ci-cells: ## List the CI cells for this branch's changes against main
+	@git diff --name-only main... | $(DC_RUN_CI) php .github/ci/matrix.php | jq -r '.[] | .project as $$p | .cells[] | "\($$p) \(.name)"'
 services: ## Start the services PROJECT's tests need
 	@services=$$(jq -r '.extra.ci.services // [] | join(" ")' src/${PROJECT}/composer.json); \
 	if [ -n "$$services" ]; then $(DOCKER_COMPOSE) up -d --wait $$services; else echo "${PROJECT} needs no services"; fi

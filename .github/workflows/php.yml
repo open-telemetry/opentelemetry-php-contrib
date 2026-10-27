@@ -21,7 +21,12 @@ concurrency:
 
 jobs:
   detect:
-    runs-on: ubuntu-latest
+    # Its PHP is the 8.5 that .github/ci/composer.json requires, so
+    # detect needs no setup-php. The image enables Xdebug, which only
+    # slows Composer and PHPUnit here.
+    runs-on: ubuntu-26.04
+    env:
+      XDEBUG_MODE: 'off'
     outputs:
       projects: ${{ steps.matrix.outputs.projects }}
     steps:
@@ -33,10 +38,15 @@ jobs:
     - name: Validate root composer.json
       run: composer validate
 
-    # Tests matrix.sh on fixture repositories, before trusting it to
+    - name: Install matrix script
+      working-directory: .github/ci
+      run: composer install --no-progress --no-interaction
+
+    # Tests matrix.php on fixture repositories, before trusting it to
     # build this run's matrix. See .github/ci/README.md.
     - name: Test matrix script
-      run: bash .github/ci/matrix_test.sh
+      working-directory: .github/ci
+      run: vendor/bin/phpunit
 
     - name: Build matrix
       id: matrix
@@ -48,11 +58,11 @@ jobs:
         # is the base branch. A push to main is normally one squash
         # merge, so before is HEAD^1. Anything else runs every project.
         if [ "$EVENT" = pull_request ]; then
-          git diff --name-only HEAD^1 HEAD | bash .github/ci/matrix.sh > matrix.json
+          git diff --name-only HEAD^1 HEAD | php .github/ci/matrix.php > matrix.json
         elif [ "$EVENT" = push ] && [ "$BEFORE" = "$(git rev-parse HEAD^1)" ]; then
-          git diff --name-only "$BEFORE" HEAD | bash .github/ci/matrix.sh > matrix.json
+          git diff --name-only "$BEFORE" HEAD | php .github/ci/matrix.php > matrix.json
         else
-          bash .github/ci/matrix.sh --all < /dev/null > matrix.json
+          php .github/ci/matrix.php --all < /dev/null > matrix.json
         fi
         {
           echo "$(jq length matrix.json) projects, $(jq '[.[].cells | length] | add // 0' matrix.json) cells"

@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       cells:
-        description: 'JSON list of cells from .github/ci/matrix.sh'
+        description: 'JSON list of cells from .github/ci/matrix.php'
         required: true
         type: string
     secrets:

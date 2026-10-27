@@ -13,11 +13,11 @@ the rest.
 The `detect` job first validates the root `composer.json`, once per
 run. Then:
 
-1. `detect` job, "Test matrix script": runs `matrix_test.sh`, the tests
-   for `matrix.sh`. They run `matrix.sh` against small fake repositories
-   built in a temp directory, never against `src/`. They fail only when
-   `matrix.sh` itself is broken.
-2. `detect` job, "Build matrix": runs `matrix.sh` on the real
+1. `detect` job, "Test matrix script": runs the PHPUnit tests in
+   `tests/`. They check `matrix.php` on small repositories built in
+   memory or in a temp directory, never on `src/`. They fail only when
+   `matrix.php` itself is broken.
+2. `detect` job, "Build matrix": runs `matrix.php` on the real
    repository. It checks the repository (see below), then prints the
    projects to test and their cells. A contributor's mistake, such as a
    project missing from `.gitsplit.yml`, fails here.
@@ -36,7 +36,7 @@ so a run that skips a project leaves its coverage as it was.
 
 ## How CI decides what to run
 
-The `detect` job lists the changed files and pipes them to `matrix.sh`,
+The `detect` job lists the changed files and pipes them to `matrix.php`,
 which prints the projects to test, each with one cell per PHP version and
 framework version. The `php` job calls `php-project.yml` once per
 project, and that runs the project's cells.
@@ -58,7 +58,7 @@ A changed file selects:
 | Changed file | Runs |
 |---|---|
 | `src/<project>/**` | that project |
-| `.github/workflows/php.yml`, `.github/workflows/php-project.yml`, `.github/ci/*.sh` | every project |
+| `.github/workflows/php.yml`, `.github/workflows/php-project.yml`, `.github/ci/matrix.php`, `.github/ci/composer.json`, `.github/ci/src/**` | every project |
 | `docker-compose.yaml` | every project with `extra.ci.services` |
 | `docker/<service>/**` | every project with that service in `extra.ci.services` |
 | anything else | nothing |
@@ -68,11 +68,11 @@ dependency releases. The job summary of `detect` lists the cells a run
 chose.
 
 A project is a `prefix` in `.gitsplit.yml`. Each runs on every PHP
-version in `php_versions` and `php_versions_experimental` that its
+version in `supported` and `experimental` in `matrix.php` that its
 `composer.json` `require.php` allows. Style, Phan, Psalm, PHPStan and
 PHPUnit run only if the project has the config file for them.
 
-`matrix.sh` also checks the repository, and fails the run naming the
+`matrix.php` also checks the repository, and fails the run naming the
 file at fault when:
 
 - a directory under `src/` has a `composer.json` but is not inside a
@@ -96,8 +96,8 @@ file at fault when:
 4. Add its owners to `.github/component_owners.yml`.
 5. If it needs more than the defaults, add `extra.ci` (below).
 
-Run `bash .github/ci/matrix.sh --all < /dev/null > /dev/null` to check
-the first two steps.
+Run `make projects` to check the first two steps. It fails naming the
+file at fault, or lists the projects.
 
 ## Configure a project's CI
 
@@ -179,17 +179,16 @@ To add a service:
 
 ## Change PHP versions
 
-The versions are at the top of `matrix.sh`.
+The versions are at the top of `matrix.php`.
 
-- `php_versions` must pass.
-- `php_versions_experimental` runs but may fail. Use it for a version
+- `supported` must pass.
+- `experimental` runs but may fail. Use it for a version
   that isn't released yet, or that projects don't support yet.
-- `coverage_php_version` is the one version whose cells upload
-  coverage. It must be in `php_versions`.
+- `coverage` is the one version whose cells upload coverage. It must
+  be in `supported`.
 
-To add a version, add it to `php_versions_experimental`. Once its cells
-pass, move it to `php_versions`. Change `coverage_php_version`
-separately, when every project passes on the new version.
+To add a version, add it to `experimental`. Once its cells pass, move
+it to `supported`. Change `coverage` separately, when every project passes on the new version.
 
 ## Run a project's checks locally
 
@@ -232,18 +231,25 @@ sets that.
 
 ## Check changes locally
 
-`matrix.sh` needs bash and `jq`. Run it from the repository root.
-
-Run the tests after changing `matrix.sh`. They check its rules on fake
-repositories, so they pass or fail the same whatever is in `src/`.
+`matrix.php` is a small Composer project of its own, with its tests in
+`tests/`. It needs PHP 8.5, whichever versions the projects are tested
+on. These make targets run it in the `php` service on 8.5, and install
+its dependencies first.
 
 ```bash
-# Tests for matrix.sh, step 1 of the pipeline
-bash .github/ci/matrix_test.sh
+# Tests for matrix.php, step 1 of the pipeline
+make ci-test
 
 # The cells your branch would run, as step 2 builds them
-git diff --name-only main... | bash .github/ci/matrix.sh | jq -r '.[] | .project as $p | .cells[] | "\($p) \(.name)"'
+make ci-cells
+```
+
+With PHP 8.5 or later on the host, run it directly instead:
+
+```bash
+composer install --working-dir=.github/ci
+.github/ci/vendor/bin/phpunit -c .github/ci/phpunit.xml.dist
 
 # How many cells a full run has
-bash .github/ci/matrix.sh --all < /dev/null | jq '[.[].cells | length] | add'
+php .github/ci/matrix.php --all < /dev/null | jq '[.[].cells | length] | add'
 ```
