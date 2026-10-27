@@ -3,10 +3,10 @@
 # Build the final image:        docker buildx bake
 # Build and push:               docker buildx bake --push
 # Build a single variant:       docker buildx bake build-non-zts-81
-# Override opentelemetry version or tag:      OPENTELEMETRY_VERSION=1.4.0 TAG=1.4.0 docker buildx bake
+# Override opentelemetry version or tag:      OPENTELEMETRY_VERSION=1.4.2 TAG=1.4.2 docker buildx bake
 
 variable "OPENTELEMETRY_VERSION" {
-  # Override at build time: OPENTELEMETRY_VERSION=1.4.0 docker buildx bake
+  # Override at build time: OPENTELEMETRY_VERSION=1.4.2 docker buildx bake
   default = "1.4.2"
 }
 
