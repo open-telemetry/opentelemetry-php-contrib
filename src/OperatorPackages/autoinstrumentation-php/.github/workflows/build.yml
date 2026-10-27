@@ -125,7 +125,7 @@ jobs:
             docker-bake.hcl
             docker-bake.ci.hcl
           targets: final-ci
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
         env:
           IMAGE_NAME: "ghcr.io/${{ github.repository }}"
           TAG: ${{ steps.meta.outputs.tag || 'latest' }}
