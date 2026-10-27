@@ -30,7 +30,10 @@
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\": "src/"
-    }
+    },
+    "files": [
+      "_register.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
@@ -49,16 +52,8 @@
     "branch-alias": {
       "dev-main": "1.x-dev"
     },
-    "spi": {
-      "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\InstrumentationConfigurationHttpConfig",
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerDefault",
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactQueryStringValues",
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactUserInfo"
-      ],
-      "OpenTelemetry\\API\\Configuration\\ConfigEnv\\EnvComponentLoader": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\ConfigEnv\\InstrumentationConfigurationHttpConfig"
-      ]
+    "spi-config": {
+      "autoload-files": true
     }
   }
 }
