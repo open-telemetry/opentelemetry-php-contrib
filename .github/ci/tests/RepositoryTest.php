@@ -92,4 +92,25 @@ final class RepositoryTest extends TestCase
     {
         $this->assertSame([], Repository::load($this->root)->services);
     }
+
+    public function test_reads_project_workflows_only(): void
+    {
+        $this->write('.github/workflows/project-symfony.yml', "name: Symfony\n");
+        $this->write('.github/workflows/project-aws.yml', "name: Aws\n");
+        $this->write('.github/workflows/php-project.yml', "name: PHP project\n");
+        $this->write('.github/workflows/ci.yml', "name: CI\n");
+
+        $this->assertSame(
+            [
+                '.github/workflows/project-aws.yml' => "name: Aws\n",
+                '.github/workflows/project-symfony.yml' => "name: Symfony\n",
+            ],
+            Repository::load($this->root)->workflows,
+        );
+    }
+
+    public function test_has_no_workflows_without_a_workflows_directory(): void
+    {
+        $this->assertSame([], Repository::load($this->root)->workflows);
+    }
 }

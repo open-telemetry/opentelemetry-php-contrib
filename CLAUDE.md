@@ -40,7 +40,7 @@ vendor/bin/phpunit tests/Unit/SomeTest.php
 
 ## CI
 
-The GitHub Actions workflow (`.github/workflows/php.yml`) runs every sub-project independently against PHP 8.1–8.4. Each project runs: composer validate, php-cs-fixer (dry-run), psalm, phpstan, and phpunit. Some projects (MongoDB, ExtAmqp, ExtRdKafka, MySqli, PostgreSql) spin up infrastructure services for integration tests.
+Each sub-project has its own generated workflow, `.github/workflows/project-<slug>.yml`, which runs only when that project (or shared CI code) changes, and calls `.github/workflows/php-project.yml`. Each runs: composer validate, php-cs-fixer (dry-run), phan, psalm, phpstan, and phpunit, on the PHP versions in `.github/ci/matrix.php` that the project allows. Some projects (MongoDB, ExtAmqp, ExtRdKafka, MySqli, PDO, PostgreSql) spin up infrastructure services for integration tests. `.github/workflows/ci.yml` runs on every change and fails if a generated workflow is stale; run `php .github/ci/matrix.php --generate` after adding, removing or skipping a project. See `.github/ci/README.md`.
 
 ## Architecture
 

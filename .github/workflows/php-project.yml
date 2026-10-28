@@ -1,0 +1,160 @@
+name: PHP project
+
+# Called by each project's generated project-*.yml. See .github/ci/README.md.
+on:
+  workflow_call:
+    inputs:
+      project:
+        description: 'Project path, relative to src/'
+        required: true
+        type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  cells:
+    # Its PHP is the 8.5 that .github/ci/composer.json requires, so it
+    # needs no setup-php. The image enables Xdebug, which only slows
+    # Composer here.
+    runs-on: ubuntu-26.04
+    env:
+      XDEBUG_MODE: 'off'
+    outputs:
+      cells: ${{ steps.cells.outputs.cells }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Install matrix script
+      working-directory: .github/ci
+      run: composer install --no-dev --no-progress --no-interaction
+
+    - name: Build cells
+      id: cells
+      env:
+        PROJECT: ${{ inputs.project }}
+      run: echo "cells=$(php .github/ci/matrix.php --project "$PROJECT")" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: ${{ matrix.name }}
+    needs: cells
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.cells.outputs.cells) }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+      with:
+        php-version: ${{ matrix.php-version }}
+        coverage: xdebug
+        extensions: ${{ matrix.extensions }}
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: src/${{ inputs.project }}/vendor
+        key: ${{ runner.os }}-${{ matrix.php-version }}-php-${{ matrix.composer-requires }}-${{ hashFiles('**/composer.json') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.php-version }}-php-${{ matrix.composer-requires }}-
+
+    - name: Install dependencies
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+      working-directory: src/${{ inputs.project }}
+      env:
+        COMPOSER_REQUIRES: ${{ matrix.composer-requires }}
+      run: |
+        composer config --no-interaction --global policy.advisories.block false
+        composer config --no-plugins allow-plugins.php-http/discovery false
+        if [ -n "$COMPOSER_REQUIRES" ]; then
+          composer require "$COMPOSER_REQUIRES" --no-progress --no-interaction
+        else
+          composer install --no-progress --no-interaction
+        fi
+
+    - name: Validate Packages composer.json
+      working-directory: src/${{ inputs.project }}
+      run: composer validate
+
+    - name: Check Style
+      if: hashFiles(format('src/{0}/.php-cs-fixer.php', inputs.project)) != ''
+      working-directory: src/${{ inputs.project }}
+      run: PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php -v --dry-run --stop-on-violation --using-cache=no -vvv
+
+    - name: Run Phan
+      if: hashFiles(format('src/{0}/.phan/config.php', inputs.project)) != ''
+      working-directory: src/${{ inputs.project }}
+      env:
+        PHAN_DISABLE_XDEBUG_WARN: 1
+      run: vendor/bin/phan
+
+    - name: Run Psalm
+      if: hashFiles(format('src/{0}/psalm.xml.dist', inputs.project)) != ''
+      working-directory: src/${{ inputs.project }}
+      env:
+        PHP_VERSION: ${{ matrix.php-version }}
+      run: vendor/bin/psalm --output-format=github --php-version="$PHP_VERSION"
+
+    - name: Run Phpstan
+      if: hashFiles(format('src/{0}/phpstan.neon.dist', inputs.project)) != ''
+      working-directory: src/${{ inputs.project }}
+      run: vendor/bin/phpstan analyse --error-format=github
+
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@315db7fe45ac2880b7758f1933e6e5d59afd5e94 # 1.12.1
+      if: ${{ inputs.project == 'Instrumentation/MongoDB' }}
+      with:
+        mongodb-version: 6.0
+        mongodb-replica-set: otel-php
+
+    - name: Start RabbitMQ
+      if: ${{ inputs.project == 'Instrumentation/ExtAmqp' }}
+      run: |
+        docker compose up rabbitmq -d --wait
+
+    - name: Start Kafka
+      if: ${{ inputs.project == 'Instrumentation/ExtRdKafka' }}
+      run: |
+        KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092 docker compose up  kafka -d --wait
+
+    - name: Start Mysql
+      if: ${{ inputs.project == 'Instrumentation/MySqli' || inputs.project == 'Instrumentation/PDO' }}
+      run: |
+        docker compose up  mysql -d --wait
+
+    - name: Start PostgreSql
+      if: ${{ inputs.project == 'Instrumentation/PostgreSql' }}
+      run: |
+        docker compose up  postgresql -d --wait
+
+    - name: Run PHPUnit
+      if: hashFiles(format('src/{0}/phpunit.xml.dist', inputs.project)) != ''
+      working-directory: src/${{ inputs.project }}
+      run: vendor/bin/phpunit
+
+    - name: Run PHPUnit (coverage)
+      if: hashFiles(format('src/{0}/phpunit.xml.dist', inputs.project)) != ''
+      working-directory: src/${{ inputs.project }}
+      run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
+
+    - name: Code Coverage
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+      if: ${{ matrix.coverage }}
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: src/${{ inputs.project }}
+        files: ./coverage.clover
+        flags: ${{ inputs.project }}
+        verbose: false

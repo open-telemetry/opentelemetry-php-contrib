@@ -9,7 +9,10 @@ declare(strict_types=1);
  *   --project <p>  prints <p>'s cells as JSON, for php-project.yml.
  *                  Fails only on <p>'s own problems, so one broken
  *                  project doesn't stop the others.
- *   --check        fails on any problem in the repository, for ci.yml.
+ *   --generate     writes a workflow for each project CI runs, and removes
+ *                  the workflows of projects that are gone.
+ *   --check        fails on any problem in the repository, or a workflow
+ *                  that differs from what --generate writes, for ci.yml.
  *   --all          prints every project's cells as JSON.
  *
  * Problems are printed as GitHub annotations naming the file at fault.
@@ -17,6 +20,7 @@ declare(strict_types=1);
 
 use OpenTelemetry\Contrib\Ci\Matrix;
 use OpenTelemetry\Contrib\Ci\Repository;
+use OpenTelemetry\Contrib\Ci\Workflows;
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -52,16 +56,40 @@ switch ($argv[1] ?? '') {
         $matrix->runs($project) || fail($notAProject);
         output($matrix->cells($project));
         exit(0);
+    case '--generate':
+        if ($problems = $matrix->problems($repository)) {
+            fail(...$problems);
+        }
+        $projects = $matrix->running($repository);
+        $workflows = Workflows::generate($projects);
+        // Only problems no generated file can fix, such as two projects
+        // sharing a workflow.
+        if ($problems = Workflows::problems($projects, $workflows)) {
+            fail(...$problems);
+        }
+        foreach (array_diff_key($repository->workflows, $workflows) as $path => $contents) {
+            unlink($path);
+        }
+        is_dir('.github/workflows') || mkdir('.github/workflows', recursive: true);
+        foreach ($workflows as $path => $contents) {
+            file_put_contents($path, $contents);
+        }
+        exit(0);
     case '--check':
+        if ($problems = $matrix->problems($repository)) {
+            fail(...$problems);
+        }
+        if ($problems = Workflows::problems($matrix->running($repository), $repository->workflows)) {
+            fail(...$problems);
+        }
+        exit(0);
     case '--all':
         if ($problems = $matrix->problems($repository)) {
             fail(...$problems);
         }
-        if ($argv[1] === '--all') {
-            output($matrix->all($repository));
-        }
+        output($matrix->all($repository));
         exit(0);
 }
 
-fwrite(STDERR, "Usage: php .github/ci/matrix.php --project <path under src/> | --check | --all\n");
+fwrite(STDERR, "Usage: php .github/ci/matrix.php --project <path under src/> | --generate | --check | --all\n");
 exit(2);

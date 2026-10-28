@@ -17,12 +17,15 @@ final class Repository
      * @param list<string> $unlisted directories with a composer.json that
      *     are not inside a prefix, so CI would never test them
      * @param list<string> $services the services in docker-compose.yaml
+     * @param array<string, string> $workflows each project-*.yml in
+     *     .github/workflows, by path, sorted
      */
     public function __construct(
         public readonly array $projects,
         public readonly array $missing,
         public readonly array $unlisted,
         public readonly array $services,
+        public readonly array $workflows = [],
     ) {
     }
 
@@ -57,7 +60,13 @@ final class Repository
             $services = array_map('strval', array_keys(Yaml::parseFile("$root/docker-compose.yaml")['services'] ?? []));
         }
 
-        return new self($projects, $missing, $unlisted, $services);
+        $workflows = [];
+        foreach (glob("$root/" . Workflows::PATTERN) ?: [] as $file) {
+            $workflows[substr($file, strlen("$root/"))] = (string) file_get_contents($file);
+        }
+        ksort($workflows);
+
+        return new self($projects, $missing, $unlisted, $services, $workflows);
     }
 
     public function project(string $name): ?Project

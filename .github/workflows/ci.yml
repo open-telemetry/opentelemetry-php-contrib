@@ -1,7 +1,10 @@
 name: CI
 
-# Checks the CI setup itself: the matrix script, and every project's
-# extra.ci and .gitsplit.yml prefix. See .github/ci/README.md.
+# Checks the CI setup itself: the matrix script, every project's extra.ci
+# and .gitsplit.yml prefix, and that each project has a current
+# generated workflow. It has no paths filter, so it runs on every change,
+# including one that adds a project without its workflow. See
+# .github/ci/README.md.
 on:
   push:
     branches: [ main ]

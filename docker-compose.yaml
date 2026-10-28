@@ -1,4 +1,4 @@
-# This docker compose stack is used as part of the shared .github/workflows/php-contrib.yml
+# This docker compose stack is used as part of the shared .github/workflows/php-project.yml
 
 services:
   php:

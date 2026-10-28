@@ -75,8 +75,52 @@ final class MatrixScriptTest extends TestCase
     public function test_checks_a_consistent_repository_silently(): void
     {
         $this->addProject('Symfony');
+        $this->runMatrix('--generate');
 
         $this->assertSame([0, '', ''], $this->runMatrix('--check'));
+    }
+
+    public function test_generates_a_workflow_for_each_project_ci_runs(): void
+    {
+        $this->addProject('Symfony');
+        $this->addProject('Image', '{"extra": {"ci": {"skip": true}}}', tested: false);
+
+        $this->assertSame([0, '', ''], $this->runMatrix('--generate'));
+        $this->assertSame(['project-symfony.yml'], $this->workflowFiles());
+        $this->assertStringContainsString("project: Symfony\n", (string) file_get_contents("$this->root/.github/workflows/project-symfony.yml"));
+    }
+
+    public function test_generate_removes_workflows_for_projects_that_are_gone_and_keeps_other_workflows(): void
+    {
+        $this->addProject('Symfony');
+        $this->write('.github/workflows/project-gone.yml', '');
+        $this->write('.github/workflows/ci.yml', '');
+
+        $this->runMatrix('--generate');
+
+        $this->assertSame(['ci.yml', 'project-symfony.yml'], $this->workflowFiles());
+    }
+
+    public function test_generate_writes_nothing_when_the_repository_has_problems(): void
+    {
+        $this->addProject('Symfony', '{"extra": {"ci": {"service": ["mysql"]}}}');
+
+        [$status] = $this->runMatrix('--generate');
+
+        $this->assertSame(1, $status);
+        $this->assertSame([], $this->workflowFiles());
+    }
+
+    public function test_check_fails_on_a_stale_workflow(): void
+    {
+        $this->addProject('Symfony');
+        $this->runMatrix('--generate');
+        $this->addProject('Aws');
+
+        $this->assertSame(
+            [1, '', "::error file=.github/workflows/project-aws.yml::src/Aws has no workflow. Run php .github/ci/matrix.php --generate.\n"],
+            $this->runMatrix('--check'),
+        );
     }
 
     public function test_fails_printing_each_problem_as_an_annotation(): void
@@ -103,6 +147,14 @@ final class MatrixScriptTest extends TestCase
             $this->assertSame([2, ''], [$status, $stdout], implode(' ', $args));
             $this->assertStringStartsWith('Usage:', $stderr);
         }
+    }
+
+    /** @return list<string> */
+    private function workflowFiles(): array
+    {
+        $files = glob("$this->root/.github/workflows/*") ?: [];
+
+        return array_map('basename', $files);
     }
 
     /** @return array{int, string, string} exit status, stdout and stderr */

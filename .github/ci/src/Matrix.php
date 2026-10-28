@@ -71,14 +71,22 @@ final class Matrix
     public function all(Repository $repository): array
     {
         $projects = [];
-        foreach ($repository->projects as $project) {
-            if (!self::skipped($project)) {
-                $projects[] = ['project' => $project->name, 'cells' => $this->cells($project)];
-            }
+        foreach ($this->running($repository) as $project) {
+            $projects[] = ['project' => $project->name, 'cells' => $this->cells($project)];
         }
         usort($projects, fn (array $a, array $b) => strcmp($a['project'], $b['project']));
 
         return $projects;
+    }
+
+    /**
+     * The projects CI runs. Call only when problems() is empty.
+     *
+     * @return list<Project>
+     */
+    public function running(Repository $repository): array
+    {
+        return array_values(array_filter($repository->projects, $this->runs(...)));
     }
 
     /**
