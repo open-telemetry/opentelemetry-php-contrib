@@ -41,6 +41,11 @@
       "OpenTelemetry\\Tests\\Instrumentation\\ExtRdKafka\\tests\\": "tests/"
     }
   },
+  "extra": {
+    "ci": {
+      "additional-extensions": ["rdkafka"]
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false
