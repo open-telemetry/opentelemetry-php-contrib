@@ -28,7 +28,6 @@
         }
     },
     "require-dev": {
-        "ext-grpc": "*",
         "composer/xdebug-handler": "^3.0",
         "dg/bypass-finals": "^1.3",
         "friendsofphp/php-cs-fixer": "^3.0",
@@ -69,11 +68,6 @@
         "post-update-cmd": [
             "composer dump-autoload --optimize"
         ]
-    },
-    "extra": {
-        "ci": {
-            "additional-extensions": ["grpc"]
-        }
     },
     "config": {
         "sort-packages": true,
