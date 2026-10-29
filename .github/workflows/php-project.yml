@@ -58,20 +58,30 @@ jobs:
       uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
       with:
         php-version: ${{ matrix.php-version }}
-        coverage: xdebug
+        coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
         extensions: ${{ matrix.extensions }}
 
-    - name: Cache Composer packages
+    - name: Validate composer.json
+      working-directory: src/${{ inputs.project }}
+      run: composer validate
+
+    - name: Find Composer cache
       id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+    # Only downloads are cached, not vendor. Install always runs, so each
+    # run tests the newest releases the constraints allow. Most downloads
+    # are the same on every PHP version, so a project's cells share one
+    # cache. That keeps a full run under GitHub's 10GB cache limit.
+    - name: Cache Composer downloads
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: src/${{ inputs.project }}/vendor
-        key: ${{ runner.os }}-${{ matrix.php-version }}-php-${{ matrix.composer-requires }}-${{ hashFiles('**/composer.json') }}
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ inputs.project }}-${{ matrix.composer-requires }}-${{ hashFiles(format('src/{0}/composer.json', inputs.project)) }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.php-version }}-php-${{ matrix.composer-requires }}-
+          ${{ runner.os }}-composer-${{ inputs.project }}-${{ matrix.composer-requires }}-
 
     - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
       working-directory: src/${{ inputs.project }}
       env:
         COMPOSER_REQUIRES: ${{ matrix.composer-requires }}
@@ -81,12 +91,8 @@ jobs:
         if [ -n "$COMPOSER_REQUIRES" ]; then
           composer require "$COMPOSER_REQUIRES" --no-progress --no-interaction
         else
-          composer install --no-progress --no-interaction
+          composer update --no-progress --no-interaction
         fi
-
-    - name: Validate Packages composer.json
-      working-directory: src/${{ inputs.project }}
-      run: composer validate
 
     - name: Check Style
       if: hashFiles(format('src/{0}/.php-cs-fixer.php', inputs.project)) != ''
@@ -144,8 +150,11 @@ jobs:
       working-directory: src/${{ inputs.project }}
       run: vendor/bin/phpunit
 
-    - name: Run PHPUnit (coverage)
-      if: hashFiles(format('src/{0}/phpunit.xml.dist', inputs.project)) != ''
+    # Coverage runs only the unit and integration suites. Collecting it
+    # fails Psr3's phpt suite and Revolt's default suite, so those run
+    # only in the plain run above.
+    - name: Run PHPUnit with coverage
+      if: ${{ matrix.coverage }}
       working-directory: src/${{ inputs.project }}
       run: vendor/bin/phpunit --testsuite integration,unit --coverage-text --coverage-clover=coverage.clover
 

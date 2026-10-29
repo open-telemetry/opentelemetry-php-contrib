@@ -23,6 +23,15 @@ edit them. Each calls `php-project.yml`, which has two jobs:
    project has the config file for it. Experimental cells can fail
    without failing the run.
 
+Each cell installs fresh, with `composer update`, or `composer require`
+for a framework version. Only Composer's downloads are cached, so a
+cell always tests the newest releases its constraints allow.
+
+Xdebug is loaded only in coverage cells. They run PHPUnit a second
+time, on the `unit` and `integration` suites only, and upload the
+result to Codecov. Codecov carries each project's last upload forward,
+so a run that skips a project leaves its coverage as it was.
+
 ### When a project's workflow runs
 
 GitHub's `paths` filter decides. A project's workflow runs on a pull
