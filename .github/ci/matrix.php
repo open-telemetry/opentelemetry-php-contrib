@@ -9,7 +9,11 @@ declare(strict_types=1);
  *   --project <p>  prints <p>'s cells as JSON, for php-project.yml.
  *                  Fails only on <p>'s own problems, so one broken
  *                  project doesn't stop the others.
- *   --generate     writes a workflow for each project CI runs, and removes
+ *   --services <p> prints the compose services <p>'s tests need, one per
+ *                  line, for make services. Fails as --project does.
+ *   --projects     prints each project CI runs, one per line, for
+ *                  make projects.
+ *   --generate    writes a workflow for each project CI runs, and removes
  *                  the workflows of projects that are gone.
  *   --check        fails on any problem in the repository, or a workflow
  *                  that differs from what --generate writes, for ci.yml.
@@ -19,6 +23,7 @@ declare(strict_types=1);
  */
 
 use OpenTelemetry\Contrib\Ci\Matrix;
+use OpenTelemetry\Contrib\Ci\Project;
 use OpenTelemetry\Contrib\Ci\Repository;
 use OpenTelemetry\Contrib\Ci\Workflows;
 
@@ -41,6 +46,19 @@ function output(mixed $value): void
     echo json_encode($value, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
 }
 
+// Fails on the project's own problems only.
+function project(Matrix $matrix, Repository $repository, string $name): Project
+{
+    $notAProject = "::error::src/$name is not a project CI tests. make projects lists them.";
+    $project = $repository->project($name) ?? fail($notAProject);
+    if ($problems = $matrix->projectProblems($project, $repository->services)) {
+        fail(...$problems);
+    }
+    $matrix->runs($project) || fail($notAProject);
+
+    return $project;
+}
+
 $repository = Repository::load('.');
 
 switch ($argv[1] ?? '') {
@@ -48,13 +66,23 @@ switch ($argv[1] ?? '') {
         if (!isset($argv[2])) {
             break;
         }
-        $notAProject = "::error::src/$argv[2] is not a project CI tests. make projects lists them.";
-        $project = $repository->project($argv[2]) ?? fail($notAProject);
-        if ($problems = $matrix->projectProblems($project, $repository->services)) {
+        output($matrix->cells(project($matrix, $repository, $argv[2])));
+        exit(0);
+    case '--services':
+        if (!isset($argv[2])) {
+            break;
+        }
+        foreach (project($matrix, $repository, $argv[2])->ci->services ?? [] as $service) {
+            echo $service, "\n";
+        }
+        exit(0);
+    case '--projects':
+        if ($problems = $matrix->problems($repository)) {
             fail(...$problems);
         }
-        $matrix->runs($project) || fail($notAProject);
-        output($matrix->cells($project));
+        foreach ($matrix->all($repository) as $project) {
+            echo $project['project'], "\n";
+        }
         exit(0);
     case '--generate':
         if ($problems = $matrix->problems($repository)) {
@@ -91,5 +119,5 @@ switch ($argv[1] ?? '') {
         exit(0);
 }
 
-fwrite(STDERR, "Usage: php .github/ci/matrix.php --project <path under src/> | --generate | --check | --all\n");
+fwrite(STDERR, "Usage: php .github/ci/matrix.php --project <path under src/> | --services <path under src/> | --projects | --generate | --check | --all\n");
 exit(2);

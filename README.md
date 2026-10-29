@@ -60,6 +60,9 @@ Please remember to run all tests as you develop, the makefile supports a `PROJEC
 $ PROJECT=Symfony PHP_VERSION=8.1 make all
 ```
 
+`make projects` lists the projects. See [.github/ci/README.md](.github/ci/README.md)
+for how CI tests them, and how to run the same checks locally.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)

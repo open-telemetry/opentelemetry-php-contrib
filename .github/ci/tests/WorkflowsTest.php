@@ -97,7 +97,7 @@ final class WorkflowsTest extends TestCase
     public function test_reports_a_missing_workflow(): void
     {
         $this->assertSame(
-            ['::error file=.github/workflows/project-symfony.yml::src/Symfony has no workflow. Run php .github/ci/matrix.php --generate.'],
+            ['::error file=.github/workflows/project-symfony.yml::src/Symfony has no workflow. Run make ci-generate.'],
             Workflows::problems(self::projects('Aws', 'Symfony'), Workflows::generate(self::projects('Aws'))),
         );
     }
@@ -109,7 +109,7 @@ final class WorkflowsTest extends TestCase
         $workflows['.github/workflows/project-aws.yml'] .= "# edited\n";
 
         $this->assertSame(
-            ['::error file=.github/workflows/project-aws.yml::.github/workflows/project-aws.yml differs from what matrix.php generates. Run php .github/ci/matrix.php --generate.'],
+            ['::error file=.github/workflows/project-aws.yml::.github/workflows/project-aws.yml differs from what matrix.php generates. Run make ci-generate.'],
             Workflows::problems($projects, $workflows),
         );
     }
@@ -117,7 +117,7 @@ final class WorkflowsTest extends TestCase
     public function test_reports_a_workflow_with_no_project(): void
     {
         $this->assertSame(
-            ['::error file=.github/workflows/project-gone.yml::.github/workflows/project-gone.yml has no project. Run php .github/ci/matrix.php --generate.'],
+            ['::error file=.github/workflows/project-gone.yml::.github/workflows/project-gone.yml has no project. Run make ci-generate.'],
             Workflows::problems([], ['.github/workflows/project-gone.yml' => '']),
         );
     }

@@ -20,7 +20,7 @@ final class Workflows
         '.github/ci/src/**',
     ];
 
-    private const REGENERATE = 'Run php .github/ci/matrix.php --generate.';
+    private const REGENERATE = 'Run make ci-generate.';
 
     public static function path(Project $project): string
     {

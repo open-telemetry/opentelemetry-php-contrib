@@ -72,6 +72,40 @@ final class MatrixScriptTest extends TestCase
         $this->assertSame(['Aws', 'Symfony'], array_column(json_decode($stdout, true), 'project'));
     }
 
+    public function test_lists_the_projects_ci_runs(): void
+    {
+        $this->addProject('Symfony');
+        $this->addProject('Instrumentation/PDO');
+        $this->addProject('Image', '{"extra": {"ci": {"skip": true}}}', tested: false);
+
+        $this->assertSame([0, "Instrumentation/PDO\nSymfony\n", ''], $this->runMatrix('--projects'));
+    }
+
+    public function test_lists_one_projects_services(): void
+    {
+        $this->write('docker-compose.yaml', "services:\n  mysql: {}\n  kafka: {}\n");
+        $this->addProject('PDO', '{"extra": {"ci": {"services": ["mysql", "kafka"]}}}');
+        $this->addProject('Aws');
+        $this->addSplit('src/Gone');
+
+        $this->assertSame([0, "mysql\nkafka\n", ''], $this->runMatrix('--services', 'PDO'));
+        $this->assertSame([0, '', ''], $this->runMatrix('--services', 'Aws'));
+    }
+
+    public function test_fails_to_list_services_for_one_projects_own_problems(): void
+    {
+        $this->addProject('PDO', '{"extra": {"ci": {"services": ["mysql"]}}}');
+
+        $this->assertSame([1, '', <<<'TEXT'
+            ::error file=src/PDO/composer.json::extra.ci.services lists mysql, which is not a service in docker-compose.yaml
+
+            TEXT], $this->runMatrix('--services', 'PDO'));
+        $this->assertSame(
+            [1, '', "::error::src/Gone is not a project CI tests. make projects lists them.\n"],
+            $this->runMatrix('--services', 'Gone'),
+        );
+    }
+
     public function test_checks_a_consistent_repository_silently(): void
     {
         $this->addProject('Symfony');
@@ -118,7 +152,7 @@ final class MatrixScriptTest extends TestCase
         $this->addProject('Aws');
 
         $this->assertSame(
-            [1, '', "::error file=.github/workflows/project-aws.yml::src/Aws has no workflow. Run php .github/ci/matrix.php --generate.\n"],
+            [1, '', "::error file=.github/workflows/project-aws.yml::src/Aws has no workflow. Run make ci-generate.\n"],
             $this->runMatrix('--check'),
         );
     }
@@ -136,13 +170,14 @@ final class MatrixScriptTest extends TestCase
             TEXT;
         $this->assertSame([1, '', $problems], $this->runMatrix('--check'));
         $this->assertSame([1, '', $problems], $this->runMatrix('--all'));
+        $this->assertSame([1, '', $problems], $this->runMatrix('--projects'));
     }
 
     public function test_fails_with_usage_for_unknown_arguments(): void
     {
         $this->addProject('Symfony');
 
-        foreach ([[], ['--bogus'], ['--project']] as $args) {
+        foreach ([[], ['--bogus'], ['--project'], ['--services']] as $args) {
             [$status, $stdout, $stderr] = $this->runMatrix(...$args);
             $this->assertSame([2, ''], [$status, $stdout], implode(' ', $args));
             $this->assertStringStartsWith('Usage:', $stderr);
