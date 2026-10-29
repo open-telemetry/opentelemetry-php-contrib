@@ -118,32 +118,26 @@ jobs:
       working-directory: src/${{ inputs.project }}
       run: vendor/bin/phpstan analyse --error-format=github
 
+    # The compose mongodb service has no replica set, so CI uses the action.
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@315db7fe45ac2880b7758f1933e6e5d59afd5e94 # 1.12.1
-      if: ${{ inputs.project == 'Instrumentation/MongoDB' }}
+      if: ${{ contains(matrix.services, 'mongodb') }}
       with:
         mongodb-version: 6.0
         mongodb-replica-set: otel-php
 
-    - name: Start RabbitMQ
-      if: ${{ inputs.project == 'Instrumentation/ExtAmqp' }}
+    - name: Start services
+      if: ${{ toJson(matrix.services) != '[]' }}
+      env:
+        SERVICES: ${{ toJson(matrix.services) }}
+        # Tests run on the runner, outside the compose network, so Kafka
+        # has to advertise localhost.
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092
       run: |
-        docker compose up rabbitmq -d --wait
-
-    - name: Start Kafka
-      if: ${{ inputs.project == 'Instrumentation/ExtRdKafka' }}
-      run: |
-        KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092 docker compose up  kafka -d --wait
-
-    - name: Start Mysql
-      if: ${{ inputs.project == 'Instrumentation/MySqli' || inputs.project == 'Instrumentation/PDO' }}
-      run: |
-        docker compose up  mysql -d --wait
-
-    - name: Start PostgreSql
-      if: ${{ inputs.project == 'Instrumentation/PostgreSql' }}
-      run: |
-        docker compose up  postgresql -d --wait
+        mapfile -t services < <(jq -r '.[] | select(. != "mongodb")' <<< "$SERVICES")
+        if [ "${#services[@]}" -gt 0 ]; then
+          docker compose up -d --wait "${services[@]}"
+        fi
 
     - name: Run PHPUnit
       if: hashFiles(format('src/{0}/phpunit.xml.dist', inputs.project)) != ''

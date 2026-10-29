@@ -41,6 +41,8 @@ request or push to `main` that changes:
 - its own `project-<slug>.yml`
 - `php-project.yml`, `matrix.php`, `composer.json` or `src/` in this
   directory. These run every project.
+- `docker-compose.yaml`, or `docker/<service>/`, if the project lists
+  services (below)
 
 It also runs weekly, against new dependency releases, and from the
 Actions tab with "Run workflow".
@@ -111,7 +113,8 @@ allows.
    ```
 
 Removing a project, or setting `extra.ci.skip`, also needs
-`--generate`, which deletes the workflow.
+`--generate`, which deletes the workflow. So does changing
+`extra.ci.services`.
 
 ## Configure a project's CI
 
@@ -155,6 +158,44 @@ format, which is not always the `ext-*` name.
 `ext-opentelemetry` doesn't need to be in `require`. Most projects leave
 it out so they can be installed and worked on without the extension,
 and `_register.php` checks for it at runtime instead.
+
+### Start a service for integration tests
+
+`services` lists the `docker-compose.yaml` services a project's tests
+need. Each cell starts them with `docker compose up --wait` before
+PHPUnit. Changing `docker-compose.yaml`, or a file under
+`docker/<service>/`, runs every project that lists that service. Run
+`--generate` after changing `services`, since it adds those paths to
+the project's workflow.
+
+```json
+"extra": {
+  "ci": {
+    "services": ["mysql"]
+  }
+}
+```
+
+The services in use are `mysql`, `postgresql`, `rabbitmq`, `kafka` and
+`mongodb`. CI starts `mongodb` with
+[supercharge/mongodb-github-action](https://github.com/supercharge/mongodb-github-action)
+instead of compose, because it sets up a replica set and the compose
+service doesn't.
+
+To add a service:
+
+1. Add it to `docker-compose.yaml` with a `healthcheck`. Without one,
+   `--wait` returns as soon as the container starts, and the first
+   tests can fail while the service is still starting.
+2. Publish its port. In CI the tests run on the runner, not in the
+   compose network, so they reach the service on `localhost`.
+3. Put any init files under `docker/<service>/`, so changing them runs
+   only the projects using the service.
+4. Add a host variable, such as `MYSQL_HOST`, to the `php` service's
+   `environment`, defaulting to the service name. Tests read it,
+   falling back to `localhost`, so the same test works under `make` and
+   in CI.
+5. List it in the project's `extra.ci.services`, and run `--generate`.
 
 ### Skip a project that isn't PHP code
 

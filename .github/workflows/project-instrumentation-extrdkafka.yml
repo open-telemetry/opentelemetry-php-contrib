@@ -12,6 +12,8 @@ on:
       - '.github/ci/matrix.php'
       - '.github/ci/composer.json'
       - '.github/ci/src/**'
+      - 'docker-compose.yaml'
+      - 'docker/kafka/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -21,6 +23,8 @@ on:
       - '.github/ci/matrix.php'
       - '.github/ci/composer.json'
       - '.github/ci/src/**'
+      - 'docker-compose.yaml'
+      - 'docker/kafka/**'
   schedule:
     - cron: '17 4 * * 1' # weekly, against new dependency releases
   workflow_dispatch:

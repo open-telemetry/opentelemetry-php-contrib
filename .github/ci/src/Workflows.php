@@ -81,8 +81,15 @@ final class Workflows
 
     private static function workflow(Project $project): string
     {
+        $triggers = ["src/$project->name/**", self::path($project), ...self::SHARED_PATHS];
+        if ($services = $project->ci->services ?? []) {
+            $triggers[] = 'docker-compose.yaml';
+            foreach ($services as $service) {
+                $triggers[] = "docker/$service/**";
+            }
+        }
         $paths = '';
-        foreach (["src/$project->name/**", self::path($project), ...self::SHARED_PATHS] as $path) {
+        foreach ($triggers as $path) {
             $paths .= "      - '$path'\n";
         }
 

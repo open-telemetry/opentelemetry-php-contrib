@@ -54,7 +54,8 @@
   },
   "extra": {
     "ci": {
-      "additional-extensions": ["mysqli"]
+      "additional-extensions": ["mysqli"],
+      "services": ["mysql"]
     }
   },
   "config": {

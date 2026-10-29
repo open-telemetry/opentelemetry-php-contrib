@@ -42,7 +42,8 @@
   },
   "extra": {
     "ci": {
-      "additional-extensions": ["amqp"]
+      "additional-extensions": ["amqp"],
+      "services": ["rabbitmq"]
     }
   },
   "config": {

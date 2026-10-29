@@ -72,6 +72,20 @@ final class WorkflowsTest extends TestCase
             YAML, Workflows::generate(self::projects('Instrumentation/MySqli'))['.github/workflows/project-instrumentation-mysqli.yml']);
     }
 
+    public function test_runs_a_project_with_services_when_its_services_change(): void
+    {
+        $project = Project::fromComposerJson('Instrumentation/PDO', '{"extra": {"ci": {"services": ["mysql", "rabbitmq"]}}}', true);
+        $paths = <<<'YAML'
+                  - '.github/ci/src/**'
+                  - 'docker-compose.yaml'
+                  - 'docker/mysql/**'
+                  - 'docker/rabbitmq/**'
+
+            YAML;
+
+        $this->assertSame(2, substr_count(Workflows::generate([$project])['.github/workflows/project-instrumentation-pdo.yml'], $paths));
+    }
+
     public function test_accepts_current_workflows(): void
     {
         $projects = self::projects('Aws', 'Symfony');
