@@ -19,6 +19,9 @@ final class Repository
      * @param list<string> $services the services in docker-compose.yaml
      * @param array<string, string> $workflows each project-*.yml in
      *     .github/workflows, by path, sorted
+     * @param array<string, string> $readmes each project's README.md, by
+     *     path, for those that have one
+     * @param string $readme the root README.md
      */
     public function __construct(
         public readonly array $projects,
@@ -26,6 +29,8 @@ final class Repository
         public readonly array $unlisted,
         public readonly array $services,
         public readonly array $workflows = [],
+        public readonly array $readmes = [],
+        public readonly string $readme = '',
     ) {
     }
 
@@ -40,6 +45,7 @@ final class Repository
 
         $projects = [];
         $missing = [];
+        $readmes = [];
         foreach ($prefixes as $name) {
             $dir = "$root/src/$name";
             if (!is_file("$dir/composer.json")) {
@@ -48,6 +54,9 @@ final class Repository
                 continue;
             }
             $projects[] = Project::fromComposerJson($name, (string) file_get_contents("$dir/composer.json"), is_file("$dir/phpunit.xml.dist"));
+            if (is_file("$dir/README.md")) {
+                $readmes["src/$name/README.md"] = (string) file_get_contents("$dir/README.md");
+            }
         }
 
         $unlisted = array_values(array_filter(
@@ -66,7 +75,9 @@ final class Repository
         }
         ksort($workflows);
 
-        return new self($projects, $missing, $unlisted, $services, $workflows);
+        $readme = is_file("$root/README.md") ? (string) file_get_contents("$root/README.md") : '';
+
+        return new self($projects, $missing, $unlisted, $services, $workflows, $readmes, $readme);
     }
 
     public function project(string $name): ?Project

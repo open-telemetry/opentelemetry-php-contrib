@@ -1,5 +1,7 @@
 # RuleBasedSampler
 
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-sampler-rulebased.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-sampler-rulebased.yml?query=branch%3Amain)
+
 Allows sampling based on a list of rule sets.
 
 ## Installation

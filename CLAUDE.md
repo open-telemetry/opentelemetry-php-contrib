@@ -40,7 +40,7 @@ vendor/bin/phpunit tests/Unit/SomeTest.php
 
 ## CI
 
-Each sub-project has its own generated workflow, `.github/workflows/project-<slug>.yml`, which runs only when that project (or shared CI code) changes, and calls `.github/workflows/php-project.yml`. Each runs: composer validate, php-cs-fixer (dry-run), phan, psalm, phpstan, and phpunit, on the PHP versions in `.github/ci/matrix.php` that the project allows. Projects needing infrastructure for integration tests (MongoDB, ExtAmqp, ExtRdKafka, MySqli, PDO, PostgreSql) list docker-compose services in `extra.ci.services`. `.github/workflows/ci.yml` runs on every change and fails if a generated workflow is stale; run `make ci-generate` after adding, removing or skipping a project, or changing its services. See `.github/ci/README.md`.
+Each sub-project has its own generated workflow, `.github/workflows/project-<slug>.yml`, which runs only when that project (or shared CI code) changes, and calls `.github/workflows/php-project.yml`. Each runs: composer validate, php-cs-fixer (dry-run), phan, psalm, phpstan, and phpunit, on the PHP versions in `.github/ci/matrix.php` that the project allows. Projects needing infrastructure for integration tests (MongoDB, ExtAmqp, ExtRdKafka, MySqli, PDO, PostgreSql) list docker-compose services in `extra.ci.services`. `.github/workflows/ci.yml` runs on every change and fails if a generated workflow is stale; run `make ci-generate` after adding, removing or skipping a project, or changing its services. It also rewrites the project list in the root `README.md`. Each project's `README.md` must carry its CI badge, and `make ci-check` prints the line if it's missing. See `.github/ci/README.md`.
 
 ## Architecture
 

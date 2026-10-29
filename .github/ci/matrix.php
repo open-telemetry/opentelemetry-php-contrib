@@ -13,15 +13,18 @@ declare(strict_types=1);
  *                  line, for make services. Fails as --project does.
  *   --projects     prints each project CI runs, one per line, for
  *                  make projects.
- *   --generate    writes a workflow for each project CI runs, and removes
- *                  the workflows of projects that are gone.
- *   --check        fails on any problem in the repository, or a workflow
- *                  that differs from what --generate writes, for ci.yml.
+ *   --generate     writes a workflow for each project CI runs, removes
+ *                  the workflows of projects that are gone, and rewrites
+ *                  the root README's project list.
+ *   --check        fails on any problem in the repository, a file that
+ *                  differs from what --generate writes, or a project
+ *                  README without its badge, for ci.yml.
  *   --all          prints every project's cells as JSON.
  *
  * Problems are printed as GitHub annotations naming the file at fault.
  */
 
+use OpenTelemetry\Contrib\Ci\Badges;
 use OpenTelemetry\Contrib\Ci\Matrix;
 use OpenTelemetry\Contrib\Ci\Project;
 use OpenTelemetry\Contrib\Ci\Repository;
@@ -95,6 +98,7 @@ switch ($argv[1] ?? '') {
         if ($problems = Workflows::problems($projects, $workflows)) {
             fail(...$problems);
         }
+        $readme = Badges::updateRoot($repository->readme, $projects) ?? fail(Badges::noProjectList());
         foreach (array_diff_key($repository->workflows, $workflows) as $path => $contents) {
             unlink($path);
         }
@@ -102,12 +106,17 @@ switch ($argv[1] ?? '') {
         foreach ($workflows as $path => $contents) {
             file_put_contents($path, $contents);
         }
+        file_put_contents('README.md', $readme);
         exit(0);
     case '--check':
         if ($problems = $matrix->problems($repository)) {
             fail(...$problems);
         }
-        if ($problems = Workflows::problems($matrix->running($repository), $repository->workflows)) {
+        $projects = $matrix->running($repository);
+        if ($problems = [
+            ...Workflows::problems($projects, $repository->workflows),
+            ...Badges::problems($projects, $repository->readmes, $repository->readme),
+        ]) {
             fail(...$problems);
         }
         exit(0);

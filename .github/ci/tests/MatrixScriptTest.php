@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Ci\Tests;
 
+use OpenTelemetry\Contrib\Ci\Badges;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -124,6 +125,55 @@ final class MatrixScriptTest extends TestCase
         $this->assertStringContainsString("project: Symfony\n", (string) file_get_contents("$this->root/.github/workflows/project-symfony.yml"));
     }
 
+    public function test_generate_writes_the_root_readmes_project_list(): void
+    {
+        $this->addProject('Symfony');
+        $this->write('README.md', "# Contrib\n\n" . Badges::START . "\n" . Badges::END . "\n");
+
+        $this->assertSame([0, '', ''], $this->runMatrix('--generate'));
+        $this->assertStringContainsString(
+            "|---|---|\n| [Symfony](src/Symfony) | [![CI]",
+            (string) file_get_contents("$this->root/README.md"),
+        );
+    }
+
+    public function test_generate_writes_nothing_when_the_root_readme_has_no_project_list(): void
+    {
+        $this->addProject('Symfony');
+        $this->write('README.md', "# Contrib\n");
+
+        [$status, , $stderr] = $this->runMatrix('--generate');
+
+        $this->assertSame(1, $status);
+        $this->assertStringStartsWith('::error file=README.md::README.md has no generated project list.', $stderr);
+        $this->assertSame([], $this->workflowFiles());
+        $this->assertSame("# Contrib\n", file_get_contents("$this->root/README.md"));
+    }
+
+    public function test_check_fails_on_a_project_readme_without_its_badge(): void
+    {
+        $this->addProject('Symfony');
+        $this->runMatrix('--generate');
+        $this->write('src/Symfony/README.md', "# Symfony\n");
+
+        [$status, , $stderr] = $this->runMatrix('--check');
+
+        $this->assertSame(1, $status);
+        $this->assertStringStartsWith('::error file=src/Symfony/README.md::src/Symfony/README.md has no CI badge.', $stderr);
+    }
+
+    public function test_check_fails_on_a_stale_root_project_list(): void
+    {
+        $this->addProject('Symfony');
+        $this->runMatrix('--generate');
+        $this->write('README.md', Badges::START . "\n" . Badges::END . "\n");
+
+        $this->assertSame(
+            [1, '', "::error file=README.md::README.md's project list differs from what matrix.php generates. Run make ci-generate.\n"],
+            $this->runMatrix('--check'),
+        );
+    }
+
     public function test_generate_removes_workflows_for_projects_that_are_gone_and_keeps_other_workflows(): void
     {
         $this->addProject('Symfony');
@@ -152,7 +202,11 @@ final class MatrixScriptTest extends TestCase
         $this->addProject('Aws');
 
         $this->assertSame(
-            [1, '', "::error file=.github/workflows/project-aws.yml::src/Aws has no workflow. Run make ci-generate.\n"],
+            [1, '', <<<'TEXT'
+                ::error file=.github/workflows/project-aws.yml::src/Aws has no workflow. Run make ci-generate.
+                ::error file=README.md::README.md's project list differs from what matrix.php generates. Run make ci-generate.
+
+                TEXT],
             $this->runMatrix('--check'),
         );
     }

@@ -3,6 +3,7 @@
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Context/Revolt)
 [![Latest Version](https://poser.pugx.org/open-telemetry/opentelemetry-revolt-adapter/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-revolt-adapter/)
 [![Stable](https://poser.pugx.org/open-telemetry/opentelemetry-revolt-adapter/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-revolt-adapter/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-context-revolt.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-context-revolt.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

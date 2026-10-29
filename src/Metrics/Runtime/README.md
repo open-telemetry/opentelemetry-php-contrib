@@ -3,6 +3,7 @@
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Metrics/Runtime)
 [![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-metrics-runtime/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-metrics-runtime/)
 [![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-metrics-runtime/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-metrics-runtime/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-metrics-runtime.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-metrics-runtime.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

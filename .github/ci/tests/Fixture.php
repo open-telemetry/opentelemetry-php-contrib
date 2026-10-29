@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Ci\Tests;
 
+use OpenTelemetry\Contrib\Ci\Badges;
+use OpenTelemetry\Contrib\Ci\Project;
+
 /**
  * A fake repository in a temp directory, removed after each test.
  * A project is a .gitsplit.yml prefix with a composer.json, and
- * phpunit.xml.dist is what makes it tested.
+ * phpunit.xml.dist is what makes it tested. Each project's README has
+ * its badge, and the root README has an empty project list.
  */
 trait Fixture
 {
@@ -17,6 +21,7 @@ trait Fixture
     {
         $this->root = sys_get_temp_dir() . '/ci-fixture-' . bin2hex(random_bytes(4));
         $this->write('.gitsplit.yml', "splits:\n");
+        $this->write('README.md', Badges::START . "\n" . Badges::END . "\n");
     }
 
     protected function tearDown(): void
@@ -34,6 +39,7 @@ trait Fixture
     private function addProject(string $name, string $composerJson = '{}', bool $tested = true): void
     {
         $this->write("src/$name/composer.json", $composerJson);
+        $this->write("src/$name/README.md", Badges::badge(Project::fromComposerJson($name, $composerJson, $tested)) . "\n");
         if ($tested) {
             $this->write("src/$name/phpunit.xml.dist", '');
         }

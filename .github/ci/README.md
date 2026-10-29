@@ -51,6 +51,16 @@ GitHub checks only the first 300 changed files against `paths`. A pull
 request changing more, such as a style fix across the repository, may
 not run every project it touches. The weekly run catches those.
 
+### See a project's status
+
+Each project's README has a CI badge for its workflow on `main`. It
+links to this repository's runs, since the split repositories publish
+the same README. The root README lists every project with its badge,
+generated between two marker comments by `matrix.php --generate`.
+
+In the Actions tab, the sidebar lists each project's workflow by path.
+"Run workflow" on one reruns that project alone, on any branch.
+
 ### Checks on every change
 
 `.github/workflows/ci.yml` runs on every pull request and push to
@@ -81,6 +91,10 @@ not run every project it touches. The weekly run catches those.
   differs from what `--generate` writes
 - two projects would get the same workflow, such as `Foo/Bar` and
   `Foo-Bar`
+- a project's `README.md` has no CI badge. The error prints the line
+  to add.
+- the root `README.md` has no marker comments for the project list, or
+  the list differs from what `--generate` writes
 
 A project is a `prefix` in `.gitsplit.yml`, unless it sets
 `extra.ci.skip`. It runs on every PHP version in `supported` and
@@ -97,11 +111,14 @@ allows.
 3. Add it to `autoload` and `replace` in the root `composer.json`.
 4. Add its owners to `.github/component_owners.yml`.
 5. If it needs more than the defaults, add `extra.ci` (below).
-6. Generate its workflow with `make ci-generate`, and commit it.
+6. Run `make ci-generate`. It writes the project's workflow and adds
+   the project to the root README's list. Commit both.
+7. Add its CI badge to its `README.md`, under the title.
+   `make ci-check` prints the line if it's missing.
 
 Removing a project, or setting `extra.ci.skip`, also needs
-`make ci-generate`, which deletes the workflow. So does changing
-`extra.ci.services`.
+`make ci-generate`, which deletes the workflow and the root README's
+entry. So does changing `extra.ci.services`.
 
 ## Configure a project's CI
 
@@ -271,7 +288,8 @@ its dependencies first.
 # Tests for matrix.php, as ci.yml runs them
 make ci-test
 
-# Rewrite the project workflows, then check the repository as ci.yml does
+# Rewrite the project workflows and the root README's project list,
+# then check the repository as ci.yml does
 make ci-generate
 make ci-check
 

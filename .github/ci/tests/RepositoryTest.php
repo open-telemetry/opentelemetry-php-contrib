@@ -113,4 +113,18 @@ final class RepositoryTest extends TestCase
     {
         $this->assertSame([], Repository::load($this->root)->workflows);
     }
+
+    public function test_reads_each_projects_readme_and_the_root_readme(): void
+    {
+        $this->addProject('Symfony');
+        $this->addProject('Aws');
+        $this->write('src/Symfony/README.md', "# Symfony\n");
+        unlink("$this->root/src/Aws/README.md");
+        $this->write('README.md', "# Contrib\n");
+
+        $repository = Repository::load($this->root);
+
+        $this->assertSame(['src/Symfony/README.md' => "# Symfony\n"], $repository->readmes);
+        $this->assertSame("# Contrib\n", $repository->readme);
+    }
 }
