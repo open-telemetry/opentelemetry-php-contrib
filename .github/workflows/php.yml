@@ -51,7 +51,7 @@ jobs:
           'Instrumentation/Psr14',
           'Instrumentation/Psr15',
           'Instrumentation/Psr16',
-          'Instrumentation/Psr18',
+          # 'Instrumentation/Psr18', # Experiment: moved to instrumentation-psr18.yml
           'Instrumentation/ReactPHP',
           'Instrumentation/Session', 
           'Instrumentation/Slim',

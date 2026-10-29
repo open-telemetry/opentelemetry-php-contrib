@@ -1,0 +1,15 @@
+name: Contrib CI Pipeline
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  CI:
+    uses: open-telemetry/opentelemetry-php-contrib/.github/workflows/instrumentation-psr18.yml@main # zizmor: ignore[unpinned-uses]
+    with:
+      package-root: '.'
