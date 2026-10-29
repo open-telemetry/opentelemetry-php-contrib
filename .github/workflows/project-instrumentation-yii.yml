@@ -36,6 +36,7 @@ concurrency:
 
 jobs:
   php:
+    name: CI
     uses: ./.github/workflows/php-project.yml
     with:
       project: Instrumentation/Yii

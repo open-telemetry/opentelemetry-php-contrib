@@ -63,6 +63,7 @@ final class WorkflowsTest extends TestCase
 
             jobs:
               php:
+                name: CI
                 uses: ./.github/workflows/php-project.yml
                 with:
                   project: Instrumentation/MySqli

@@ -120,6 +120,7 @@ final class Workflows
 
             jobs:
               php:
+                name: CI
                 uses: ./.github/workflows/php-project.yml
                 with:
                   project: $project->name
