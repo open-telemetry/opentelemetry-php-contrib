@@ -7,7 +7,6 @@ namespace OpenTelemetry\Contrib\Instrumentation\Guzzle;
 use function get_cfg_var;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Promise\Is;
 use GuzzleHttp\Promise\PromiseInterface;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
@@ -155,7 +154,7 @@ class GuzzleInstrumentation
                 );
 
                 //if the original promise is already settled, force our additional promise to execute immediately
-                if (Is::settled($promise)) {
+                if ($promise->getState() !== PromiseInterface::PENDING) {
                     $p->wait();
                 }
             }
