@@ -13,7 +13,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 
 /**
- * @implements ComponentProvider<LaravelConfiguration>
+ * @implements ComponentProvider<InstrumentationConfiguration>
  */
 class LaravelComponentProvider implements ComponentProvider
 {
@@ -22,7 +22,6 @@ class LaravelComponentProvider implements ComponentProvider
      *     enabled: bool,
      *     trace_cli_enabled: bool,
      * } $properties
-     * @psalm-suppress LessSpecificImplementedReturnType,MoreSpecificImplementedParamType
      */
     #[\Override]
     public function createPlugin(array $properties, Context $context): InstrumentationConfiguration
@@ -33,9 +32,6 @@ class LaravelComponentProvider implements ComponentProvider
         );
     }
 
-    /**
-     * @psalm-suppress PossiblyNullReference,UndefinedInterfaceMethod
-     */
     #[\Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {
@@ -44,7 +40,7 @@ class LaravelComponentProvider implements ComponentProvider
             ->canBeDisabled()
             ->children()
                 ->booleanNode('trace_cli_enabled')->defaultFalse()->end()
-            ->end() // @phpstan-ignore method.notFound
+            ->end()
         ;
     }
 }
