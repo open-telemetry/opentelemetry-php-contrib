@@ -1,5 +1,7 @@
 # Install auto instrumentation with one command.
 
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-autoinstrumentationinstaller.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-autoinstrumentationinstaller.yml?query=branch%3Amain)
+
 This directory contains two scripts that helps install auto-instrumentation support and run application.
 
 First script `install-otel-instrumentation` will install all needed dependencies for auto-instrumentation. Second `run-with-otel-instrumentation` is responsible for setting few environment variables (that are needed to export traces into backend) and running application.
