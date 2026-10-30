@@ -3,11 +3,11 @@
 # Build the final image:        docker buildx bake
 # Build and push:               docker buildx bake --push
 # Build a single variant:       docker buildx bake build-non-zts-81
-# Override opentelemetry version or tag:      OPENTELEMETRY_VERSION=1.4.0 TAG=1.4.0 docker buildx bake
+# Override opentelemetry version or tag:      OPENTELEMETRY_VERSION=1.4.2 TAG=1.4.2 docker buildx bake
 
 variable "OPENTELEMETRY_VERSION" {
-  # Override at build time: OPENTELEMETRY_VERSION=1.4.0 docker buildx bake
-  default = "1.4.0"
+  # Override at build time: OPENTELEMETRY_VERSION=1.4.2 docker buildx bake
+  default = "1.4.2"
 }
 
 variable "IMAGE_NAME" {
@@ -55,9 +55,17 @@ variable "PHP_85_MUSL_NON_ZTS" { default = "php:8.5-alpine@sha256:f6975f0b54f313
 variable "PHP_85_MUSL_ZTS"     { default = "php:8.5-zts-alpine@sha256:6b2a31dfcf302b0b5fc2f6150671579400dccb21906eb09535251c02fb33d19e" }
 
 # ---------------------------------------------------------------------------
+# Shared platform configuration — keep build and final targets aligned.
+# ---------------------------------------------------------------------------
+target "_platform-base" {
+  platforms = ["linux/amd64","linux/arm64","linux/s390x","linux/ppc64le"]
+}
+
+# ---------------------------------------------------------------------------
 # Shared base target — all build targets inherit from this.
 # ---------------------------------------------------------------------------
 target "_build-base" {
+  inherits   = ["_platform-base"]
   dockerfile = "Dockerfile"
   target     = "builder"
   context    = "."
@@ -163,9 +171,9 @@ target "build-zts-musl-85" {
 # Final image — assembles all build artifacts into a single busybox image.
 # ---------------------------------------------------------------------------
 target "final" {
+  inherits   = ["_platform-base"]
   dockerfile = "Dockerfile.final"
   context    = "."
-  platforms  = ["linux/amd64","linux/arm64","linux/s390x","linux/ppc64le"]
   tags       = ["${IMAGE_NAME}:${TAG}"]
   contexts = {
     build-non-zts-81      = "target:build-non-zts-81"
