@@ -121,7 +121,7 @@ final class Workflows
             jobs:
               php:
                 name: CI
-                uses: ./.github/workflows/php-project.yml
+                uses: ./.github/workflows/php-project.yml # zizmor: ignore[self-repository] actionlint doesn't support \$/ yet
                 with:
                   project: $project->name
                 secrets:
