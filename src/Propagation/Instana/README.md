@@ -4,6 +4,7 @@
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-propagator-instana)
 [![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-instana/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-instana/)
 [![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-propagation-instana/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-instana/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-propagation-instana.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-propagation-instana.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
