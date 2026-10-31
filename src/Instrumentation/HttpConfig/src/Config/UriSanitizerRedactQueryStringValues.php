@@ -30,6 +30,9 @@ final class UriSanitizerRedactQueryStringValues implements ComponentProvider
         return new RedactSensitiveQueryStringValuesSanitizer($properties['query_keys']);
     }
 
+    /**
+     * @psalm-suppress PossiblyNullReference,UndefinedInterfaceMethod
+     */
     #[Override]
     public function getConfig(ComponentProviderRegistry $registry, NodeBuilder $builder): ArrayNodeDefinition
     {

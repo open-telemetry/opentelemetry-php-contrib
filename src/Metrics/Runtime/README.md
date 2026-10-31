@@ -3,6 +3,7 @@
 [![Source](https://img.shields.io/badge/source-contrib-green)](https://github.com/open-telemetry/opentelemetry-php-contrib/tree/main/src/Metrics/Runtime)
 [![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-metrics-runtime/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-metrics-runtime/)
 [![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-metrics-runtime/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-metrics-runtime/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-metrics-runtime.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-metrics-runtime.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 
@@ -68,6 +69,7 @@ RuntimeMetrics::register($meterProvider, new RuntimeMetricsConfig(disabled: ['op
 | `php.gc.collector_time` | Counter | `s` | Cumulative time spent in the GC collector. **PHP 8.3+** |
 | `php.gc.destructor_time` | Counter | `s` | Cumulative time spent running destructors during GC. **PHP 8.3+** |
 | `php.gc.free_time` | Counter | `s` | Cumulative time spent freeing memory during GC. **PHP 8.3+** |
+| `process.uptime` | Gauge | `s` | The time the process has been running. **PHP 8.3+** (CLI only) |
 
 ### OPcache (`opcache`)
 
@@ -94,6 +96,7 @@ Registered only on platforms where `getrusage()` is available (Linux, macOS, Win
 |--------|------|------|-------------|
 | `process.cpu.time` | Counter | `s` | CPU time consumed. Reported for `user` and `system` modes via the `cpu.mode` attribute. |
 | `process.context_switches` | Counter | `{context_switch}` | Number of times the process has been context switched. Reported for `voluntary` and `involuntary` switches via the `process.context_switch.type` attribute. |
+| `process.paging.faults` | Counter | `{fault}` | Number of page faults the process has made. Reported for `minor` and `major` faults via the `system.paging.fault.type` attribute. |
 
 ## Configuration
 

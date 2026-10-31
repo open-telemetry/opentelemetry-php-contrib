@@ -1,5 +1,7 @@
 # PHP Session Auto-instrumentation for OpenTelemetry
 
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-instrumentation-session.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-instrumentation-session.yml?query=branch%3Amain)
+
 This package provides auto-instrumentation for PHP's native session functions.
 
 ## Installation

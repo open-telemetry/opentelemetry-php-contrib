@@ -7,6 +7,7 @@ namespace OpenTelemetry\Contrib\Instrumentation\Symfony;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
@@ -19,6 +20,8 @@ use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
 use OpenTelemetry\SemConv\Version;
+use Symfony\Component\HttpClient\ScopingHttpClient;
+use Symfony\Component\HttpClient\UriTemplateHttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -35,6 +38,16 @@ final class HttpClientInstrumentation
     const SYNCHRONOUS_CLIENTS = [
         /** @psalm-suppress UndefinedClass */
         'ApiPlatform\Symfony\Bundle\Test\Client',
+        'ApiPlatform\Test\Client',
+    ];
+
+    /**
+     * These decorators send each request they receive to the client they wrap, once, with a URL they may have
+     * rewritten (resolved against a base URI, expanded from a template).
+     */
+    const URL_REWRITING_CLIENTS = [
+        ScopingHttpClient::class,
+        UriTemplateHttpClient::class,
     ];
 
     public static function supportsProgress(string $class): bool
@@ -47,6 +60,20 @@ final class HttpClientInstrumentation
         static $instance;
 
         return $instance ??= Context::createKey('symfony-http-client.request');
+    }
+
+    private static function rewritingKey(): ContextKeyInterface
+    {
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-http-client.rewriting');
+    }
+
+    private static function spanKey(): ContextKeyInterface
+    {
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-http-client.span');
     }
 
     private static function forwardedKey(): ContextKeyInterface
@@ -79,8 +106,19 @@ final class HttpClientInstrumentation
                 $parent = Context::getCurrent();
                 $request = sprintf('%s %s', $params[0], (string) $params[1]);
 
-                if ($parent->get(self::requestKey()) === $request) {
-                    Context::storage()->attach($parent->with(self::forwardedKey(), true));
+                $ownerRequest = $parent->get(self::requestKey());
+
+                if ($ownerRequest === $request || true === $parent->get(self::rewritingKey())) {
+                    $ownerSpan = $parent->get(self::spanKey());
+                    if ($ownerRequest !== $request && $ownerSpan instanceof SpanInterface) {
+                        $ownerSpan
+                            ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
+                            ->setAttribute(UrlAttributes::URL_FULL, (string) $params[1]);
+                    }
+                    Context::storage()->attach($parent
+                        ->with(self::requestKey(), $request)
+                        ->with(self::forwardedKey(), true)
+                        ->with(self::rewritingKey(), \in_array($class, self::URL_REWRITING_CLIENTS, true)));
 
                     return $params;
                 }
@@ -111,7 +149,7 @@ final class HttpClientInstrumentation
 
                 /** @psalm-suppress UndefinedClass */
                 if (false === self::supportsProgress($class)) {
-                    $context = self::ownerContext($span->storeInContext($parent), $request);
+                    $context = self::ownerContext($span->storeInContext($parent), $span, $request, $class);
                     $propagator->inject($requestOptions['headers'], ArrayAccessGetterSetter::getInstance(), $context);
 
                     Context::storage()->attach($context);
@@ -143,7 +181,7 @@ final class HttpClientInstrumentation
                     }
                 };
 
-                $context = self::ownerContext($span->storeInContext($parent), $request);
+                $context = self::ownerContext($span->storeInContext($parent), $span, $request, $class);
                 $propagator->inject($requestOptions['headers'], ArrayAccessGetterSetter::getInstance(), $context);
 
                 Context::storage()->attach($context);
@@ -191,10 +229,12 @@ final class HttpClientInstrumentation
         );
     }
 
-    private static function ownerContext(ContextInterface $context, string $request): ContextInterface
+    private static function ownerContext(ContextInterface $context, SpanInterface $span, string $request, string $class): ContextInterface
     {
         return $context
+            ->with(self::spanKey(), $span)
             ->with(self::requestKey(), $request)
-            ->with(self::forwardedKey(), false);
+            ->with(self::forwardedKey(), false)
+            ->with(self::rewritingKey(), \in_array($class, self::URL_REWRITING_CLIENTS, true));
     }
 }
