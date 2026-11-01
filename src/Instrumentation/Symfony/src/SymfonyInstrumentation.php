@@ -24,7 +24,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Routing\Router;
 
 /** @psalm-suppress UnusedClass */
 final class SymfonyInstrumentation
@@ -101,14 +100,31 @@ final class SymfonyInstrumentation
                 ?\Throwable $exception
             ): void {
                 $scope = Context::storage()->scope();
-                if (null === $scope || null === $exception) {
+                if (null === $scope) {
+                    return;
+                }
+                $type = $params[1] ?? HttpKernelInterface::MAIN_REQUEST;
+                $isSubRequest = ($type === HttpKernelInterface::SUB_REQUEST);
+
+                // MAIN_REQUEST without exception: let terminate() handle everything
+                if (!$isSubRequest && null === $exception) {
                     return;
                 }
 
                 $span = Span::fromContext($scope->context());
                 $scope->detach();
-                $span->recordException($exception);
-                $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+
+                // Record exception if present
+                if (null !== $exception) {
+                    $span->recordException($exception);
+                    $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
+                // Remaining cases are sub-requests and main requests with an
+                // exception, which terminate() will not handle: end the span here.
+                if ($isSubRequest && null !== $response) {
+                    $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $response->getStatusCode());
+                }
                 $span->end();
             }
         );
@@ -126,22 +142,23 @@ final class SymfonyInstrumentation
                 if (null === $scope) {
                     return;
                 }
-                $scope->detach();
                 $span = Span::fromContext($scope->context());
+                if (!$span->isRecording()) {
+                    // Sub-request/exception span was already ended by the handle() hook
+                    return;
+                }
+                $scope->detach();
 
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $response = ($params[1] instanceof Response) ? $params[1] : null;
                 if (null !== $request) {
-                    // Prefer route path template (per OpenTelemetry semantic conventions)
-                    // Fall back to route name for backwards compatibility
-                    $httpRoute = $request->attributes->get('_route_path', '')
-                        ?: $request->attributes->get('_route', '');
+                    $routeName = $request->attributes->get('_route', '');
 
-                    if ('' !== $httpRoute) {
+                    if ('' !== $routeName) {
                         /** @psalm-suppress ArgumentTypeCoercion */
                         $span
-                            ->updateName(sprintf('%s %s', $request->getMethod(), $httpRoute))
-                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $httpRoute);
+                            ->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
+                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $routeName);
                     }
                 }
 
@@ -197,43 +214,6 @@ final class SymfonyInstrumentation
                     ->recordException($throwable);
 
                 return $params;
-            },
-        );
-
-        // Hook into Router to capture route path template
-        /** @psalm-suppress UnusedFunctionCall */
-        hook(
-            Router::class,
-            'matchRequest',
-            post: static function (
-                Router $router,
-                array $params,
-                ?array $result,
-                ?\Throwable $exception
-            ): void {
-                if (null !== $exception || null === $result) {
-                    return;
-                }
-
-                $request = $params[0] ?? null;
-                if (!$request instanceof Request) {
-                    return;
-                }
-
-                $routeName = $result['_route'] ?? null;
-                if (null === $routeName) {
-                    return;
-                }
-
-                try {
-                    $route = $router->getRouteCollection()->get($routeName);
-                    if (null !== $route) {
-                        // Store the route path template for use by the terminate hook
-                        $request->attributes->set('_route_path', $route->getPath());
-                    }
-                } catch (\Throwable) {
-                    // Silently ignore - don't break the request for telemetry
-                }
             },
         );
     }

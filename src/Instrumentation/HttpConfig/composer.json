@@ -16,21 +16,23 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.7",
     "league/uri": "^7.5",
-    "phan/phan": "^6.0",
-    "phpstan/phpstan": "^2.1",
-    "phpstan/phpstan-phpunit": "^2.0",
-    "psalm/plugin-phpunit": "^0.19.3",
     "open-telemetry/sdk": "^1.6",
     "open-telemetry/sdk-configuration": "^0.8",
-    "phpunit/phpunit": "^10.5",
-    "vimeo/psalm": "^6.7",
-    "symfony/yaml": "^6.4",
-    "symfony/polyfill-php83": "^1.32"
+    "phan/phan": "^6.0",
+    "phpstan/phpstan": "^2.2",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "phpunit/phpunit": "^10.5 || ^11 || ^12 || ^13",
+    "psalm/plugin-phpunit": "^0.19.3",
+    "symfony/polyfill-php83": "^1.32",
+    "vimeo/psalm": "^6.7"
   },
   "autoload": {
     "psr-4": {
       "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\": "src/"
-    }
+    },
+    "files": [
+      "_register.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
@@ -49,16 +51,8 @@
     "branch-alias": {
       "dev-main": "1.x-dev"
     },
-    "spi": {
-      "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\InstrumentationConfigurationHttpConfig",
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerDefault",
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactQueryStringValues",
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\Config\\UriSanitizerRedactUserInfo"
-      ],
-      "OpenTelemetry\\API\\Configuration\\ConfigEnv\\EnvComponentLoader": [
-        "OpenTelemetry\\Contrib\\Instrumentation\\HttpConfig\\ConfigEnv\\InstrumentationConfigurationHttpConfig"
-      ]
+    "spi-config": {
+      "autoload-files": true
     }
   }
 }

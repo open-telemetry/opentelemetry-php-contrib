@@ -1,5 +1,7 @@
 # AWS X-Ray Sampler
 
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-sampler-xray.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-sampler-xray.yml?query=branch%3Amain)
+
 Provides a sampler which can get sampling configurations from AWS X-Ray to make sampling decisions. See: [AWS X-Ray Sampling](https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-sampling)
 
 ## Installation
