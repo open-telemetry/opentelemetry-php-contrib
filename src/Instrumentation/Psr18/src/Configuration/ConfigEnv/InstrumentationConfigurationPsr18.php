@@ -21,7 +21,7 @@ final class InstrumentationConfigurationPsr18 implements EnvComponentLoader
     #[Override]
     public function load(EnvResolver $env, EnvComponentLoaderRegistry $registry, Context $context): InstrumentationConfiguration
     {
-        $disabledInstrumentations = $env->list('OTEL_PHP_DISABLED_INSTRUMENTATIONS');
+        $disabledInstrumentations = $env->list('OTEL_PHP_DISABLED_INSTRUMENTATIONS') ?? [];
 
         return new Psr18Configuration(
             enabled: !in_array('all', $disabledInstrumentations, true) && !in_array('psr18', $disabledInstrumentations, true),
