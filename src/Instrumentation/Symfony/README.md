@@ -50,3 +50,31 @@ The extension can be disabled via [runtime configuration](https://opentelemetry.
 ```shell
 OTEL_PHP_DISABLED_INSTRUMENTATIONS=symfony
 ```
+
+### Route path cache
+
+OpenTelemetry semantic conventions define `http.route` as the request's path
+template (for example `/blog/{slug}`), not the Symfony route name (for example
+`app_blog_show`). Symfony itself only exposes the matched route's name on the
+request, and resolving the path template requires the route collection:
+`Router::getRouteCollection()` re-runs every route loader on each request when
+routes are served from the routing cache, adding several ms per request.
+
+To get the path template instead of the Symfony route name without loading the
+application's routes on every request, a route name => path template map is
+dumped next to the router's own cache files whenever the router (re)builds its
+matcher cache (`cache:warmup`, a cold cache, or route changes in debug mode).
+The path template of the matched route is resolved from that map at runtime
+and stored on the request as the `_route_path` attribute; if the map is
+missing, it is rebuilt once and persisted.
+
+The implementation mimics the Worldia approach to route path caching
+(see https://github.com/open-telemetry/opentelemetry-php/issues/2083,
+https://github.com/worldia/instrumentation-bundle/pull/12). See also
+`OpenTelemetry\Contrib\Instrumentation\Symfony\RoutePathCache`.
+
+The feature is disabled by default and can be enabled with:
+
+```shell
+OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE=true
+```

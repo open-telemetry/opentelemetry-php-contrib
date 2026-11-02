@@ -6,7 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\Contrib\Instrumentation\Symfony\SymfonyInstrumentation;
+use OpenTelemetry\Contrib\Instrumentation\Symfony\RoutePathCache;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
@@ -35,6 +35,14 @@ class SymfonyInstrumentationTest extends AbstractTest
 {
     /** @var list<string> */
     private array $cacheDirs = [];
+
+    #[\Override]
+    public function setUp(): void
+    {
+        putenv(RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE . '=true');
+
+        parent::setUp();
+    }
 
     public function test_http_kernel_handle_exception(): void
     {
@@ -105,7 +113,7 @@ class SymfonyInstrumentationTest extends AbstractTest
         $warmLoader = new CountingRouteLoader(self::createRoutes());
         (new Router($warmLoader, 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
         $this->assertSame(1, $warmLoader->loads);
-        $this->assertFileExists($cacheDir . '/' . SymfonyInstrumentation::ROUTE_PATHS_CACHE_FILE);
+        $this->assertFileExists($cacheDir . '/' . RoutePathCache::ROUTE_PATHS_CACHE_FILE);
 
         // A fresh router (i.e. a new request) served from the warm cache
         $loader = new CountingRouteLoader(self::createRoutes());
@@ -132,7 +140,7 @@ class SymfonyInstrumentationTest extends AbstractTest
     public function test_router_match_request_hook_rebuilds_missing_route_paths_cache_once(): void
     {
         $cacheDir = $this->createCacheDir();
-        $routePathsFile = $cacheDir . '/' . SymfonyInstrumentation::ROUTE_PATHS_CACHE_FILE;
+        $routePathsFile = $cacheDir . '/' . RoutePathCache::ROUTE_PATHS_CACHE_FILE;
 
         // Router cache warmed without the route paths map, e.g. with the extension disabled
         (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
@@ -182,6 +190,21 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertSame('/test/{slug}', $request->attributes->get('_route_path'));
     }
 
+    public function test_route_path_cache_is_disabled_by_default(): void
+    {
+        putenv(RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE);
+        $cacheDir = $this->createCacheDir();
+
+        // Warm the matcher cache, as `cache:warmup` does in production
+        (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
+
+        $request = Request::create('http://localhost/test/42');
+        (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->matchRequest($request);
+
+        $this->assertFalse($request->attributes->has('_route_path'));
+        $this->assertFileDoesNotExist($cacheDir . '/' . RoutePathCache::ROUTE_PATHS_CACHE_FILE);
+    }
+
     private static function createRoutes(): RouteCollection
     {
         $routes = new RouteCollection();
@@ -205,6 +228,8 @@ class SymfonyInstrumentationTest extends AbstractTest
 
     public function tearDown(): void
     {
+        putenv(RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE);
+
         foreach ($this->cacheDirs as $dir) {
             self::removeDirectory($dir);
         }
