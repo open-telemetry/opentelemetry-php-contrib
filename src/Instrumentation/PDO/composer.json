@@ -45,6 +45,11 @@
       "OpenTelemetry\\Tests\\Instrumentation\\PDO\\": "tests/"
     }
   },
+  "extra": {
+    "ci": {
+      "services": ["mysql"]
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false

@@ -10,6 +10,7 @@ use OpenTelemetry\API\Metrics\ObservableCounterInterface;
 use OpenTelemetry\API\Metrics\ObservableGaugeInterface;
 use OpenTelemetry\API\Metrics\ObserverInterface;
 use OpenTelemetry\Contrib\Metrics\Runtime\GarbageCollectionMetrics;
+use const PHP_VERSION_ID;
 use PHPUnit\Framework\TestCase;
 
 class GarbageCollectionMetricsTest extends TestCase
@@ -18,17 +19,15 @@ class GarbageCollectionMetricsTest extends TestCase
     {
         $meter = $this->createMock(MeterInterface::class);
 
-        $expectedCounters = PHP_VERSION_ID >= 80300 ? 5 : 2;
-        $meter->expects($this->exactly($expectedCounters))
+        $meter->expects($this->exactly(5))
             ->method('createObservableCounter')
             ->willReturn($this->createMock(ObservableCounterInterface::class));
 
-        $meter->expects($this->exactly(2))
+        $meter->expects($this->exactly(3))
             ->method('createObservableGauge')
             ->willReturn($this->createMock(ObservableGaugeInterface::class));
 
-        $expectedBatchObserve = PHP_VERSION_ID >= 80300 ? 2 : 1;
-        $meter->expects($this->exactly($expectedBatchObserve))
+        $meter->expects($this->exactly(1))
             ->method('batchObserve')
             ->willReturn($this->createMock(ObservableCallbackInterface::class));
 
@@ -63,26 +62,11 @@ class GarbageCollectionMetricsTest extends TestCase
             $this->createMock(ObserverInterface::class),
             $this->createMock(ObserverInterface::class),
             $this->createMock(ObserverInterface::class),
+            $this->createMock(ObserverInterface::class),
+            $this->createMock(ObserverInterface::class),
+            $this->createMock(ObserverInterface::class),
+            $this->createMock(ObserverInterface::class),
         );
-    }
-
-    public function test_gc_timing_metrics_registered_on_php83(): void
-    {
-        if (PHP_VERSION_ID < 80300) {
-            $this->markTestSkipped('GC timing metrics require PHP 8.3+');
-        }
-
-        $meter = $this->createMock(MeterInterface::class);
-        $meter->expects($this->exactly(5))
-            ->method('createObservableCounter')
-            ->willReturn($this->createMock(ObservableCounterInterface::class));
-        $meter->method('createObservableGauge')
-            ->willReturn($this->createMock(ObservableGaugeInterface::class));
-        $meter->expects($this->exactly(2))
-            ->method('batchObserve')
-            ->willReturn($this->createMock(ObservableCallbackInterface::class));
-
-        GarbageCollectionMetrics::register($meter);
     }
 
     public function test_gc_timing_callback_observes_float(): void
@@ -91,25 +75,31 @@ class GarbageCollectionMetricsTest extends TestCase
             $this->markTestSkipped('GC timing metrics require PHP 8.3+');
         }
 
-        $callbacks = [];
+        $callback = null;
         $meter = $this->createMock(MeterInterface::class);
         $meter->method('createObservableCounter')->willReturn($this->createMock(ObservableCounterInterface::class));
         $meter->method('createObservableGauge')->willReturn($this->createMock(ObservableGaugeInterface::class));
         $meter->method('batchObserve')
-            ->willReturnCallback(function (callable $cb) use (&$callbacks): ObservableCallbackInterface {
-                $callbacks[] = $cb;
+            ->willReturnCallback(function (callable $cb) use (&$callback): ObservableCallbackInterface {
+                $callback = $cb;
 
                 return $this->createMock(ObservableCallbackInterface::class);
             });
 
         GarbageCollectionMetrics::register($meter);
 
-        // $callbacks[1] is the PHP 8.3 timing batchObserve (collector_time, destructor_time, free_time)
         $collectorObs = $this->createMock(ObserverInterface::class);
         $collectorObs->expects($this->once())->method('observe')->with($this->isType('float'));
 
-        $callbacks[1](
+        $this->assertNotNull($callback);
+
+        $callback(
+            $this->createMock(ObserverInterface::class),
+            $this->createMock(ObserverInterface::class),
+            $this->createMock(ObserverInterface::class),
+            $this->createMock(ObserverInterface::class),
             $collectorObs,
+            $this->createMock(ObserverInterface::class),
             $this->createMock(ObserverInterface::class),
             $this->createMock(ObserverInterface::class),
         );

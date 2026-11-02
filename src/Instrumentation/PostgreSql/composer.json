@@ -50,6 +50,12 @@
       "OpenTelemetry\\Tests\\Instrumentation\\PostgreSql\\": "tests/"
     }
   },
+  "extra": {
+    "ci": {
+      "additional-extensions": ["pgsql"],
+      "services": ["postgresql"]
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false

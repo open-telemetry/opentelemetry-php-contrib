@@ -29,3 +29,6 @@ COPY --from=composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b72444817236
 COPY composer.json .
 RUN composer install --ignore-platform-reqs
 RUN mv vendor/* . && rm -rf vendor composer.json composer.lock
+
+FROM scratch AS artifact
+COPY --from=builder /build /build

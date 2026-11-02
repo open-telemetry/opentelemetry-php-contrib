@@ -4,6 +4,7 @@
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-detector-digitalocean)
 [![Latest Version](http://poser.pugx.org/open-telemetry/detector-digitalocean/v/unstable)](https://packagist.org/packages/open-telemetry/detector-digitalocean/)
 [![Stable](http://poser.pugx.org/open-telemetry/detector-digitalocean/v/stable)](https://packagist.org/packages/open-telemetry/detector-digitalocean/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-resourcedetectors-digitalocean.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-resourcedetectors-digitalocean.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

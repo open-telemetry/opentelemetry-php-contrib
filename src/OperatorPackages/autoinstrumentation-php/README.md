@@ -46,5 +46,6 @@ GitHub Actions builds the image and pushes it to GHCR.
 - `Dockerfile` builds each PHP/platform variant
 - `Dockerfile.final` assembles the release image
 - `docker-bake.hcl` defines the matrix and image tags
+- `docker-bake.ci.hcl` configures CI artifact exports and local OCI layout assembly
 - `.github/workflows/build.yml` runs CI builds and pushes
 - `.github/dependabot.yml` keeps dependencies updated

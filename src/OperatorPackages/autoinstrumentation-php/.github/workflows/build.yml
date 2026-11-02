@@ -12,11 +12,39 @@ on:
       - main
 
 jobs:
-  build:
+  prepare-matrix:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Generate variant matrix
+        id: matrix
+        shell: bash
+        run: |
+          matrix=$(docker buildx bake -f docker-bake.hcl final --print | jq -ce '
+            {target: [.target | keys[] | select(startswith("build-"))]}
+            | if (.target | length) == 0 then error("No build variant targets found") else . end
+          ')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  build-variants:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -30,8 +58,52 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
+      - name: Build variant artifact
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          files: |
+            docker-bake.hcl
+            docker-bake.ci.hcl
+          targets: ${{ matrix.target }}
+          set: ${{ matrix.target }}.output=type=oci,dest=./artifacts/${{ matrix.target }},tar=false
+        env:
+          OPENTELEMETRY_VERSION: '1.4.2'
+
+      - name: Upload variant artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.target }}
+          path: artifacts/${{ matrix.target }}/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  assemble:
+    needs: build-variants
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download variant artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: build-*
+          path: artifacts
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
       - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
@@ -45,11 +117,16 @@ jobs:
             echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build and push
+      - name: Assemble and push final image
         uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
         with:
+          source: .
+          files: |
+            docker-bake.hcl
+            docker-bake.ci.hcl
+          targets: final-ci
           push: ${{ github.event_name != 'pull_request' }}
         env:
           IMAGE_NAME: "ghcr.io/${{ github.repository }}"
           TAG: ${{ steps.meta.outputs.tag || 'latest' }}
-          OPENTELEMETRY_VERSION: ${{ steps.meta.outputs.tag || '1.4.0' }}
+          OPENTELEMETRY_VERSION: '1.4.2'

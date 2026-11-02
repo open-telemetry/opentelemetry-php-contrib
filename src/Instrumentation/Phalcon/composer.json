@@ -44,6 +44,11 @@
       "OpenTelemetry\\Tests\\Instrumentation\\Phalcon\\": "tests/"
     }
   },
+  "extra": {
+    "ci": {
+      "additional-extensions": ["phalcon5"]
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false

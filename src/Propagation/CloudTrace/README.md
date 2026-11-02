@@ -4,6 +4,7 @@
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-propagator-cloudtrace)
 [![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-propagator-cloudtrace/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-cloudtrace/)
 [![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-propagator-cloudtrace/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-propagation-cloudtrace/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-propagation-cloudtrace.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-propagation-cloudtrace.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

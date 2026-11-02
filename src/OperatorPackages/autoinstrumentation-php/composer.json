@@ -17,6 +17,11 @@
     "laravel/framework": "*",
     "slim/slim": "*"
   },
+  "extra": {
+    "ci": {
+      "skip": true
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": true,

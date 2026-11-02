@@ -7,3 +7,11 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        -
+            identifier: method.notFound # TODO: Drop with PHP 8.1
+            message: '#Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface::(booleanNode|end)\(\)#'
+            paths:
+                - src/Config/InstrumentationConfigurationHttpConfig.php
+                - src/Config/UriSanitizerRedactQueryStringValues.php
+            reportUnmatched: false

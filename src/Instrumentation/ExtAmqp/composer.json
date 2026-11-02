@@ -40,6 +40,12 @@
       "OpenTelemetry\\Tests\\Instrumentation\\ExtAmqp\\tests\\": "tests/"
     }
   },
+  "extra": {
+    "ci": {
+      "additional-extensions": ["amqp"],
+      "services": ["rabbitmq"]
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false

@@ -1,6 +1,7 @@
 # OpenTelemetry PHP metapackage
 
 [![Total Downloads](http://poser.pugx.org/open-telemetry/opentelemetry/downloads)](https://packagist.org/packages/open-telemetry/opentelemetry)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-metapackages-opentelemetry.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-metapackages-opentelemetry.yml?query=branch%3Amain)
 
 This is a metapackage which provides:
 - the OpenTelemetry API and SDK

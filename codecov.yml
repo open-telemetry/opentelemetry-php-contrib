@@ -9,6 +9,12 @@ coverage:
     project: true
     patch: false
 
+# Pull requests and pushes to main upload coverage only for the projects
+# they change, so each flag keeps its last upload until the next one.
+flag_management:
+  default_rules:
+    carryforward: true
+
 parsers:
   gcov:
     branch_detection:

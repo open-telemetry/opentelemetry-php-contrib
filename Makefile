@@ -1,9 +1,12 @@
-PHP_VERSION ?= 7.4
+# Exported because docker-compose.yaml reads it for the image tag.
+export PHP_VERSION ?= 8.1
 include .env
 PROJECT ?= Aws
 ROOT=/usr/src/myapp/src
 DC_RUN = ${DOCKER_COMPOSE} run --rm
 DC_RUN_PHP = $(DC_RUN) -w ${ROOT}/${PROJECT} php
+# .github/ci runs on the PHP version its composer.json requires, whatever PHP_VERSION is.
+DC_RUN_CI = PHP_VERSION=8.5 $(DC_RUN) -T -w /usr/src/myapp php env XDEBUG_MODE=off sh -c 'composer install --quiet --working-dir=.github/ci && $$0 "$$@"'
 
 .DEFAULT_GOAL : help
 
@@ -11,6 +14,19 @@ help: ## Show this help
 	@echo "example: PROJECT=Aws PHP_VERSION=8.1 make <command>"
 	@printf "\033[33m%s:\033[0m\n" 'Available commands'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[32m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+projects: ## List PROJECT values
+	@$(DC_RUN_CI) php .github/ci/matrix.php --projects
+services: ## Start the services PROJECT's tests need
+	@services=$$($(DC_RUN_CI) php .github/ci/matrix.php --services ${PROJECT}) || exit 1; \
+	if [ -n "$$services" ]; then $(DOCKER_COMPOSE) up -d --wait $$services; else echo "${PROJECT} needs no services"; fi
+ci-test: ## Test the CI matrix script
+	$(DC_RUN_CI) .github/ci/vendor/bin/phpunit -c .github/ci/phpunit.xml.dist
+ci-cells: ## List the CI cells for PROJECT
+	@$(DC_RUN_CI) php .github/ci/matrix.php --project ${PROJECT}
+ci-generate: ## Write each project's CI workflow
+	$(DC_RUN_CI) php .github/ci/matrix.php --generate
+ci-check: ## Check the repository as CI does
+	$(DC_RUN_CI) php .github/ci/matrix.php --check
 all-checks: style validate phan psalm phpstan test ## All checks + tests
 all: update all-checks ## Everything
 all-lowest: update-lowest all-checks ## Everything, with lowest supported versions
