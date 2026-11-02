@@ -190,6 +190,28 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertSame('/test/{slug}', $request->attributes->get('_route_path'));
     }
 
+    public function test_route_path_template_used_for_span_name_and_http_route_when_enabled(): void
+    {
+        $cacheDir = $this->createCacheDir();
+
+        // Warm the routing cache, as `cache:warmup` does in production
+        (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
+
+        // Route the request through the router, as RouterListener does
+        $router = new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext());
+        $request = Request::create('http://localhost/test/42');
+        $matches = $router->matchRequest($request);
+        $request->attributes->add($matches);
+
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
+
+        $this->assertCount(1, $this->storage);
+        $this->assertSame('GET /test/{id}', $this->storage[0]->getName());
+        $this->assertSame('/test/{id}', $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_ROUTE));
+    }
+
     public function test_route_path_cache_is_disabled_by_default(): void
     {
         putenv(RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE);
@@ -198,11 +220,23 @@ class SymfonyInstrumentationTest extends AbstractTest
         // Warm the matcher cache, as `cache:warmup` does in production
         (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
 
+        // Route the request through the router, as RouterListener does
+        $router = new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext());
         $request = Request::create('http://localhost/test/42');
-        (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->matchRequest($request);
+        $matches = $router->matchRequest($request);
+        $request->attributes->add($matches);
 
         $this->assertFalse($request->attributes->has('_route_path'));
         $this->assertFileDoesNotExist($cacheDir . '/' . RoutePathCache::ROUTE_PATHS_CACHE_FILE);
+
+        // The span name and http.route keep using the Symfony route name
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
+
+        $this->assertCount(1, $this->storage);
+        $this->assertSame('GET test_route', $this->storage[0]->getName());
+        $this->assertSame('test_route', $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_ROUTE));
     }
 
     private static function createRoutes(): RouteCollection

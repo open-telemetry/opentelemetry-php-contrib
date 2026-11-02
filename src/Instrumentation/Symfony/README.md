@@ -68,6 +68,11 @@ The path template of the matched route is resolved from that map at runtime
 and stored on the request as the `_route_path` attribute; if the map is
 missing, it is rebuilt once and persisted.
 
+When the feature is enabled, the server span name and the `http.route`
+attribute use the resolved path template (for example `GET /blog/{slug}`)
+instead of the Symfony route name (for example `GET app_blog_show`),
+falling back to the route name when no path template is available.
+
 The implementation mimics the Worldia approach to route path caching
 (see https://github.com/open-telemetry/opentelemetry-php/issues/2083,
 https://github.com/worldia/instrumentation-bundle/pull/12). See also

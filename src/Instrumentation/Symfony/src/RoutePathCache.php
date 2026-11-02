@@ -25,6 +25,11 @@ use Symfony\Component\Routing\Router;
  * and the path template is resolved from that map at runtime. If the map is
  * missing, it is rebuilt once and persisted.
  *
+ * When enabled, the server span name and the http.route attribute use the
+ * resolved path template (for example "GET /blog/{slug}") instead of the
+ * Symfony route name (for example "GET app_blog_show"), falling back to the
+ * route name when no path template is available.
+ *
  * This is disabled unless explicitly enabled via
  * {@see RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE}.
  *
@@ -115,6 +120,28 @@ final class RoutePathCache
         $resolver = new ConfigurationResolver();
 
         return $resolver->getBoolean(self::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE) ?? false;
+    }
+
+    /**
+     * The route path template of the matched route if the feature is enabled
+     * and the template is known, otherwise the Symfony route name. Used for
+     * the span name and the http.route attribute of server spans.
+     */
+    public static function resolveHttpRoute(Request $request): string
+    {
+        $routeName = $request->attributes->get('_route', '');
+        if (!is_string($routeName)) {
+            return '';
+        }
+
+        if (self::isEnabled()) {
+            $routePath = $request->attributes->get('_route_path', '');
+            if (is_string($routePath) && '' !== $routePath) {
+                return $routePath;
+            }
+        }
+
+        return $routeName;
     }
 
     private static function resolveRoutePath(Router $router, string $routeName): ?string
