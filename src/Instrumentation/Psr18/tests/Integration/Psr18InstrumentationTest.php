@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenTelemetry\Tests\Contrib\Psr18\Integration;
+namespace OpenTelemetry\Tests\Contrib\Instrumentation\Psr18\Integration;
 
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Response;

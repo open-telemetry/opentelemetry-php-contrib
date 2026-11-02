@@ -12,7 +12,8 @@
     "php": "^8.1",
     "open-telemetry/api": "^1.10",
     "open-telemetry/sem-conv": "^1.38",
-    "psr/http-client": "^1.0"
+    "psr/http-client": "^1.0",
+    "tbachert/spi": "^1.0.5"
   },
   "autoload": {
     "psr-4": {
@@ -34,7 +35,7 @@
     "phpstan/phpstan-phpunit": "^2.0",
     "phpunit/phpunit": "^10.5 || ^11 || ^12 || ^13",
     "psalm/plugin-phpunit": "^0.19.2",
-    "vimeo/psalm": "^6.4"
+    "vimeo/psalm": "^6.10.0"
   },
   "autoload-dev": {
     "psr-4": {

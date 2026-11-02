@@ -27,7 +27,7 @@ final class InstrumentationConfigurationPsr18 implements ComponentProvider
     public function createPlugin(array $properties, Context $context): InstrumentationConfiguration
     {
         return new Psr18Configuration(
-            enabled: $properties['enabled'] ?? false,
+            enabled: $properties['enabled'] ?? true,
         );
     }
 

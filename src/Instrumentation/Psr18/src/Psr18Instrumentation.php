@@ -35,9 +35,6 @@ use Throwable;
 #[ExtensionDependency('opentelemetry', '^1.0')]
 class Psr18Instrumentation implements Instrumentation
 {
-    /** @psalm-suppress ArgumentTypeCoercion */
-    public const NAME = 'psr18';
-
     private const CAPTURE_REQUEST_HEADERS_LEGACY_CFG_OPT_NAME = 'OTEL_PHP_INSTRUMENTATION_HTTP_REQUEST_HEADERS';
     private const CAPTURE_REQUEST_HEADERS_CFG_OPT_NAME = 'OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS';
     private const CAPTURE_RESPONSE_HEADERS_LEGACY_CFG_OPT_NAME = 'OTEL_PHP_INSTRUMENTATION_HTTP_RESPONSE_HEADERS';
