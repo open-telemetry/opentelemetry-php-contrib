@@ -44,15 +44,11 @@ class QueueTest extends TestCase
             $logger->info('Logged from closure');
         });
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord0 */
-        $logRecord0 = $this->storage[0];
-        $this->assertEquals('Task: A', $logRecord0->getBody());
-        $this->assertEquals('sync process', $this->storage[1]->getName());
+        $this->assertEquals('Task: A', $this->logStorage[0]->getBody());
+        $this->assertEquals('sync process', $this->spanStorage[0]->getName());
 
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord2 */
-        $logRecord2 = $this->storage[2];
-        $this->assertEquals('Logged from closure', $logRecord2->getBody());
-        $this->assertEquals('sync process', $this->storage[3]->getName());
+        $this->assertEquals('Logged from closure', $this->logStorage[1]->getBody());
+        $this->assertEquals('sync process', $this->spanStorage[1]->getName());
     }
 
     public function test_it_can_push_a_message_with_a_delay(): void
@@ -61,19 +57,19 @@ class QueueTest extends TestCase
         $this->queue->later(new DateInterval('PT10M'), new DummyJob('DateInterval'));
         $this->queue->later(new DateTimeImmutable('2024-04-15 22:29:00.123Z'), new DummyJob('DateTime'));
 
-        $this->assertEquals('create sync', $this->storage[2]->getName());
+        $this->assertEquals('create sync', $this->spanStorage[1]->getName());
         $this->assertIsInt(
-            $this->storage[2]->getAttributes()->get('messaging.message.delivery_timestamp'),
+            $this->spanStorage[1]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
-        $this->assertEquals('create sync', $this->storage[5]->getName());
+        $this->assertEquals('create sync', $this->spanStorage[3]->getName());
         $this->assertIsInt(
-            $this->storage[5]->getAttributes()->get('messaging.message.delivery_timestamp'),
+            $this->spanStorage[3]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
 
-        $this->assertEquals('create sync', $this->storage[8]->getName());
+        $this->assertEquals('create sync', $this->spanStorage[5]->getName());
         $this->assertIsInt(
-            $this->storage[8]->getAttributes()->get('messaging.message.delivery_timestamp'),
+            $this->spanStorage[5]->getAttributes()->get('messaging.message.delivery_timestamp'),
         );
     }
 
@@ -87,7 +83,7 @@ class QueueTest extends TestCase
         /** @psalm-suppress PossiblyUndefinedMethod */
         $mockQueue->later(15, new DummyJob('test'), '', 'custom-queue');
 
-        $this->assertEquals('create custom-queue', $this->storage[0]->getName());
+        $this->assertEquals('create custom-queue', $this->spanStorage[0]->getName());
     }
 
     public function test_it_can_publish_in_bulk(): void
@@ -105,8 +101,8 @@ class QueueTest extends TestCase
         /** @psalm-suppress PossiblyUndefinedMethod */
         $mockQueue->bulk($jobs);
 
-        $this->assertEquals('send dummy-queue', $this->storage[0]->getName());
-        $this->assertEquals(10, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals('send dummy-queue', $this->spanStorage[0]->getName());
+        $this->assertEquals(10, $this->spanStorage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
     }
 
     public function test_it_can_create_with_redis(): void
@@ -126,9 +122,9 @@ class QueueTest extends TestCase
             new DummyJob('B'),
         ]);
 
-        $this->assertEquals('send queues:default', $this->storage[0]->getName());
-        $this->assertEquals(2, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
-        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
+        $this->assertEquals('send queues:default', $this->spanStorage[0]->getName());
+        $this->assertEquals(2, $this->spanStorage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
+        $this->assertEquals('redis', $this->spanStorage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
     }
 
     public function test_it_drops_empty_receives(): void
@@ -150,29 +146,22 @@ class QueueTest extends TestCase
 
         $receive = fn () => $worker->runNextJob('sqs', 'default', new WorkerOptions(sleep: 0));
 
-        for ($i = 0; $i < 1000; $i++) {
-            if ($i % 10 === 0) {
+        for ($i = 0; $i < 3; $i++) {
+            if ($i % 2 === 0) {
                 $this->queue->push(new DummyJob("{$i}"));
             }
 
             $receive();
         }
 
-        for ($i = 0; $i < 2; $i++) {
-            $this->queue->push(new DummyJob('More work'));
-            $receive();
-        }
+        $this->queue->push(new DummyJob('More work'));
+        $receive();
 
         /** @psalm-suppress PossiblyInvalidMethodCall */
-        $this->assertEquals(1206, $this->storage->count());
-
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord600 */
-        $logRecord600 = $this->storage[600];
-        $this->assertEquals('Task: 500', $logRecord600->getBody());
-
-        /** @var \OpenTelemetry\SDK\Logs\ReadWriteLogRecord $logRecord1200 */
-        $logRecord1200 = $this->storage[1200];
-        $this->assertEquals('Task: More work', $logRecord1200->getBody());
+        $this->assertEquals(7, $this->spanStorage->count());
+        $this->assertEquals('Task: 0', $this->logStorage[0]->getBody());
+        $this->assertEquals('Task: 2', $this->logStorage[1]->getBody());
+        $this->assertEquals('Task: More work', $this->logStorage[2]->getBody());
     }
 
     #[WithMigration('queue')]

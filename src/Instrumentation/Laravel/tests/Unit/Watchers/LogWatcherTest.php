@@ -10,8 +10,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
-use OpenTelemetry\API\Instrumentation\Configurator;
-use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\LogWatcher;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeFactory;
@@ -20,37 +18,32 @@ use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Logs\Processor\SimpleLogRecordProcessor;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
+use OpenTelemetry\TestUtils\TestState;
 use PHPUnit\Framework\TestCase;
 use Stringable;
 
 class LogWatcherTest extends TestCase
 {
+    use TestState;
+
     private LoggerProviderInterface $loggerProvider;
-    private ScopeInterface $scope;
-    private ArrayObject $storage;
 
     #[\Override]
     protected function setUp(): void
     {
         putenv(LogWatcher::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
 
-        $this->storage = new ArrayObject();
         $this->loggerProvider = new LoggerProvider(
             new SimpleLogRecordProcessor(
-                new InMemoryExporter($this->storage),
+                new InMemoryExporter($this->logStorage),
             ),
             new InstrumentationScopeFactory(Attributes::factory()),
         );
-
-        $this->scope = Configurator::create()
-            ->withLoggerProvider($this->loggerProvider)
-            ->activate();
     }
 
     #[\Override]
     protected function tearDown(): void
     {
-        $this->scope->detach();
         putenv(LogWatcher::OTEL_PHP_LARAVEL_LOG_ATTRIBUTES_FLATTEN);
     }
 
@@ -80,7 +73,7 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
         $this->emit($watcher, 'hello', ['user_id' => 42, 'action' => 'login']);
 
-        $record = $this->storage[0];
+        $record = $this->logStorage[0];
         $this->assertSame('hello', $record->getBody());
         $this->assertSame(['user_id' => 42, 'action' => 'login'], $record->getAttributes()->get('context'));
     }
@@ -90,10 +83,9 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
         $this->emit($watcher, 'request', ['http' => ['method' => 'GET', 'path' => '/users'], 'user_id' => '123']);
 
-        $record = $this->storage[0];
         $this->assertSame(
             ['http' => ['method' => 'GET', 'path' => '/users'], 'user_id' => '123'],
-            $record->getAttributes()->get('context'),
+            $this->logStorage[0]->getAttributes()->get('context'),
         );
     }
 
@@ -103,7 +95,7 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
         $this->emit($watcher, 'login', ['user_id' => '123', 'action' => 'login']);
 
-        $record = $this->storage[0];
+        $record = $this->logStorage[0];
         $attrs = $record->getAttributes()->toArray();
         $this->assertArrayNotHasKey('context', $attrs);
         $this->assertSame('123', $attrs['user_id']);
@@ -116,7 +108,7 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
         $this->emit($watcher, 'request', ['http' => ['method' => 'GET', 'path' => '/users', 'status' => 200]]);
 
-        $record = $this->storage[0];
+        $record = $this->logStorage[0];
         $attrs = $record->getAttributes()->toArray();
         $this->assertArrayNotHasKey('context', $attrs);
         $this->assertSame('GET', $attrs['http.method']);
@@ -130,7 +122,7 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
         $this->emit($watcher, 'error logged', ['exception' => $exception], 'error');
 
-        $record = $this->storage[0];
+        $record = $this->logStorage[0];
         $this->assertSame(Exception::class, $record->getAttributes()->get(ExceptionAttributes::EXCEPTION_TYPE));
         $this->assertSame('something broke', $record->getAttributes()->get(ExceptionAttributes::EXCEPTION_MESSAGE));
         $this->assertNotNull($record->getAttributes()->get(ExceptionAttributes::EXCEPTION_STACKTRACE));
@@ -154,7 +146,7 @@ class LogWatcherTest extends TestCase
 
         $this->emit($watcher, 'msg', ['key' => $stringable]);
 
-        $record = $this->storage[0];
+        $record = $this->logStorage[0];
         $this->assertSame('stringable-value', $record->getAttributes()->get('key'));
     }
 
@@ -163,7 +155,7 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
         $this->emit($watcher, 'msg', ['present' => 'yes', 'absent' => null]);
 
-        $record = $this->storage[0];
+        $record = $this->logStorage[0];
         $context = $record->getAttributes()->get('context');
         $this->assertArrayHasKey('present', $context);
         $this->assertArrayNotHasKey('absent', $context);
@@ -175,7 +167,7 @@ class LogWatcherTest extends TestCase
         $watcher = $this->createWatcher();
         $this->emit($watcher, 'msg', ['a' => ['b' => 'c']]);
 
-        $record = $this->storage[0];
+        $record = $this->logStorage[0];
         // 'a.b' must not exist; nested array must be under 'context'
         $this->assertNull($record->getAttributes()->get('a.b'));
         $this->assertIsArray($record->getAttributes()->get('context'));

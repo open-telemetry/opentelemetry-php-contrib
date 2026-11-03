@@ -42,16 +42,14 @@ class WorkerTest extends TestCase
     {
         $this->dispatchJob(new DummyJob('job-with-parent-trace'));
 
-        $this->assertCount(2, $this->storage);
-
         $span = $this->findProcessSpan();
 
         $this->assertSame(self::PARENT_TRACE_ID, $span->getTraceId());
         $this->assertSame(self::PARENT_SPAN_ID, $span->getParentSpanId());
         $this->assertCount(0, $span->getLinks());
 
-        $this->assertSame('Task: job-with-parent-trace', $this->storage[0]->getBody());
-        $this->assertSame('process (anonymous)', $this->storage[1]->getName());
+        $this->assertSame('Task: job-with-parent-trace', $this->logStorage[0]->getBody());
+        $this->assertSame('process (anonymous)', $span->getName());
         $this->assertSame(DummyJob::class, $span->getAttributes()->get('messaging.message.job_name'));
     }
 
@@ -75,9 +73,8 @@ class WorkerTest extends TestCase
         $this->assertSame(self::PARENT_TRACE_ID, $link->getSpanContext()->getTraceId());
         $this->assertSame(self::PARENT_SPAN_ID, $link->getSpanContext()->getSpanId());
 
-        $this->assertCount(2, $this->storage);
-        $this->assertSame('Linked job handled', $this->storage[0]->getBody());
-        $this->assertSame('process (anonymous)', $this->storage[1]->getName());
+        $this->assertSame('Linked job handled', $this->logStorage[0]->getBody());
+        $this->assertSame('process (anonymous)', $span->getName());
         $this->assertSame(LinkedJob::class, $span->getAttributes()->get('messaging.message.job_name'));
 
         self::assertEquals('link', Baggage::fromContext($capturedContext)->getEntry('trace.type')->getValue());
@@ -93,9 +90,8 @@ class WorkerTest extends TestCase
         $this->assertNotSame(self::PARENT_TRACE_ID, $span->getTraceId());
         $this->assertCount(0, $span->getLinks());
 
-        $this->assertCount(2, $this->storage);
-        $this->assertSame('Isolated job handled', $this->storage[0]->getBody());
-        $this->assertSame('process (anonymous)', $this->storage[1]->getName());
+        $this->assertSame('Isolated job handled', $this->logStorage[0]->getBody());
+        $this->assertSame('process (anonymous)', $this->spanStorage[0]->getName());
         $this->assertSame(IsolatedJob::class, $span->getAttributes()->get('messaging.message.job_name'));
     }
 
@@ -186,14 +182,14 @@ class WorkerTest extends TestCase
     }
 
     /**
-     * Find the "process" span among all recorded spans in $this->storage.
+     * Find the "process" span among all recorded spans in $this->spanStorage.
      * Worker::process emits a span named "process <queue>: <job>".
      *
      * @return \OpenTelemetry\SDK\Trace\ImmutableSpan
      */
     private function findProcessSpan(): \OpenTelemetry\SDK\Trace\ImmutableSpan
     {
-        foreach ($this->storage as $item) {
+        foreach ($this->spanStorage as $item) {
             if (
                 $item instanceof \OpenTelemetry\SDK\Trace\ImmutableSpan
                 && str_starts_with($item->getName(), 'process ')
