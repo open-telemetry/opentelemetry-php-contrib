@@ -30,6 +30,7 @@ final class SymfonyInstrumentation
 {
     public const NAME = 'symfony';
 
+    /** @psalm-suppress PossiblyUnusedMethod */
     public static function register(): void
     {
         $instrumentation = new CachedInstrumentation(
@@ -152,13 +153,12 @@ final class SymfonyInstrumentation
                 $request = ($params[0] instanceof Request) ? $params[0] : null;
                 $response = ($params[1] instanceof Response) ? $params[1] : null;
                 if (null !== $request) {
-                    $routeName = $request->attributes->get('_route', '');
+                    $route = RoutePathCache::resolveHttpRoute($request);
 
-                    if ('' !== $routeName) {
-                        /** @psalm-suppress ArgumentTypeCoercion */
+                    if ('' !== $route) {
                         $span
-                            ->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
-                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $routeName);
+                            ->updateName(sprintf('%s %s', $request->getMethod(), $route))
+                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $route);
                     }
                 }
 
@@ -216,5 +216,8 @@ final class SymfonyInstrumentation
                 return $params;
             },
         );
+
+        // Route path resolution (see RoutePathCache) is behind a feature flag
+        RoutePathCache::register();
     }
 }
