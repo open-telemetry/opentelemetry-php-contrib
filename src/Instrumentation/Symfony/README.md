@@ -26,8 +26,8 @@ The following features are supported:
 * context propagation
 * HttpClient client span creation (one span per request, even when the client is decorated or a decorator rewrites the request URL: `ScopingHttpClient`, `UriTemplateHttpClient`)
 * HTTPClient context propagation
-* Message Bus span creation (one span per message, even when the bus is decorated: `RoutableMessageBus`, `TraceableMessageBus`)
-* Message Transport span creation (one span per message, even when the transport hands it to its sender: `AmqpTransport`)
+* Message Bus span creation (one span per dispatch, even when the bus is decorated: `RoutableMessageBus`, `TraceableMessageBus`)
+* Message Transport span creation (one span per send, even when the transport hands the envelope over to its sender: `AmqpTransport`)
 
 ## Installation via composer
 

@@ -215,6 +215,17 @@ final class MessengerInstrumentationTest extends AbstractTest
         $this->assertEquals(RoutableMessageBus::class, $this->storage[0]->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS));
     }
 
+    public function test_message_routed_through_a_traced_bus_creates_a_single_consumer_span()
+    {
+        $bus = new TraceableMessageBus(new MessageBus());
+        $routableBus = new RoutableMessageBus(new LazyContainer(['bus' => static fn () => $bus]));
+
+        $routableBus->dispatch(new Envelope(new SendEmailMessage('Hello Again'), [new BusNameStamp('bus'), new ReceivedStamp('async')]));
+
+        $this->assertCount(1, $this->storage);
+        $this->assertEquals(RoutableMessageBus::class, $this->storage[0]->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS));
+    }
+
     public function test_message_dispatched_while_handling_a_routed_message_is_a_child_of_its_span()
     {
         $bus = $this->getMessengerDispatchingFromItsHandler();
