@@ -17,7 +17,6 @@ use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
 use Symfony\Component\Messenger\Middleware\SendMessageMiddleware;
 use Symfony\Component\Messenger\RoutableMessageBus;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
-use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\TraceableMessageBus;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
@@ -253,7 +252,7 @@ final class MessengerInstrumentationTest extends AbstractTest
         $this->assertSame($this->storage[1]->getSpanId(), $this->storage[0]->getParentSpanId());
     }
 
-    public function test_handler_dispatching_its_message_again_with_other_stamps_creates_its_own_span()
+    public function test_handler_dispatching_its_message_again_creates_its_own_span()
     {
         $bus = null;
         $redispatched = false;
@@ -262,7 +261,7 @@ final class MessengerInstrumentationTest extends AbstractTest
                 SendEmailMessage::class => [static function (SendEmailMessage $message) use (&$bus, &$redispatched): void {
                     if (!$redispatched && $bus instanceof MessageBusInterface) {
                         $redispatched = true;
-                        $bus->dispatch($message, [new DelayStamp(1000)]);
+                        $bus->dispatch($message);
                     }
                 }],
             ])),
@@ -271,6 +270,25 @@ final class MessengerInstrumentationTest extends AbstractTest
         $bus->dispatch(new SendEmailMessage('Hello Again'));
 
         $this->assertCount(2, $this->storage);
+        $this->assertSame($this->storage[1]->getSpanId(), $this->storage[0]->getParentSpanId());
+    }
+
+    public function test_handler_dispatching_its_message_to_another_bus_creates_its_own_span()
+    {
+        $otherBus = new MessageBus();
+        $bus = new TraceableMessageBus(new MessageBus([
+            new HandleMessageMiddleware(new HandlersLocator([
+                SendEmailMessage::class => [static function (SendEmailMessage $message) use ($otherBus): void {
+                    $otherBus->dispatch($message);
+                }],
+            ])),
+        ]));
+
+        $bus->dispatch(new SendEmailMessage('Hello Again'));
+
+        $this->assertCount(2, $this->storage);
+        $this->assertEquals(MessageBus::class, $this->storage[0]->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS));
+        $this->assertEquals(TraceableMessageBus::class, $this->storage[1]->getAttributes()->get(MessengerInstrumentation::ATTRIBUTE_MESSENGER_BUS));
         $this->assertSame($this->storage[1]->getSpanId(), $this->storage[0]->getParentSpanId());
     }
 

@@ -15,6 +15,7 @@ use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
@@ -92,10 +93,12 @@ final class MessengerInstrumentation
                 $messageClass = \get_class($messageObject);
                 $operation = $isReceiving ? 'CONSUME' : 'DISPATCH';
                 $call = [$operation, $message, $params[1] ?? []];
+                // The bus running the middlewares and handlers ends the chain: what they dispatch is a call of its own
+                $handedOverCall = $bus instanceof MessageBus ? null : $call;
 
                 $parent = Context::getCurrent();
                 if (self::isHandedOver($parent, $call)) {
-                    Context::storage()->attach($parent->with(self::forwardedKey(), true));
+                    Context::storage()->attach($parent->with(self::callKey(), $handedOverCall)->with(self::forwardedKey(), true));
 
                     return $params;
                 }
@@ -117,7 +120,7 @@ final class MessengerInstrumentation
                     ->setParent($parent)
                     ->startSpan();
 
-                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), $call));
+                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), $handedOverCall));
 
                 return $params;
             },
@@ -228,16 +231,15 @@ final class MessengerInstrumentation
     }
 
     /**
-     * Whether the closest Messenger span records the same call: the same operation with the same message or envelope
-     * and the same stamps, as a decorator passes them on to the object it decorates. A handler dispatching its message
-     * again passes other stamps, or recurses forever.
+     * Whether the closest Messenger call is the same: the same operation with the same message or envelope and the same
+     * stamps, as a decorator passes them on to the object it decorates.
      */
     private static function isHandedOver(ContextInterface $context, array $call): bool
     {
         return $context->get(self::callKey()) === $call;
     }
 
-    private static function ownerContext(ContextInterface $context, array $call): ContextInterface
+    private static function ownerContext(ContextInterface $context, ?array $call): ContextInterface
     {
         return $context
             ->with(self::callKey(), $call)
