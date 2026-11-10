@@ -105,6 +105,25 @@ class MySqliInstrumentationTest extends TestCase
         $this->assertDatabaseAttributesForAllSpans($offset);
     }
 
+    public function test_mysqli_connect_with_port_as_string(): void
+    {
+        // call_user_func calls mysqli_connect in coercive mode, like an application without strict_types
+        $mysqli = call_user_func('mysqli_connect', $this->mysqlHost, $this->user, $this->passwd, $this->database, '3306');
+        $mysqli->query('SELECT 1');
+
+        $this->assertCount(2, $this->storage);
+
+        $connectSpan = $this->storage->offsetGet(0);
+        $this->assertSame('mysqli_connect', $connectSpan->getName());
+        $this->assertSame(3306, $connectSpan->getAttributes()->get(ServerAttributes::SERVER_PORT));
+
+        $querySpan = $this->storage->offsetGet(1);
+        $this->assertSame('mysqli::query', $querySpan->getName());
+        $this->assertFalse($querySpan->getParentContext()->isValid());
+        $this->assertSame(3306, $querySpan->getAttributes()->get(ServerAttributes::SERVER_PORT));
+        $this->assertDatabaseAttributesForAllSpans(2);
+    }
+
     public function test_mysqli_query_objective(): void
     {
         mysqli_report(MYSQLI_REPORT_ERROR| MYSQLI_REPORT_STRICT);
