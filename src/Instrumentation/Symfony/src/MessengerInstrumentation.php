@@ -9,6 +9,8 @@ use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\Context\ContextKeyInterface;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Version;
@@ -25,14 +27,29 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
  *
  * An exception to this will be simple transports like the Doctrine and InMemory transports.
  *
- * Caution: MessageBuses can be nested, so we might wand to add
- * a message stamp to keep track of the parent span.
+ * A decorator handing a message over to the object it decorates creates no span of its own: the worker's
+ * RoutableMessageBus and the bus it routes to, or a transport and its sender (AmqpTransport and AmqpSender),
+ * record a single span.
  */
 final class MessengerInstrumentation
 {
     const ATTRIBUTE_MESSENGER_BUS = 'symfony.messenger.bus';
     const ATTRIBUTE_MESSENGER_MESSAGE = 'symfony.messenger.message';
     const ATTRIBUTE_MESSENGER_TRANSPORT = 'symfony.messenger.transport';
+
+    private static function messageKey(): ContextKeyInterface
+    {
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-messenger.message');
+    }
+
+    private static function forwardedKey(): ContextKeyInterface
+    {
+        static $instance;
+
+        return $instance ??= Context::createKey('symfony-messenger.forwarded');
+    }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public static function register(): void
@@ -67,16 +84,25 @@ final class MessengerInstrumentation
                 // must be a CONSUMER span; a plain dispatch is the producer side. For an
                 // Envelope, report the wrapped message class rather than Envelope. See #1314.
                 $isReceiving = false;
-                $messageClass = \get_class($message);
+                $messageObject = $message;
                 if ($message instanceof Envelope) {
-                    $messageClass = \get_class($message->getMessage());
+                    $messageObject = $message->getMessage();
                     $isReceiving = $message->last(ReceivedStamp::class) !== null;
+                }
+                $messageClass = \get_class($messageObject);
+                $operation = $isReceiving ? 'CONSUME' : 'DISPATCH';
+
+                $parent = Context::getCurrent();
+                if (self::isHandedOver($parent, $operation, $messageObject)) {
+                    Context::storage()->attach($parent->with(self::forwardedKey(), true));
+
+                    return $params;
                 }
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
-                    ->spanBuilder(\sprintf('%s %s', $isReceiving ? 'CONSUME' : 'DISPATCH', $messageClass))
+                    ->spanBuilder(\sprintf('%s %s', $operation, $messageClass))
                     ->setSpanKind($isReceiving ? SpanKind::KIND_CONSUMER : SpanKind::KIND_PRODUCER)
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
@@ -86,13 +112,11 @@ final class MessengerInstrumentation
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
                 ;
 
-                $parent = Context::getCurrent();
                 $span = $builder
                     ->setParent($parent)
                     ->startSpan();
 
-                $context = $span->storeInContext($parent);
-                Context::storage()->attach($context);
+                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), $operation, $messageObject));
 
                 return $params;
             },
@@ -108,6 +132,11 @@ final class MessengerInstrumentation
                 }
 
                 $scope->detach();
+
+                if (true === $scope->context()->get(self::forwardedKey())) {
+                    return;
+                }
+
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
@@ -137,7 +166,15 @@ final class MessengerInstrumentation
             ) use ($instrumentation): array {
                 /** @var Envelope $envelope */
                 $envelope = $params[0];
-                $messageClass = \get_class($envelope->getMessage());
+                $messageObject = $envelope->getMessage();
+                $messageClass = \get_class($messageObject);
+
+                $parent = Context::getCurrent();
+                if (self::isHandedOver($parent, 'SEND', $messageObject)) {
+                    Context::storage()->attach($parent->with(self::forwardedKey(), true));
+
+                    return $params;
+                }
 
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
@@ -152,15 +189,11 @@ final class MessengerInstrumentation
                     ->setAttribute(self::ATTRIBUTE_MESSENGER_MESSAGE, $messageClass)
                 ;
 
-                $parent = Context::getCurrent();
-
                 $span = $builder
                     ->setParent($parent)
                     ->startSpan();
 
-                $context = $span->storeInContext($parent);
-
-                Context::storage()->attach($context);
+                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), 'SEND', $messageObject));
 
                 return $params;
             },
@@ -176,6 +209,11 @@ final class MessengerInstrumentation
                 }
 
                 $scope->detach();
+
+                if (true === $scope->context()->get(self::forwardedKey())) {
+                    return;
+                }
+
                 $span = Span::fromContext($scope->context());
 
                 if (null !== $exception) {
@@ -186,5 +224,21 @@ final class MessengerInstrumentation
                 $span->end();
             }
         );
+    }
+
+    /**
+     * Whether the closest Messenger span records the same operation on the same message: the caller is a decorator
+     * handing it over to the object it decorates.
+     */
+    private static function isHandedOver(ContextInterface $context, string $operation, object $message): bool
+    {
+        return $context->get(self::messageKey()) === [$operation, $message];
+    }
+
+    private static function ownerContext(ContextInterface $context, string $operation, object $message): ContextInterface
+    {
+        return $context
+            ->with(self::messageKey(), [$operation, $message])
+            ->with(self::forwardedKey(), false);
     }
 }
