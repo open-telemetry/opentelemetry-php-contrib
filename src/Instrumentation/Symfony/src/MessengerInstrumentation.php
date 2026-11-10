@@ -28,9 +28,9 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
  *
  * An exception to this will be simple transports like the Doctrine and InMemory transports.
  *
- * A decorator handing a message over to the object it decorates creates no span of its own: the worker's
- * RoutableMessageBus and the bus it routes to, or a transport and its sender (AmqpTransport and AmqpSender),
- * record a single span.
+ * When a decorator hands a message over to the object it decorates, that object creates no span of its own: the
+ * worker's RoutableMessageBus and the bus it routes to, or a transport and its sender (AmqpTransport and AmqpSender),
+ * record a single span, named after the decorator.
  */
 final class MessengerInstrumentation
 {
