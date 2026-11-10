@@ -37,11 +37,11 @@ final class MessengerInstrumentation
     const ATTRIBUTE_MESSENGER_MESSAGE = 'symfony.messenger.message';
     const ATTRIBUTE_MESSENGER_TRANSPORT = 'symfony.messenger.transport';
 
-    private static function messageKey(): ContextKeyInterface
+    private static function callKey(): ContextKeyInterface
     {
         static $instance;
 
-        return $instance ??= Context::createKey('symfony-messenger.message');
+        return $instance ??= Context::createKey('symfony-messenger.call');
     }
 
     private static function forwardedKey(): ContextKeyInterface
@@ -91,9 +91,10 @@ final class MessengerInstrumentation
                 }
                 $messageClass = \get_class($messageObject);
                 $operation = $isReceiving ? 'CONSUME' : 'DISPATCH';
+                $call = [$operation, $message, $params[1] ?? []];
 
                 $parent = Context::getCurrent();
-                if (self::isHandedOver($parent, $operation, $messageObject)) {
+                if (self::isHandedOver($parent, $call)) {
                     Context::storage()->attach($parent->with(self::forwardedKey(), true));
 
                     return $params;
@@ -116,7 +117,7 @@ final class MessengerInstrumentation
                     ->setParent($parent)
                     ->startSpan();
 
-                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), $operation, $messageObject));
+                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), $call));
 
                 return $params;
             },
@@ -166,11 +167,11 @@ final class MessengerInstrumentation
             ) use ($instrumentation): array {
                 /** @var Envelope $envelope */
                 $envelope = $params[0];
-                $messageObject = $envelope->getMessage();
-                $messageClass = \get_class($messageObject);
+                $messageClass = \get_class($envelope->getMessage());
+                $call = ['SEND', $envelope];
 
                 $parent = Context::getCurrent();
-                if (self::isHandedOver($parent, 'SEND', $messageObject)) {
+                if (self::isHandedOver($parent, $call)) {
                     Context::storage()->attach($parent->with(self::forwardedKey(), true));
 
                     return $params;
@@ -193,7 +194,7 @@ final class MessengerInstrumentation
                     ->setParent($parent)
                     ->startSpan();
 
-                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), 'SEND', $messageObject));
+                Context::storage()->attach(self::ownerContext($span->storeInContext($parent), $call));
 
                 return $params;
             },
@@ -227,18 +228,19 @@ final class MessengerInstrumentation
     }
 
     /**
-     * Whether the closest Messenger span records the same operation on the same message: the caller is a decorator
-     * handing it over to the object it decorates.
+     * Whether the closest Messenger span records the same call: the same operation with the same message or envelope
+     * and the same stamps, as a decorator passes them on to the object it decorates. A handler dispatching its message
+     * again passes other stamps, or recurses forever.
      */
-    private static function isHandedOver(ContextInterface $context, string $operation, object $message): bool
+    private static function isHandedOver(ContextInterface $context, array $call): bool
     {
-        return $context->get(self::messageKey()) === [$operation, $message];
+        return $context->get(self::callKey()) === $call;
     }
 
-    private static function ownerContext(ContextInterface $context, string $operation, object $message): ContextInterface
+    private static function ownerContext(ContextInterface $context, array $call): ContextInterface
     {
         return $context
-            ->with(self::messageKey(), [$operation, $message])
+            ->with(self::callKey(), $call)
             ->with(self::forwardedKey(), false);
     }
 }
