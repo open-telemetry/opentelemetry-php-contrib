@@ -40,7 +40,7 @@ class OpcacheMetrics
         $memoryWasted = $meter->createObservableUpDownCounter(
             'php.opcache.memory_wasted',
             'By',
-            'OPcache memory wasted (fragmented, not usable without restart)',
+            'Memory held by discarded (for example invalidated) scripts, reclaimed only when OPcache restarts (automatically once opcache.max_wasted_percentage is exceeded, or via opcache_reset())',
         );
         $hitRate = $meter->createObservableGauge(
             'php.opcache.hit_rate',
