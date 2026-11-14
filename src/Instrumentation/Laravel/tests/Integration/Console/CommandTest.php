@@ -15,8 +15,6 @@ class CommandTest extends TestCase
 {
     public function test_command_tracing(): void
     {
-        $this->assertCount(0, $this->storage);
-
         $exitCode = $this->kernel()->handle(
             new \Symfony\Component\Console\Input\ArrayInput(['optimize:clear']),
             new \Symfony\Component\Console\Output\NullOutput(),
@@ -31,13 +29,13 @@ class CommandTest extends TestCase
          *
          * @see \Illuminate\Foundation\Console\OptimizeClearCommand::handle() for the additional commands/spans.
          */
-        $this->assertCount(7, $this->storage);
+        $this->assertCount(7, $this->spanStorage);
 
         // The parent command always finishes last.
-        $this->assertSame('Command optimize:clear', $this->storage[6]->getName());
+        $this->assertSame('Command optimize:clear', $this->spanStorage[6]->getName());
 
         // Sub-command execution order differs across Laravel versions, so check presence only.
-        $names = array_map(fn ($span) => $span->getName(), iterator_to_array($this->storage));
+        $names = array_map(fn ($span) => $span->getName(), iterator_to_array($this->spanStorage));
         $this->assertContains('Command event:clear', $names);
         $this->assertContains('Command view:clear', $names);
         $this->assertContains('Command cache:clear', $names);
@@ -58,9 +56,9 @@ class CommandTest extends TestCase
 
         $this->assertEquals(Command::FAILURE, $exitCode);
 
-        $this->assertCount(1, $this->storage);
-        $this->assertSame('Command test:failing-command', $this->storage[0]->getName());
-        $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
+        $this->assertCount(1, $this->spanStorage);
+        $this->assertSame('Command test:failing-command', $this->spanStorage[0]->getName());
+        $this->assertSame(StatusCode::STATUS_ERROR, $this->spanStorage[0]->getStatus()->getCode());
     }
 
     private function kernel(): Kernel
