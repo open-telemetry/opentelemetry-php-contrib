@@ -63,4 +63,11 @@ class DetectorTest extends TestCase
         $out = Detector::generateAzureResourceUri(self::SERVICE_NAME, self::RESOURCE_GROUP, self::OWNER_NAME);
         $this->assertEquals(self::RESOURCE_URI, $out);
     }
+
+    public function test_returns_empty_resource_when_env_vars_missing()
+    {
+        $detector = new Detector();
+        $resource = @$detector->getResource();
+        $this->assertCount(0, $resource->getAttributes());
+    }
 }
