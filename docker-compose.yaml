@@ -24,13 +24,13 @@ services:
     - 9411:9411
 
   jaeger:
-    image: jaegertracing/jaeger:2.22.0@sha256:836b967b5abcf1f7758066aa6b348619267a2f1459f72d472840570f9bd88a17
+    image: jaegertracing/jaeger:2.23.0@sha256:3823829974ccfc2485d2e48b165579091f32295022ae80ca49704e2f4834116e
     ports:
     - 9412:9412
     - 16686:16686
 
   collector:
-    image: otel/opentelemetry-collector-contrib:0.163.1@sha256:1175b03003053962012f5a231f5567f66a3e8fdb960c7835c0e48f7aa1555806
+    image: otel/opentelemetry-collector-contrib:0.165.0@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea
     command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./files/collector/otel-collector-config.yml:/etc/otel-collector-config.yml
@@ -47,7 +47,7 @@ services:
       - "5672:5672/tcp"
 
   kafka:
-    image: apache/kafka-native:4.3.1@sha256:2885898ba17065023f1bd605f3a81efcfa986014f062b73b91ef5462485f9060
+    image: apache/kafka-native:4.4.0@sha256:11fde816adf384402de9f3e57aeaf2c3722ba0671610247817688d07441714b4
     hostname: kafka
     ports:
       - "9092:9092/tcp"
