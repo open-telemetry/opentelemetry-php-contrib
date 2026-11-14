@@ -58,6 +58,10 @@ validate: ## Validate composer file
 	$(DC_RUN_PHP) env XDEBUG_MODE=off composer validate --no-plugins
 packages-composer: ## Validate all composer packages
 	$(DC_RUN) php env XDEBUG_MODE=off vendor/bin/otel packages:composer:validate
+# dev-tools is installed on its own, as in CI. Through the root vendor/ it would also load every
+# package's _register.php, which needs the SDK.
+changelog: ## Check changelog entries for changes since origin/main
+	$(DC_RUN) php env XDEBUG_MODE=off sh -c 'rm -rf var/dev-tools && composer create-project --quiet --no-dev --prefer-dist open-telemetry/dev-tools var/dev-tools dev-main && var/dev-tools/bin/otel changelog:check'
 bash: ## Bash shell
 	$(DC_RUN_PHP) bash
 style: ## Run php-cs-fixer

@@ -46,7 +46,7 @@ Each sub-project has its own generated workflow, `.github/workflows/project-<slu
 
 Each split package has a `CHANGELOG.md`, which dev-tools reads to pick the next version and write the release notes. When a change affects a package's users, add an entry under `Unreleased` in that package's changelog, in the same PR, following the sections in `CONTRIBUTING.md`. End each entry with the PR link. Put a raised PHP or dependency minimum under `Breaking changes`. Skip tests, CI, tooling and internal refactoring.
 
-`.github/workflows/changelog.yml` runs `script/check_changelog.sh` on pull requests, unless the PR has the `skip-changelog` label. Run it locally to list the packages changed since `origin/main` whose changelogs didn't change.
+`.github/workflows/changelog.yml` runs dev-tools' `changelog:check` on pull requests, unless the PR has the `skip-changelog` label. It installs only dev-tools, not the monorepo's dependencies. Run `make changelog` to list the packages changed since `origin/main` and whether each has an entry.
 
 ## Architecture
 

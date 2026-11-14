@@ -12,8 +12,11 @@ refactoring don't need an entry.
 The headings decide the next release. `Fixed` or `Security` alone make a patch release. Any other heading makes a
 minor release.
 
-A check flags a pull request that changes a package without changing its changelog. If no entry is needed, a
-maintainer adds the `skip-changelog` label. To run the check locally, use `script/check_changelog.sh`.
+A check flags a pull request that changes a package's `.php` files or `composer.json` without an entry under
+`Unreleased`, or adds an entry that doesn't link to the pull request. Changes under `tests/` or `examples/`, and to the
+per-project tool configs, don't need an entry. If no entry is needed, a maintainer adds the `skip-changelog` label. To
+run the check locally, use `make changelog`. The rules are in the
+[dev-tools README](https://github.com/opentelemetry-php/dev-tools#check-changelogs-in-a-pull-request).
 
 ### Maintainers
 
