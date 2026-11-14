@@ -20,18 +20,22 @@ use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
+use Psr\Http\Message\RequestInterface;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use WeakMap;
 
 class ClientRequestWatcher extends Watcher
 {
     /**
-     * @var array<string, SpanInterface>
+     * @var WeakMap<RequestInterface, SpanInterface>
      */
-    protected array $spans = [];
+    protected WeakMap $spans;
 
     public function __construct(
         private readonly InstrumentationContext $context,
     ) {
+        /** @psalm-suppress PropertyTypeCoercion */
+        $this->spans = new WeakMap();
     }
 
     /**
@@ -80,31 +84,25 @@ class ClientRequestWatcher extends Watcher
                 ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? null,
             ])
             ->startSpan();
-        $this->spans[$this->createRequestComparisonHash($request->request)] = $span;
+        $this->spans[$request->request->toPsrRequest()] = $span;
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordConnectionFailed(ConnectionFailed $request): void
     {
-        $requestHash = $this->createRequestComparisonHash($request->request);
-
-        $span = $this->spans[$requestHash] ?? null;
+        $span = $this->takeSpan($request->request);
         if (null === $span) {
             return;
         }
 
         $span->setStatus(StatusCode::STATUS_ERROR, 'Connection failed');
         $span->end();
-
-        unset($this->spans[$requestHash]);
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordResponse(ResponseReceived $request): void
     {
-        $requestHash = $this->createRequestComparisonHash($request->request);
-
-        $span = $this->spans[$requestHash] ?? null;
+        $span = $this->takeSpan($request->request);
         if (null === $span) {
             return;
         }
@@ -116,13 +114,15 @@ class ClientRequestWatcher extends Watcher
 
         $this->maybeRecordError($span, $request->response);
         $span->end();
-
-        unset($this->spans[$requestHash]);
     }
 
-    private function createRequestComparisonHash(Request $request): string
+    private function takeSpan(Request $request): ?SpanInterface
     {
-        return sha1($request->method() . '|' . $request->url() . '|' . $request->body());
+        $psrRequest = $request->toPsrRequest();
+        $span = $this->spans[$psrRequest] ?? null;
+        unset($this->spans[$psrRequest]);
+
+        return $span;
     }
 
     private function maybeRecordError(SpanInterface $span, Response $response): void
