@@ -21,6 +21,7 @@ class HeadersPropagator implements PropagationGetterInterface
     }
 
     /** @psalm-suppress MoreSpecificReturnType */
+    #[\Override]
     public function keys($carrier): array
     {
         assert($carrier instanceof Request);
@@ -29,6 +30,7 @@ class HeadersPropagator implements PropagationGetterInterface
         return $carrier->headers->keys();
     }
 
+    #[\Override]
     public function get($carrier, string $key) : ?string
     {
         assert($carrier instanceof Request);

@@ -41,6 +41,14 @@
       "OpenTelemetry\\Tests\\Instrumentation\\Guzzle\\": "tests/"
     }
   },
+  "extra": {
+    "ci": {
+      "composer-requires": {
+        "guzzlehttp/guzzle:^7": "8.1",
+        "guzzlehttp/guzzle:^8": "8.1"
+      }
+    }
+  },
   "config": {
     "allow-plugins": {
       "php-http/discovery": false

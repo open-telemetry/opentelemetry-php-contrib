@@ -2,6 +2,8 @@ This is a read-only subtree split of https://github.com/open-telemetry/opentelem
 
 # OpenTelemetry ext-rdkafka auto-instrumentation
 
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-instrumentation-extrdkafka.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-instrumentation-extrdkafka.yml?query=branch%3Amain)
+
 Please read https://opentelemetry.io/docs/instrumentation/php/automatic/ for instructions on how to
 install and configure the extension and SDK.
 

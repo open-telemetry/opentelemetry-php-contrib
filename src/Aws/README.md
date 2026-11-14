@@ -4,6 +4,7 @@
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-aws)
 [![Latest Version](http://poser.pugx.org/open-telemetry/contrib-aws/v/unstable)](https://packagist.org/packages/open-telemetry/contrib-aws/)
 [![Stable](http://poser.pugx.org/open-telemetry/contrib-aws/v/stable)](https://packagist.org/packages/open-telemetry/contrib-aws/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-aws.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-aws.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

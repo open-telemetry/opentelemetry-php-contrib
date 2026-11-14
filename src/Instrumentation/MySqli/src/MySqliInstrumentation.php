@@ -417,7 +417,7 @@ class MySqliInstrumentation
     {
         $attributes = [];
         $attributes[ServerAttributes::SERVER_ADDRESS] = $params[$paramsOffset + 0] ?? get_cfg_var('mysqli.default_host');
-        $attributes[ServerAttributes::SERVER_PORT] = $params[$paramsOffset + 4] ?? get_cfg_var('mysqli.default_port');
+        $attributes[ServerAttributes::SERVER_PORT] = self::normalizePort($params[$paramsOffset + 4] ?? null) ?? get_cfg_var('mysqli.default_port');
         //$attributes[TraceAttributes::DB_USER] = $params[$paramsOffset + 1] ?? get_cfg_var('mysqli.default_user');
         $attributes[DbAttributes::DB_NAMESPACE] = $params[$paramsOffset + 3] ?? null;
         $attributes[DbAttributes::DB_SYSTEM_NAME] = DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL;
@@ -437,11 +437,19 @@ class MySqliInstrumentation
             $mysqliObject = $params[0];
         }
 
-        if ($mysqliObject) {
-            $tracker->storeMySqliAttributes($mysqliObject, $params[$paramsOffset + 0] ?? null, $params[$paramsOffset + 1] ?? null, $params[$paramsOffset + 3] ?? null, $params[$paramsOffset + 4] ?? null, null);
+        try {
+            if ($mysqliObject) {
+                $tracker->storeMySqliAttributes($mysqliObject, $params[$paramsOffset + 0] ?? null, $params[$paramsOffset + 1] ?? null, $params[$paramsOffset + 3] ?? null, self::normalizePort($params[$paramsOffset + 4] ?? null), null);
+            }
+        } finally {
+            self::endSpan([], $exception, ($retVal === false && !$exception) ? mysqli_connect_error() : null);
         }
+    }
 
-        self::endSpan([], $exception, ($retVal === false && !$exception) ? mysqli_connect_error() : null);
+    // mysqli accepts the port as a numeric string, which is common when it comes from a config file
+    private static function normalizePort(mixed $port): ?int
+    {
+        return filter_var($port, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
     }
 
     /** @param non-empty-string $spanName */

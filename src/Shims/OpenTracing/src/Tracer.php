@@ -68,7 +68,7 @@ class Tracer implements API\Tracer
 
         $span = $this->startSpan($operationName, $options);
 
-        /** @phpstan-ignore-next-line */
+        /** @phpstan-ignore return.type */ /** @phan-suppress-next-line PhanTypeMismatchReturnSuperType */
         return $this->scopeManager->activate(
             $span,
             $options->shouldFinishSpanOnClose()

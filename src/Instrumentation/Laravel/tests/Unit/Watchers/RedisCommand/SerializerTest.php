@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace OpenTelemetry\Tests\Contrib\Instrumentation\Laravel\Unit\Watchers\RedisCommand;
 
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Watchers\RedisCommand\Serializer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class SerializerTest extends TestCase
 {
-    /**
-     * @dataProvider serializeCases
-     */
+    #[DataProvider('serializeCases')]
     public function testSerialize($command, $params, $expected): void
     {
         $this->assertSame($expected, Serializer::serializeCommand($command, $params));

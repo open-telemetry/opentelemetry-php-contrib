@@ -1,0 +1,46 @@
+name: CI
+
+# Checks the CI setup itself: the matrix script, every project's extra.ci
+# and .gitsplit.yml prefix, and that each project has a current
+# generated workflow. It has no paths filter, so it runs on every change,
+# including one that adds a project without its workflow. See
+# .github/ci/README.md.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    # Its PHP is the 8.5 that .github/ci/composer.json requires, so it
+    # needs no setup-php. The image enables Xdebug, which only slows
+    # Composer and PHPUnit here.
+    runs-on: ubuntu-26.04
+    env:
+      XDEBUG_MODE: 'off'
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Validate root composer.json
+      run: composer validate
+
+    - name: Install matrix script
+      working-directory: .github/ci
+      run: composer install --no-progress --no-interaction
+
+    - name: Test matrix script
+      working-directory: .github/ci
+      run: vendor/bin/phpunit
+
+    - name: Check repository
+      run: php .github/ci/matrix.php --check

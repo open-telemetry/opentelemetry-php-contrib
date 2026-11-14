@@ -27,6 +27,7 @@ final class SwooleContextStorage implements ContextStorageInterface, ExecutionCo
         $this->handler = new SwooleContextHandler($storage);
     }
 
+    #[\Override]
     public function fork(int|string $id): void
     {
         $this->handler->switchToActiveCoroutine();
@@ -34,6 +35,7 @@ final class SwooleContextStorage implements ContextStorageInterface, ExecutionCo
         $this->storage->fork($id);
     }
 
+    #[\Override]
     public function switch(int|string $id): void
     {
         $this->handler->switchToActiveCoroutine();
@@ -41,6 +43,7 @@ final class SwooleContextStorage implements ContextStorageInterface, ExecutionCo
         $this->storage->switch($id);
     }
 
+    #[\Override]
     public function destroy(int|string $id): void
     {
         $this->handler->switchToActiveCoroutine();
@@ -48,6 +51,7 @@ final class SwooleContextStorage implements ContextStorageInterface, ExecutionCo
         $this->storage->destroy($id);
     }
 
+    #[\Override]
     public function scope(): ?ContextStorageScopeInterface
     {
         $this->handler->switchToActiveCoroutine();
@@ -59,6 +63,7 @@ final class SwooleContextStorage implements ContextStorageInterface, ExecutionCo
         return new SwooleContextScope($scope, $this->handler);
     }
 
+    #[\Override]
     public function current(): ContextInterface
     {
         $this->handler->switchToActiveCoroutine();
@@ -66,6 +71,7 @@ final class SwooleContextStorage implements ContextStorageInterface, ExecutionCo
         return $this->storage->current();
     }
 
+    #[\Override]
     public function attach(ContextInterface $context): ContextStorageScopeInterface
     {
         $this->handler->switchToActiveCoroutine();

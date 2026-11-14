@@ -236,6 +236,25 @@ class GuzzleInstrumentationTest extends TestCase
         }
     }
 
+    public function test_request_does_not_emit_deprecations(): void
+    {
+        $this->mock->append(new Response());
+        $deprecations = [];
+        set_error_handler(static function (int $type, string $message) use (&$deprecations): bool {
+            $deprecations[] = $message;
+
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->client->get('/foo');
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertSame([], $deprecations);
+    }
+
     public static function promiseProvider(): array
     {
         return [

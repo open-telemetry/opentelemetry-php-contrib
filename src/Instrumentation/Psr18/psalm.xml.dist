@@ -14,5 +14,9 @@
     </plugins>
     <issueHandlers>
         <MissingOverrideAttribute errorLevel="suppress"/>
+        <MoreSpecificImplementedParamType errorLevel="suppress"/>
+        <MoreSpecificReturnType errorLevel="suppress"/>
+        <LessSpecificReturnStatement errorLevel="suppress"/>
+        <UnusedClass errorLevel="suppress"/>
     </issueHandlers>
 </psalm>

@@ -1,5 +1,7 @@
 # OpenTracing shim for OpenTelemetry
 
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-shims-opentracing.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-shims-opentracing.yml?query=branch%3Amain)
+
 This package is intended to help OpenTracing users migrate to OpenTelemetry. The OpenTelemetry documentation provides guidance
 on how to migrate to OpenTelemetry: https://opentelemetry.io/docs/migration/opentracing/
 

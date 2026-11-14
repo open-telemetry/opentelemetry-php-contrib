@@ -4,6 +4,7 @@
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/context-swoole)
 [![Latest Version](http://poser.pugx.org/open-telemetry/context-swoole/v/unstable)](https://packagist.org/packages/open-telemetry/context-swoole/)
 [![Stable](http://poser.pugx.org/open-telemetry/context-swoole/v/stable)](https://packagist.org/packages/open-telemetry/context-swoole/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-context-swoole.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-context-swoole.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

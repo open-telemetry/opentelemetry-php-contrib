@@ -12,4 +12,9 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
+    <issueHandlers>
+        <MissingOverrideAttribute errorLevel="suppress"/>
+        <UndefinedClass errorLevel="suppress"/>
+        <UnusedClass errorLevel="suppress"/>
+    </issueHandlers>
 </psalm>

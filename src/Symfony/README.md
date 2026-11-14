@@ -4,6 +4,7 @@
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/symfony-sdk-bundle)
 [![Latest Version](http://poser.pugx.org/open-telemetry/symfony-sdk-bundle/v/unstable)](https://packagist.org/packages/open-telemetry/symfony-sdk-bundle/)
 [![Stable](http://poser.pugx.org/open-telemetry/symfony-sdk-bundle/v/stable)](https://packagist.org/packages/open-telemetry/symfony-sdk-bundle/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-symfony.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-symfony.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

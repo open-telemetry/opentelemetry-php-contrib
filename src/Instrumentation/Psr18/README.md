@@ -4,6 +4,7 @@
 [![Mirror](https://img.shields.io/badge/mirror-opentelemetry--php--contrib-blue)](https://github.com/opentelemetry-php/contrib-auto-psr18)
 [![Latest Version](http://poser.pugx.org/open-telemetry/opentelemetry-auto-psr18/v/unstable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-psr18/)
 [![Stable](http://poser.pugx.org/open-telemetry/opentelemetry-auto-psr18/v/stable)](https://packagist.org/packages/open-telemetry/opentelemetry-auto-psr18/)
+[![CI](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-instrumentation-psr18.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-php-contrib/actions/workflows/project-instrumentation-psr18.yml?query=branch%3Amain)
 
 This is a read-only subtree split of https://github.com/open-telemetry/opentelemetry-php-contrib.
 

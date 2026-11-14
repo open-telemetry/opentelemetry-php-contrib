@@ -22,6 +22,7 @@ final class SwooleContextScope implements ScopeInterface, ContextStorageScopeInt
         $this->handler = $handler;
     }
 
+    #[\Override]
     public function offsetExists($offset): bool
     {
         return $this->scope->offsetExists($offset);
@@ -30,27 +31,32 @@ final class SwooleContextScope implements ScopeInterface, ContextStorageScopeInt
     /**
      * @phan-suppress PhanUndeclaredClassAttribute
      */
+    #[\Override]
     #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->scope->offsetGet($offset);
     }
 
+    #[\Override]
     public function offsetSet($offset, $value): void
     {
         $this->scope->offsetSet($offset, $value);
     }
 
+    #[\Override]
     public function offsetUnset($offset): void
     {
         $this->scope->offsetUnset($offset);
     }
 
+    #[\Override]
     public function context(): ContextInterface
     {
         return $this->scope->context();
     }
 
+    #[\Override]
     public function detach(): int
     {
         $this->handler->switchToActiveCoroutine();

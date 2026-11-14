@@ -171,32 +171,39 @@ class DoctrineInstrumentationTest extends TestCase
 
     public function test_transaction(): void
     {
+        // Since DBAL 4.5 the sqlite3 driver implements beginTransaction(), commit() and rollBack()
+        // via exec(), which adds a child BEGIN/COMMIT/ROLLBACK span. Ignore those so the test
+        // covers every supported DBAL version.
+        $spans = fn (): array => array_values(array_filter(
+            $this->storage->getArrayCopy(),
+            fn ($span) => !in_array($span->getName(), ['BEGIN', 'COMMIT', 'ROLLBACK'], true),
+        ));
         $connection =  self::createConnection();
         $connection->beginTransaction();
-        $span = $this->storage->offsetGet(1);
+        $span = $spans()[1];
         $this->assertSame('Doctrine::beginTransaction', $span->getName());
         $this->assertSame('begin', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
-        $this->assertCount(2, $this->storage);
+        $this->assertCount(2, $spans());
 
         $statement = self::fillDB();
         $connection->executeStatement($statement);
-        $span = $this->storage->offsetGet(2);
+        $span = $spans()[2];
         $this->assertSame('CREATE technology', $span->getName());
         $connection->commit();
-        $span = $this->storage->offsetGet(3);
+        $span = $spans()[3];
         $this->assertSame('Doctrine::commit', $span->getName());
         $this->assertSame('commit', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
-        $this->assertCount(4, $this->storage);
+        $this->assertCount(4, $spans());
 
         $connection->beginTransaction();
         $this->assertTrue($connection->isTransactionActive());
 
         $connection->executeStatement("INSERT INTO technology(`name`, `date`) VALUES('Java', '1995-05-23');");
         $connection->rollback();
-        $span = $this->storage->offsetGet(6);
+        $span = $spans()[6];
         $this->assertSame('Doctrine::rollBack', $span->getName());
         $this->assertSame('rollback', $span->getAttributes()->get(DbAttributes::DB_OPERATION_NAME));
-        $this->assertCount(7, $this->storage);
+        $this->assertCount(7, $spans());
         $this->assertFalse($connection->isTransactionActive());
 
         $sth = $connection->prepare('SELECT * FROM `technology`');
