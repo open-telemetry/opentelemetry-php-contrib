@@ -20,18 +20,22 @@ use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
+use Psr\Http\Message\RequestInterface;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use WeakMap;
 
 class ClientRequestWatcher extends Watcher
 {
     /**
-     * @var array<int, SpanInterface>
+     * @var WeakMap<RequestInterface, SpanInterface>
      */
-    protected array $spans = [];
+    protected WeakMap $spans;
 
     public function __construct(
         private readonly InstrumentationContext $context,
     ) {
+        /** @psalm-suppress PropertyTypeCoercion */
+        $this->spans = new WeakMap();
     }
 
     /**
@@ -80,13 +84,13 @@ class ClientRequestWatcher extends Watcher
                 ServerAttributes::SERVER_PORT => $parsedUrl['port'] ?? null,
             ])
             ->startSpan();
-        $this->spans[$this->requestObjectId($request->request)] = $span;
+        $this->spans[$request->request->toPsrRequest()] = $span;
     }
 
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordConnectionFailed(ConnectionFailed $request): void
     {
-        $span = $this->takeSpan($this->requestObjectId($request->request));
+        $span = $this->takeSpan($request->request);
         if (null === $span) {
             return;
         }
@@ -98,7 +102,7 @@ class ClientRequestWatcher extends Watcher
     /** @psalm-suppress PossiblyUnusedMethod */
     public function recordResponse(ResponseReceived $request): void
     {
-        $span = $this->takeSpan($this->requestObjectId($request->request));
+        $span = $this->takeSpan($request->request);
         if (null === $span) {
             return;
         }
@@ -112,15 +116,11 @@ class ClientRequestWatcher extends Watcher
         $span->end();
     }
 
-    private function requestObjectId(Request $request): int
+    private function takeSpan(Request $request): ?SpanInterface
     {
-        return spl_object_id($request->toPsrRequest());
-    }
-
-    private function takeSpan(int $requestId): ?SpanInterface
-    {
-        $span = $this->spans[$requestId] ?? null;
-        unset($this->spans[$requestId]);
+        $psrRequest = $request->toPsrRequest();
+        $span = $this->spans[$psrRequest] ?? null;
+        unset($this->spans[$psrRequest]);
 
         return $span;
     }

@@ -8,6 +8,7 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Promise\RejectedPromise;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use GuzzleHttp\Psr7\Response as Psr7Response;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Events\ConnectionFailed;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Http\Client\Pool;
@@ -111,7 +112,7 @@ class ClientTest extends TestCase
     {
         $request = new Request(new Psr7Request('GET', 'http://untracked.opentelemetry.io'));
 
-        Event::dispatch(new ConnectionFailed($request));
+        Event::dispatch(new ConnectionFailed($request, new ConnectionException('Failure')));
 
         self::assertCount(0, $this->storage);
     }
