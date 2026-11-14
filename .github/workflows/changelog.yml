@@ -1,0 +1,41 @@
+name: Changelog
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened, labeled, unlabeled ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    name: Changelog updated
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The merge commit and its first parent, the base branch
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      # Only dev-tools and its own dependencies, outside the checkout. The check reads git, not the
+      # packages' code, so the monorepo's dependencies aren't installed.
+      - name: Install dev-tools
+        run: composer create-project --no-dev --prefer-dist --no-progress open-telemetry/dev-tools "$RUNNER_TEMP/dev-tools" dev-main
+
+      - name: Check changelogs
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: '"$RUNNER_TEMP/dev-tools/bin/otel" changelog:check --pr="$PR" HEAD^1 HEAD'

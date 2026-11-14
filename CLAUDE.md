@@ -42,6 +42,12 @@ vendor/bin/phpunit tests/Unit/SomeTest.php
 
 Each sub-project has its own generated workflow, `.github/workflows/project-<slug>.yml`, which runs only when that project (or shared CI code) changes, and calls `.github/workflows/php-project.yml`. Each runs: composer validate, php-cs-fixer (dry-run), phan, psalm, phpstan, and phpunit, on the PHP versions in `.github/ci/matrix.php` that the project allows. Projects needing infrastructure for integration tests (MongoDB, ExtAmqp, ExtRdKafka, MySqli, PDO, PostgreSql) list docker-compose services in `extra.ci.services`. `.github/workflows/ci.yml` runs on every change and fails if a generated workflow is stale; run `make ci-generate` after adding, removing or skipping a project, or changing its services. It also rewrites the project list in the root `README.md`. Each project's `README.md` must carry its CI badge, and `make ci-check` prints the line if it's missing. See `.github/ci/README.md`.
 
+## Changelogs
+
+Each split package has a `CHANGELOG.md`, which dev-tools reads to pick the next version and write the release notes. When a change affects a package's users, add an entry under `Unreleased` in that package's changelog, in the same PR, following the sections in `CONTRIBUTING.md`. End each entry with the PR link. Put a raised PHP or dependency minimum under `Breaking changes`. Skip tests, CI, tooling and internal refactoring.
+
+`.github/workflows/changelog.yml` runs dev-tools' `changelog:check` on pull requests, unless the PR has the `skip-changelog` label. It installs only dev-tools, not the monorepo's dependencies. Run `make changelog` to list the packages changed since `origin/main` and whether each has an entry.
+
 ## Architecture
 
 ### Sub-project categories (`src/`)
