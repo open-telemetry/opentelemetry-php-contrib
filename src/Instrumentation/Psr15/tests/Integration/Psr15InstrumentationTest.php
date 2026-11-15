@@ -17,6 +17,7 @@ use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -146,6 +147,53 @@ class Psr15InstrumentationTest extends TestCase
         $span = $this->storage->offsetGet(0);
         $this->assertSame('foo', $span->getStatus()->getDescription());
         $this->assertSame('exception', $span->getEvents()[0]->getName());
+    }
+
+    public function test_middleware_span_name_for_anonymous_class(): void
+    {
+        $middleware = new class() implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return new Response();
+            }
+        };
+        $middleware->process($this->request, $this->createMock(RequestHandlerInterface::class));
+
+        $this->assertCount(1, $this->storage);
+        // @var ImmutableSpan $span
+        $span = $this->storage->offsetGet(0);
+        $expected = 'Psr\Http\Server\MiddlewareInterface@anonymous::process';
+        $this->assertSame($expected, $span->getName());
+        $this->assertSame($expected, $span->getAttributes()->get(CodeAttributes::CODE_FUNCTION_NAME));
+    }
+
+    public function test_request_handler_span_name_is_stable_across_anonymous_classes(): void
+    {
+        $root = $this->tracerProvider->getTracer('test')->spanBuilder('root')->startSpan();
+        $scope = $root->activate();
+        $request = $this->request->withAttribute(SpanInterface::class, $root);
+        $first = $this->createHandler();
+        $second = new class() implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return new Response();
+            }
+        };
+        // Each anonymous class name embeds its file, line and a compile counter after a NUL byte.
+        $this->assertNotSame($first::class, $second::class);
+
+        $first->handle($request);
+        $second->handle($request);
+        $scope->detach();
+        $root->end();
+
+        $expected = 'Psr\Http\Server\RequestHandlerInterface@anonymous::handle';
+        foreach ([0, 1] as $offset) {
+            // @var ImmutableSpan $span
+            $span = $this->storage->offsetGet($offset);
+            $this->assertSame($expected, $span->getName());
+            $this->assertSame($expected, $span->getAttributes()->get(CodeAttributes::CODE_FUNCTION_NAME));
+        }
     }
 
     private function createHandler(?Exception $e = null): RequestHandlerInterface

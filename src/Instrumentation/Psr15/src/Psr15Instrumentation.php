@@ -50,8 +50,9 @@ class Psr15Instrumentation
             MiddlewareInterface::class,
             'process',
             pre: static function (MiddlewareInterface $middleware, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
-                $span = $instrumentation->tracer()->spanBuilder(sprintf('%s::%s', $class, $function))
-                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                $name = self::functionName($class, $function);
+                $span = $instrumentation->tracer()->spanBuilder($name)
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, $name)
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     ->startSpan();
@@ -86,13 +87,14 @@ class Psr15Instrumentation
                 $root = $request
                     ? $request->getAttribute(SpanInterface::class)
                     : Span::getCurrent();
+                $name = self::functionName($class, $function);
                 $builder = $instrumentation->tracer()->spanBuilder(
                     $root
-                    ? sprintf('%s::%s', $class, $function)
+                    ? $name
                     : sprintf('%s', $request?->getMethod() ?? 'unknown')
                 )
                     ->setSpanKind(SpanKind::KIND_SERVER)
-                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, $name)
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno);
                 $parent = Context::getCurrent();
@@ -141,5 +143,15 @@ class Psr15Instrumentation
                 $span->end();
             }
         );
+    }
+
+    /**
+     * PHP names an anonymous class `<parent>@anonymous`, followed by a NUL byte, the declaring file and line, and a
+     * counter that changes each time that file is compiled. Drop everything from the NUL byte on, so spans for an
+     * anonymous class get a stable name instead of a new one per compilation.
+     */
+    private static function functionName(string $class, string $function): string
+    {
+        return sprintf('%s::%s', explode("\0", $class, 2)[0], $function);
     }
 }
