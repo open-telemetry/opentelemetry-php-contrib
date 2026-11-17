@@ -6,9 +6,10 @@ namespace OpenTelemetry\Contrib\Instrumentation\Laravel;
 
 use Nevay\SPI\ServiceLoader;
 use OpenTelemetry\API\Configuration\ConfigProperties;
-use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context;
+use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Instrumentation;
+use OpenTelemetry\Contrib\Instrumentation\HttpConfig\HttpConfig;
 use OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Hook;
 
 class LaravelInstrumentation implements Instrumentation
@@ -17,17 +18,21 @@ class LaravelInstrumentation implements Instrumentation
 
     /** @psalm-suppress PossiblyUnusedMethod */
     #[\Override]
-    public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, Context $context): void
+    public function register(HookManagerInterface $hookManager, ConfigProperties $configuration, InstrumentationContext $context): void
     {
-        $config = $configuration->get(LaravelConfiguration::class) ?? new LaravelConfiguration();
+        $laravelConfiguration = $configuration->get(LaravelConfiguration::class) ?? new LaravelConfiguration();
 
-        if (! $config->enabled) {
+        if (! $laravelConfiguration->enabled) {
             return;
         }
 
+        $laravelConfiguration->setHttpConfig(
+            $configuration->get(HttpConfig::class) ?? new HttpConfig(),
+        );
+
         foreach (ServiceLoader::load(Hook::class) as $hook) {
             /** @var Hook $hook */
-            $hook->instrument($config, $hookManager, $context);
+            $hook->instrument($laravelConfiguration, $hookManager, $context);
         }
     }
 
