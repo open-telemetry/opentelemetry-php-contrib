@@ -128,7 +128,7 @@ class QueueTest extends TestCase
 
         $this->assertEquals('send queues:default', $this->storage[0]->getName());
         $this->assertEquals(2, $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_BATCH_MESSAGE_COUNT));
-        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM));
+        $this->assertEquals('redis', $this->storage[0]->getAttributes()->get(MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME));
     }
 
     public function test_it_drops_empty_receives(): void

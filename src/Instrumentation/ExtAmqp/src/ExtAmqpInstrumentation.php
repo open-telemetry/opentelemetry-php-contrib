@@ -18,6 +18,7 @@ use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\RabbitmqIncubatingAttributes;
 use Throwable;
 
 /**
@@ -61,12 +62,12 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME, MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME_VALUE_RABBITMQ)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND)
 
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME, $routingKey)
 
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $routingKey)
+                    ->setAttribute(RabbitmqIncubatingAttributes::RABBITMQ_DESTINATION_ROUTING_KEY, $routingKey)
 
                     // network
                     ->setAttribute(NetworkAttributes::NETWORK_PROTOCOL_NAME, 'amqp')
@@ -165,12 +166,12 @@ final class ExtAmqpInstrumentation
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
                     // messaging
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_RABBITMQ)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME, MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME_VALUE_RABBITMQ)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SETTLE)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_NAME, $method)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME, $queueName)
 
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, $queueName)
+                    ->setAttribute(RabbitmqIncubatingAttributes::RABBITMQ_DESTINATION_ROUTING_KEY, $queueName)
 
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_CLIENT_ID, $queue->getConsumerTag())
 

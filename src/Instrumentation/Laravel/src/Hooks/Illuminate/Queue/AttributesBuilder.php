@@ -52,7 +52,7 @@ trait AttributesBuilder
     private function beanstalkContextualAttributes(BeanstalkdQueue $queue, array $_payload, ?string $queueName = null, array $_options = [], mixed ...$_params): array
     {
         return [
-            MessagingIncubatingAttributes::MESSAGING_SYSTEM => 'beanstalk',
+            MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME => 'beanstalk',
             MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
         ];
     }
@@ -60,7 +60,7 @@ trait AttributesBuilder
     private function redisContextualAttributes(RedisQueue $queue, array $_payload, ?string $queueName = null, array $_options = [], mixed ...$_params): array
     {
         return [
-            MessagingIncubatingAttributes::MESSAGING_SYSTEM => 'redis',
+            MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME => 'redis',
             MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
         ];
     }
@@ -68,7 +68,7 @@ trait AttributesBuilder
     private function awsSqsContextualAttributes(SqsQueue $queue, array $_payload, ?string $queueName = null, array $_options = [], mixed ...$_params): array
     {
         return [
-            MessagingIncubatingAttributes::MESSAGING_SYSTEM => MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_AWS_SQS,
+            MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME => MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME_VALUE_AWS_SQS,
             MessagingIncubatingAttributes::MESSAGING_DESTINATION_NAME => $queue->getQueue($queueName),
         ];
     }

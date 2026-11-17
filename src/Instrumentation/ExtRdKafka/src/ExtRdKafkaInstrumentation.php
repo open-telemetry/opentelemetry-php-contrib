@@ -13,6 +13,7 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\Context;
 use function OpenTelemetry\Instrumentation\hook;
 use OpenTelemetry\SemConv\Attributes\CodeAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\KafkaIncubatingAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 
 use OpenTelemetry\SemConv\Version;
@@ -84,7 +85,7 @@ class ExtRdKafkaInstrumentation
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
                     ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_KAFKA)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME, MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME_VALUE_KAFKA)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND)
                 ;
 
@@ -100,7 +101,7 @@ class ExtRdKafkaInstrumentation
 
                 // Kafka message key
                 if (array_key_exists(3, $params)) {
-                    $span->setAttribute(MessagingIncubatingAttributes::MESSAGING_KAFKA_MESSAGE_KEY, $params[3]);
+                    $span->setAttribute(KafkaIncubatingAttributes::KAFKA_MESSAGE_KEY, $params[3]);
                 }
 
                 // Headers are the 5th argument for the producev function
@@ -158,10 +159,10 @@ class ExtRdKafkaInstrumentation
                     // @phan-suppress-next-line PhanTypeMismatchArgumentInternal - Doesn't seem to know this has to be a string
                     ->spanBuilder(sprintf('%s %s', MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS, $message->topic_name))
                     ->setSpanKind(SpanKind::KIND_CONSUMER)
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM, MessagingIncubatingAttributes::MESSAGING_SYSTEM_VALUE_KAFKA)
+                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME, MessagingIncubatingAttributes::MESSAGING_SYSTEM_NAME_VALUE_KAFKA)
                     ->setAttribute(MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE, MessagingIncubatingAttributes::MESSAGING_OPERATION_TYPE_VALUE_PROCESS)
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_KAFKA_MESSAGE_KEY, $message->key)
-                    ->setAttribute(MessagingIncubatingAttributes::MESSAGING_KAFKA_OFFSET, $message->offset)
+                    ->setAttribute(KafkaIncubatingAttributes::KAFKA_MESSAGE_KEY, $message->key)
+                    ->setAttribute(KafkaIncubatingAttributes::KAFKA_OFFSET, $message->offset)
                 ;
 
                 if (is_array($message->headers)) {
