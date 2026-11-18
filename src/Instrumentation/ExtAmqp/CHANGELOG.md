@@ -12,6 +12,7 @@ upgraders can check them in one place.
 - Spans set `messaging.system.name` instead of `messaging.system`, and `rabbitmq.destination.routing_key` instead of
   `messaging.rabbitmq.destination.routing_key`, following semantic conventions 1.45. Update queries and dashboards
   that use the old attributes ([#772]).
+- The instrumentation scope reports schema URL 1.45.0 instead of 1.38.0 ([#772]).
 
 ### Fixed
 

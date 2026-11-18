@@ -37,7 +37,7 @@ class Worker implements Hook
     ): void {
         $tracer = $context->tracerProvider->getTracer(
             LaravelInstrumentation::buildProviderName('queue', 'worker'),
-            schemaUrl: Version::VERSION_1_24_0->url(),
+            schemaUrl: Version::VERSION_1_45_0->url(),
         );
 
         $this->hookWorkerProcess($hookManager, $tracer, $context->propagator);

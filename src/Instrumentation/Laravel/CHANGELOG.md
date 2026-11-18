@@ -11,6 +11,7 @@ upgraders can check them in one place.
 - Requires `open-telemetry/sem-conv` 1.45 ([#772]).
 - Queue spans set `messaging.system.name` instead of `messaging.system`, and SQS jobs report `aws.sqs` instead of
   `aws_sqs`, following semantic conventions 1.45. Update queries and dashboards that use the old attribute ([#772]).
+- The queue hooks' instrumentation scope reports schema URL 1.45.0 instead of 1.24.0 ([#772]).
 
 ### Fixed
 

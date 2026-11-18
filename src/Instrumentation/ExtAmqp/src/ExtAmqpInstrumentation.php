@@ -19,6 +19,7 @@ use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\RabbitmqIncubatingAttributes;
+use OpenTelemetry\SemConv\Version;
 use Throwable;
 
 /**
@@ -35,7 +36,7 @@ final class ExtAmqpInstrumentation
         $instrumentation = new CachedInstrumentation(
             'io.opentelemetry.contrib.php.ext_amqp',
             InstalledVersions::getVersion('open-telemetry/opentelemetry-auto-ext-amqp'),
-            'https://opentelemetry.io/schemas/1.38.0',
+            Version::VERSION_1_45_0->url(),
         );
 
         /** @psalm-suppress UnusedFunctionCall */
