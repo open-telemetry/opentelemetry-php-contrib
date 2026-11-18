@@ -111,9 +111,7 @@ final class HttpClientInstrumentation
                 if ($ownerRequest === $request || true === $parent->get(self::rewritingKey())) {
                     $ownerSpan = $parent->get(self::spanKey());
                     if ($ownerRequest !== $request && $ownerSpan instanceof SpanInterface) {
-                        $ownerSpan
-                            ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
-                            ->setAttribute(UrlAttributes::URL_FULL, (string) $params[1]);
+                        self::setUrl($ownerSpan, (string) $params[1]);
                     }
                     Context::storage()->attach($parent
                         ->with(self::requestKey(), $request)
@@ -123,12 +121,14 @@ final class HttpClientInstrumentation
                     return $params;
                 }
 
+                $host = parse_url((string) $params[1])['host'] ?? null;
+
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = $instrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('%s', $params[0]))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
+                    ->setAttribute(TraceAttributes::PEER_SERVICE, $host)
                     ->setAttribute(UrlAttributes::URL_FULL, (string) $params[1])
                     ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $params[0])
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
@@ -158,11 +158,13 @@ final class HttpClientInstrumentation
                 }
 
                 $previousOnProgress = $requestOptions['on_progress'] ?? null;
+                $isRelativeUrl = null === $host;
 
                 //As Response are lazy we end span when status code was received
                 $requestOptions['on_progress'] = static function (int $dlNow, int $dlSize, array $info) use (
                     $previousOnProgress,
-                    $span
+                    $span,
+                    $isRelativeUrl
                 ): void {
                     if (null !== $previousOnProgress) {
                         $previousOnProgress($dlNow, $dlSize, $info);
@@ -171,6 +173,9 @@ final class HttpClientInstrumentation
                     $statusCode = $info['http_code'];
 
                     if (0 !== $statusCode && null !== $statusCode && $span->isRecording()) {
+                        if ($isRelativeUrl) {
+                            self::setUrl($span, $info['original_url'] ?? $info['url']);
+                        }
                         $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
 
                         if ($statusCode >= 400 && $statusCode < 600) {
@@ -227,6 +232,13 @@ final class HttpClientInstrumentation
                 // it's added in on_progress callback, see line 69
             },
         );
+    }
+
+    private static function setUrl(SpanInterface $span, string $url): void
+    {
+        $span
+            ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url($url)['host'] ?? null)
+            ->setAttribute(UrlAttributes::URL_FULL, $url);
     }
 
     private static function ownerContext(ContextInterface $context, SpanInterface $span, string $request, string $class): ContextInterface

@@ -14,6 +14,7 @@ use OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\Fixtures\Forwa
 use Symfony\Component\HttpClient\CurlHttpClient;
 use Symfony\Component\HttpClient\DecoratorTrait;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
+use Symfony\Component\HttpClient\NativeHttpClient;
 use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Component\HttpClient\UriTemplateHttpClient;
 use Symfony\Component\HttpFoundation\Response;
@@ -254,6 +255,48 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $this->assertSame('http://localhost:8057/json/1', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertSame('localhost', $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
         $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    /**
+     * @dataProvider transportProvider
+     */
+    public function test_transport_resolving_the_base_uri_option_reports_the_absolute_url(string $transport): void
+    {
+        $client = (new $transport())->withOptions(['base_uri' => 'http://localhost:8057/']);
+        $this->assertCount(0, $this->storage);
+
+        $client->request('GET', '/json/1', ['query' => ['a' => 'a']])->getStatusCode();
+        $this->assertCount(1, $this->storage);
+
+        $span = $this->storage[0];
+        $this->assertSame('http://localhost:8057/json/1?a=a', $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame('localhost', $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
+        $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    /**
+     * @dataProvider transportProvider
+     */
+    public function test_transport_resolving_the_base_uri_option_reports_the_url_before_redirection(string $transport): void
+    {
+        $client = (new $transport())->withOptions(['base_uri' => 'http://localhost:8057/']);
+        $this->assertCount(0, $this->storage);
+
+        $client->request('GET', '/302', ['query' => ['location' => 'http://127.0.0.1:8057/json']])->getStatusCode();
+        $this->assertCount(1, $this->storage);
+
+        $span = $this->storage[0];
+        $this->assertSame('http://localhost:8057/302?location=http://127.0.0.1:8057/json', $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame('localhost', $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
+        $this->assertSame(302, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    public function transportProvider(): array
+    {
+        return [
+            'curl' => [CurlHttpClient::class],
+            'native' => [NativeHttpClient::class],
+        ];
     }
 
     public function test_span_activated_between_decorators_does_not_receive_the_resolved_url(): void
