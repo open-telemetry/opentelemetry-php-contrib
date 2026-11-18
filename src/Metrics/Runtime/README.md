@@ -79,7 +79,7 @@ Registered only when OPcache is enabled (`opcache.enable=1`). In CLI context, al
 |--------|------|------|-------------|
 | `php.opcache.memory_used` | UpDownCounter | `By` | Memory used by cached scripts. |
 | `php.opcache.memory_free` | UpDownCounter | `By` | Free memory in the OPcache buffer. |
-| `php.opcache.memory_wasted` | UpDownCounter | `By` | Wasted (fragmented) memory — requires restart to reclaim. |
+| `php.opcache.memory_wasted` | UpDownCounter | `By` | Memory held by discarded (for example invalidated) scripts, reclaimed only when OPcache restarts (automatically once opcache.max_wasted_percentage is exceeded, or via opcache_reset()). |
 | `php.opcache.hits` | Counter | `{hit}` | Total cache hits. |
 | `php.opcache.misses` | Counter | `{miss}` | Total cache misses. |
 | `php.opcache.hit_rate` | Gauge | `%` | Cache hit rate percentage. |
