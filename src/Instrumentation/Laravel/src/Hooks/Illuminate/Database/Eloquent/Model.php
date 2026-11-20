@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace OpenTelemetry\Contrib\Instrumentation\Laravel\Hooks\Illuminate\Database\Eloquent;
 
 use Illuminate\Database\Eloquent\Model as EloquentModel;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOneOrManyThrough;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\Context as InstrumentationContext;
 use OpenTelemetry\API\Instrumentation\AutoInstrumentation\HookManagerInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -38,7 +41,8 @@ class Model implements Hook
         $this->hookPerformInsert($hookManager, $tracer);
         $this->hookPerformUpdate($hookManager, $tracer);
         $this->hookDelete($hookManager, $tracer);
-        $this->hookGetModels($hookManager, $tracer);
+        $this->hookGet($hookManager, $tracer);
+        $this->hookRelationGet($hookManager, $tracer);
         $this->hookDestroy($hookManager, $tracer);
         $this->hookRefresh($hookManager, $tracer);
     }
@@ -160,27 +164,18 @@ class Model implements Hook
         );
     }
 
-    private function hookGetModels(HookManagerInterface $hookManager, TracerInterface $tracer): void
+    /**
+     * `Builder::get()` eager loads relations only after `getModels()` has returned, so the span is
+     * started here rather than in `getModels()` to keep eager loaded relation spans as its children.
+     */
+    private function hookGet(HookManagerInterface $hookManager, TracerInterface $tracer): void
     {
         /** @psalm-suppress ArgumentTypeCoercion,UndefinedMagicMethod,UnusedFunctionCall */
         $hookManager->hook(
             \Illuminate\Database\Eloquent\Builder::class,
-            'getModels',
+            'get',
             preHook: function (\Illuminate\Database\Eloquent\Builder $builder, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
-                $model = $builder->getModel();
-                $builder = $tracer
-                    ->spanBuilder($model::class . '::get')
-                    ->setSpanKind(SpanKind::KIND_INTERNAL)
-                    ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
-                    ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
-                    ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
-                    ->setAttribute('laravel.eloquent.model', $model::class)
-                    ->setAttribute('laravel.eloquent.table', $model->getTable())
-                    ->setAttribute('laravel.eloquent.operation', 'get');
-
-                $parent = Context::getCurrent();
-                $span = $builder->startSpan();
-                Context::storage()->attach($span->storeInContext($parent));
+                $this->startGetSpan($tracer, $builder->getModel(), $class, $function, $filename, $lineno);
 
                 return $params;
             },
@@ -188,6 +183,49 @@ class Model implements Hook
                 $this->endSpan($exception);
             }
         );
+    }
+
+    /**
+     * These relations call `Builder::getModels()` directly instead of going through `Builder::get()`,
+     * so their own `get()` is hooked to trace them.
+     */
+    private function hookRelationGet(HookManagerInterface $hookManager, TracerInterface $tracer): void
+    {
+        $throughRelationClass = class_exists(HasOneOrManyThrough::class)
+            ? HasOneOrManyThrough::class
+            : \Illuminate\Database\Eloquent\Relations\HasManyThrough::class;
+        foreach ([BelongsToMany::class, $throughRelationClass] as $relationClass) {
+            /** @psalm-suppress ArgumentTypeCoercion,UnusedFunctionCall */
+            $hookManager->hook(
+                $relationClass,
+                'get',
+                preHook: function (Relation $relation, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($tracer) {
+                    $this->startGetSpan($tracer, $relation->getRelated(), $class, $function, $filename, $lineno);
+
+                    return $params;
+                },
+                postHook: function ($relation, array $params, $result, ?Throwable $exception) {
+                    $this->endSpan($exception);
+                }
+            );
+        }
+    }
+
+    private function startGetSpan(TracerInterface $tracer, EloquentModel $model, string $class, string $function, ?string $filename, ?int $lineno): void
+    {
+        $builder = $tracer
+            ->spanBuilder($model::class . '::get')
+            ->setSpanKind(SpanKind::KIND_INTERNAL)
+            ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
+            ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
+            ->setAttribute(CodeAttributes::CODE_LINE_NUMBER, $lineno)
+            ->setAttribute('laravel.eloquent.model', $model::class)
+            ->setAttribute('laravel.eloquent.table', $model->getTable())
+            ->setAttribute('laravel.eloquent.operation', 'get');
+
+        $parent = Context::getCurrent();
+        $span = $builder->startSpan();
+        Context::storage()->attach($span->storeInContext($parent));
     }
 
     private function hookDestroy(HookManagerInterface $hookManager, TracerInterface $tracer): void
