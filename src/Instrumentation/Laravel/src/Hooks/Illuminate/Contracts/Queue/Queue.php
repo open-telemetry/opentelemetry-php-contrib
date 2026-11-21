@@ -36,7 +36,7 @@ class Queue implements Hook
     ): void {
         $tracer = $context->tracerProvider->getTracer(
             LaravelInstrumentation::buildProviderName('queue'),
-            schemaUrl: Version::VERSION_1_24_0->url(),
+            schemaUrl: Version::VERSION_1_45_0->url(),
         );
 
         $this->hookBulk($hookManager, $tracer);
