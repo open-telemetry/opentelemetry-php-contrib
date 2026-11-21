@@ -4,10 +4,10 @@
     "keywords": ["opentelemetry", "otel", "sdk", "tracing", "sampler"],
     "license": "Apache-2.0",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "open-telemetry/api": "^1.1.0",
         "open-telemetry/sdk": "^1.1.0",
-        "open-telemetry/sdk-configuration": "^0.8.0"
+        "open-telemetry/sdk-configuration": "^0.10"
     },
     "require-dev": {
         "symfony/config": "^5.4 || ^6.4 || ^7.0",
@@ -30,7 +30,7 @@
             "dev-main": "0.1.x-dev"
         },
         "spi": {
-            "OpenTelemetry\\Config\\SDK\\Configuration\\ComponentProvider": [
+            "OpenTelemetry\\API\\Configuration\\Config\\ComponentProvider": [
                 "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplerRuleBased",
                 "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleAttribute",
                 "OpenTelemetry\\Contrib\\Sampler\\RuleBased\\ComponentProvider\\SamplingRuleLink",

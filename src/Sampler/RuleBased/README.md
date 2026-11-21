@@ -39,7 +39,7 @@ The RuleBased sampler can be configured through [Declarative Configuration](http
 key `php_rule_based` under `tracer_provider.sampler.sampler`:
 
 ```yaml
-file_format: "0.4"
+file_format: "1.0"
 
 tracer_provider:
   sampler:
