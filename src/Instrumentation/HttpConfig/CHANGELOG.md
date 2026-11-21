@@ -8,10 +8,10 @@ upgraders can check them in one place.
 
 ### Breaking changes
 
-- Requires PHP 8.2 ([#TBD]).
+- Requires PHP 8.2 ([#775]).
 
 ## 0.4.1 and earlier
 
 See the [GitHub releases](https://github.com/opentelemetry-php/contrib-config-http/releases).
 
-[#TBD]: https://github.com/open-telemetry/opentelemetry-php-contrib/pull/TBD
+[#775]: https://github.com/open-telemetry/opentelemetry-php-contrib/pull/775
