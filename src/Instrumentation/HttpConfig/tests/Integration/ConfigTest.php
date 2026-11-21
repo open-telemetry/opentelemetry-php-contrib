@@ -6,7 +6,7 @@ namespace OpenTelemetry\TestUtils\Instrumentation\HttpConfig\tests\Integration;
 
 use League\Uri\Http;
 use OpenTelemetry\API\Configuration\ConfigProperties;
-use OpenTelemetry\Config\SDK\Instrumentation;
+use OpenTelemetry\Config\SDK\Configuration;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\HttpConfig;
 use OpenTelemetry\Contrib\Instrumentation\HttpConfig\UriSanitizer\DefaultSanitizer;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -29,7 +29,7 @@ final class ConfigTest extends TestCase
 
     public static function configRegistryProviderSanitizeFieldNames(): iterable
     {
-        yield 'config' => [Instrumentation::parseFile(__DIR__ . '/fixtures/sdk-config-redact-query-string-values.yaml')->create()];
+        yield 'config' => [Configuration::parseFile(__DIR__ . '/fixtures/sdk-config-redact-query-string-values.yaml')->getInstrumentationConfig()];
     }
 
     #[DataProvider('configPropertiesProviderKnownHttpMethods')]
@@ -46,7 +46,7 @@ final class ConfigTest extends TestCase
 
     public static function configPropertiesProviderKnownHttpMethods(): iterable
     {
-        yield 'config' => [Instrumentation::parseFile(__DIR__ . '/fixtures/sdk-config-known-http-methods.yaml')->create()];
+        yield 'config' => [Configuration::parseFile(__DIR__ . '/fixtures/sdk-config-known-http-methods.yaml')->getInstrumentationConfig()];
     }
 
     #[DataProvider('configPropertiesProviderCaptureAttributes')]
@@ -78,7 +78,7 @@ final class ConfigTest extends TestCase
 
     public static function configPropertiesProviderCaptureAttributes(): iterable
     {
-        yield 'config' => [Instrumentation::parseFile(__DIR__ . '/fixtures/sdk-config-capture-attributes.yaml')->create()];
+        yield 'config' => [Configuration::parseFile(__DIR__ . '/fixtures/sdk-config-capture-attributes.yaml')->getInstrumentationConfig()];
     }
 
     #[DataProvider('configEmptyInstrumentationNodeProvider')]
@@ -116,6 +116,6 @@ final class ConfigTest extends TestCase
 
     public static function configEmptyInstrumentationNodeProvider(): iterable
     {
-        yield 'config' => [Instrumentation::parseFile(__DIR__ . '/fixtures/sdk-config-empty-instrumentation-node.yaml')->create()];
+        yield 'config' => [Configuration::parseFile(__DIR__ . '/fixtures/sdk-config-empty-instrumentation-node.yaml')->getInstrumentationConfig()];
     }
 }

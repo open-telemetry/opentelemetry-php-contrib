@@ -14,6 +14,7 @@ upgraders can check them in one place.
 - `Psr18Instrumentation::register()` is no longer static, and `Psr18Instrumentation::NAME` is
   removed ([#751]).
 - Requires `open-telemetry/api` 1.10 and `tbachert/spi` 1.0.5 ([#751]).
+- Requires PHP 8.2 ([#TBD]).
 
 ### Added
 
@@ -30,3 +31,4 @@ upgraders can check them in one place.
 See the [GitHub releases](https://github.com/opentelemetry-php/contrib-auto-psr18/releases).
 
 [#751]: https://github.com/open-telemetry/opentelemetry-php-contrib/pull/751
+[#TBD]: https://github.com/open-telemetry/opentelemetry-php-contrib/pull/TBD

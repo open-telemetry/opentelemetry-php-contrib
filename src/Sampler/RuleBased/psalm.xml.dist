@@ -16,5 +16,10 @@
     </plugins>
     <issueHandlers>
         <MissingOverrideAttribute errorLevel="suppress"/>
+        <MoreSpecificImplementedParamType>
+            <errorLevel type="suppress">
+                <directory name="src/ComponentProvider"/>
+            </errorLevel>
+        </MoreSpecificImplementedParamType>
     </issueHandlers>
 </psalm>
