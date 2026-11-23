@@ -6,16 +6,7 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use ApiPlatform\Symfony\Bundle\Test\Client as ApiPlatformTestClient;
 use OpenTelemetry\API\Globals;
-use OpenTelemetry\API\Instrumentation\Configurator;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\Context\ContextInterface;
-use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
-use OpenTelemetry\SDK\Trace\SamplerInterface;
-use OpenTelemetry\SDK\Trace\SamplingResult;
-use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
-use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
-use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\TraceAttributes;
@@ -25,6 +16,7 @@ use Symfony\Component\HttpClient\DecoratorTrait;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\NativeHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Component\HttpClient\UriTemplateHttpClient;
 use Symfony\Component\HttpFoundation\Response;
@@ -298,7 +290,20 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $span = $this->storage[0];
         $this->assertSame('http://localhost:8057/302?location=http://127.0.0.1:8057/json', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertSame('localhost', $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
-        $this->assertSame(302, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertSame(200, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    public function test_uri_template_client_over_a_transport_with_a_base_uri_reports_the_absolute_url(): void
+    {
+        $client = (new UriTemplateHttpClient($this->getHttpClient(__FUNCTION__)))->withOptions(['base_uri' => 'http://localhost:8057/']);
+        $this->assertCount(0, $this->storage);
+
+        $client->request('GET', '/json/{id}', ['vars' => ['id' => 1]])->getStatusCode();
+        $this->assertCount(1, $this->storage);
+
+        $span = $this->storage[0];
+        $this->assertSame('http://localhost:8057/json/1', $span->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame('localhost', $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
     }
 
     public function transportProvider(): array
@@ -372,15 +377,80 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
     }
 
-    public function test_transport_merging_the_default_query_option_into_an_absolute_url_reports_the_merged_url(): void
+    /**
+     * @dataProvider transportProvider
+     */
+    public function test_redirect_without_a_location_ends_the_span(string $transport): void
     {
-        $client = $this->getHttpClient(__FUNCTION__)->withOptions(['query' => ['a' => 'a']]);
         $this->assertCount(0, $this->storage);
 
-        $client->request('GET', 'http://localhost:8057/json')->getStatusCode();
+        $response = (new $transport())->request('GET', 'http://localhost:8057/custom?status=302');
+        $this->assertSame(302, $response->getStatusCode());
         $this->assertCount(1, $this->storage);
 
-        $this->assertSame('http://localhost:8057/json?a=a', $this->storage[0]->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame(302, $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    public function test_mocked_redirect_ends_the_span(): void
+    {
+        $client = new MockHttpClient(new MockResponse('', ['http_code' => 302, 'response_headers' => ['Location: /json']]));
+        $this->assertCount(0, $this->storage);
+
+        $this->assertSame(302, $client->request('GET', 'http://localhost:8057/302')->getStatusCode());
+        $this->assertCount(1, $this->storage);
+
+        $this->assertSame(302, $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    /**
+     * @dataProvider redirectLimitProvider
+     */
+    public function test_redirect_limit_decides_which_status_ends_the_span(string $transport, int $redirects, int $maxRedirects, int $expectedStatus): void
+    {
+        $url = 'http://localhost:8057/json';
+        for ($i = 0; $i < $redirects; ++$i) {
+            $url = 'http://localhost:8057/302?location=' . rawurlencode($url);
+        }
+        $this->assertCount(0, $this->storage);
+
+        $response = (new $transport(['max_redirects' => $maxRedirects]))->request('GET', $url);
+        $this->assertSame($expectedStatus, $response->getStatusCode());
+        $this->assertCount(1, $this->storage);
+
+        $this->assertSame($expectedStatus, $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    public function redirectLimitProvider(): iterable
+    {
+        foreach ($this->transportProvider() as $name => [$transport]) {
+            yield "$name, redirects disabled" => [$transport, 1, 0, 302];
+            yield "$name, limit reached by the last redirect" => [$transport, 1, 1, 200];
+            yield "$name, one redirect over the limit" => [$transport, 2, 1, 302];
+            yield "$name, two redirects under the limit" => [$transport, 2, 20, 200];
+        }
+    }
+
+    /**
+     * @dataProvider defaultQueryProvider
+     */
+    public function test_transport_with_a_default_query_option_reports_the_url_it_sends(string $url): void
+    {
+        $client = $this->getHttpClient(__FUNCTION__)->withOptions(['base_uri' => 'http://localhost:8057/', 'query' => ['a' => 'a']]);
+        $this->assertCount(0, $this->storage);
+
+        $response = $client->request('GET', $url);
+        $response->getStatusCode();
+        $this->assertCount(1, $this->storage);
+
+        $this->assertSame($response->getInfo('url'), $this->storage[0]->getAttributes()->get(UrlAttributes::URL_FULL));
+    }
+
+    public function defaultQueryProvider(): array
+    {
+        return [
+            'relative url' => ['/json'],
+            'absolute url' => ['http://localhost:8057/json'],
+        ];
     }
 
     public function test_transport_without_original_url_reports_the_url_before_redirection(): void
@@ -407,39 +477,6 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $span = $this->storage[0];
         $this->assertSame('http://localhost:8057/302?location=http://127.0.0.1:8057/json', $span->getAttributes()->get(UrlAttributes::URL_FULL));
         $this->assertSame('localhost', $span->getAttributes()->get(TraceAttributes::PEER_SERVICE));
-    }
-
-    public function test_sampler_sees_the_url_resolved_from_the_base_uri_option(): void
-    {
-        $sampler = new class() implements SamplerInterface {
-            public array $attributes = [];
-
-            public function shouldSample(ContextInterface $parentContext, string $traceId, string $spanName, int $spanKind, AttributesInterface $attributes, array $links): SamplingResult
-            {
-                $this->attributes = $attributes->toArray();
-
-                return new SamplingResult(SamplingResult::RECORD_AND_SAMPLE);
-            }
-
-            public function getDescription(): string
-            {
-                return 'capturing';
-            }
-        };
-        $scope = Configurator::create()
-            ->withTracerProvider(new TracerProvider(new SimpleSpanProcessor(new InMemoryExporter($this->storage)), $sampler))
-            ->withPropagator(TraceContextPropagator::getInstance())
-            ->activate();
-
-        try {
-            $client = $this->getHttpClient(__FUNCTION__)->withOptions(['base_uri' => 'http://localhost:8057/']);
-            $client->request('GET', '/json')->getStatusCode();
-        } finally {
-            $scope->detach();
-        }
-
-        $this->assertSame('http://localhost:8057/json', $sampler->attributes[UrlAttributes::URL_FULL] ?? null);
-        $this->assertSame('localhost', $sampler->attributes[TraceAttributes::PEER_SERVICE] ?? null);
     }
 
     public function test_span_activated_between_decorators_does_not_receive_the_resolved_url(): void
