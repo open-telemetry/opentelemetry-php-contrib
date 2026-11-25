@@ -322,7 +322,22 @@ final class HttpClientInstrumentationTest extends AbstractTest
         $client->request('GET', '/json')->getStatusCode();
         $this->assertCount(1, $this->storage);
 
+        $url = $this->storage[0]->getAttributes()->get(UrlAttributes::URL_FULL);
+        $this->assertStringNotContainsString('secret', $url);
+        $this->assertStringEndsWith('localhost:8057/json', $url);
+        $this->assertSame('localhost', $this->storage[0]->getAttributes()->get(TraceAttributes::PEER_SERVICE));
+    }
+
+    public function test_credentials_in_the_requested_url_are_redacted(): void
+    {
+        $client = $this->getHttpClient(__FUNCTION__);
+        $this->assertCount(0, $this->storage);
+
+        $client->request('GET', 'http://user:secret@localhost:8057/json')->getStatusCode();
+        $this->assertCount(1, $this->storage);
+
         $this->assertSame('http://REDACTED:REDACTED@localhost:8057/json', $this->storage[0]->getAttributes()->get(UrlAttributes::URL_FULL));
+        $this->assertSame('localhost', $this->storage[0]->getAttributes()->get(TraceAttributes::PEER_SERVICE));
     }
 
     public function test_client_reporting_progress_without_a_url_does_not_break_the_request(): void
