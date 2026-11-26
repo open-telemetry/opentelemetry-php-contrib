@@ -29,6 +29,12 @@ The following features are supported:
 * Message Bus span creation
 * Message Transport span creation
 
+### HttpClient URL attributes
+
+When a request URL is relative, the client resolves it against its `base_uri` option while it sends the request.
+`url.full` and `peer.service` are then updated from the response info once the request has started, so a sampler only
+sees the URL as it was requested. Credentials in `url.full` are redacted.
+
 ## Installation via composer
 
 ```bash
