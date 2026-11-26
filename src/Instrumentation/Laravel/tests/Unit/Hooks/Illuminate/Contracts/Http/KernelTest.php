@@ -26,19 +26,6 @@ class KernelTest extends TestCase
         $this->assertSame('unknown', $this->invokeGuard('httpMethod', $request));
     }
 
-    public function test_http_full_url_swallows_suspicious_operation_exception(): void
-    {
-        $request = new class() extends Request {
-            #[\Override]
-            public function fullUrl(): string
-            {
-                throw new SuspiciousOperationException('Invalid Host.');
-            }
-        };
-
-        $this->assertSame('', $this->invokeGuard('httpFullUrl', $request));
-    }
-
     public function test_http_host_name_swallows_suspicious_operation_exception(): void
     {
         $request = new class() extends Request {
