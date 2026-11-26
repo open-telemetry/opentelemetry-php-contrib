@@ -20,10 +20,13 @@ use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\Version;
+use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use WeakMap;
+use WeakReference;
 
 /** @psalm-suppress UnusedClass */
 final class SymfonyInstrumentation
@@ -37,6 +40,16 @@ final class SymfonyInstrumentation
             null,
             Version::VERSION_1_38_0->url(),
         );
+
+        /** @var WeakMap<Request, DeferredErrorSpan> $pendingErrors */
+        $pendingErrors = new WeakMap();
+        /** @var WeakMap<\Error, WeakReference<DeferredErrorSpan>> $escapedErrors */
+        $escapedErrors = new WeakMap();
+        register_shutdown_function(static function () use ($pendingErrors): void {
+            foreach ($pendingErrors as $pendingError) {
+                $pendingError->end();
+            }
+        });
 
         /** @psalm-suppress UnusedFunctionCall */
         hook(
@@ -73,7 +86,9 @@ final class SymfonyInstrumentation
 
                 $parent = Context::getCurrent();
                 if ($request) {
-                    $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
+                    if ($type === HttpKernelInterface::MAIN_REQUEST) {
+                        $parent = Globals::propagator()->extract($request, RequestPropagationGetter::instance());
+                    }
                     $span = $builder
                         ->setParent($parent)
                         ->setAttribute(UrlAttributes::URL_FULL, $request->getUri())
@@ -98,7 +113,7 @@ final class SymfonyInstrumentation
                 array $params,
                 ?Response $response,
                 ?\Throwable $exception
-            ): void {
+            ) use ($pendingErrors, $escapedErrors): void {
                 $scope = Context::storage()->scope();
                 if (null === $scope) {
                     return;
@@ -118,6 +133,22 @@ final class SymfonyInstrumentation
                 if (null !== $exception) {
                     $span->recordException($exception);
                     $span->setStatus(StatusCode::STATUS_ERROR, $exception->getMessage());
+                }
+
+                $request = $params[0] ?? null;
+                if (!$isSubRequest && $exception instanceof \Error && $request instanceof Request) {
+                    $routeName = $request->attributes->get('_route', '');
+                    if ($routeName !== '') {
+                        $span->updateName(sprintf('%s %s', $request->getMethod(), $routeName))
+                            ->setAttribute(HttpAttributes::HTTP_ROUTE, $routeName);
+                    }
+                    // Symfony can let Errors escape handle(), then recover through
+                    // terminateWithException(). Keep the span available for that response.
+                    $pendingError = new DeferredErrorSpan($span);
+                    $pendingErrors[$request] = $pendingError;
+                    $escapedErrors[$exception] = WeakReference::create($pendingError);
+
+                    return;
                 }
 
                 // Remaining cases are sub-requests and main requests with an
@@ -197,6 +228,43 @@ final class SymfonyInstrumentation
 
         /** @psalm-suppress UnusedFunctionCall */
         hook(
+            ErrorHandler::class,
+            'handleException',
+            pre: static function (ErrorHandler $handler, array $params) use ($escapedErrors): void {
+                $error = $params[0] ?? null;
+                if ($error instanceof \Error && isset($escapedErrors[$error])) {
+                    $escapedErrors[$error]->get()?->activate();
+                }
+            },
+            post: static function (ErrorHandler $handler, array $params) use ($escapedErrors): void {
+                $error = $params[0] ?? null;
+                if ($error instanceof \Error && isset($escapedErrors[$error])) {
+                    $escapedErrors[$error]->get()?->end();
+                }
+            },
+        );
+
+        /** @psalm-suppress UnusedFunctionCall */
+        hook(
+            HttpKernel::class,
+            'terminateWithException',
+            pre: static function (HttpKernel $kernel, array $params) use ($pendingErrors): void {
+                $request = $params[1] ?? null;
+                if ($request instanceof Request && isset($pendingErrors[$request])) {
+                    $pendingErrors[$request]->activate();
+                }
+            },
+            post: static function (HttpKernel $kernel, array $params) use ($pendingErrors): void {
+                $request = $params[1] ?? null;
+                if ($request instanceof Request && isset($pendingErrors[$request])) {
+                    $pendingErrors[$request]->end();
+                    unset($pendingErrors[$request]);
+                }
+            },
+        );
+
+        /** @psalm-suppress UnusedFunctionCall */
+        hook(
             HttpKernel::class,
             'handleThrowable',
             pre: static function (
@@ -206,7 +274,11 @@ final class SymfonyInstrumentation
                 string $_function,
                 ?string $_filename,
                 ?int $_lineno,
-            ): array {
+            ) use ($pendingErrors): array {
+                $request = $params[1] ?? null;
+                if ($request instanceof Request && isset($pendingErrors[$request])) {
+                    return $params;
+                }
                 /** @var \Throwable $throwable */
                 $throwable = $params[0];
 

@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
+use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -18,11 +23,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolverInterface;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\EventListener\ErrorListener;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 class SymfonyInstrumentationTest extends AbstractTest
 {
@@ -269,6 +279,145 @@ class SymfonyInstrumentationTest extends AbstractTest
         $span = $this->storage[0];
         $this->assertSame(StatusCode::STATUS_ERROR, $span->getStatus()->getCode());
         $this->assertSame(500, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+    }
+
+    public function test_escaped_error_recovered_by_terminate_with_exception(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $activeTraceId = null;
+        $loggedTraceId = null;
+        $parentScope = Context::storage()->scope();
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('log')->willReturnCallback(static function () use (&$loggedTraceId): void {
+            $loggedTraceId = Span::getCurrent()->getContext()->getTraceId();
+        });
+        $dispatcher->addListener(KernelEvents::EXCEPTION, static function (ExceptionEvent $event) use (&$activeTraceId): void {
+            $activeTraceId = Span::getCurrent()->getContext()->getTraceId();
+            $event->setResponse(new Response('error', 503));
+        });
+        $kernel = $this->getHttpKernel($dispatcher, static function () {
+            throw new \Error('raw error');
+        });
+        $request = Request::create('/broken');
+        $request->attributes->set('_route', 'broken_route');
+        $handler = new ErrorHandler();
+        $handler->setLoggers([E_ERROR => [$logger, LogLevel::CRITICAL]]);
+        $handler->setExceptionHandler(static function (\Throwable $error) use ($kernel, $request): void {
+            $kernel->terminateWithException($error, $request);
+        });
+
+        try {
+            $this->handleEscapingError($kernel, $request, true);
+            $this->fail('Expected Error');
+        } catch (\Error $error) {
+            ob_start();
+            try {
+                $handler->handleException($error);
+            } finally {
+                ob_end_clean();
+            }
+        }
+
+        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0];
+        $this->assertSame($span->getContext()->getTraceId(), $activeTraceId);
+        $this->assertSame($span->getContext()->getTraceId(), $loggedTraceId);
+        $this->assertSame($parentScope, Context::storage()->scope());
+        $this->assertSame('GET broken_route', $span->getName());
+        $this->assertSame(503, $span->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertCount(1, $span->getEvents());
+    }
+
+    public function test_escaped_error_recovery_sub_request_keeps_the_server_trace(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addSubscriber(new ErrorListener(static fn () => new Response('error', 503)));
+        $kernel = new HttpKernel($dispatcher, new ControllerResolver(), new RequestStack(), new ArgumentResolver());
+        $request = Request::create('/broken');
+        $request->attributes->set('_route', 'broken_route');
+        $request->attributes->set('_controller', static function () {
+            throw new \Error('raw error');
+        });
+        $parentScope = Context::storage()->scope();
+
+        try {
+            // catch=false also exercises recovery on Symfony versions that catch Throwable.
+            $this->handleEscapingError($kernel, $request, false);
+        } catch (\Error $error) {
+            ob_start();
+            try {
+                $kernel->terminateWithException($error, $request);
+            } finally {
+                ob_end_clean();
+            }
+        }
+
+        $this->assertCount(2, $this->storage);
+        $child = $this->storage[0];
+        $server = $this->storage[1];
+        $this->assertSame(SpanKind::KIND_SERVER, $server->getKind());
+        $this->assertSame($server->getContext()->getTraceId(), $child->getContext()->getTraceId());
+        $this->assertSame($server->getContext()->getSpanId(), $child->getParentContext()->getSpanId());
+        $this->assertSame('GET broken_route', $server->getName());
+        $this->assertSame(503, $server->getAttributes()->get(HttpAttributes::HTTP_RESPONSE_STATUS_CODE));
+        $this->assertCount(1, $server->getEvents());
+        $this->assertSame($parentScope, Context::storage()->scope());
+    }
+
+    public function test_escaped_error_without_recovery_ends_when_request_is_released(): void
+    {
+        $kernel = new HttpKernel(new EventDispatcher(), new ControllerResolver(), new RequestStack(), new ArgumentResolver());
+        $request = new Request();
+        $request->attributes->set('_route', 'broken_route');
+        $request->attributes->set('_controller', static function () {
+            throw new \Error('raw error');
+        });
+        $parentScope = Context::storage()->scope();
+
+        try {
+            $this->handleEscapingError($kernel, $request, true);
+        } catch (\Error $error) {
+            unset($error);
+        }
+        $this->assertSame($parentScope, Context::storage()->scope());
+        $this->assertCount(0, $this->storage);
+        unset($request);
+        gc_collect_cycles();
+        $this->assertCount(1, $this->storage);
+        $this->assertSame(StatusCode::STATUS_ERROR, $this->storage[0]->getStatus()->getCode());
+        $this->assertSame('broken_route', $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_ROUTE));
+    }
+
+    public function test_escaped_error_recovery_failure_restores_parent_scope(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addListener(KernelEvents::EXCEPTION, static function (): void {
+            throw new \RuntimeException('error renderer failed');
+        });
+        $kernel = $this->getHttpKernel($dispatcher, static function () {
+            throw new \Error('raw error');
+        });
+        $request = new Request();
+        $parentScope = Context::storage()->scope();
+        try {
+            $this->handleEscapingError($kernel, $request, true);
+        } catch (\Error $error) {
+            try {
+                $kernel->terminateWithException($error, $request);
+                $this->fail('Expected the error renderer to throw');
+            } catch (\RuntimeException $recoveryError) {
+                $this->assertSame('error renderer failed', $recoveryError->getMessage());
+            }
+        }
+        $this->assertCount(1, $this->storage);
+        $this->assertSame($parentScope, Context::storage()->scope());
+    }
+
+    /** @throws \Error */
+    // @phpstan-ignore throws.unusedType (Symfony 5.4 does not declare the escaping Error.)
+    private function handleEscapingError(HttpKernel $kernel, Request $request, bool $catch): void
+    {
+        $kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, $catch);
     }
 
     private function getHttpKernel(EventDispatcherInterface $eventDispatcher, $controller = null, ?RequestStack $requestStack = null, array $arguments = []): HttpKernel
