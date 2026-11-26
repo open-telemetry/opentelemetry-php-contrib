@@ -15,3 +15,5 @@ upgraders can check them in one place.
 ## 1.4.2 and earlier
 
 See the [GitHub releases](https://github.com/opentelemetry-php/autoinstrumentation-php/releases).
+
+[#776]: https://github.com/open-telemetry/opentelemetry-php-contrib/pull/776
