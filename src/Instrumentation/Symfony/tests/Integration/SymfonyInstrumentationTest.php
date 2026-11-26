@@ -6,11 +6,14 @@ namespace OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration;
 
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Contrib\Instrumentation\Symfony\RoutePathCache;
 use OpenTelemetry\Contrib\Propagation\TraceResponse\TraceResponsePropagator;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\NetworkAttributes;
 use OpenTelemetry\SemConv\Attributes\UrlAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
+use OpenTelemetry\Tests\Instrumentation\Symfony\tests\Integration\Fixtures\CountingRouteLoader;
+use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -23,9 +26,24 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\Router;
 
 class SymfonyInstrumentationTest extends AbstractTest
 {
+    /** @var list<string> */
+    private array $cacheDirs = [];
+
+    #[\Override]
+    public function setUp(): void
+    {
+        putenv(RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE . '=true');
+
+        parent::setUp();
+    }
+
     public function test_http_kernel_handle_exception(): void
     {
         $this->expectException(\RuntimeException::class);
@@ -82,6 +100,192 @@ class SymfonyInstrumentationTest extends AbstractTest
         $this->assertEquals('1.0', $attributes->get(NetworkAttributes::NETWORK_PROTOCOL_VERSION));
         $this->assertEquals(5, $attributes->get(HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE));
 
+    }
+
+    /**
+     * @dataProvider cachedRouteProvider
+     */
+    public function test_router_match_request_hook_resolves_route_path_from_cache_without_loading_routes(string $uri, string $expectedPath): void
+    {
+        $cacheDir = $this->createCacheDir();
+
+        // Warm the routing cache, as `cache:warmup` does in production
+        $warmLoader = new CountingRouteLoader(self::createRoutes());
+        (new Router($warmLoader, 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
+        $this->assertSame(1, $warmLoader->loads);
+        $this->assertFileExists($cacheDir . '/' . RoutePathCache::ROUTE_PATHS_CACHE_FILE);
+
+        // A fresh router (i.e. a new request) served from the warm cache
+        $loader = new CountingRouteLoader(self::createRoutes());
+        $router = new Router($loader, 'routes', ['cache_dir' => $cacheDir], new RequestContext());
+
+        $request = Request::create('http://localhost' . $uri);
+        $router->matchRequest($request);
+
+        $this->assertSame($expectedPath, $request->attributes->get('_route_path'));
+        $this->assertSame(0, $loader->loads, 'route resources must not be loaded when serving from the routing cache');
+    }
+
+    public static function cachedRouteProvider(): iterable
+    {
+        yield 'root' => ['/', '/'];
+        yield 'static' => ['/about/us', '/about/us'];
+        yield 'single variable' => ['/test/42', '/test/{id}'];
+        yield 'multiple variables' => ['/blog/hello/2', '/blog/{slug}/{page}'];
+        yield 'optional variable omitted' => ['/blog/hello', '/blog/{slug}/{page}'];
+        yield 'inline requirement and default' => ['/files/readme.json', '/files/{name}.{_format}'];
+        yield 'important variable' => ['/important/foo', '/important/{slug}'];
+    }
+
+    public function test_router_match_request_hook_rebuilds_missing_route_paths_cache_once(): void
+    {
+        $cacheDir = $this->createCacheDir();
+        $routePathsFile = $cacheDir . '/' . RoutePathCache::ROUTE_PATHS_CACHE_FILE;
+
+        // Router cache warmed without the route paths map, e.g. with the extension disabled
+        (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
+        unlink($routePathsFile);
+
+        $loader = new CountingRouteLoader(self::createRoutes());
+        $request = Request::create('http://localhost/test/42');
+        (new Router($loader, 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->matchRequest($request);
+
+        $this->assertSame('/test/{id}', $request->attributes->get('_route_path'));
+        $this->assertSame(1, $loader->loads);
+        $this->assertFileExists($routePathsFile);
+
+        $loader = new CountingRouteLoader(self::createRoutes());
+        $request = Request::create('http://localhost/test/42');
+        (new Router($loader, 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->matchRequest($request);
+
+        $this->assertSame('/test/{id}', $request->attributes->get('_route_path'));
+        $this->assertSame(0, $loader->loads);
+    }
+
+    public function test_router_match_request_hook_refreshes_route_paths_when_routes_change_in_debug(): void
+    {
+        $cacheDir = $this->createCacheDir();
+        mkdir($cacheDir);
+        $resource = $cacheDir . '/routes.resource';
+        touch($resource, time() - 10);
+
+        $routes = new RouteCollection();
+        $routes->add('test_route', new Route('/test/{id}'));
+        $routes->addResource(new FileResource($resource));
+        $options = ['cache_dir' => $cacheDir, 'debug' => true];
+
+        $request = Request::create('http://localhost/test/42');
+        (new Router(new CountingRouteLoader($routes), 'routes', $options, new RequestContext()))->matchRequest($request);
+        $this->assertSame('/test/{id}', $request->attributes->get('_route_path'));
+
+        // The route definition changes, which in debug mode invalidates the router cache
+        $changedRoutes = new RouteCollection();
+        $changedRoutes->add('test_route', new Route('/test/{slug}'));
+        $changedRoutes->addResource(new FileResource($resource));
+        touch($resource, time() + 10);
+        clearstatcache();
+
+        $request = Request::create('http://localhost/test/42');
+        (new Router(new CountingRouteLoader($changedRoutes), 'routes', $options, new RequestContext()))->matchRequest($request);
+        $this->assertSame('/test/{slug}', $request->attributes->get('_route_path'));
+    }
+
+    public function test_route_path_template_used_for_span_name_and_http_route_when_enabled(): void
+    {
+        $cacheDir = $this->createCacheDir();
+
+        // Warm the routing cache, as `cache:warmup` does in production
+        (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
+
+        // Route the request through the router, as RouterListener does
+        $router = new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext());
+        $request = Request::create('http://localhost/test/42');
+        $matches = $router->matchRequest($request);
+        $request->attributes->add($matches);
+
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
+
+        $this->assertCount(1, $this->storage);
+        $this->assertSame('GET /test/{id}', $this->storage[0]->getName());
+        $this->assertSame('/test/{id}', $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_ROUTE));
+    }
+
+    public function test_route_path_cache_is_disabled_by_default(): void
+    {
+        putenv(RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE);
+        $cacheDir = $this->createCacheDir();
+
+        // Warm the matcher cache, as `cache:warmup` does in production
+        (new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext()))->getMatcher();
+
+        // Route the request through the router, as RouterListener does
+        $router = new Router(new CountingRouteLoader(self::createRoutes()), 'routes', ['cache_dir' => $cacheDir], new RequestContext());
+        $request = Request::create('http://localhost/test/42');
+        $matches = $router->matchRequest($request);
+        $request->attributes->add($matches);
+
+        $this->assertFalse($request->attributes->has('_route_path'));
+        $this->assertFileDoesNotExist($cacheDir . '/' . RoutePathCache::ROUTE_PATHS_CACHE_FILE);
+
+        // The span name and http.route keep using the Symfony route name
+        $kernel = $this->getHttpKernel(new EventDispatcher());
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
+
+        $this->assertCount(1, $this->storage);
+        $this->assertSame('GET test_route', $this->storage[0]->getName());
+        $this->assertSame('test_route', $this->storage[0]->getAttributes()->get(HttpAttributes::HTTP_ROUTE));
+    }
+
+    private static function createRoutes(): RouteCollection
+    {
+        $routes = new RouteCollection();
+        $routes->add('home', new Route('/'));
+        $routes->add('static_route', new Route('/about/us'));
+        $routes->add('test_route', new Route('/test/{id}', [], ['id' => '\d+']));
+        $routes->add('multi_route', new Route('/blog/{slug}/{page}', ['page' => 1]));
+        $routes->add('inline_route', new Route('/files/{name<[a-z]+>?index}.{_format}'));
+        $routes->add('important_route', new Route('/important/{!slug}'));
+
+        return $routes;
+    }
+
+    private function createCacheDir(): string
+    {
+        $dir = sys_get_temp_dir() . '/otel-symfony-router-' . bin2hex(random_bytes(4));
+        $this->cacheDirs[] = $dir;
+
+        return $dir;
+    }
+
+    public function tearDown(): void
+    {
+        putenv(RoutePathCache::OTEL_PHP_SYMFONY_ROUTE_PATH_CACHE);
+
+        foreach ($this->cacheDirs as $dir) {
+            self::removeDirectory($dir);
+        }
+        $this->cacheDirs = [];
+
+        parent::tearDown();
+    }
+
+    private static function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
+        foreach ($iterator as $file) {
+            /** @var \SplFileInfo $file */
+            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+        }
+        rmdir($dir);
     }
 
     public function test_http_kernel_handle_stream_response(): void
