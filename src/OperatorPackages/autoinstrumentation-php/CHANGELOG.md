@@ -8,12 +8,11 @@ upgraders can check them in one place.
 
 ## 1.5.0
 
-### Added
-- Added support for PHP 8.6.
-### Changed
-- Upgrade dependencies: opentelemetry, composer, pie, busybox, etc.
-### Removed
-- Removed support for PHP 8.1.
+### Breaking changes
+- Removed support for PHP 8.1 ([#776]).
+- Added support for PHP 8.6 ([#776]).
+### Fixed
+- Upgrade dependencies: opentelemetry, composer, pie, busybox, etc ([#776]).
 
 ## 1.4.2 and earlier
 
