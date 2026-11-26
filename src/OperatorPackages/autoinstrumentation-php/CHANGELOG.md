@@ -6,6 +6,15 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 1.5.0
+
+### Added
+- Added support for PHP 8.6.
+### Changed
+- Upgrade dependencies: composer, pie, busybox, etc.
+### Removed
+- Removed support for PHP 8.1.
+
 ## 1.4.2 and earlier
 
 See the [GitHub releases](https://github.com/opentelemetry-php/autoinstrumentation-php/releases).
