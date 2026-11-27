@@ -1,8 +1,8 @@
 # Build args declared before the first FROM are usable in FROM instructions.
 ARG PHP_IMAGE=php:8.6@sha256:9bc69093cdff73d2dcf12bc34f4c308b8496a27dc3e6a4d0c332877289c6bf13
-ARG OPENTELEMETRY_VERSION=1.4.0
-ARG PIE_VERSION=1.4.9
-ARG PIE_SHA256=19a31ddd4bfd08b9eb5eaad2e5f63e76e7919cae7683852da41c80da704ad6c0
+ARG OPENTELEMETRY_VERSION=1.5.0
+ARG PIE_VERSION=1.6.0
+ARG PIE_SHA256=81041b276f4e23dfdfa6dc941e5745f9adec824a1bcf6141e226181ef43f519e
 
 # Parameterized extension builder — driven by docker-bake.hcl.
 FROM ${PHP_IMAGE} AS builder
@@ -25,7 +25,7 @@ RUN if [ "${LIBC}" = "musl" ]; then \
     && pie install open-telemetry/ext-opentelemetry:${OPENTELEMETRY_VERSION} \
     && cp /usr/local/lib/php/extensions/no-debug-${THREAD}-*/opentelemetry.so .
 
-COPY --from=composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2@sha256:0049ce90b432795bf413a738b073963ada1a689e1a8708104684baafe94586ec /usr/bin/composer /usr/bin/composer
 COPY composer.json .
 RUN composer install --ignore-platform-reqs
 RUN mv vendor/* . && rm -rf vendor composer.json composer.lock
