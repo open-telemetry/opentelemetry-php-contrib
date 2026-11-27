@@ -104,16 +104,16 @@ final class HttpClientInstrumentation
                 ?int $lineno,
             ) use ($instrumentation): array {
                 $parent = Context::getCurrent();
-                $request = sprintf('%s %s', $params[0], (string) $params[1]);
+                $rawUrl = (string) $params[1];
+                $requestOptions = $params[2] ?? [];
+                $request = sprintf('%s %s', $params[0], $rawUrl);
 
                 $ownerRequest = $parent->get(self::requestKey());
 
                 if ($ownerRequest === $request || true === $parent->get(self::rewritingKey())) {
                     $ownerSpan = $parent->get(self::spanKey());
                     if ($ownerRequest !== $request && $ownerSpan instanceof SpanInterface) {
-                        $ownerSpan
-                            ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
-                            ->setAttribute(UrlAttributes::URL_FULL, (string) $params[1]);
+                        $ownerSpan->setAttributes(self::urlAttributes($rawUrl));
                     }
                     Context::storage()->attach($parent
                         ->with(self::requestKey(), $request)
@@ -128,8 +128,7 @@ final class HttpClientInstrumentation
                     ->tracer()
                     ->spanBuilder(\sprintf('%s', $params[0]))
                     ->setSpanKind(SpanKind::KIND_CLIENT)
-                    ->setAttribute(TraceAttributes::PEER_SERVICE, parse_url((string) $params[1])['host'] ?? null)
-                    ->setAttribute(UrlAttributes::URL_FULL, (string) $params[1])
+                    ->setAttributes(self::urlAttributes($rawUrl))
                     ->setAttribute(HttpAttributes::HTTP_REQUEST_METHOD, $params[0])
                     ->setAttribute(CodeAttributes::CODE_FUNCTION_NAME, sprintf('%s::%s', $class, $function))
                     ->setAttribute(CodeAttributes::CODE_FILE_PATH, $filename)
@@ -140,8 +139,6 @@ final class HttpClientInstrumentation
                 $span = $builder
                     ->setParent($parent)
                     ->startSpan();
-
-                $requestOptions = $params[2] ?? [];
 
                 if (!isset($requestOptions['headers'])) {
                     $requestOptions['headers'] = [];
@@ -158,19 +155,26 @@ final class HttpClientInstrumentation
                 }
 
                 $previousOnProgress = $requestOptions['on_progress'] ?? null;
+                $awaitingResolvedUrl = !self::isAbsoluteUrl($rawUrl);
 
                 //As Response are lazy we end span when status code was received
                 $requestOptions['on_progress'] = static function (int $dlNow, int $dlSize, array $info) use (
                     $previousOnProgress,
-                    $span
+                    $span,
+                    &$awaitingResolvedUrl
                 ): void {
                     if (null !== $previousOnProgress) {
                         $previousOnProgress($dlNow, $dlSize, $info);
                     }
 
-                    $statusCode = $info['http_code'];
+                    $resolvedUrl = $info['url'] ?? null;
+                    if ($awaitingResolvedUrl && \is_string($resolvedUrl) && '' !== $resolvedUrl) {
+                        $awaitingResolvedUrl = false;
+                        $span->setAttributes(self::urlAttributes($resolvedUrl));
+                    }
 
-                    if (0 !== $statusCode && null !== $statusCode && $span->isRecording()) {
+                    $statusCode = $info['http_code'] ?? null;
+                    if (0 !== $statusCode && null !== $statusCode && $span->isRecording() && !self::isFollowingRedirect($info)) {
                         $span->setAttribute(HttpAttributes::HTTP_RESPONSE_STATUS_CODE, $statusCode);
 
                         if ($statusCode >= 400 && $statusCode < 600) {
@@ -227,6 +231,65 @@ final class HttpClientInstrumentation
                 // it's added in on_progress callback, see line 69
             },
         );
+    }
+
+    /**
+     * @return array<non-empty-string, ?string>
+     */
+    private static function urlAttributes(string $url): array
+    {
+        $url = self::redactCredentials($url);
+
+        return [
+            TraceAttributes::PEER_SERVICE => parse_url($url)['host'] ?? null,
+            UrlAttributes::URL_FULL => $url,
+        ];
+    }
+
+    private static function isFollowingRedirect(array $info): bool
+    {
+        $statusCode = $info['http_code'];
+        $headers = $info['response_headers'] ?? [];
+        if ($statusCode < 300 || $statusCode >= 400 || [] === $headers) {
+            return false;
+        }
+
+        $responses = \count(preg_grep('#^HTTP/#', $headers) ?: []);
+        if (0 === $responses) {
+            return false;
+        }
+
+        if ($responses <= ($info['redirect_count'] ?? 0)) {
+            return true;
+        }
+
+        if ('' !== ($info['redirect_url'] ?? null)) {
+            return false;
+        }
+
+        for ($i = \count($headers) - 1; $i >= 0 && !str_starts_with($headers[$i], 'HTTP/'); --$i) {
+            if (0 === stripos($headers[$i], 'location:')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function isAbsoluteUrl(string $url): bool
+    {
+        $parts = parse_url($url) ?: [];
+
+        return isset($parts['scheme'], $parts['host']);
+    }
+
+    private static function redactCredentials(string $url): string
+    {
+        if (!str_contains($url, '@')) {
+            return $url;
+        }
+
+        return preg_replace('~^((?:[^:/?#]+:)?//)[^/?#]*@~', '$1REDACTED:REDACTED@', $url) ?? $url;
     }
 
     private static function ownerContext(ContextInterface $context, SpanInterface $span, string $request, string $class): ContextInterface
