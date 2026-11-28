@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 0.4.0 - 2026-11-28
+
 ### Breaking changes
 
 - Requires PHP 8.2 and `open-telemetry/sdk-configuration` 0.10. Configuration files must use

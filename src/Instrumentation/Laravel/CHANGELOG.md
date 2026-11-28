@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 1.11.0 - 2026-11-28
+
 ### Breaking changes
 
 - Requires `open-telemetry/sem-conv` 1.45 ([#772]).

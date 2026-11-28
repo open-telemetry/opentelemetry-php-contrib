@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 0.4.0 - 2026-11-28
+
 ### Changed
 
 - No longer requires `open-telemetry/sdk-configuration`, which the sampler didn't use ([#775]).

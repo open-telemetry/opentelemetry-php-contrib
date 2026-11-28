@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 1.5.0 - 2026-11-28
+
 ### Breaking changes
 - Removed support for PHP 8.1 ([#776]).
 - Added support for PHP 8.6 ([#776]).

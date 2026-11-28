@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 1.7.1 - 2026-11-28
+
 ### Fixed
 
 - HttpClient spans report the absolute URL and `peer.service` when the client resolves a relative URL

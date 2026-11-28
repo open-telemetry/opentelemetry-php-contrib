@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 1.3.2 - 2026-11-28
+
 ### Fixed
 
 - Spans for anonymous classes, such as Slim's middleware handlers, are now named `<parent>@anonymous::<method>`.

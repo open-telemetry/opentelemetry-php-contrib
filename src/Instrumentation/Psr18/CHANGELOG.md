@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 1.5.0 - 2026-11-28
+
 ### Breaking changes
 
 - The instrumentation is registered through SPI, and the SDK autoloader loads it. It needs
