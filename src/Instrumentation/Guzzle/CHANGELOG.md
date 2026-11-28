@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 1.5.1 - 2026-11-28
+
 ### Fixed
 
 - Instrumented requests no longer trigger a deprecation of `GuzzleHttp\Promise\Is` with

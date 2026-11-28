@@ -6,6 +6,8 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+## 0.5.0 - 2026-11-28
+
 ### Breaking changes
 
 - Requires PHP 8.2 ([#775]).
