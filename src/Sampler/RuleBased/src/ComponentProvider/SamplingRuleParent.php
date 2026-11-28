@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace OpenTelemetry\Contrib\Sampler\RuleBased\ComponentProvider;
 
-use OpenTelemetry\Config\SDK\Configuration\ComponentProvider;
-use OpenTelemetry\Config\SDK\Configuration\ComponentProviderRegistry;
-use OpenTelemetry\Config\SDK\Configuration\Context;
+use OpenTelemetry\API\Configuration\Config\ComponentProvider;
+use OpenTelemetry\API\Configuration\Config\ComponentProviderRegistry;
+use OpenTelemetry\API\Configuration\Context;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule;
 use OpenTelemetry\Contrib\Sampler\RuleBased\SamplingRule\ParentRule;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;

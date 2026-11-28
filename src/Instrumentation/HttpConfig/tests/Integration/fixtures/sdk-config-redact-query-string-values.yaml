@@ -1,4 +1,4 @@
-file_format: '1.0-rc.2'
+file_format: '1.0'
 instrumentation/development:
   php:
     http:

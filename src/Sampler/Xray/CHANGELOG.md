@@ -6,6 +6,12 @@ upgraders can check them in one place.
 
 ## Unreleased
 
+### Changed
+
+- No longer requires `open-telemetry/sdk-configuration`, which the sampler didn't use ([#775]).
+
 ## 0.3.0 and earlier
 
 See the [GitHub releases](https://github.com/opentelemetry-php/contrib-sampler-aws-xray/releases).
+
+[#775]: https://github.com/open-telemetry/opentelemetry-php-contrib/pull/775
